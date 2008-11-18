@@ -1,0 +1,26 @@
+REGEDIT4
+
+
+# Set NetBIOS-Name
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ComputerName]
+"ComputerName"="{$HostName$}"
+
+# Set hostname
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\VxD\VNETSUP]
+"ComputerName"="{$HostName$}"
+"Comment"="Client {$HostName$}"
+"Workgroup"="SCHULE"
+
+# Disable local password caching
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Network]
+"DisablePwdCaching"=dword:00000001
+
+# Default user name displayed in logon-dialog
+[HKEY_LOCAL_MACHINE\Network\Logon]
+"UserName"=""
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Winlogon]
+"DefaultUserName"=""
+
+# Clear recently used documents on logout
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"ClearRecentDocsOnExit"=dword:00000001

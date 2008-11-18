@@ -1,0 +1,96 @@
+# LINBO start.conf Beispiel fuer Windows XP und Kubuntu auf SATA-Platte
+# Windows XP System auf Partition 1 (FAT32)
+# Kubuntu Gutsy 7.10 auf Partition 2
+# Swap auf Partition 3
+# Erweiterte Partition auf Partition 4
+# Daten auf Partition 5
+# Cache auf Partition 6
+# Festplatte 80G (SATA)
+
+[LINBO]                  # globale Konfiguration
+Cache = /dev/sda6        # lokale Cache Partition
+Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
+RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
+AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
+AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
+AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Start
+UseMulticast = no        # kein Image-Download per Multicast
+
+[Partition]              # Start einer Partitionsdefinition, Windows XP mit NTFS
+Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster SATA-Platte)
+Size = 10485760          # Partitionsgroesse in kB (Bsp.: 10G)
+Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ntfs            # Dateisystem auf der Partition (NTFS)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Start einer Partitionsdefinition, Kubuntu
+Dev = /dev/sda2          # Device-Name der Partition (sda2 = 2. Partition auf erster SATA-Platte)
+Size = 10485760          # Partitionsgroesse in kB (Bsp.: 10G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ext3            # Dateisystem auf der Partition (ext3)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Definition der Swappartition
+Dev = /dev/sda3          # Device-Name der Partition (sda3 = 3. Partition auf erster SATA-Platte)
+Size = 1048576           # Partitionsgroesse in kB (Bsp.: 1G)
+Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = swap            # Dateisystem auf der Partition (swap)
+
+[Partition]              # Erweiterte Partition
+Dev = /dev/sda4          # Device-Name der Partition (sda4 = 4. Partition auf erster SATA-Platte)
+Size =                   # Partitionsgroesse in kB (leer bei erweiterter Partition)
+Id = 5                   # Partitionstyp (5 = erweiterte Partition)
+FSType =                 # Dateisystem auf der Partition (leer bei erweiterter Partition)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Start einer Partitionsdefinition, Datenpartition mit NTFS
+Dev = /dev/sda5          # Device-Name der Partition (sda5 = 5. Partition auf erster SATA-Platte)
+Size = 41943040          # Partitionsgroesse in kB (Bsp.: 40G)
+Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ntfs            # Dateisystem auf der Partition
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Definition der Cache-Partition
+Dev = /dev/sda6          # Device-Name der Partition (sda6 = 6. Partition auf erster SATA-Platte)
+Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 19G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = reiserfs        # Dateisystem fuer Cache-Partition (reiserfs empf.)
+Bootable = no            # Bootable-Flag
+
+[OS]                                 # Beginn einer Betriebssystemdefinition
+Name = Windows XP                    # Name des Betriebssystems
+Version =                            # Version (optional, frei waehlbar)
+Description = Windows XP Prof. SP2   # Beschreibung
+Image =                              # kein differentielles Image von NTFS-Partitionen
+BaseImage  = winxp.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
+                                     # bei Windows ist Boot und Root immer dieselbe Partition
+Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
+Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
+                                     # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. SATA-Festplatte
+                                     # bei IDE-Platten statt /dev/sda /dev/hda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/sda
+StartEnabled = yes                   # "Start"-Button anzeigen
+SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
+NewEnabled = yes                     # "Neu+Start"-Button anzeigen
+Hidden = yes                         # verstecke OS-Reiter
+Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+
+[OS]
+Name = Kubuntu                       # Name des Betriebssystems
+Version =                            # Version (optional)
+Description = Kubuntu 8.04 Hardy     # Beschreibung
+#Image =  hardy.rsync                # Dateiname des differentiellen Images (Erweiterung .rsync)
+Image =                              # erst eintragen, wenn es erzeugt werden soll
+BaseImage = hardy.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda2                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda2                     # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                     # Relativer Pfad zum Kernel
+Initrd = initrd.img                  # Relativer Pfad zur Initrd
+Append = ro splash                   # Kernel-Append-Parameter
+StartEnabled = yes                   # "Start"-Button anzeigen
+SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
+NewEnabled = yes                     # "Neu+Start"-Button anzeigen
+Hidden = yes                         # verstecke OS-Reiter
+Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems

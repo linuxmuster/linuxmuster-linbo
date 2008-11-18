@@ -1,0 +1,93 @@
+From c466edd86b31a9d34cde3db24b093223108627d2 Mon Sep 17 00:00:00 2001
+From: Jay Lan <jlan@sgi.com>
+Date: Fri, 12 Sep 2008 13:10:34 -0700
+Subject: [PATCH] IA64: do not include uncached memory to vmcore
+
+Currently a memory segment in memory map with attribute of EFI_MEMORY_UC
+is denoted as "System RAM" in /proc/iomem, while memory of attribute
+(EFI_MEMORY_WB|EFI_MEMORY_UC) is also labeled the same.
+
+The kexec utility then includes uncached memory as part of vmcore.
+The kdump kernel may MCA when it tries to save the vmcore to a disk.
+A normal "cached" access can cause MCAs.
+
+Since kexec assembled memory ranges with memory tagged as "System RAM",
+the uncached memory will be excluded if it is labeled differently.
+
+Simon, since only IA64 will create "Uncached RAM" label, i do not
+make changes to other arch.
+
+Our HP machine in the lab is dead. I am sorry that i can not test
+against other IA64 systems (than SGI's). Feedback is very much
+appreciated.
+
+The corresponding kernel patch is needed to test this kexec patch:
+http://marc.info/?l=linux-ia64&m=122122791230130&w=2
+This patch without the kernel patch will have no effect and do no
+harm.
+
+The kernel patch has been commited as
+"[IA64] kexec fails on systems with blocks of uncached memory".
+
+Signed-off-by: Jay Lan <jlan@sgi.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: Bernhard Walle <bwalle@suse.de>
+
+---
+ kexec/arch/ia64/crashdump-ia64.c |    5 ++++-
+ kexec/arch/ia64/kexec-ia64.c     |    5 ++++-
+ kexec/firmware_memmap.c          |    2 ++
+ kexec/kexec.h                    |    1 +
+ 4 files changed, 11 insertions(+), 2 deletions(-)
+
+--- a/kexec/arch/ia64/crashdump-ia64.c
++++ b/kexec/arch/ia64/crashdump-ia64.c
+@@ -192,8 +192,11 @@ static int get_crash_memory_ranges(struc
+ 			kernel_code_start = start;
+ 			kernel_code_end = end;
+ 			continue;
+-		}else
++		} else if (memcmp(str, "Uncached RAM\n", 13) == 0) {
++			type = RANGE_UNCACHED;
++		} else {
+ 			continue;
++		}
+ 		crash_memory_range[memory_ranges].start = start;
+ 		crash_memory_range[memory_ranges].end = end;
+ 		crash_memory_range[memory_ranges].type = type;
+--- a/kexec/arch/ia64/kexec-ia64.c
++++ b/kexec/arch/ia64/kexec-ia64.c
+@@ -139,8 +139,11 @@ int get_memory_ranges(struct memory_rang
+ 			memory_ranges = split_range(memory_ranges, start, end);
+ 			saved_efi_memmap_size = end - start;
+ 			continue;
+-		} else
++		} else if (memcmp(str, "Uncached RAM\n", 13) == 0) {
++			type = RANGE_UNCACHED;
++		} else {
+ 			continue;
++		}
+ 		/*
+ 		 * Check if this memory range can be coalesced with
+ 		 * the previous range
+--- a/kexec/firmware_memmap.c
++++ b/kexec/firmware_memmap.c
+@@ -158,6 +158,8 @@ static int parse_memmap_entry(const char
+ 		range->type = RANGE_RESERVED;
+ 	else if (strcmp(type, "ACPI Non-volatile Storage") == 0)
+ 		range->type = RANGE_ACPI_NVS;
++	else if (strcmp(type, "Uncached RAM") == 0)
++		range->type = RANGE_UNCACHED;
+ 	else {
+ 		fprintf(stderr, "Unknown type (%s) while parsing %s. Please "
+ 			"report this as bug. Using RANGE_RESERVED now.\n",
+--- a/kexec/kexec.h
++++ b/kexec/kexec.h
+@@ -110,6 +110,7 @@ struct memory_range {
+ #define RANGE_RESERVED	1
+ #define RANGE_ACPI	2
+ #define RANGE_ACPI_NVS	3
++#define RANGE_UNCACHED	4
+ };
+ 
+ struct kexec_info {

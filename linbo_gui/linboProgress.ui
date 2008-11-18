@@ -1,0 +1,83 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboProgress</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboProgress</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>472</width>
+            <height>106</height>
+        </rect>
+    </property>
+    <property name="cursor">
+        <cursor>3</cursor>
+    </property>
+    <property name="caption">
+        <string>Warten...</string>
+    </property>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>progressLabel</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>10</y>
+                <width>430</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Bitte Warten...</string>
+        </property>
+        <property name="alignment">
+            <set>AlignCenter</set>
+        </property>
+    </widget>
+    <widget class="QProgressBar">
+        <property name="name">
+            <cstring>progressBar</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>40</y>
+                <width>430</width>
+                <height>21</height>
+            </rect>
+        </property>
+        <property name="cursor">
+            <cursor>0</cursor>
+        </property>
+        <property name="frameShape">
+            <enum>NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+            <enum>Sunken</enum>
+        </property>
+        <property name="percentageVisible">
+            <bool>false</bool>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>cancelButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>190</x>
+                <y>70</y>
+                <width>100</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Abbruch</string>
+        </property>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

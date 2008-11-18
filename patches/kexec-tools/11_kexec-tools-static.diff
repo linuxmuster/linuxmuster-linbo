@@ -1,0 +1,37 @@
+From 6abf3ba5dc63ef670010927d5572d38c3ce2a587 Mon Sep 17 00:00:00 2001
+From: Bernhard Walle <bwalle@suse.de>
+Date: Tue, 26 Aug 2008 10:16:49 +0200
+Subject: [PATCH] Move $(LIBS) on the end
+
+To make static compilation work with
+
+    LDFLAGS=-static ./configure
+    make
+
+we have to move $(LIBS) on the end of the compiler line. Static compilation has
+been requested by "Yinghai Lu" <yhlu.kernel@gmail.com>. Although I don't see the
+practical benefit in most cases, I don't think we should not support it. Since
+kexec does not use name resolution functions of libc, it's valid to use static
+linking.
+
+Tested on x86_64-suse-linux.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+
+diff --git a/kexec/Makefile b/kexec/Makefile
+index 6147904..99949c4 100644
+--- a/kexec/Makefile
++++ b/kexec/Makefile
+@@ -67,10 +67,9 @@ KEXEC_MANPAGE = $(MANDIR)/man8/kexec.8
+ 
+ -include $(KEXEC_DEPS)
+ 
+-$(KEXEC): LDFLAGS+=$(LIBS)
+ $(KEXEC): $(KEXEC_OBJS) $(UTIL_LIB)
+ 	@$(MKDIR) -p $(@D)
+-	$(LINK.o) -o $@ $^
++	$(LINK.o) -o $@ $^ $(LIBS)
+ 
+ $(KEXEC): CPPFLAGS+=-I$(srcdir)/kexec/arch/$(ARCH)/include
+ 

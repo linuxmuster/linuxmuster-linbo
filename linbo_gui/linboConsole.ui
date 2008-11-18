@@ -1,0 +1,62 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboConsole</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboConsole</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>382</width>
+            <height>382</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Console</string>
+    </property>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>textLabel1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>300</y>
+                <width>161</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Befehl eingeben:</string>
+        </property>
+    </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>input</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>340</y>
+                <width>361</width>
+                <height>31</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QTextBrowser">
+        <property name="name">
+            <cstring>output</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>360</width>
+                <height>280</height>
+            </rect>
+        </property>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

@@ -1,0 +1,101 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboImageUpload</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboImageUpload</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>341</width>
+            <height>213</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Image Auswahl</string>
+    </property>
+    <widget class="QListBox">
+        <item>
+            <property name="text">
+                <string>New Item</string>
+            </property>
+        </item>
+        <property name="name">
+            <cstring>listBox</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>70</y>
+                <width>320</width>
+                <height>90</height>
+            </rect>
+        </property>
+        <property name="vScrollBarMode">
+            <enum>Auto</enum>
+        </property>
+        <property name="hScrollBarMode">
+            <enum>Auto</enum>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>OSLabel</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>310</width>
+                <height>51</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Welches Image soll hochgeladen werden?</string>
+        </property>
+        <property name="alignment">
+            <set>AlignCenter</set>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>cancelButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>230</x>
+                <y>170</y>
+                <width>100</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Abbruch</string>
+        </property>
+        <property name="toolTip" stdset="0">
+            <string>Abbrechen ohne Hochladen</string>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>okButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>170</y>
+                <width>100</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>OK</string>
+        </property>
+        <property name="toolTip" stdset="0">
+            <string>Lädt das ausgewählte&lt;br&gt;Image auf den Server hoch</string>
+        </property>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

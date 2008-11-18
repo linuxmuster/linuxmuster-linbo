@@ -1,0 +1,65 @@
+# LINBO start.conf, Beispiel fuer Kubuntu
+# Kubuntu auf Partition 1
+# Cache auf Partition 2
+# Swap auf Partition 3
+# Daten auf Partition 4
+# Festplatte 40G (IDE)
+
+[LINBO]                  # Start der globalen Konfiguration
+Cache = /dev/hda2        # lokale Cache Partition
+Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
+RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
+AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
+AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
+AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Start
+UseMulticast = no        # kein Image-Download per Multicast
+
+[Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Kubuntu)
+Dev = /dev/hda1          # Device-Name der Partition (hda1 = erste Partition auf erster IDE-Platte)
+Size = 6291456           # Partitionsgroesse in kB (Bsp.: 6G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ext3            # Dateisystem ext3
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Start einer Partitionsdefinition, Cachepartition
+Dev = /dev/hda2          # Device-Name der Partition (hda2 = zweite Partition auf erster IDE-Platte)
+Size = 10485760          # Partitionsgroesse 8388608 kB (Bsp.: 10G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = reiserfs        # Dateisystem reiserfs (empf. für Cache)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Definition der Swap-Partition
+Dev = /dev/hda3          # Device-Name der Partition (hda3 = dritte Partition auf erster IDE-Platte)
+Size = 524288            # Partitionsgroesse in kB (Bsp.: 512M)
+Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = swap            # Dateisystem swap
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Start einer Partitionsdefinition, Datenpartition
+Dev = /dev/hda4          # Device-Name der Partition (hda4 = vierte Partition auf erster IDE-Platte)
+Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 25G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ext3            # Dateisystem ext3
+Bootable = no            # Bootable-Flag
+
+[OS]
+Name = Kubuntu                      # Name des Betriebssystems
+Version =                           # Version (optional)
+Description = Kubuntu 8.04 Hardy    # Beschreibung
+#Image =  hardy.rsync               # Dateiname des differentiellen Images (Erweiterung .rsync)
+Image =                             # erst eintragen, wenn es erzeugt werden soll
+BaseImage = hardy.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda1                    # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda1                    # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                    # Relativer Pfad zum Kernel
+Initrd = initrd.img                 # Relativer Pfad zur Initrd
+Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen
+#Append = ro splash root=/dev/sda1  # bei Hardy muss evtl. root=/dev/sda2 angehaengt werden, da bei manchen
+                                    # IDE-Kontrollern der Hardy-Kernel die neuen PATA-Treiber verwendet, die
+                                    # IDE-Platten mit /dev/sd* ansprechen
+                                    # ansonsten wird automatisch das verwendet, was unter "Root =" angegeben ist.
+StartEnabled = yes                  # "Start"-Button anzeigen
+SyncEnabled = yes                   # "Sync+Start"-Button anzeigen
+NewEnabled = yes                    # "Neu+Start"-Button anzeigen
+Hidden = yes                        # verstecke OS-Reiter
+Autostart = no                      # automatischer synchronisierter Start des Betriebssystems

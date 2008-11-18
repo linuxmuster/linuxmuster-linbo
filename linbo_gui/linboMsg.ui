@@ -1,0 +1,39 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboMsg</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboMsg</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>323</width>
+            <height>149</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Mitteilung</string>
+    </property>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>message</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>301</width>
+                <height>140</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Ein Fehler trat auf. Bitte nehmen Sie diesen Fehler zur kenntnis.</string>
+        </property>
+        <property name="alignment">
+            <set>WordBreak|AlignCenter</set>
+        </property>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

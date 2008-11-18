@@ -1,0 +1,21 @@
+Source: linuxmuster-linbo
+Section: admin
+Priority: extra
+Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
+Build-Depends: debhelper (>= 4), build-essential, fakeroot, qt3-dev-tools, flex, wget, gcc-4.1, g++-4.1, ncurses-base,
+               coreutils, sysvinit-utils, util-linux, libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip,
+	       gettext, zlib1g-dev, libncurses5-dev, tetex-base, tetex-bin, tetex-extra, udpcast
+Standards-Version: 3.6.1
+
+Package: linuxmuster-linbo
+Architecture: any
+Depends: rsync (>= 2.6.9), syslinux, sed, recode, mkisofs, linuxmuster-base (>= 1.4.36), atftpd, udpcast
+Suggests: dhcp-server | dhcp3-server
+Description: LINBO PXE boot files
+ This package contains the bootfiles and multicast startscripts
+ for the Linux-based Network Boot (LINBO) boot/install/repair system.
+ Installation and configuration of a DHCP, TFTP and RSYNC server, as well
+ as udpcast, is highly recommended for this to work.
+ .
+ Please read about LINBO configuration and administration in
+ /usr/share/doc/linuxmuster-linbo/LINBO.pdf.

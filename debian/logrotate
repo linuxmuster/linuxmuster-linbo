@@ -1,0 +1,8 @@
+/var/log/linuxmuster/linbo/*.log {
+     rotate 30
+     weekly
+     compress
+     size 50k
+     missingok
+     notifempty
+}

@@ -1,0 +1,182 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboRegisterBox</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboRegisterBox</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>282</width>
+            <height>412</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Rechner registrieren</string>
+    </property>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>textLabel2</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>10</y>
+                <width>150</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Raumbezeichnung</string>
+        </property>
+    </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>roomName</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>50</y>
+                <width>240</width>
+                <height>31</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>textLabel3</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>100</y>
+                <width>141</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Rechnername</string>
+        </property>
+    </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>clientName</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>140</y>
+                <width>241</width>
+                <height>31</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>textLabel3_2</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>190</y>
+                <width>141</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>IP-Adresse</string>
+        </property>
+    </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>ipAddress</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>230</y>
+                <width>241</width>
+                <height>31</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>textLabel3_2_2</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>280</y>
+                <width>141</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Rechnergruppe</string>
+        </property>
+    </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>clientGroup</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>320</y>
+                <width>241</width>
+                <height>31</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>registerButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>370</y>
+                <width>91</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Registrieren</string>
+        </property>
+        <property name="toolTip" stdset="0">
+            <string>Lädt die Rechnerinformationen auf den Server hoch</string>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>cancelButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>170</x>
+                <y>370</y>
+                <width>91</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Abbruch</string>
+        </property>
+        <property name="toolTip" stdset="0">
+            <string>Abbrechen ohne Rechnerregistrierung</string>
+        </property>
+    </widget>
+</widget>
+<tabstops>
+    <tabstop>roomName</tabstop>
+    <tabstop>clientName</tabstop>
+    <tabstop>ipAddress</tabstop>
+    <tabstop>clientGroup</tabstop>
+    <tabstop>registerButton</tabstop>
+    <tabstop>cancelButton</tabstop>
+</tabstops>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

@@ -1,0 +1,55 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboInfoBrowser</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboInfoBrowser</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>362</width>
+            <height>292</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Image Info</string>
+    </property>
+    <widget class="QTextEdit">
+        <property name="name">
+            <cstring>editor</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>340</width>
+                <height>230</height>
+            </rect>
+        </property>
+        <property name="readOnly">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>saveButton</cstring>
+        </property>
+        <property name="enabled">
+            <bool>false</bool>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>120</x>
+                <y>250</y>
+                <width>121</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Speichern</string>
+        </property>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

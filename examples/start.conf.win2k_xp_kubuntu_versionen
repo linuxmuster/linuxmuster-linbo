@@ -1,0 +1,181 @@
+# LINBO start.conf Beispiel mit verschiedenen Betriebssystem-Versionen
+# Windows 2000 und XP auf Partition 1 (FAT32)
+# Kubuntu Hardy 7.10 auf Partition 2
+# Swap auf Partition 3
+# Erweiterte Partition auf Partition 4
+# Daten auf Partition 5 (NTFS)
+# Cache auf Partition 6
+# Festplatte 60G (IDE)
+
+[LINBO]                  # globale Konfiguration
+Cache = /dev/hda6        # lokale Cache Partition
+Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
+RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
+AutoPartition = yes      # automatische Partitionsreparatur beim LINBO-Start
+AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
+AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Start
+UseMulticast = yes       # Image-Download per Multicast
+
+[Partition]              # Start einer Partitionsdefinition, Windows XP mit FAT32
+Dev = /dev/hda1          # Device-Name der Partition (hda1 = erste Partition auf erster IDE-Platte)
+Size = 5192000           # Partitionsgroesse in kB (Bsp.: 5G)
+Id = c                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = vfat            # Dateisystem auf der Partition (FAT32)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Start einer Partitionsdefinition, Kubuntu
+Dev = /dev/hda2          # Device-Name der Partition (hda2 = zweite Partition auf erster IDE-Platte)
+Size = 6291456           # Partitionsgroesse in kB (Bsp.: 6G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ext3            # Dateisystem auf der Partition (ext3)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Definition der Swappartition
+Dev = /dev/hda3          # Device-Name der Partition (hda3 = dritte Partition auf erster IDE-Platte)
+Size = 1048576           # Partitionsgroesse in kB (Bsp.: 1G)
+Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = swap            # Dateisystem auf der Partition (swap)
+
+[Partition]              # Erweiterte Partition
+Dev = /dev/hda4          # Device-Name der Partition (hda4 = vierte Partition auf erster IDE-Platte)
+Size =                   # Partitionsgroesse in kB (leer bei erweiterter Partition)
+Id = 5                   # Partitionstyp (5 = erweiterte Partition)
+FSType =                 # Dateisystem auf der Partition (leer bei erweiterter Partition)
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Start einer Partitionsdefinition, Datenpartition mit NTFS
+Dev = /dev/hda5          # Device-Name der Partition (hda5 = fünfte Partition auf erster IDE-Platte)
+Size = 36700160          # Partitionsgroesse in kB (Bsp.: 35G)
+Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ntfs            # Dateisystem auf der Partition
+Bootable = no            # Bootable-Flag
+
+[Partition]              # Definition der Cache-Partition
+Dev = /dev/hda6          # Device-Name der Partition (hda6 = sechste Partition auf erster IDE-Platte)
+Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 8G)
+Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = reiserfs        # Dateisystem fuer Cache-Partition (reiserfs empf.)
+Bootable = no            # Bootable-Flag
+
+[OS]                                 # Beginn einer Betriebssystemdefinition
+Name = Windows 2000                  # Name des Betriebssystems
+Version = Software1                  # Version (optional, frei waehlbar)
+Description = Windows 2000 SP4       # Beschreibung
+Image = win2k.rsync                  # Dateiname des differentiellen Images (Erweiterung .rsync)
+BaseImage = win2k.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+                                     # bei Windows ist Boot und Root immer dieselbe Partition
+Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
+Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
+                                     # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
+                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+StartEnabled = no                    # "Start"-Button deaktiviert
+SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
+NewEnabled = yes                     # "Neu+Start"-Button anzeigen
+Hidden = no                          # zeige OS-Reiter an
+Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+
+[OS]                                 # Beginn einer Betriebssystemdefinition
+Name = Windows 2000                  # Name des Betriebssystems
+Version = Basis                      # Version (optional, frei waehlbar)
+Description = Windows 2000 SP4       # Beschreibung
+Image =                              # kein differentielles Image definiert
+BaseImage = win2k.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+                                     # bei Windows ist Boot und Root immer dieselbe Partition
+Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
+Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
+                                     # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
+                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+StartEnabled = no                    # "Start"-Button deaktiviert
+SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
+NewEnabled = yes                     # "Neu+Start"-Button anzeigen
+Hidden = no                          # zeige OS-Reiter an
+Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+
+[OS]                                 # Beginn einer Betriebssystemdefinition
+Name = Windows XP                    # Name des Betriebssystems
+Version = Software1                  # Version (optional, frei waehlbar)
+Description = Windows XP Prof. SP2   # Beschreibung
+Image = winxp.rsync                  # Dateiname des differentiellen Images (Erweiterung .rsync)
+BaseImage  = winxp.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+                                     # bei Windows ist Boot und Root immer dieselbe Partition
+Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
+Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
+                                     # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
+                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+StartEnabled = no                    # "Start"-Button deaktiviert
+SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
+NewEnabled = yes                     # "Neu+Start"-Button anzeigen
+Hidden = no                          # zeige OS-Reiter an
+Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+
+[OS]                                 # Beginn einer Betriebssystemdefinition
+Name = Windows XP                    # Name des Betriebssystems
+Version = Basis                      # Version (optional, frei waehlbar)
+Description = Windows XP Prof. SP2   # Beschreibung
+Image =                              # kein differentielles Image definiert
+BaseImage  = winxp.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+                                     # bei Windows ist Boot und Root immer dieselbe Partition
+Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
+Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
+                                     # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
+                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+StartEnabled = no                    # "Start"-Button deaktiviert
+SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
+NewEnabled = yes                     # "Neu+Start"-Button anzeigen
+Hidden = no                          # zeige OS-Reiter an
+Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+
+[OS]
+Name = Kubuntu                      # Name des Betriebssystems
+Version = Software1                 # Version (optional)
+Description = Kubuntu 8.04 Hardy    # Beschreibung
+Image =  hardy.rsync                # Dateiname des differentiellen Images (Erweiterung .rsync)
+BaseImage = hardy.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda2                    # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda2                    # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                    # Relativer Pfad zum Kernel
+Initrd = initrd.img                 # Relativer Pfad zur Initrd
+Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen
+#Append = ro splash root=/dev/sda2  # bei Hardy muss evtl. root=/dev/sda2 angehaengt werden, da bei manchen
+                                    # IDE-Kontrollern der Hardy-Kernel die neuen PATA-Treiber verwendet, die
+                                    # IDE-Platten mit /dev/sd* ansprechen
+                                    # ansonsten wird automatisch das verwendet, was unter "Root =" angegeben ist.
+StartEnabled = no                   # "Start"-Button deaktiviert
+SyncEnabled = yes                   # "Sync+Start"-Button anzeigen
+NewEnabled = yes                    # "Neu+Start"-Button anzeigen
+Hidden = no                         # zeige OS-Reiter an
+Autostart = no                      # kein automatischer synchronisierter Start des Betriebssystems
+
+[OS]
+Name = Kubuntu                      # Name des Betriebssystems
+Version = Basis                     # Version (optional)
+Description = Kubuntu 8.04 Hardy    # Beschreibung
+Image =                             # kein differentielles Image
+BaseImage = hardy.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/hda2                    # Partition, die Kernel & Initrd enthaelt
+Root = /dev/hda2                    # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                    # Relativer Pfad zum Kernel
+Initrd = initrd.img                 # Relativer Pfad zur Initrd
+Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen
+#Append = ro splash root=/dev/sda2  # bei Hardy muss evtl. root=/dev/sda2 angehaengt werden, da bei manchen
+                                    # IDE-Kontrollern der Hardy-Kernel die neuen PATA-Treiber verwendet, die
+                                    # IDE-Platten mit /dev/sd* ansprechen
+                                    # ansonsten wird automatisch das verwendet, was unter "Root =" angegeben ist.
+StartEnabled = no                   # "Start"-Button deaktiviert
+SyncEnabled = yes                   # "Sync+Start"-Button anzeigen
+NewEnabled = yes                    # "Neu+Start"-Button anzeigen
+Hidden = no                         # zeige OS-Reiter an
+Autostart = no                      # kein automatischer synchronisierter Start des Betriebssystems
+

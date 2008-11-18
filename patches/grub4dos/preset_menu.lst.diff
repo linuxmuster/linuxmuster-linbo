@@ -1,0 +1,9 @@
+--- grub4dos/preset_menu.lst	2008-11-17 07:35:10.000000000 +0100
++++ grub4dos/preset_menu.lst.linbo	2008-11-17 07:32:48.000000000 +0100
+@@ -1,5 +1,5 @@
+ default 0
+-timeout 1
++timeout 0
+ fallback 1
+ 
+ title find /menu.lst

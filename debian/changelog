@@ -1,0 +1,795 @@
+linuxmuster-linbo (1.1.0-1) unstable; urgency=low
+
+    * reworked build environment, now based on Debian 4.0 Etch
+    * kernel update to 2.6.27.6
+    * busybox update to 1.12.2
+    * updated rsync to 3.0.4
+    * updated ntfs-3g to 1.5012
+    * added more nic drivers to kernel
+    * linbo_cmd.sh: fixed multicast download
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 16 Nov 2008 15:28:52 +0100
+
+linuxmuster-linbo (1.0.329-5) unstable; urgency=low
+
+    * activated several libata drivers in linbo kernel and deactivated ide drivers
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 Nov 2008 16:23:39 +0100
+
+linuxmuster-linbo (1.0.329-4) unstable; urgency=low
+
+    * updated kexec to 2.0.0 (OpenSuSE Release 41.1)
+    * removed pxegrub
+    * added radeonfb support to kernel
+    * updated ssmtp to 2.62 (source package from ubuntu intrepid)
+      fixed buffer overflow in standardise()
+    * linbo_cmd:
+      - storing hostname in /cache/hostname when patching in online mode
+      - using /cache/hostname in offline mode, adding "-w" to hostname for wlan clients
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 26 Oct 2008 11:50:25 +0100
+
+linuxmuster-linbo (1.0.329-3) unstable; urgency=low
+
+    * kernel update to 2.6.27.3:
+      - removed kvm support
+      - added linux-2.6-netdev-atl2.patch from fedora's 2.6.27.3-39.fc10 kernel
+    * updated rsync to 3.0.3 from lenny
+    * linbo_cmd.sh:
+      - decreased verbosity of rsync because of big logfiles
+    * package related:
+      - moved mkisofs from suggests to depends
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 25 Oct 2008 14:56:05 +0200
+
+linuxmuster-linbo (1.0.329-2) unstable; urgency=low
+
+    * linbo_cmd.sh:
+      - various modifications to increase debugging level
+      - logs now registry patching and syncing in different files
+      - provide an APPEND line for grub.exe booted systems if no one is given in start.conf
+    * patch_registry.sh:
+      - increased debugging level
+      - removed CurrentControlSet002 branch patching
+        causes errors on some systems and is not necessary
+    * mail2log.sh:
+      - several improvements concerning to error handling
+      - recoding log output to utf8
+    * added recode and linuxmuster-base (>= 1.4.36) to package dependencies
+    * decreased logrotate interval to 30
+    * moved pxelinux.cfg to debian dir with minor modifications
+    * removed display of boot timeout seconds from boot.msg
+    * modified start.conf examples according to grub.exe boot of windows systems
+    * changing default boot method for windows clients to grub.exe
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 22 Oct 2008 20:24:08 +0200
+
+linuxmuster-linbo (1.0.329-1) unstable; urgency=low
+
+    * Update grub4dos.exe to version 0.4.4. This may solve the Windows slowness problem (reported by Thomas)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Oct 2008 15:59:41 +0200
+
+linuxmuster-linbo (1.0.328-1) unstable; urgency=low
+
+    * Bugfix: counter in zero file creation when imaging, save space for compression (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Oct 2008 13:12:03 +0200
+
+linuxmuster-linbo (1.0.327-1) unstable; urgency=low
+
+    * linbo_cmd.sh: reworked network check in localmode()
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 31 Jul 2008 11:41:54 +0200
+
+linuxmuster-linbo (1.0.326-1) unstable; urgency=low
+
+    * linbo_cmd.sh: added a dos2unix against windows patch file
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Jul 2008 12:53:52 +0200
+
+linuxmuster-linbo (1.0.325-1) unstable; urgency=low
+
+    * new upstream revision 325: Kernel-Update to 2.6.26.0 (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Jul 2008 12:53:52 +0200
+
+linuxmuster-linbo (1.0.324-1) unstable; urgency=low
+
+    * new upstream revision with new pxegrub without error message hopefully
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Jul 2008 12:53:52 +0200
+
+linuxmuster-linbo (1.0.322-1) unstable; urgency=low
+
+    * implemented host specific logging
+    * added alternative pxegrub versions
+    * new upstream revision 321 (Oehler):
+      - linbo version in GUI is now 1.0
+      - removed error message "file not found" during partition probing
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 19 Jul 2008 15:33:11 +0200
+
+linuxmuster-linbo (1.0.318-1) unstable; urgency=low
+
+    * GUI (Oehler):
+      - fixed some typos
+      - a logfile containing the output to the linbo console in now written
+        to /tmp/linbo.log
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 19 Jul 2008 09:32:28 +0200
+
+linuxmuster-linbo (1.0.316-3) unstable; urgency=low
+
+    * rsync-post.sh:
+      - adding new uploaded host data to workstations data file
+      - removed restart of multicast server
+    * rsync-pre.sh:
+      - fixed log file path
+      - files with extension .new where also saved for post script
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Jul 2008 13:53:42 +0200
+
+linuxmuster-linbo (1.0.316-2) unstable; urgency=low
+
+    * dh_compress deactivated in rules
+    * improved start.conf examples
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Jul 2008 11:39:32 +0200
+
+linuxmuster-linbo (1.0.316-1) unstable; urgency=low
+
+    * Oehler: changed status bar arrangement
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Jul 2008 19:37:03 +0200
+
+linuxmuster-linbo (1.0.314-1) unstable; urgency=low
+
+    * linbo_cmd.sh: deactivated --inplace rsync option for vfat
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Jul 2008 19:37:03 +0200
+
+linuxmuster-linbo (1.0.313-1) unstable; urgency=low
+
+    * updated example files with "NewEnabled"
+    * fixing start.conf files with "NewEnabled" during postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 12 Jul 2008 19:37:03 +0200
+
+linuxmuster-linbo (1.0.312-1) unstable; urgency=low
+
+    * new upstream revision 312 (Knopper):
+      - Make start.conf option "NewEnabled" an alias for "RemoteSyncEnabled"
+      - cache size used/total (GB) display
+      - No "Network OK" message in case of localmode boot
+      - Truncate hostname to 15 chars in screen display
+      - We MUST use --inplace for rsync to vfat, because temporary names for existing
+        files are not creatable on FAT filesystem (mkstemp).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 11 Jul 2008 08:25:25 +0200
+
+linuxmuster-linbo (1.0.311-1) unstable; urgency=low
+
+    * added "update-rc.d linbo-multicast defaults" to postinst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Jul 2008 09:22:31 +0200
+
+linuxmuster-linbo (1.0.310-1) unstable; urgency=low
+
+    * new upstream revision 310
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 1 Jul 2008 10:33:31 +0200
+
+linuxmuster-linbo (1.0.307-1) unstable; urgency=low
+
+    * new upstream revision 306
+    * linbo_cmd.sh:
+      - added multicast download option for image sync to download_if_newer()
+      - fixed missing vga parameter for mkgrubmenu in update()
+      - optimized rsync options for vfat partitions
+    * linbo-multicast:
+      - improved creation of multicast.list
+      - moved script to debian directory
+    * rsync-post.sh:
+      - changed location of rsync.log to /var/log/linuxmuster/linbo
+      - restarting multicast server after image upload
+    * added logrotate file
+    * updated examples
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Jun 2008 14:48:16 +0200
+
+linuxmuster-linbo (1.0.305-1) unstable; urgency=low
+
+    * new upstream revision 305
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 26 Jun 2008 17:09:36 +0200
+
+linuxmuster-linbo (1.0.294-1) unstable; urgency=low
+
+    * linbo_cmd.sh:
+      - reactivated ms-sys for fat partitions in syncl()
+      - fixed: Do NOT start OS if sync failed by adding a simple return "$RC" at the end of syncl()
+      - removed a few comments
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 12 Jun 2008 15:37:46 +0200
+
+linuxmuster-linbo (1.0.293-1) unstable; urgency=low
+
+    * linbo_cmd.sh:
+      - deactivated new rsync and mount options for vfat,
+        needs further testing
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 12 Jun 2008 07:17:14 +0200
+
+linuxmuster-linbo (1.0.292-1) unstable; urgency=low
+
+    * linbo_cmd.sh:
+      - fixed typo in linbo.passwd assignment
+      - improved rsync and mount options for vfat
+      - fixed reg patch implementation from rev. 291
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 11 Jun 2008 17:38:08 +0200
+
+linuxmuster-linbo (1.0.291-1) unstable; urgency=low
+
+    * new upstream revision 291 (Knopper):
+      - Do NOT start OS if sync failed.
+      - Delete files which do not exist on server, or incomplete files in download().
+      - Bugfix: .rsync.reg files should be applied now.
+      - Print rsync error messages only on failure (exitcode != 0) when in file sync restore mode.
+      - move registry patches out of restore into syncl.
+      - Fix if [ "$RC" = "0" ] error condition in various places.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 11 Jun 2008 15:37:57 +0200
+
+linuxmuster-linbo (1.0.287-1) unstable; urgency=low
+
+    * linbo_cmd.sh: registry patches were now updated on every sync
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 10 Jun 2008 07:07:03 +0200
+
+linuxmuster-linbo (1.0.286-1) unstable; urgency=low
+
+    * new upstream revision 286:
+      Include Thomas patches, add bootlace,grldr (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 10 Jun 2008 07:06:19 +0200
+
+linuxmuster-linbo (1.0.285-1) unstable; urgency=low
+
+    * linbo_cmd.sh: fixed cifs mount password handling
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 8 Jun 2008 12:02:08 +0200
+
+linuxmuster-linbo (1.0.284-1) unstable; urgency=low
+
+    * new upstream revision 284:
+      vertical size of linbo console has been adjusted for 640x480 resolution (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 8 Jun 2008 11:39:37 +0200
+
+linuxmuster-linbo (1.0.283-1) unstable; urgency=low
+
+    * moved examples to doc dir with link to /var/linbo
+    * added logdir /var/log/linuxmuster/linbo with link to /var/linbo/log
+    * removed nonetwork parameter from isolinux.cfg
+    * added several paedML related actions to postinst
+    * debian patches for linbo_cmd.sh to fix functionality of remote cifs cache
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 7 Jun 2008 16:41:01 +0200
+
+linuxmuster-linbo (1.0.282-1) unstable; urgency=low
+
+    * new upstream revision 282:
+      Kernel config with APM (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 7 Jun 2008 12:48:27 +0200
+
+linuxmuster-linbo (1.0.281-1) unstable; urgency=low
+
+    * new upstream revision 281:
+      remote cache and extract_compressed_fs fixes (Knopper)
+    * removed parted and ms-sys from linbofs
+    * added grldr and bootlace.com to linbofs
+    * added code to linbo_cmd.sh to handle windows boot with grldr
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 6 Jun 2008 17:09:09 +0200
+
+linuxmuster-linbo (1.0.280-1) unstable; urgency=low
+
+    * new upstream revision 280:
+      first implementation of remote cache (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 5 Jun 2008 19:00:27 +0200
+
+linuxmuster-linbo (1.0.277-1) unstable; urgency=low
+
+    * new upstream revision 277:
+      - added autostart feature (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 30 May 2008 14:58:55 +0200
+
+linuxmuster-linbo (1.0.276-1) unstable; urgency=low
+
+    * new upstream revision 276:
+      - only for autostart debugging (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 17:51:32 +0200
+
+linuxmuster-linbo (1.0.275-1) unstable; urgency=low
+
+    * new upstream revision 275:
+      - reboot and halt buttons for gui (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 11:45:47 +0200
+
+linuxmuster-linbo (1.0.274-1) unstable; urgency=low
+
+    * new upstream revision 274:
+      - added autostart feature (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 11:45:47 +0200
+
+linuxmuster-linbo (1.0.272-1) unstable; urgency=low
+
+  * added linbo_cmd debian patch with stuff Klaus had not applied
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 11:45:47 +0200
+
+linuxmuster-linbo (1.0.271-1) unstable; urgency=low
+
+  * new upstream revision 271:
+    - parser improvements (Oehler)
+    - added debian patches to linbo_cmd (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 May 2008 08:44:29 +0200
+
+linuxmuster-linbo (1.0.268-1) unstable; urgency=low
+
+  * new upstream revision 268:
+    - Gui status info improvements (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 May 2008 16:45:30 +0200
+
+linuxmuster-linbo (1.0.266-1) unstable; urgency=low
+
+  * added new options to example files
+  * new upstream revision 266:
+    - more Gui status Infos (Oehler)
+    - added Hidden option to start.conf to hide OS-Section in gui (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 May 2008 15:22:46 +0200
+
+linuxmuster-linbo (1.0.263-1) unstable; urgency=low
+
+  * added configfile option to default pxegrub.lst
+  * new upstream revision 263:
+    - added cloop 2.625 (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 May 2008 12:02:53 +0200
+
+linuxmuster-linbo (1.0.262-1) unstable; urgency=low
+
+  * new upstream revision 262:
+    - Kernel 2.6.25
+    - Gui with status infos
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 May 2008 11:19:16 +0200
+
+linuxmuster-linbo (1.0.256-1) unstable; urgency=low
+
+  * fixed pxegrub (Oehler)
+  * linbo_cmd.sh:
+    - changed forced restore of fat32 partitions to dd again
+    - changed windows boot flag address (Oehler)
+    - modified content of linbo.lst
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 16 May 2008 16:17:51 +0200
+
+linuxmuster-linbo (1.0.255-1) unstable; urgency=low
+
+  * updated ms-sys to 2.1.3
+  * linbo_cmd.sh: grub is now installed to mbr on every start
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 May 2008 17:10:23 +0200
+
+linuxmuster-linbo (1.0.254-1) unstable; urgency=low
+
+  * new upstream revision 254: pxegrub update (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 May 2008 17:10:23 +0200
+
+linuxmuster-linbo (1.0.253-1) unstable; urgency=low
+
+  * new upstream revision 253: ntfs-3g update (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 May 2008 14:57:15 +0200
+
+linuxmuster-linbo (1.0.252-1) unstable; urgency=low
+
+  * new upstream revision 252: pxegrub update (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 May 2008 15:03:46 +0200
+
+linuxmuster-linbo (1.0.251-1) unstable; urgency=low
+
+  * added download of group specific local menu.lst to update() in linbo_cmd.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 9 May 2008 22:37:46 +0200
+
+linuxmuster-linbo (1.0.250-1) unstable; urgency=low
+
+  * added "-p" parameter to ms-sys command in linbo_cmd.sh
+  * removed linbo.bat registry patch from win2k-xp.reg example
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 9 May 2008 17:26:03 +0200
+
+linuxmuster-linbo (1.0.248-1) unstable; urgency=low
+
+  * new upstream release 248:
+    - kernel relocation activated (Knopper)
+    - windows boot flag in linbo_cmd.sh/pxegrub (Oehler)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 26 Apr 2008 11:03:58 +0200
+
+linuxmuster-linbo (1.0.243-2) unstable; urgency=low
+
+  * linbo_cmd.sh: restore() calls no ms-sys for fat partitions only if partition
+    was formatted before
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Apr 2008 19:08:51 +0200
+
+linuxmuster-linbo (1.0.243-1) unstable; urgency=low
+
+  * linbo_cmd.sh: added different registry patching method for Win98
+  * linbofs: downgraded kexec to latest stable version 101
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Apr 2008 19:08:51 +0200
+
+linuxmuster-linbo (1.0.242-1) unstable; urgency=low
+
+  * linbo_cmd.sh:
+    - added server ping to localmode() to recognize whether network is available,
+    - added function fstype_startconf() to get filesystem types directly from start.conf,
+    - fat formatting in format() is now done by parted,
+    - patch_fstab() now searches the root partition in the whole append string,
+    - patch_fstab is now invoked by start(),
+    - changed image restauration of non ntfs partitions to rsync only,
+    - some code transpositions in start(),
+    - removed $FROMLIST parameter from cloop image syncing in sync_cloop(),
+    - added offline authentication feature to authenticate(),
+    - added function hostgroup() to grep groupname from start.conf,
+    - added feature to download group specific linbofs.gz to update().
+  * linbofs: added parted binaries, linked md5sum and ping to busybox, removed mkdosfs.
+  * make-linbo-iso.sh: added feature of making group specific isos.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 1 Apr 2008 19:56:04 +0200
+
+linuxmuster-linbo (1.0.241-1) unstable; urgency=low
+
+  * new upstream revision 240
+  * linbo_cmd.sh:
+    - added fat partition recognition to fstype(),
+    - changed type variable to local in mountpart()
+    - added ntfs and fat formatting to format()
+    - deactivated dd'ing of first 512 disk blocks in partition()
+    - added different fat partition handling to restore()
+    - changed image creation and restauration of ntfs partitions to dd only
+    - changed "inkrementell" to "differentiell" in various echo messages
+    - added "--delete" to rsync command in sync_cloop()
+  * linbofs:
+    added mkntfs and ms-sys binaries
+  * patch_registry.sh:
+    added WINNT path if registry files are not found in WINDOWS
+  * updated example files
+  * fix in rsync-pre.sh: exits if $FILE is a directory
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 26 Mar 2008 15:50:12 +0100
+
+linuxmuster-linbo (1.0.235-2) unstable; urgency=low
+
+  * updated start.conf examples
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 14 Mar 2008 10:08:34 +0100
+
+linuxmuster-linbo (1.0.235-1) unstable; urgency=low
+
+  * new upstream revision 235
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 12 Mar 2008 22:27:45 +0100
+
+linuxmuster-linbo (1.0.234-1) unstable; urgency=low
+
+  * new upstream revision 234: new kernel 2.6.24.3
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 12 Mar 2008 19:53:11 +0100
+
+linuxmuster-linbo (1.0.233-1) unstable; urgency=low
+
+  * removed linbo_cmd patches and fromdos binary from package
+  * new upstream revision 233
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 12 Mar 2008 17:34:34 +0100
+
+linuxmuster-linbo (1.0.231-1) unstable; urgency=low
+
+  * reworked debian packaging
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 11 Mar 2008 09:15:39 +0100
+
+linuxmuster-linbo (1.0.230-2) unstable; urgency=low
+
+  * modified example files according to windows pxegrub boot
+  * removed start.conf.komplex example
+  * added AUTOXEC.BAT registry patch to win2k-xp.reg
+  * added "pxegrub" as a start.conf kernel for pxegrub booted
+    windows clients to linbo_cmd.sh
+  * added creation of AUTOEXEC.BAT to linbo_cmd.sh
+  * added pxegrub.lst as the default pxegrub config file
+  * changed menu.lst-win to linbo.lst in linbo_cmd.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Feb 2008 16:05:24 +0100
+
+linuxmuster-linbo (1.0.230-1) unstable; urgency=low
+
+  * new upstream revision 230
+  * removed pxegrub.0 and added new patched pxegrub to /var/linbo
+  * added menu.lst-win to /var/linbo
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Feb 2008 16:05:24 +0100
+
+linuxmuster-linbo (1.0.228-1) unstable; urgency=low
+
+  * new upstream revision 228
+  * added pxegrub.0 to /var/linbo
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 29 Feb 2008 16:05:24 +0100
+
+linuxmuster-linbo (1.0.223-1) unstable; urgency=low
+
+  * rev. 223: update to newest ntfs-3g 1.2129 (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 4 Feb 2008 09:56:38 +0100
+
+linuxmuster-linbo (1.0.222-1) unstable; urgency=low
+
+  * rev. 221: sync /mnt after write before umount. (Knopper)
+  * rev. 222: fixed start.conf.komplex sample (Schmitt)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 3 Feb 2008 10:12:26 +0100
+
+linuxmuster-linbo (1.0.220-1) unstable; urgency=low
+
+  * new upstream revision 220: modified pxelinux default config (Knopper)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 2 Feb 2008 13:07:09 +0100
+
+linuxmuster-linbo (1.0.217-3) unstable; urgency=low
+
+  * added pcmcia/yenta support to linbo kernel
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 1 Feb 2008 20:17:36 +0100
+
+linuxmuster-linbo (1.0.217-2) unstable; urgency=low
+
+  * added several example files to /var/linbo/examples
+  * moved rsync and syslinux from Suggests to Depends
+  * added linbo cd make script
+  * added pxe and cd boot related files
+  * added start.conf.default and pxelinux.cfg.default to /etc/linuxmuster/linbo
+  * linked them to /var/linbo/start.conf and /var/linbo/pxelinux.cfg.default
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 1 Feb 2008 17:36:47 +0100
+
+linuxmuster-linbo (1.0.217-1) unstable; urgency=low
+
+  * new upstream revision 217
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 30 Jan 2008 11:32:54 +0100
+
+linuxmuster-linbo (1.0.206-1) unstable; urgency=low
+
+  * new upstream revision 206
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 7 Jan 2008 10:23:29 +0100
+
+linuxmuster-linbo (1.0.200-1) unstable; urgency=low
+
+  * new upstream revision 200
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 21 Dec 2007 08:03:23 +0100
+
+linuxmuster-linbo (1.0.197-1) unstable; urgency=low
+
+  * new upstream revision 197
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 Dec 2007 08:13:09 +0100
+
+linuxmuster-linbo (1.0.187-2) unstable; urgency=low
+
+  * treated kernel with "rdev -v Images/linbo 771" to fix resolution
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 Dec 2007 08:13:09 +0100
+
+linuxmuster-linbo (1.0.187-1) unstable; urgency=low
+
+  * new upstream revision 187
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 21:42:18 +0100
+
+linuxmuster-linbo (1.0.185-1) unstable; urgency=low
+
+  * new upstream revision 185
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 12:40:42 +0100
+
+linuxmuster-linbo (1.0.182-1) unstable; urgency=low
+
+  * new upstream revision 182
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 12:40:42 +0100
+
+linuxmuster-linbo (1.0.180-1) unstable; urgency=low
+
+  * new upstream revision 180
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 12:40:42 +0100
+
+linuxmuster-linbo (1.0.178-1) unstable; urgency=low
+
+  * new upstream revision 178
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 11:44:09 +0100
+
+linuxmuster-linbo (1.0.176-1) unstable; urgency=low
+
+  * new upstream revision 176
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 Dec 2007 10:46:23 +0100
+
+linuxmuster-linbo (1.0.169-1) unstable; urgency=low
+
+  * new upstream revision 169
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 18 Dec 2007 17:59:08 +0100
+
+linuxmuster-linbo (1.0.166-1) unstable; urgency=low
+
+  * new upstream revision 166
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 18 Dec 2007 09:45:45 +0100
+
+linuxmuster-linbo (1.0.164-1) unstable; urgency=low
+
+  * new upstream revision 164
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Dec 2007 22:21:21 +0100
+
+linuxmuster-linbo (1.0.163-1) unstable; urgency=low
+
+  * new upstream revision 163
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Dec 2007 22:21:21 +0100
+
+linuxmuster-linbo (1.0.162-1) unstable; urgency=low
+
+  * new upstream revision 162
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Dec 2007 22:21:21 +0100
+
+linuxmuster-linbo (1.0.160-1) unstable; urgency=low
+
+  * new upstream revision 160
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Dec 2007 22:21:21 +0100
+
+linuxmuster-linbo (1.0.153-1) unstable; urgency=low
+
+  * new upstream revision 153
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Dec 2007 22:21:21 +0100
+
+linuxmuster-linbo (1.0.148-1) unstable; urgency=low
+
+  * new upstream revision 148
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 13 Dec 2007 22:21:21 +0100
+
+linuxmuster-linbo (1.0.140-1) unstable; urgency=low
+
+  * new upstream revision 140
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 30 Nov 2007 16:36:49 +0100
+
+linuxmuster-linbo (1.0.139-1) unstable; urgency=low
+
+  * new upstream revision 139
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Nov 2007 07:39:18 +0100
+
+linuxmuster-linbo (1.0.137-1) unstable; urgency=low
+
+  * new upstream revision 137
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 20 Nov 2007 07:39:18 +0100
+
+linuxmuster-linbo (1.0.136-1) unstable; urgency=low
+
+  * new upstream revision 136
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Nov 2007 09:24:36 +0100
+
+linuxmuster-linbo (1.0.134-1) unstable; urgency=low
+
+  * new upstream revision 134
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 14 Nov 2007 09:24:36 +0100
+
+linuxmuster-linbo (1.0.121-1) unstable; urgency=low
+
+  * new upstream revision 121
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 9 Nov 2007 14:56:31 +0100
+
+linuxmuster-linbo (1.0.120-1) unstable; urgency=low
+
+  * new upstream revision 120
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 9 Nov 2007 11:25:23 +0100
+
+linuxmuster-linbo (1.0.119-3) unstable; urgency=low
+
+  * fixed typo in /etc/default/linuxmuster-linbo (LOGFILE)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 5 Nov 2007 16:41:56 +0100
+
+linuxmuster-linbo (1.0.119-2) unstable; urgency=low
+
+  * added --reset-vga to kexec call in linbo_cmd.sh
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 5 Nov 2007 12:41:13 +0100
+
+linuxmuster-linbo (1.0.119-1) unstable; urgency=low
+
+  * new upstream revision 119
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 5 Nov 2007 09:52:34 +0100
+
+linuxmuster-linbo (1.0.118-1) unstable; urgency=low
+
+  * new upstream revision 118
+  * added revision to version
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 17 Oct 2007 10:31:53 +0200
+
+linuxmuster-linbo (1.0-5) unstable; urgency=low
+
+  * new upstream revision 115
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 27 Sep 2007 18:24:35 +0200
+
+linuxmuster-linbo (1.0-4) unstable; urgency=low
+
+  * new upstream revision 110
+
+ -- Klaus Knopper <knoppix@knopper.net>  Sat, 22 Sep 2007 19:50:09 +0200
+
+linuxmuster-linbo (1.0-3) unstable; urgency=low
+
+  * new upstream revision 108
+
+ -- Klaus Knopper <knoppix@knopper.net>  Sat, 22 Sep 2007 19:50:09 +0200
+
+linuxmuster-linbo (1.0-2) unstable; urgency=low
+
+  * Added syslinux as "suggested dependency".
+  * Fixed typo aftp->atftp
+
+ -- Klaus Knopper <knoppix@knopper.net>  Sat, 22 Sep 2007 19:50:09 +0200
+
+linuxmuster-linbo (1.0-1) unstable; urgency=low
+
+  * Initial release.
+	
+ -- Klaus Knopper <knoppix@knopper.net>  Sat, 22 Sep 2007 16:00:00 +0200
+

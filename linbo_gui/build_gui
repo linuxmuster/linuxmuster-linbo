@@ -1,0 +1,20 @@
+#!/bin/bash
+#rm Makefile
+#/bin/cp -f qmake.conf qt-embedded-free-3.3.7/mkspecs/default/
+HERE=`pwd`
+export QTDIR=$HERE/qt-embedded-free-3.3.7
+export QTLIB=$QTDIR/lib/
+export QTBIN=$QTDIR/bin/ 
+
+qmake
+rm Makefile\.*
+cat Makefile | sed 's,\.h,.hh,g' &> Makefile.1
+cat Makefile.1 | sed 's,\.hhh,.hh,g' &> Makefile.2
+cat Makefile.2 | sed 's,\.cpp,.cc,g' &> Makefile.3
+cp Makefile.3 Makefile
+rm Makefile\.*
+
+make CXX=g++-4.1
+strip linbo_gui
+make clean
+

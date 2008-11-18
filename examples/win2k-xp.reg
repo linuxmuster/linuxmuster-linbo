@@ -1,0 +1,24 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ActiveComputerName\]
+"ComputerName"="{$HostName$}"
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\]
+"Hostname"="{$HostName$}"
+"NV Hostname"="{$HostName$}"
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ComputerName\]
+"ComputerName"="{$HostName$}"
+
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Winlogon]
+"DefaultUserName"=""
+"DefaultDomainName"="SCHULE"
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Netlogon\Parameters\]
+"DisablePasswordChange"=dword:00000001
+"MaximumPasswordAge"=dword:000F4240
+"RefusePasswordChange"=dword:00000001
+"requiresignorseal"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation]
+"DisableAutoDaylightTimeSet"=dword:00000001

@@ -1,0 +1,20 @@
+# default values for linbo multicast server
+
+# where the linbo stuff is located
+LINBODIR=/var/linbo
+
+# path to the list of files to be multicasted
+MULTICASTLIST=$LINBODIR/multicast.list
+
+# start the multicast server?
+# yes|no
+START_MULTICAST=yes
+
+# logfile
+LOGFILE=/var/log/linuxmuster/linbo/linbo_multicast.log
+
+# variables for udpcast
+PORTBASE=9000
+MINCLIENTS=15
+MINSECONDS=30
+MAXSECONDS=60

@@ -1,0 +1,393 @@
+%% powerslide.sty - improve your presentations with PDFLaTeX
+%% 
+%% Copyright (C) 2000  Oliver Zendel <zendel@linuxtag.org>
+%% 
+%% This program is free software; you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation; either version 2 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program; if not, write to the Free Software
+%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%%
+%%
+\NeedsTeXFormat{LaTeX2e}
+\def\fileversion{v.1.0}\def\filedate{2000/07/25}
+\ProvidesPackage{powerslide}
+	[\filedate\space\fileversion\space ltstyle screen PDF design (ZE)]
+%%
+%% the switches
+%%
+\newif\if@screen    \@screenfalse
+\newif\if@colslide  \@colslidefalse
+\newif\if@note      \@notefalse
+\newif\if@paper     \@papertrue
+\newif\if@slide     \@slidefalse
+\newif\if@buttons   \@buttonsfalse
+\newif\if@overview  \@overviewfalse
+%%
+\RequirePackage{color}
+\RequirePackage{comment}
+\RequirePackage{pause}
+\RequirePackage{graphicx}
+\RequirePackage{ifthen}
+%%
+%% the options
+%%
+\DeclareOption{screen}     {\@slidetrue\@screentrue\@colslidetrue\@paperfalse\@notefalse}
+\DeclareOption{color}      {\@colslidetrue}
+\DeclareOption{notebox}    {\@notetrue\@slidetrue}
+\DeclareOption{overview}   {\@paperfalse\@slidetrue\@overviewtrue}
+\DeclareOption{slides}     {\@slidetrue}
+\DeclareOption{buttons}    {\if@screen\@buttonstrue\fi}
+\ProcessOptions
+%%
+%% we only support pdflatex, sorry. but with all the pdf extensions
+%% life is much easier.
+%%
+\pdfoutput=1 \let\special\message
+\pdfcompresslevel=9
+%%
+%% setting the font
+%%
+\renewcommand{\rmdefault}{phv}\fontfamily{phv}\selectfont
+%%
+%% settung up the counters
+%%
+\newcounter{slide}  \setcounter{slide}{0}
+%%
+%% setting up the slide dimensions
+%%
+\newlength{\slideheight}	\setlength{\slideheight}	{ 9.0cm}
+\newlength{\slidewidth}		\setlength{\slidewidth}		{12.0cm}
+\newlength{\slideleftmargin}	\setlength{\slideleftmargin}	{ 0.4cm}
+\newlength{\sliderightmargin}	\setlength{\sliderightmargin}	{ 0.4cm}
+\newlength{\slidetopmargin}	\setlength{\slidetopmargin}	{ 0.2cm}
+\newlength{\slidebottommargin}	\setlength{\slidebottommargin}	{ 0.0cm}
+\newlength{\slideheadheight}	\setlength{\slideheadheight}	{ 1.0cm}
+\newlength{\slideheadsep}	\setlength{\slideheadsep}	{ 0.1cm}
+\newlength{\slidefootheight}	\setlength{\slidefootheight}	{ 0.5cm}
+\newlength{\slidefootskip}	\setlength{\slidefootskip}	{ 0.1cm}
+\newlength{\commentwidth}	\setlength{\commentwidth}	{15.0cm}
+\newlength{\commentsep}		\setlength{\commentsep}		{ 0.5cm}
+\newlength{\slidetextheight}
+\newlength{\slidetextwidth}
+%%
+%% setting up the borders
+%%
+\if@screen
+	\setlength{\pdfpagewidth}  {\slidewidth}
+	\setlength{\pdfpageheight} {\slideheight}
+	\setlength{\evensidemargin}{-1in}
+	\setlength{\oddsidemargin} {\evensidemargin}
+	\setlength{\topmargin}     {-1in}
+	\setlength{\headheight}    {0pt}
+	\setlength{\topskip}       {0pt}
+	\setlength{\headsep}       {0pt}
+	\setlength{\footskip}      {0pt}
+	\setlength{\hoffset}	   {0pt}
+	\setlength{\voffset}	   {0pt}
+	\setlength{\paperheight}   {\slideheight}
+	\setlength{\paperwidth}	   {\slidewidth}
+	\pagestyle{empty}
+\fi
+%%
+%% eliminate the paper sections in slides
+%%
+\if@paper
+	\includecomment{paper}
+\else
+	\excludecomment{paper}
+\fi
+%%
+%% including hyperref
+%%
+\RequirePackage[pdftex]{hyperref}
+%
+% setup the browser
+%
+\if@screen
+	\hypersetup{pagebackref,pdfpagemode=none,colorlinks,%
+		pdfmenubar=false,%
+		pdftoolbar=false,%
+		pdffitwindow=true,pdfcenterwindow=true,%
+		pdfwindowui=false,menucolor=white,%
+		pdfview=Fit,pdfstartview=Fit,backref}
+\else
+	\hypersetup{pagebackref,pdfpagemode=none,colorlinks,%
+		pdfmenubar=true,%
+		pdftoolbar=true,%
+		pdffitwindow=true,pdfcenterwindow=true,%
+		pdfwindowui=true,menucolor=menucolor,%
+		pdfview=Fit,pdfstartview=Fit,backref}
+\fi
+%%
+%% the Hooks
+%%
+\newcommand{\@BeginSlideHook}{}
+\newcommand{\ClearBeginSlide}{
+	\renewcommand{\@BeginSlideHook}{}
+}
+\newcommand{\AtBeginSlide}[1]{
+	\begingroup
+	\makeatletter
+	\g@addto@macro{\@BeginSlideHook}{#1}
+	\endgroup
+}
+\newcommand{\@EndSlideHook}{}
+\newcommand{\ClearEndSlide}{
+	\renewcommand{\@BeginSlideHook}{}
+}
+\newcommand{\AtEndSlide}[1]{
+	\begingroup
+	\makeatletter
+	\g@addto@macro{\@EndSlideHook}{#1}
+	\endgroup
+}
+%%
+%% macros
+%%
+\newcommand{\@bstyle}{\color{\fgcolor}\@setfontsize\tiny\@vpt\@vpt $\bullet$}
+\newcommand{\@@buttons}{%
+	\makebox(\strip@pt\slidewidth,5){%
+		\Acrobatmenu{FirstPage} {\@bstyle First}
+		\Acrobatmenu{PrevPage}  {\@bstyle Prev}
+		\Acrobatmenu{NextPage}  {\@bstyle Next}
+		\Acrobatmenu{LastPage}  {\@bstyle Last}
+		\hfill
+		\Acrobatmenu{FullScreen}  {\@bstyle Full Screen}
+		\Acrobatmenu{Quit}      {\@bstyle Quit}
+	}
+}
+\newcommand{\SlideHeader}[1]{
+	\color{\headercolor}\centering\Large #1
+}
+\newcommand{\SlideFooter}[1]{
+	\color{\footercolor}\centering\scriptsize Folie \arabic{slide}
+}
+\newcommand{\Background}{}
+\newcommand{\bgcolor}{}
+\newcommand{\fgcolor}{}
+\newcommand{\setheadercolor}[1]{
+	\if@colslide
+		\renewcommand{\headercolor}{#1}
+	\else
+		\renewcommand{\headercolor}{black}
+	\fi
+}
+\newcommand{\setfootercolor}[1]{
+	\if@colslide
+		\renewcommand{\footercolor}{#1}
+	\else
+		\renewcommand{\footercolor}{black}
+	\fi
+}
+\newcommand{\setfgcolor}[1]{
+	\if@colslide
+		\renewcommand{\fgcolor}{#1}
+	\else
+		\renewcommand{\fgcolor}{black}
+	\fi
+}
+\newcommand{\setbgpicture}[1]{
+	\renewcommand{\Background}{\put(0,0){\includegraphics[width=\slidewidth,height=\slideheight]{#1}}
+	}
+}
+\newcommand{\setbgcolor}[1]{
+	\renewcommand{\bgcolor}{#1}
+	\renewcommand{\Background}{\put(0,0){\color{\bgcolor}\rule{\slidewidth}{\slideheight}}
+	}
+}
+\newcommand{\slidescale}{1}
+\if@screen
+	\@empty
+\else
+	\renewcommand{\pause}{\@empty}
+\fi
+\newcommand{\notename}{Notizen:}
+\newcommand{\headercolor}{black}
+\newcommand{\footercolor}{black}
+\newlength{\tempx}
+\newlength{\tempy}
+\newcommand{\@SlideContent}[2]{%
+	%%
+	%% calculating the textheight
+	%%
+	\setlength{\slidetextheight}{\slideheight}
+	\addtolength{\slidetextheight}{-\slidetopmargin}
+	\addtolength{\slidetextheight}{-\slidebottommargin}
+	\addtolength{\slidetextheight}{-\slidefootskip}
+	\addtolength{\slidetextheight}{-\slideheadsep}
+	\addtolength{\slidetextheight}{-\slideheadheight}
+	\addtolength{\slidetextheight}{-\slidefootheight}
+	%%
+	%% calculating the textwidth
+	%%
+	\setlength{\slidetextwidth}{\slidewidth}
+	\addtolength{\slidetextwidth}{-\slideleftmargin}
+	\addtolength{\slidetextwidth}{-\sliderightmargin}
+	\if@colslide%
+		\par\put(0,0){%
+			\makebox(\strip@pt\slidewidth,\strip@pt\slideheight)[bl]{\Background}
+		}
+	\fi
+	\@BeginSlideHook
+	\put(\strip@pt\slideleftmargin,\strip@pt\slidebottommargin){
+		\makebox(\strip@pt\slidetextwidth,\strip@pt\slidefootheight){
+			\SlideFooter{#1}
+		}
+	}
+	\setlength{\tempy}{\slideheight}
+	\addtolength{\tempy}{-\slidetopmargin}
+	\addtolength{\tempy}{-\slideheadheight}
+	\put(\strip@pt\slideleftmargin,\strip@pt\tempy){
+		\makebox(\strip@pt\slidetextwidth,\strip@pt\slideheadheight){
+			\SlideHeader{#1}
+		}
+	}
+	\if@buttons
+		\put(1,2){\@@buttons}
+	\fi
+	\addtolength{\tempy}{-\slideheadsep}
+	\addtolength{\tempy}{-\slidetextheight}
+	\put(\strip@pt\slideleftmargin,\strip@pt\tempy){
+		\makebox(\strip@pt\slidetextwidth,\strip@pt\slidetextheight){
+			\begin{minipage}[t][\slidetextheight]{\slidetextwidth}
+				\color{\fgcolor}
+				\vfill
+				#2
+				\vfill
+				\vfill
+				\vfill
+			\end{minipage}
+		}
+	}
+	\@EndSlideHook
+}
+\newcommand{\slide}[2]{
+	\if@slide
+		\relax
+		\if@overview
+			\@empty
+		\else
+			\removelastskip
+		\fi
+		\stepcounter{slide}
+		\setlength{\tempx}{\slidewidth}
+		\setlength{\unitlength}{1pt}
+		\if@screen
+			\clearpage\relax
+			\begin{picture}(\strip@pt\tempx,\strip@pt\slideheight)
+				\relax\@SlideContent{#1}{#2}
+			\end{picture}
+		\else
+			\if@note
+				\addtolength{\tempx}{\commentwidth}
+				\addtolength{\tempx}{\commentsep}
+			\fi
+			\setlength{\tempy}{\textwidth}
+			\addtolength{\tempy}{-5pt}
+			\resizebox{\slidescale\tempy}{!}{
+				\begin{picture}(\strip@pt\tempx,\strip@pt\slideheight)
+					\@SlideContent{#1}{#2}
+					\put(0,0){\framebox(\strip@pt\slidewidth,\strip@pt\slideheight){}}
+					\if@note
+						\setlength{\tempx}{\slidewidth}
+						\addtolength{\tempx}{\commentsep}
+						\put(\strip@pt\tempx,0){
+							\framebox(\strip@pt\commentwidth,\strip@pt\slideheight)[t]{
+								\begin{minipage}[t][\slideheight]{\commentwidth}
+									\centering\bigskip\Large\notename
+								\end{minipage}
+							}
+						}
+					\fi
+				\end{picture}
+			}
+		\fi
+	\fi
+}
+\newcommand{\slidemaketitle}{
+	\pdfinfo{
+		/Title (Grundlagen der Informatik)
+		/Creator (TeX)
+		/Producer (pdfTeX 0.15a (with powerslide.sty))
+		/Author (Klaus Knopper)
+		%/CreationDate (\@date)
+		%/ModDate (\today)
+		/Subject (Grundlagen der Informatik)
+		%/Keywords (pdfTeX) 
+	}
+	\if@screen
+		\setlength{\unitlength}{1pt}
+		\begin{picture}(\strip@pt\slidewidth,\strip@pt\slideheight)
+			\put(0,0){\makebox(\strip@pt\slidewidth,\strip@pt\slideheight)[bl]{\Background}}
+			\@BeginSlideHook
+			\put(0,0){
+				\makebox(\strip@pt\slidewidth,\strip@pt\slideheight){
+					\begin{minipage}[t][\slideheight]{\slidewidth}
+						\color{\fgcolor}
+						\null\vfil
+						\centering
+						{\LARGE\@title\par}\vskip 2em%
+						\normalsize\@author\par\vskip 1em%
+						\@date
+						\vfil\null
+					\end{minipage}
+				}
+			}
+			\if@buttons
+				\put(1,2){\@@buttons}
+			\fi
+		\end{picture}
+	\else
+		\maketitle
+%		\tableofcontents
+	\fi
+}
+
+%%% slidepage environment, eliminates problems with verbatim et al. -KK
+\newbox\@slidebox
+\def\slidebox{\global\setbox\@slidebox\hbox\bgroup\ignorespaces\if@paper\sf\fi}
+\def\endslidebox{%
+\@testtrue\ifhmode\ifinner\@testfalse\fi\fi%
+\if@test\@latexerr{Misplaced \string\endslidebox! Should be in LR mode}\@ehd\fi%
+\egroup}
+\def\theslidebox{\ifvoid\@slidebox%
+\@latexerr{\string\theslidebox\space is empty!}\@ehd%
+\else%
+\box\@slidebox%
+\fi}
+
+
+\newenvironment{slidepage}[1]%
+{\begin{slidebox}\gdef\slidebox@title{#1}%
+\begin{minipage}{0.90\slidewidth}\color{\fgcolor}}%
+{\end{minipage}\end{slidebox}%
+{\slide{\slidebox@title}{\theslidebox}}}%
+
+%%
+%% the default style
+%%
+\definecolor{orange1}{rgb}{0.95,0.73,0.17}
+\definecolor{blue1}{rgb}{0.10,0.20,0.40}
+\setfgcolor{white}
+\setbgcolor{blue1}
+\setheadercolor{orange1}
+\setfootercolor{orange1}
+%%
+%% this is an urgly workaround
+%% bug: we don't kill the \parident-indent in current paragraph
+%%
+\parindent 0pt
+\parskip 10pt plus 5pt
+\endinput
+%%
+%% end of file powerslide.sty
+%%

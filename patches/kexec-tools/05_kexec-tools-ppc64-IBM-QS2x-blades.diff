@@ -1,0 +1,28 @@
+From 93792363d3455459c7af7c646c0a1d1238c772fb Mon Sep 17 00:00:00 2001
+From: Maxim Shchetynin <maxim@de.ibm.com>
+Date: Wed, 27 Aug 2008 10:04:56 +0200
+Subject: [PATCH] Let kexec work on IBM QS2x blade servers
+
+Hello,
+
+please have a look at the following patch. This patch allows kexec to work
+on IBM QS2x blades. Would it be possible to apply this patch to a next
+kexec version?
+
+Signed-off-by: Maxim Shchetynin <maxim@de.ibm.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+
+---
+ kexec/arch/ppc64/kexec-elf-rel-ppc64.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/kexec/arch/ppc64/kexec-elf-rel-ppc64.c
++++ b/kexec/arch/ppc64/kexec-elf-rel-ppc64.c
+@@ -56,6 +56,7 @@ void machine_apply_elf_rel(struct mem_eh
+ 		break;
+ 
+ 	case R_PPC64_ADDR64:
++	case R_PPC64_REL64:
+ 		/* Simply set it */
+ 		*(uint64_t *)location = value;
+ 		break;

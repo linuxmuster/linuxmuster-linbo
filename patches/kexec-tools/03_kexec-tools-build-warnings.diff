@@ -1,0 +1,53 @@
+From c1d13f4bd287f48c5fce02c3916b132f618c40fb Mon Sep 17 00:00:00 2001
+From: Geoff Levand <geoffrey.levand@am.sony.com>
+Date: Wed, 10 Sep 2008 18:40:42 -0700
+Subject: [PATCH] Fix build warnings
+
+Fix these 64 bit build warnings:
+
+ kexec/firmware_memmap.c:241: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+ kexec/crashdump-elf.c:160: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'Elf64_Off'
+ kexec/crashdump-elf.c:160: warning: format '%llx' expects type 'long long unsigned int', but argument 5 has type 'Elf64_Addr'
+ kexec/crashdump-elf.c:160: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'Elf64_Addr'
+ kexec/crashdump-elf.c:160: warning: format '%llx' expects type 'long long unsigned int', but argument 7 has type 'Elf64_Xword'
+ kexec/crashdump-elf.c:160: warning: format '%llx' expects type 'long long unsigned int', but argument 8 has type 'Elf64_Xword'
+
+Tested on PS3 (ppc64) with 32 and 64 bit builds.
+
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: Bernhard Walle <bwalle@suse.de>
+
+---
+ kexec/crashdump-elf.c   |    8 ++++++--
+ kexec/firmware_memmap.c |    2 +-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+--- a/kexec/crashdump-elf.c
++++ b/kexec/crashdump-elf.c
+@@ -8,8 +8,12 @@
+ do {										\
+ 	dbgprintf("%s: p_type = %u, p_offset = 0x%llx p_paddr = 0x%llx "	\
+ 		"p_vaddr = 0x%llx p_filesz = 0x%llx p_memsz = 0x%llx\n",	\
+-		(prefix), (phdr)->p_type, (phdr)->p_offset, (phdr)->p_paddr, 	\
+-		(phdr)->p_vaddr, (phdr)->p_filesz, (phdr)->p_memsz);		\
++		(prefix), (phdr)->p_type,					\
++		(unsigned long long)((phdr)->p_offset),				\
++		(unsigned long long)((phdr)->p_paddr),				\
++		(unsigned long long)((phdr)->p_vaddr),				\
++		(unsigned long long)((phdr)->p_filesz),				\
++		(unsigned long long)((phdr)->p_memsz));				\
+ } while(0)
+ #else
+ #define dbgprintf_phdr(prefix, phdr)					\
+--- a/kexec/firmware_memmap.c
++++ b/kexec/firmware_memmap.c
+@@ -239,7 +239,7 @@ int get_firmware_memmap_ranges(struct me
+ 		/* array overflow check */
+ 		if ((size_t)i >= *ranges) {
+ 			fprintf(stderr, "The firmware provides more entries "
+-				"allowed (%d). Please report that as bug.\n",
++				"allowed (%zd). Please report that as bug.\n",
+ 				*ranges);
+ 			goto error;
+ 		}

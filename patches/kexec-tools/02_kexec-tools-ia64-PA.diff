@@ -1,0 +1,46 @@
+From 4bd67d530f92313fd66bb462d96e3995b8e08af3 Mon Sep 17 00:00:00 2001
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date: Mon, 6 Oct 2008 09:24:03 -0600
+Subject: [PATCH] ia64: make PA() work for both physical identity-mapped virtual addresses
+
+The EFI Runtime Services Table contains pointers to ia64 function
+descriptors.  On existing, pre-Tiano, firmware, SetVirtualAddressMap()
+converts *all* these pointers from physical to virtual.  On Tiano-based
+firmware, the pointer to the SetVirtualAddressMap() function descriptor
+is not converted, so it remains a physical pointer.
+
+The ia64 kexec purgatory patches the SetVirtualAddressMap() function
+descriptor so that when the new kernel calls SetVirtualAddressMap(), it
+never reaches firmware.  Instead, it calls a dummy function that just
+returns success.
+
+Purgatory runs in physical mode, so it must convert the pointer from the
+RuntimeServicesTable to a physical address.  This patch makes that
+conversion work both for old firmware (where the pointer is an identity-
+mapped virtual address) and new Tiano firmware (where the pointer is a
+physical address).
+
+Without this patch, kexec on Tiano firmware causes an MCA because
+ia64_env_setup() subtracts PAGE_OFFSET from a physical address and ends
+up with an invalid physical address.  Referencing that address causes
+the MCA.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: Bernhard Walle <bwalle@suse.de>
+
+---
+ purgatory/arch/ia64/purgatory-ia64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/purgatory/arch/ia64/purgatory-ia64.c
++++ b/purgatory/arch/ia64/purgatory-ia64.c
+@@ -147,7 +147,7 @@ setup_arch(void)
+ 
+ inline unsigned long PA(unsigned long addr)
+ {
+-	return addr - PAGE_OFFSET;
++	return addr & 0x0fffffffffffffffLL;
+ }
+ 
+ void

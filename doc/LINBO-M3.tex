@@ -1,0 +1,762 @@
+\documentclass[ngerman,a4paper,12pt]{article}
+
+%%% Makros
+
+\def\kdo#1{\textbf{\texttt{#1}}}
+\def\myurl#1{\href{#1}{\kdo{#1}}}
+
+\usepackage{ngerman, times, courier, graphicx, hyperref, color}
+\usepackage[latin1]{inputenc}
+
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+% \hypersetup{colorlinks,urlcolor=darkgreen,linkcolor=darkgreen}
+\hypersetup{colorlinks}
+
+\parindent0pt
+\parskip2mm
+
+\hyphenation{Be-triebs-sys-tem}
+\hyphenation{Sys-tem}
+
+\begin{document}
+\title{\Huge LINBO\\\LARGE Linux-basiertes Interaktives Netzwerk-Bootsystem}
+\author{Klaus Knopper}
+\date{\today}
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\listoffigures
+
+\newpage
+
+\section{Einführung}
+
+LINBO ist ein halb- bis vollautomatisch (je nach Konfiguration) arbeitender Bootmanager, der nicht nur in der Lage ist, verschiedene Betriebssysteme von Festplatte zu starten, sondern der auch Wartungs-, Update- und Reparaturfunktionen für Festplatteninstallationen übernimmt.
+
+\subsection{Funktionsweise / Technik}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[width=0.75\textwidth]{pics/linbo-booting.pdf}}
+\caption{UML Aktivitätsdiagramm für LINBO}\label{fig:linbouml}
+\end{figure}
+
+Vom Bootlader (lilo lokal von Platte, oder Netzwerk PXE/Bootp-Server) werden Kernel und initiales Ram-Dateisystem geladen und gestartet. Nach normalerweise recht kurzer Startzeit wird eine graphische Oberfläche, \kdo{linbo\_gui} mit Auswahlmöglichkeit präsentiert, während parallel dazu die Hardwareerkennung von Netzwerkkarten und Festplatten läuft. Nach Auswahl eines Buttons werden verschiedene Aktionen über das Worker-Backend-Skript \kdo{linbo\_cmd} abgewickelt.
+
+\subsection{Testlauf in \kdo{qemu}}
+
+(Installation in einer richtigen DHCP-Server-Umgebung: Siehe Abschnitt~\ref{dhcpconf}.)
+
+Das zentrale \kdo{Makefile} im LINBO-Entwicklungsverzeichnis bietet drei Testszenarien mit
+Hilfe von \kdo{qemu} als virtuelle Machine(n):
+
+\begin{tabular}{lp{10cm}}
+\kdo{make test} & Direktes Booten von LINBO-Kern und Start des internen TFTP-Servers (Directory "`Images"')\\
+\kdo{make hdtest} & Booten von simulierter Festplatte \kdo{Images/hda.img}\\
+\kdo{make pxetest} & Booten per PXE von einem durch qemu simulierten PXE-Server\\
+\end{tabular}
+
+\textsl{Achtung:} Für die zuletzt genannte Option ist die Installation von qemu ab Version
+0.9.0+cvs erforderlich, da frühere Versionen den "`bootp"'-Parameter noch
+nicht kannten! Im Buildsystem befindet sich ein aktueller Snapshot von qemu, der mit \kdo{make qemu} als Debian-Paket gebaut wird (gcc-3.4 erforderlich).
+
+\subsection{Namen und Beschreibungen}
+
+\subsubsection{Cache-Partition}
+Auf den mit LINBO verwalteten Rechnern wird eine \label{cache}Cache-Partition verwendet, um LINBO selbst und die verwalteten Betriebssysteme lokal vorzuhalten, und notfalls auch ohne Netzwerk starten zu können.
+
+\subsubsection{Multicast}
+
+Um den Cache mit den großen Image-Dateien (komprimiert ca. 500MB-2GB pro
+Betriebssystem je nach Ausstattung) effizient zu füllen, kann optional
+Multicast verwendet werden. Hierzu muss auf dem LINBO-Server
+\kdo{udpcast} installiert sein, welches nach einer Mindestanzahl
+anfordernder Clients und einstellbarer Wartezeit das Senden der Images
+an mehrere Rechner gleichzeitig unterstützt. Hierdurch werden die Daten
+nur einmal physikalisch übertragen, wenn mehrere Clients gleichzeitig
+den Cache mit Daten füllen, wodurch der Zeitaufwand beim erstmaligen
+Installieren oder Update von Clients drastisch reduziert wird.  Beim
+\kdo{Sync+Start} schaut hingegen jeder Client auf dem Server nach einem
+Update des gewählen Images, und überträgt die Änderungen zur älteren
+Version per RSYNC. Sind keine Änderungen vorhanden, so wird die Version
+aus dem Cache weiterverwendet.
+
+\subsubsection{PXE}\label{pxe}
+
+"`Pre Execution Environment"' bezeichnet eine standardisierte Methode,
+ein Bootmenü oder Betriebssystem übers Netzwerk zu laden und zu starten.
+Hierfür ist entweder eine PXE-fähige Netzwerkkarte erforderlich, oder
+eine ensprechende Bootdiskette mit Treiber von
+\myurl{http://www.rom-o-matic.net}.
+
+\subsubsection{cloop}\label{cloop}
+
+Das "`Compressed Loopback"' Device ist ein von \textsl{iptables}-Autor
+Paul Russel und Klaus Knopper entwickeltes \textsl{Block-Device}
+Kernelmodul, das typischerweise eine Festplattenpartition in
+komprimierter Datei-Form enthält. In LINBO haben diese Dateien die
+Endung \kdo{.cloop}. Im Gegensatz zu den bekannten \kdo{zip} oder
+\kdo{tar.gz}-Archiven verhält sich ein über cloop eingebundenes Archiv
+wie eine Fesplattenpartition mit wahlfreiem Zugriff, die enthaltenen
+Daten und Teile davon werden "`on demand"' dekomprimiert. In diesem
+Dateiformat ist es möglich, komplette Festplattenpartitionen mit allen
+Zusatzdaten wie \textsl{Boot-Record} und "`versteckten"' Informationen
+leicht zugänglich zu halten. Auch das Herauskopieren einzelner Dateien
+ist dadurch möglich. In LINBO werden alle Basis-Images (direkte
+Partitionsabzüge) in diesem Format unverändert gespeichert, was auf der
+Cache-Partition Platz spart und den Lesevrgang dadurch, dass weniger
+physikalische Lesezugriffe erflgen, stark beschleunigt. Dieses Verfahren
+ist auch von der KNOPPIX-DVD bekannt. Die Kompressionsrate beträgt bei
+ausführbaren Prgrammen zirka 3:1, bei Textdateien bis 12:1, und bei
+Zufallsdaten, verschlüsselten Dateien oder bereits komprimierten Bildern
+ca. 1:1 bis 0,9:1. 
+
+\subsubsection{rsync und das rsync-Batch-Format}\label{rsync}
+
+\kdo{rsync} ist ein Synchronisierungs-Programm, das eine Kopie so
+ausführt, dass nur die \textsl{Änderungen} zwischen Quelle und Ziel
+übertragen werden. Statt von einem Quellverzeichnis zu einem
+Zielverzeichnis zu kopieren, unterstützen neuere Versionen von rsync das
+sog. "'Batch"'-Format, was besser mit "`Binärdifferenz-Archiv"'
+übersetzt werden kann. In diesem Dateiformat werden die Differenzen zum
+Originalverzeichnis inklusive zu löschender Dateien gespeichert,
+optional ebenfalls wie bei \textsl{cloop} auch komprimiert, so dass es
+sich hervorragend für inkrementelle Archive eignet. LINBO legt
+inkrementelle Partitions-Images in diesem Format ab in Dateien mit der
+Endung \kdo{.rsync}. Diese können leider, im Gegensatz zum mountbaren
+cloop-Format, nur von rsync verarbeitet werden.
+
+\newpage
+
+\section{Installation}
+LINBO wird üblicherweise per PXE gebootet, und kann sich selbst auf die Cache-Partition (\ref{cache}) kopieren, und anschließend auch standalone von dort booten (d.h. ohne Netz).
+
+\subsection{Bootvorgang}
+
+LINBO kann wie ein normaler Linux-Kernel gebootet werden, unabhängig ob
+von lokaler Festplattenpartition oder einem PXE/BOOTP-fähigen
+DHCP-Server.
+
+Aus technischen Gründen\footnote{Es hat sich in Tests gezeigt, dass
+einige Netzwerkkarten keine Einzeldateien größer 8MB per TFTP beziehen
+können, außerdem ist der absolute Adressraum für den Kernel auf wenige
+MB begrenzt} ist LINBO aufgesplittet in einen Kernel-Teil \kdo{linbo}
+(ca. 2-3MB komprimiert), und einen Dateisystem-Teil \kdo{linbofs.gz} (ca.
+8MB komprimiert), wobei der Kernelteil auch ein kleines Dateisystem mit
+\kdo{busybox} als Minimalshell, und der Dateisystem-Teil die größeren
+Programme und Tools wie \kdo{linbo\_gui}, Systembibliotheken, und die
+Initialkonfiguration \kdo{start.conf} enthält.
+
+\kdo{linbo} und \kdo{linbofs.gz} werden für den Netzwerk-Boot üblicherweise auf dem DHCP+TFTP-Server installiert, siehe auch Abschnitt~\ref{dhcpconf}.
+
+\subsection{LINBO- und Dateisystem-Konfiguration}
+
+\label{initconfig}
+LINBO erhält seine Boot- und Konfigurationsdaten über folgende Methoden:
+
+\begin{enumerate}
+\item Bootparameter, die sich per DHCP/pxelinux setzen lassen, diese sind:
+\begin{description}
+\item[\kdo{ip=\textsl{ip-adresse}}] FESTE IP-Adresse (wenn gewünscht) für diesen Client
+\item[\kdo{server=\textsl{ip-adresse}}] IP-Adresse des Servers, der die Images vorhält
+\item[\kdo{cache=/dev/\textsl{Partitionsname}}] (s.a. Abschnit~\ref{rec:partitions}) Partition, die Betriebssystem-Images vorhält
+\item[\kdo{debug}] Startet auf dem Client eine Debug-Shell vor dem GUI, um Fehlern auf die Spur zu kommen, oder manuell Einfluss auf die Konfiguration oder Partitionierung zu nehmen.
+\end{description}
+\item Aus der Datei \kdo{start.conf-\textsl{ip-adresse}}, die auf dem Server per rsync-Download angeboten wird. \textsl{ip-adresse} ist die für diesen Client per Bootkommandozeile oder per DHCP festgelegte IP-Adresse. Hiermit kann für jeden Rechner eine spezielle Konfiguration vereinbart werden. Um Gruppen von Rechnern mit dergleichen Konfiguration zu definieren, genügt es, einen Symlink (Beispiel:\\
+\centerline{\kdo{ln -s start.conf-Klasse1A start.conf-192.168.0.2}}\\
+) auf eine gemeinsame Konfigurationsdatei (\kdo{start.conf-Klasse1A} in diesem Beispiel -Groß- und Kleinschreibung werden beachtet!) anzulegen.
+\item Aus einer Datei \kdo{start.conf}, die auf dem Server per rsync-Download angeboten wird. Dies ist quasi die "`Default"'-Einstellung, wenn weder per Bootkommandozeile, noch per Rechnerspezifischer \kdo{start.conf}-Datei Einstellungen vorgenommen werden.
+\item Aus einer Datei \kdo{start.conf} auf der Cache-Partition des Client-Rechners.
+\item Aus einer im LINBO-Dateisystem \kdo{linbofs.gz} integrierten \kdo{start.conf}-Datei. Dies ist der Fallback, wenn kein Rsync-Server vorhanden und noch keine Cache-Partition eingerichtet ist.
+\end{enumerate}
+
+Der Aufbau der \kdo{start.conf}-Datei ist in
+Abschnitt~\ref{rec:startconf} genau beschrieben.
+
+\newpage
+
+\section{Anwenderhandbuch}
+
+\subsection{LINBO booten}
+LINBO kann sowohl übers Netz per PXE (\ref{pxe}) als auch von einer bereits mit LINBO installierten Festplatte gestartet werden. Die Installation eines Bootservers für LINBO ist unter~\ref{bootserver} beschrieben, die Installation des LINBO-Bootladers auf Festplatte unter~\ref{bootdisk}.
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.33]{pics/linbo-pxelinux.png}}
+\caption{PXE-Bootlader in qemu}\label{fig:pxelinux}
+\end{figure}
+
+LINBO besteht aus einen Kernel- und einem Dateisystem-Teil, die separat geladen und anschließend automatisch im Hauptspeicher zusammengesetzt werden. Nach einer minimalen Hardwareerkennung (i.e. Grafikkarte) durch den Kernel, wird die graphische Oberfläche von LINBO, \kdo{linbo\_gui}, gestartet.
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.33]{pics/linbo-pxe-bootscreen.png}}
+\caption{Start von LINBO über pxelinux}\label{fig:pxeboot}
+\end{figure}
+
+Hinweis: Da parallel zum Start der Oberfläche eine weitere Hardwareerkennug stattfindet (Netzwerk, Festplattencontroller und -partitionen), stehen einige LINBO-Funktionen erst nach einigen Sekunden zur Verfügung. Normalerweise ist das vom GUI aufgerufene \do{linbo\_cmd} Worker-Backend aber so intelligent, dass es bei noch nicht erkannten Festplattenpartitionen einige Zeit wartet, bis diese verfügbar sind.
+
+\subsection{Graphische LINBO Oberfläche}
+
+\subsubsection{Betriebssysteme wiederherstellen und starten}
+
+Abbildung~\ref{fig:linbostart} zeigt das Startmenü von LINBO. Hier sind alle Betriebssysteme, die für LINBO vorbereitet und auf Festplatte installiert wurden, aufgeführt.
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.33]{pics/linbo-start.png}}
+\caption{Startmenü von LINBO}\label{fig:linbostart}
+\end{figure}
+
+
+Mit Klick auf \kdo{Synchronisieren} hinter dem Namen des Betriebssystems, wird das auf einer Partition befindliche System mit Hilfe eines auf der Cache-Partition (\ref{cache}) befindlichen Archivs überschrieben bzw. in den Ursprungszustand versetzt. \textsl{Achtung: Hierbei gehen alle Änderungen, die in der letzen Session mit diesem Betriebssystem erstellt wurden, verloren.}
+
+\kdo{Neu aufsetzen} (Abbildung~\ref{fig:osnew}) lädt eine ggf.\ neuere Version des jeweiligen Betriebssstems vom Server per TFTP/Multicast auf die Cache-Partition herunter, und installiert diese anschließend wie bei \kdo{Synchronisieren}.
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.33]{pics/linbo-neu-done.png}}
+\caption{Neu aufsetzen eines Betriebssystems mit LINBO}\label{fig:osnew}
+\end{figure}
+
+\kdo{Start} bootet das angegebene Betriebssystem so, wie es sich derzeit auf der Festplatte befindet. Der Rechner startet hierbei nicht neu, sondern LINBO führt einen "`Soft-Reboot"' durch, was den Startvorgang stark beschleunigt. Treten beim Starten Fehler auf, oder befindet sich das installiere Betriebssystem nicht mehr in einem benutzbaren Zustand, so sollte nach dem nächsten Reboot mit Hilfe von \kdo{Synchronisieren} oder \kdo{Neu aufsetzen} wieder der zuletzt gespeicherte, arbeitsfähige Zustand restauriert werden, bevor ein neuer \kdo{Start} versucht wird.
+
+Abbildung~\ref{fig:osboot} zeigt ein Mini-Linux, das durch LINBO gestartet wurde.
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.33]{pics/linbo-os-booted.png}}
+\caption{Aus LINBO gestartetes Mini-Linux}\label{fig:osboot}
+\end{figure}
+
+\subsubsection{Betriebssystem-Images verwalten}
+
+Die "`Reiter"' hinter dem Startmenü sind für die Verwaltung von Images (Archiven) der installierten oder zu installierenden Betriebssysteme zuständig. Hier können verschiedene Versionen eingespielt werden, die inkrementell auf einem Basis-Image aufbauen.
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.33]{pics/linbo-neu.png}}
+\caption{Neu aufsetzen - Dekompressionsvorgang}\label{fig:osnewwait}
+\end{figure}
+
+Gegenüber "`Synchronisieren"' und "`Neu aufsetzen"' aus dem Startmenü erlauben die gleichnamigen Buttons in den Betriebssystem-Reitern also eine genauere Angabe der jeweiligen Version, während im Startmenü immer nur die neuste Version restauriert wird.
+
+\newpage
+
+\section{Administration}
+\subsection{Installation und Konfiguration}
+\subsubsection{\kdo{start.conf} - Partitionen und Images}\label{startconf}
+Die im \kdo{linbofs.gz} für jeden Client-Rechner befindliche Datei \kdo{start.conf} ist im Stil der bekannten KDE-Desktop-Iconbescreibungen verfasst. Kommentare werden durch \kdo{\#} eingeleitet, dürfen
+am Anfang einer Zeile oder mitten im Text aufauchen, und werden inklusive bis zum Zeilenende folgendem ext von \kdo{linbo\_gui} ignoriert.
+
+Eine Beispieldatei, die sich im Buildsystem in \kdo{Binaries/linbo\_gui/start.conf} befindet, ist hier angegeben.
+
+\begin{scriptsize}
+\begin{verbatim}
+[LINBO]                 # LINBO global config
+Cache = /dev/hda2       # Cache Partition with local Images
+Server = 10.0.2.2       # First TFTP Server with remote Images
+
+[Partition]             # Start of a Partition config section
+Dev = /dev/hda1         # Device name of partition (hda1 = first partition on first IDE disk)
+Size = 4200997          # Partition size in kB
+Id = 7                  # Partition type (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ntfs           # File system on Partition
+Bootable = yes          # Mark this partition as bootable
+
+[Partition]
+Dev = /dev/hda2         # Device name of partition
+Size = 4096575          # Partition size in kB
+Id = 83                 # Partition type (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = reiserfs       # File system on Partition
+Bootable = no           # Mark this partition as non-bootable (or Linux)
+
+[Partition]
+Dev = /dev/hda3         # Device name of partition
+Size = 1052257          # Partition size in kB
+Id = 82                 # Partition type (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = swap           # File system on Partition
+
+[Partition]
+Dev = /dev/hda4         # Device name of partition
+Size =                  # Partition size in kB (empty if "remaining space")
+Id = 5                  # Partition type (5 = Extended)
+FSType =                # File system on Partition (none for extended partition)
+Bootable = no           # Mark this partition as non-bootable (or Linux)
+
+[Partition]
+Dev = /dev/hda5         # Device name of partition
+Size =                  # Partition size in kB (empty if "remaining space")
+Id = 83                 # Partition type (83 = Linux, 82 = swap, c = FAT32, ...)
+FSType = ext2           # File system on Partition
+Bootable = no           # Mark this partition as non-bootable (or Linux)
+
+[OS]
+Name = $\mu$-Knoppix The Ultimate          # Name of OS
+Version = 5.2           # Version/Date of OS (optional)
+Description = 01.02.2007, 7:10 Standardinstallation # Descriptive Text
+Image =                 # Filename of rsync batch, empty for none
+BaseImage  = microknoppix.cloop # Filename of base partition image
+Boot = /dev/hda5        # Partition containing Kernel & Initrd
+Root = /dev/hda5        # root=/dev/partition Parameter (Root FS)
+Kernel = vmlinuz        # Relative filename of Kernel or Boot image
+Initrd =                # Relative filename of Initrd
+Append =                # Kernel cmdline, root= will be added (optional)
+StartEnabled = yes      # Enable "Start" Button
+SyncEnabled = yes       # Enable "Synchronize" Button
+RemoteSyncEnabled = yes # Enable "Synchronize from Server" Button
+Autostart = yes         # Boot this OS by default
+
+[OS]
+Name = Windows Visa XP  # Name of OS
+Description = 06.02.2007, 10:10 Es bootet.                       # Descriptive Text
+Version = 1             # Version/Date of OS (optional)
+Image = xp-20070727.rsync # Filename of rsync batch
+BaseImage  = xp.cloop # Filename of base partition image
+Boot = /dev/hda1        # Partition containing Kernel & Initrd
+Root = /dev/hda1        # root=/dev/partition Parameter (Root FS)
+Kernel = grub.exe       # Relative filename of Kernel or Boot image
+Initrd =                # Relative filename of Initrd
+Append = --config-file=map(rd) (hd0,0); map --hook; \
+         chainloader (hd0,0)+1; rootnoverify(hd0,0) \
+	 --device-map=(hd0) /dev/hda # grub.exe cmdline
+StartEnabled = yes      # Enable "Start" Button
+SyncEnabled = yes       # Enable "Synchronize" Button
+RemoteSyncEnabled = yes # Enable "Synchronize from Server" Button
+
+\end{verbatim}
+\end{scriptsize}
+
+Im \kdo{[OS]}-Abschnitt dürfen Namen von Betriebssystemen mehrfach
+genannt werden, wobei die nachfolgenden Einstellungen und inkrementellen
+Image-Namen dann als Versionspaket dieses Betriebssystems interpretiert
+werden, und in den einzelnen Reitern für die Betriebssysteme im
+\kdo{linbo\_gui} als "`Subversionen"' auftauchen.
+
+\label{grubline}
+Die sehr lange \kdo{Append}-Zeile für den grub.exe-Bootlader wurde hier
+der Übersichtlichkeit halber mit \verb+\+ und Zeilenumbrüchen
+wiedergegeben, dies ist jedoch in der
+\kdo{start.conf}-Konfigurationsdatei selbst nicht möglich. Jede
+Konfigurationsoption muss in einer Zeile für sich stehen, ohne
+Zeilenumbrüche!
+
+\subsubsection{PXE-Konfiguration (DHCP-Server)}\label{bootserver}
+
+\label{dhcpconf}
+LINBO-Kernel und  LINBO-Dateisystem (\kdo{linbofs}) müssen sich in einem
+per TFTP erreichbaren Verzeichnis auf dem Server befinden. Ein
+klassischer Name für dieses Verzeichnis ist auf vielen Unix-Systemen
+\kdo{tftpboot}. Der für LINBO empfohlene TFTP-Server \kdo{atftpd} könnte
+dementsprechend auf dem Server wie folgt gestartet werden:
+
+\begin{bf}
+\begin{verbatim}
+sudo atftpd -daemon --port 69 --retry-timeout 10 \
+     --mcast-port 1758 --mcast-addr 239.239.239.0-255 \
+     --mcast-ttl 1 --maxthread 100 --verbose=5 \
+     /tftpboot
+\end{verbatim}
+\end{bf}
+
+Im DHCP-Server sind dann die Clients bzw. Client-Netze anzugeben, die per LINBO verwaltet werden sollen. Optional können für verschiedene Rechner auch entsprechend verschiedene \kdo{linbofs.gz} in der Konfiguration von \newline
+\kdo{pxelinux.cfg/CLI\-ENT-ADRE\-SSE} angegeben werden, in denen sich jeweils eine andere \kdo{start.conf}-Konfigurationsdatei befinden kann.\footnote{Später wird diese Konfiguration ein graphisches Verwaltungstool mit übernehmen helfen.}
+
+Beispiel für einen entsprechenden Abschnit aus der \kdo{dhcpd.conf} des ISC-dhcpd Version 3:
+
+\begin{verbatim}
+allow booting;
+allow bootp;
+
+subnet 10.0.2.0 netmask 255.255.255.0 {
+  next-server 10.0.2.2;
+  filename "pxelinux.0";
+  option subnet-mask 255.255.255.0;
+  range 10.0.2.10 10.0.2.15;
+  option domain-name-servers 10.0.2.2;
+  option routers 10.0.2.2;
+}
+\end{verbatim}
+
+In diesem Beispiel werden die IP-Adressen 10.0.2.10 bis einschließlich 10.0.2.15 dyamisch vergeben, die Clients starten per TFTP den PXE-Bootlader \kdo{pxelinux.0}, der seine Konfigurationsdatei unter \kdo{pxelinux.cfg/default} nachlädt. LINBO-Kern und Images müssen ebenfalls per TFTP erreichbar sein.
+
+\textsl{Hinweis:} Üblicherweise fügen die Clients ein Pfad-Präfix \kdo{/} zum Dateinamen hinzu, daher sollte für Testzwecke mit
+
+\begin{center}
+\kdo{atftp -r /linbo -l linbo 10.0.2.2}
+\end{center}
+
+getestet werden, ob der LINBO-Kern über den TFTP-Server erreichbar ist, zumal ohne führenden \kdo{/} der TFTP-Server mitunter mit einem Fehler antwortet, statt die im TFTP-Exportverzeichnis liegenden Dateien zu liefern. V.a. der qemu-interne TFTP-Server zeigt dieses Verhalten.
+
+\subsubsection{RSYNC-Konfiguration (Server)}\label{ryncserver}
+
+Zur Synchronisation von Images sowie zum Upload neu erzeugter Images
+wird \kdo{rsync} (s. Abschnit~\ref{rsync}) verwendet.
+
+Unter Debian wird rsync installiert mit \kdo{apt-get install rsync}.
+Damit die Clients Zugriff auf die Images bekommen, muss zunächst eine
+rsync-Freigabe \kdo{[linbo]} in \kdo{/etc/rsyncd.conf} auf dem Server
+eingerichet werden:
+
+\begin{verbatim}
+[linbo]
+	comment = LINBO Image directory (read-only)
+	path = /home/linbo
+	use chroot = no
+	lock file = /var/lock/rsyncd
+	read only = yes
+	list = yes
+	uid = nobody
+	gid = nogroup
+	dont compress = *.cloop *.rsync *.gz
+\end{verbatim}
+
+Dieses Beispiel erlaubt einen nur lesenden Zugriff auf die Dateien im Verzeichnis
+\kdo{/home/linbo} für alle Clients ohne Passwort. Mit
+
+\begin{center}
+\kdo{rsync \textsl{server-adresse}::linbo}
+\end{center}
+
+können Sie das Verzeichnis testweise per rsync auflisten lassen, ohne
+eine Datei übertragen zu müssen.
+
+Für die Übertragung von Images vom Client-Rechner zum Server, für neu
+erstellte Images, ist außerdem die Einrichtung eines
+\textsl{schreibbaren} rsync-Repository erforderlich. Der entsprechende
+zusäzliche Eintrag in \kdo{/etc/rsyncd.conf} erforderlich:
+
+\begin{verbatim}
+[linbo-upload]
+	comment = LINBO Upload directory
+	path = /home/linbo
+	use chroot = no
+	lock file = /var/lock/rsyncd
+	read only = no
+	list = yes
+	uid = root
+	gid = root
+	dont compress = *.cloop *.rsync *.gz
+	auth users = linbo
+	secrets file = /etc/rsyncd.secrets
+\end{verbatim}
+
+Das tatsächliche Verzeichnis im Dateisystem ist in diesem Beispiel
+wieder das Verzeichnis \kdo{/home/linbo}. Dort sollten sich der
+Linbo-Kernel \kdo{linbo} und das Linbo-Dateisystem \kdo{linbofs.gz}
+befinden, sowie die Image-Dateien mit den Betriebssystemen,
+Partitionsdumps und inkrementelle Änderungen (Abschnitt~\ref{rsync}),
+für die Clients. Mit (Beispiel)
+
+\begin{center}
+\kdo{rsync datei.txt linbo@\textsl{server-adresse}::linbo-upload}
+\end{center}
+
+können Sie eine Testdatei (datei.txt) an den Server übertragen
+(allerdings klappt dies erst nach dem nächsten Konfgurationsschritt).
+Hierbei sollten Sie nach einem Passwort gefragt werden, was auch der
+Authentifizierung in LINBO dient.
+
+Dieses Login/Passwort-Paar für die rsync-Freigabe \kdo{linbo-update}
+muss noch eingetragen werden, in die oben angegebene Datei
+\kdo{/etc/rsyncd.secrets}. Beispiel:
+
+\begin{verbatim}
+linbo:test
+\end{verbatim}
+
+Der Benutzername "`\kdo{linbo}"' ist momentan vom LINBO-System
+vorgegeben, das Passwort (hier: \kdo{test}) können Sie frei wählen. Das
+Passwort ist für die Sicherheit des LINBO-Systems essentiell, und sollte
+nur den Administratoren, die LINBO-Clients erstmalig aufsetzen und auch
+neue Images auf dem Server einspielen dürfen, bekannt sein. Für den
+normalen Betrieb von LINBO, also das Aktualisieren und Booten von
+Betriebssystemen auf LINBO-Clients, ist das Passwort nicht erforderlich.
+
+Bitte beachten Sie, dass die Datei \kdo{/etc/rsyncd.secrets} nur für den
+rsync-Server lesbar sein darf, sonst verweigert rsync jedes Passwort.
+Mit dem Linux-Kommando \kdo{chmod 400 /etc/rsyncd.secrets} (als
+Administrator) sollte dies gewährleistet sein.
+
+Fehlermeldungen, Warnungen und Statusinformationen von rsync
+finden Sie auf den meisten Linux-Distributionen in den Logdateien
+\kdo{/var/log/syslog} oder \kdo{/var/log/daemon.log}.
+
+Falls der rsync-Server die Änderungen an seiner Konfiguration nicht
+automatisch erkennt, muss er neu gestartet werden:
+\kdo{/etc/init.d/rsync restart}.
+
+\label{bootdisk}
+Ist der rsync-Server konfiguriert, so müssen noch der LINBO-Kernel (\kdo{linbo})
+und das LINBO-Dateisystem ((\kdo{linbofs.gz}), sowie für das Booten von Windows,
+\kdo{grub.exe} in das LINBO-Verzeichnis (in unserem Beispiel \kdo{/home/linbo})
+kopiert werden.
+
+Damit LINBO diese Daten nicht jedesmal erneut herunterlädt, sollten auch
+die zu den genannen Dateien passenden \kdo{.info}-Dateien kopiert
+werden.
+
+\begin{figure}[h!bt]
+\begin{verbatim}
+[grub.exe]
+timestamp=200707251505
+imagesize=198533
+\end{verbatim}
+\caption{Beispiel für \texttt{grub.exe.info}}\label{fig:grubexeinfo}
+\end{figure}
+
+In diesen ist ein Zeitstempel und die Dateigrößen der Dateien vermerkt,
+so dass der Download der großen Dateien ggf. von LINBO übersprungen
+werden kann, wenn die Dateien im Cache noch aktuell sind. Das gleiche
+Verfahren wird auch bei den wirklich großen Image-Dateie angewandt. Hier
+erzeugt allerdings LINBO automatisch die entsprechenden info-Dateien und
+lädt sie mit hoch.
+
+\begin{figure}[h!bt]
+\begin{verbatim}
+for i in linbo linbo.info linbofs.gz linbofs.gz.info \
+         grub.exe grub.exe.info; do
+ cp /home/development/LINBO/Images/$i /home/linbo/
+done
+\end{verbatim}
+\caption{Kopieren der LINBO-Dateien ins rsync-Repository}\label{fig:copylinbo}
+\end{figure}
+
+\newpage
+
+\section{LINBO-Buildsystem}
+\subsection{Systemvoraussetzungen}
+
+\begin{enumerate}
+\item Installiertes POSIX-konformes Betriebssystem mit Bourne-kompatibler
+  Shell (z.B. Debian "`etch"'). Cygwin sollte auch evtl. auch funktionieren, mit Linux-Crosscompiler.
+
+\item GNU-Tar (zum Entpacken das Archives)
+
+\item GNU-Make
+
+\item GNU C-Compiler Version 3 oder höher (gcc-3.4 für qemu)
+
+\item GNU-Binutils (zum Compilieren verschiedener Kernel-Komponenten notwendig)
+
+\item Root-Rechte sind zum Bauen von LINBO NICHT erforderlich.
+  Das Kernel-Buildsystem sorgt dafür, dass die Dateien im initramfs die
+  erforderlichen Rechte erhalten, und dass auch Device-Dateien korrekt angelegt werden,
+  daher kann als normaler User am System gearbeitet werden.
+
+\item Zum Testen/Debuggen: qemu Version 0.9.0+cvs oder höher (-bootp Option erforderlich für
+simulierten PXE-Boot).
+\end{enumerate}
+
+Der Bau von LINBO wird durch ein Makefile im LINBO-Verzeichnis gesteuert.
+\kdo{make} ohne Parameter liefert eine Kurzhilfe. Die einzelnen Schritte
+des Bauvorgangs sind recht selbsterklärend.
+
+\subsection{Verzeichnisse}
+
+\kdo{Binaries} enthält statische Binaries sowie dynamische Executables und
+Libraries für das initramfs. Die \kdo{Binaries/*.sh}-Dateien sind
+Shellskripte, die in LINBO den Bootvorgang und das GUI steuern.
+
+Die für LINBO benötigten Dateien und Libraries werden in den Dateien\newline
+\kdo{Kernel/initramfs\_kernel.d/*.conf} sowie \newline
+\kdo{Kernel/initramfs.d/*.conf} verwaltet.  Dort sind auch neu
+hinzugefügte Dateien einzutragen, wenn sie in das initramfs aufgenommen
+werden sollen.
+
+Das Verzeichnis \kdo{Graphics} enthält die Quellen des LINBO-Logos
+Binaries/linbo.xpm, das im GUI dargestellt wird, sowie den
+Desktop-Hintergrund und das PXE-Bootbild für LINBO. Diese Dateien werden
+nicht direkt in \kdo{Graphics} verwendet, sondern müssen bei Bedarf nach
+\kdo{Images} kopiert werden.
+
+\kdo{GUI} enthält die Sourcen für \kdo{linbo\_gui}, LINBOs graphische Oberfläche, sowie
+embedded Qt als Abhängigkeit (aus Platzgründen nicht im Repository).
+
+\kdo{Documentation} ethält das Benutzer- und Administrationshandbuch
+von LINBO (u.a. dieses Dokument).
+
+\kdo{Kernel} enthält den für LINBO verwendeten Linux-Kernel-Source. Wenn
+dieser aktualisiert wird, sollte die alte .config-Datei weiterverwendet
+werden, da sie die für das initramfs notwendigen Einstellungen enthält.
+
+\kdo{Images} enthält den fertig gebauten LINBO-Kernel \kdo{linbo} als
+Hardlink auf Kernel/linux-*/arch/i386/boot/bzImage, \kdo{linbofs.gz} als
+zusätzliches initramfs mit den größeren Dateien, sowie den PXE-Bootlader
+\kdo{pxelinux.0}, Images und Archive zur
+Installation von LINBO und den gewünschten Betriebssystemen auf den
+Clients.
+
+\kdo{Sources} ist ein Archiv der für die gebauten Binaries verwendeten
+Quelltexte, um die Binaries selbst neu bauen zu können, und die GNU
+GENERAL PUBLIC LICENSE §3 zu erfüllen. Für das Buildsystem ist das
+Verzeichnis eigentlich irrelevant, da es im Makefile nicht verwendet
+wird. Neu integrierte Programme sollten jedoch gewissenhaft in Sources
+archiviert werden (Debian: \kdo{cd Sources ; apt-get source paketname}).
+
+\subsection{Bauvorgang}
+
+Durch "`\kdo{make}"' ohne Parameter dokumentiert:
+
+\begin{footnotesize}
+\begin{bf}
+\begin{verbatim}
+WELCOME TO THE LINBO BUILD SYSTEM
+
+make kernel	(Re-)Build Kernel and Modules (recommended before "make linbo")
+make linbofs	(Re-)Build LINBO-FS
+make linbo	(Re-)Build LINBO-Kernel and LINBO-FS
+make config	Configure LINBO kernel and edit LINBO filesystem.
+make clean	Cleanup LINBO kernel source for recompilation.
+make test	Run LINBO kernel in qemu
+make hdtest	Run LINBO from a harddisk-installed LINBO session
+make pxetest	Run LINBO in a qemu simulated PXE network boot
+            	(qemu 0.9.0+cvs version required that supports '-bootp')
+
+Don't worry about the sequence of build commands, this Makefile will tell you
+what to do first, in case anything is missing.
+
+Have a lot of fun. ;-)
+\end{verbatim}
+\end{bf}
+\end{footnotesize}
+
+\section{Das LINBO-Kochbuch, "`How do I ...?"'}
+\subsection{Der allererste Start: Wie richte ich ein Master-System für LINBO-Images ein?}
+Grundsätzlich ist es praktisch, wenn das Master-System mit Hilfe von LINBO partitioniert wurde, damit die Partitionsgrößen und -namen zuverlässig festgelegt sind. Siehe Rezept~\ref{rec:startconf}.
+
+\begin{scriptsize}
+\begin{verbatim}
+[LINBO]
+Cache = /dev/hda2
+Server = 10.0.2.2
+
+[Partition]
+Dev = /dev/hda1         # Windows-Partition
+Size = 4000000 
+Id = 7
+FSType = ntfs
+Bootable = yes
+
+[Partition]
+Dev = /dev/hda2         # Cache-Partition
+Size = 4000000
+Id = 83
+FSType = reiserfs
+Bootable = no
+
+[OS]
+Name = Win
+Description = Installation vom 06.02.2007
+BaseImage  = win.cloop     # Komplette Partition (Basis)
+Image = win-20070727.rsync # Inkrementelles Update
+Boot = /dev/hda1
+Root = /dev/hda1
+Kernel = grub.exe
+Initrd =
+Append = --config-file=map(rd) (hd0,0); map --hook; ... (s.o.)
+StartEnabled = yes
+SyncEnabled = yes
+RemoteSyncEnabled = yes
+\end{verbatim}
+\end{scriptsize}
+
+Mit einer minimalen \kdo{start.conf} wir der hier gezeigten könnte
+beispielsweise begonnen werden. Bitte beachten Sie, dass für LINBO eine
+Cache-Partition (hier: /dev/hda2) eingerichtet werden muss, die groß
+genug ist, um alle Betriebssysteme vorzuhalten, die auf den Clients
+installiert werden sollten (plus etwas Platz für vielleicht einmal
+selbsterzeugte Voll- und Inkrementalimages). Siehe
+Rezept~\ref{rec:cachepart}.
+
+Die etwas längliche \kdo{grub.exe}-Zeile unter \kdo{Append} ist hier
+nur unvollständig wiedergegeben (s.a. Abschnitt~\ref{grubline} auf
+S.\,\pageref{grubline}).
+
+Nach der Partitionierung durch LINBO kann das gewünschte Betriebssystem
+auf der (in diese Beispiel) ersten Partition mit einer Installations-CD
+eingerichtet werden, und anschließend mi LINBO in ein Image (Basisimage
+win.cloop, spätere Änderungen in win--20070727.rsync) umgewandelt und
+zum LINBO-Server überragen werden.
+
+\subsection{Was muss in der \kdo{start.conf} stehen?}\label{rec:startconf}
+\subsection{Wie groß soll die Cache-Partition sein, und wo genau soll sie auf der Festplatte liegen?}\label{rec:cachepart}
+Die Cache-Partition hält eine Kopie der Installations-Images für jedes Betriebssystem, das auf den Clients bei Bedarf neu aufgesetzt, synchronisier oder aktualisiert werden soll. Grundsätzlich ist es LINBO egal, auf welcher Partitionsnummer diese Partition liegen muss, bzw. ob es eine "`primäre"' (/dev/hda1...hda4) oder "`logische"' (/dev/hda5...$\infty$) Partition (Festplatten-Jargon) ist. Der Name der Partition muss in der \kdo{start.conf} unter Abschnitt \kdo{[LINBO]}, Parametername \kdo{Cache} eingetragen werden, und die Größe in einem Abschnitt \kdo{[Partition]} so wie in diesem Beispiel:
+
+\begin{verbatim}
+[LINBO]
+Server = 10.0.2.2
+Cache = /dev/hda2  # <- Das ist die Cache-Partition
+
+[Partition]
+Dev = /dev/hda2    # Name
+Size = 20000000    # Größe in kB
+Id = 83            # Partitionstyp (83 = Linux)
+FSType = reiserfs  # Dateisystem
+Bootable = no      # Egal
+\end{verbatim}
+
+In diesem Beispiel (die Kommentare mit \kdo{\#} sind optional) wird eine 20 GB große Cache-Partition verwendet. Der Device-Name dieser Partition, \kdo{/dev/hda2} ergibt sich aus der Tabelle im Rezept~\ref{rec:partitions}.
+
+\subsection{Wie setzen sich die Partitionsnamen unter Linux zusammen, was muss ich angeben?}\label{rec:partitions}
+
+[TODO: Rezepte und Screenshots der aktuellen Version beifügen.]
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-root-login1.png}}
+
+\centerline{\includegraphics[scale=0.5]{pics/linbo-root-login2.png}}
+\caption{Einloggen als Admin bei LINBO}\label{fig:linoadmin}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-image-erzeugen-dateiname.png}}
+\caption{Image von Partition erzeugen, Dateiname}\label{fig:linbomkimage}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-image-erzeugen-komprimieren.png}}
+\caption{Image von Partition erzeugen, Kompression}\label{fig:linbomkimagecompress}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-image-erzeugen-hochladen.png}}
+\caption{Image von Partition erzeugen, Upload}\label{fig:linbomkimageupload}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-neu.png}}
+\caption{Neu aufsetzen (1)}\label{fig:linbonew1}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-neu-done.png}}
+\caption{Neu aufsetzen (2)}\label{fig:linbonew}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-sync+start.png}}
+\caption{Sync+Start}\label{fig:linbosyncstart}
+\end{figure}
+
+%\begin{figure}[h!bt]
+%\centerline{\includegraphics[scale=0.5]{pics/linbo-start.png}}
+%\caption{Start}\label{fig:linbostart}
+%\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-os-booted.png}}
+\caption{OS-Boot}\label{fig:linboosbooted}
+\end{figure}
+
+\begin{figure}[h!bt]
+\centerline{\includegraphics[scale=0.5]{pics/linbo-partitionieren1.png}}
+
+\centerline{\includegraphics[scale=0.5]{pics/linbo-partitionieren2.png}}
+\caption{Partitionieren}\label{fig:linbopart}
+\end{figure}
+
+
+% pics/linbo-phase1-screenshot.png
+% pics/linbo-pxe-bootscreen.png
+% pics/linbo-pxelinux.png
+% pics/linbo-start.png
+\end{document}

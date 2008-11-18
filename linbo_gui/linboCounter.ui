@@ -1,0 +1,112 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboCounter</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboCounter</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>131</width>
+            <height>172</height>
+        </rect>
+    </property>
+    <property name="paletteBackgroundColor">
+        <color>
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+        </color>
+    </property>
+    <property name="caption">
+        <string>Root </string>
+    </property>
+    <widget class="QLCDNumber">
+        <property name="name">
+            <cstring>counter</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>50</y>
+                <width>131</width>
+                <height>41</height>
+            </rect>
+        </property>
+        <property name="frameShape">
+            <enum>NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+            <enum>Raised</enum>
+        </property>
+        <property name="numDigits">
+            <number>5</number>
+        </property>
+        <property name="mode">
+            <enum>Dec</enum>
+        </property>
+        <property name="segmentStyle">
+            <enum>Filled</enum>
+        </property>
+    </widget>
+    <widget class="QCheckBox">
+        <property name="name">
+            <cstring>timeoutCheck</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>5</x>
+                <y>100</y>
+                <width>130</width>
+                <height>30</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Timeout</string>
+        </property>
+        <property name="checked">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>text</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>111</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Root Modus</string>
+        </property>
+        <property name="alignment">
+            <set>AlignCenter</set>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>logoutButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>130</y>
+                <width>130</width>
+                <height>40</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>LOGOUT</string>
+        </property>
+        <property name="flat">
+            <bool>false</bool>
+        </property>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
