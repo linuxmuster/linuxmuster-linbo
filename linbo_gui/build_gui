@@ -17,4 +17,5 @@ rm Makefile\.*
 make CXX=g++-4.1
 strip linbo_gui
 make clean
+sed -e "s|$QTDIR|\$\(QTDIR\)|g" -i Makefile
 

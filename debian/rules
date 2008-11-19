@@ -69,9 +69,9 @@ RSYNC_DIR=src/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
 RSYNC_URL=http://rsync.samba.org/ftp/rsync/src
 
 #ssmtp
-SSMTP_ARCHIVE=$(shell grep ssmtp- debian/md5sums.src | awk '{ print $$2 }')
-SSMTP_DIR=src/$(shell echo $(SSMTP_ARCHIVE) | sed -e 's/.tar.bz2//')
-SSMTP_URL=$(LML_URL)
+SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
+SSMTP_DIR=src/ssmtp
+SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
 
 configure: configure-stamp
 configure-stamp:
@@ -167,7 +167,8 @@ configure-stamp:
 		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(SSMTP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SSMTP_ARCHIVE) -C src; \
-		ln -sf ../$(SSMTP_DIR) src/ssmtp; \
+		echo "[1mPatching ssmtp sources...[0m" ; \
+		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 	fi
 
 	# qt
@@ -369,7 +370,8 @@ install: build
 	install -m 644 debian/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	install -m 755 share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/
-	debian/patch_version.sh
+	sed -e 's|@@version@@|$(LVERS)|' debian/boot.msg.template > debian/linuxmuster-linbo/var/linbo/boot.msg
+	sed -e 's|@@version@@|$(LVERS)|' debian/boot.msg.template > debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/cd/isolinux/boot.msg
 
 # Build architecture-independent files here.
 binary-indep: build install
