@@ -7,6 +7,11 @@ linuxmuster-linbo (1.1.0-1) unstable; urgency=low
     * updated ntfs-3g to 1.5012
     * added more nic drivers to kernel
     * linbo_cmd.sh: fixed multicast download
+    * patch_registry.sh: patches now all existing ControlSets
+    * new script update-linbofs.sh, updates group specific linbofs.gz files
+    * debian/postinst:
+      - added check for linuxmuster's installed flag
+      - automatic update of group specific linbofs.gz files (see above)
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 16 Nov 2008 15:28:52 +0100
 
