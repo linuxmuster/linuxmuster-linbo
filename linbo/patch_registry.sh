@@ -198,15 +198,28 @@ if [ -f "$1" ]; then
           chntpw $DEBUG -e "$file" >> /tmp/output <<.
 $(echo -e "$command")
 .
-# tschmitt: this destroys the system registry hive in WinXP SP3
-#          case "$command" in
-#            *ControlSet001*)
-#          command="$(echo "$command" | sed 's,ControlSet001,ControlSet002,g')"
-#          chntpw $DEBUG -e "$file" >> /tmp/output <<.
-#$(echo -e "$command")
-#.
-#            ;;
-#          esac
+# tschmitt: patch other controlsets up to 9
+          case "$command" in
+            *ControlSet001*)
+		if [ ! -s /tmp/controlsets ]; then
+			controlcheck="ls\nq\ny\n"
+			chntpw $DEBUG -e "$file" > /tmp/controlsets <<.
+$(echo -e "$controlcheck")
+.
+		fi
+		n=2
+		while [ $n -lt 10 ]; do
+			ctrlset="ControlSet00$n"
+			if grep -q "<$ctrlset>" /tmp/controlsets; then
+				command_new="$(echo "$command" | sed "s,ControlSet001,$ctrlset,g")"
+				chntpw $DEBUG -e "$file" >> /tmp/output <<.
+$(echo -e "$command_new")
+.
+			fi
+			let n+=1
+		done
+		;;
+          esac
         done 
         ;;
     esac  
