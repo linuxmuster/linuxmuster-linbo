@@ -49,6 +49,7 @@ case "$1" in
 	if [ -e "$DISTCONF" ]; then
 		. $DISTCONF
 		. $HELPERFUNCTIONS
+		[ -e "$INSTALLED" ] || exit 0
 		[ "$imaging" = "linbo" ] || exit 0
 		LINBOLOGDIR="$LOGDIR/linbo"
 	else
@@ -98,7 +99,8 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 	[ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
 	chown nobody $LINBOLOGDIR
 
-	echo "IMPORTANT: You HAVE to invoke \"import_workstations\" after package upgrade!"
+	# update group specific linbofs.gz
+	$LINBOUPDATE
 
     ;;
 

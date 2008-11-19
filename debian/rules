@@ -306,17 +306,11 @@ build-stamp: configure-stamp
 	touch build-stamp
 
 distclean: clean
-	dh_testdir
-	dh_testroot
 
 	( cd linbo_gui && make clean && rm linbo_gui ) || true
 	rm -rf $(QT_DIR) || true
-	rm -rf src/* || true
-	rm -rf $(KERNEL_DIR) || true
-	rm -rf $(CLOOP_DIR) || true
-	rm kernel/initramfs.d/modules.conf || true
-	rm -rf kernel/modules || true
-	rm kernel/*.conf || true
+	rm -rf src || true
+	rm -rf kernel || true
 	( cd doc && rm *.toc *.pdf *.out *.log *.lof *.aux ) || true
 
 clean: 
