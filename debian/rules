@@ -199,7 +199,7 @@ configure-stamp:
 		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
 		echo "[1mPatching kernel sources...[0m" ; \
-		( cd $(KERNEL_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
+		( cd $(KERNEL_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
 	fi
 
