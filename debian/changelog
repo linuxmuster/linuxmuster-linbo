@@ -1,3 +1,11 @@
+linuxmuster-linbo (1.1.1-1) testing; urgency=low
+
+  * updated grub4dos to 0.4.4-11-19
+  * changed hda to sda in start.conf examples
+  * kernel update to 2.6.27.7
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 24 Nov 2008 19:07:58 +0100
+
 linuxmuster-linbo (1.1.0-1) unstable; urgency=low
 
     * reworked build environment, now based on Debian 4.0 Etch

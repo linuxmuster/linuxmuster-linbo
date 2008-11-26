@@ -26,6 +26,7 @@ CLOOP_URL=http://debian-knoppix.alioth.debian.org/sources
 # qt
 QT_ARCHIVE=$(shell grep qt-embedded-free- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.bz2//')
+#QT_URL=http://wftp.tu-chemnitz.de/pub/Qt/qt/source
 QT_URL=$(LML_URL)
 
 # busybox

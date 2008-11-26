@@ -13,14 +13,14 @@ AutoInitCache = no              # kein automatisches Befüllen des Caches beim LI
 UseMulticast = no               # kein Image-Download per Multicast
 
 [Partition]                     # Start einer Partitionsdefinition, Windows XP
-Dev = /dev/hda1                 # Device-Name der Partition (hda1 = erste Partition auf erster IDE-Platte)
+Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte)
 Size = 5192000                  # Partitionsgroesse in kB (Bsp.: 5G)
 Id = c                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = vfat                   # Dateisystem auf der Partition
 Bootable = no                   # Bootable-Flag
 
 [Partition]                     # Start einer Partitionsdefinition, Datenpartition
-Dev = /dev/hda2                 # Device-Name der Partition (hda2 = zweite Partition auf erster IDE-Platte)
+Dev = /dev/sda2                 # Device-Name der Partition (sda2 = zweite Partition auf erster IDE-Platte)
 Size =                          # Datenpartition nimmt den Rest der Platte ein
 Id = c                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = vfat                   # Dateisystem auf der Partition
@@ -33,14 +33,14 @@ Description = Windows 2000 SP4       # Beschreibung
 #Image = win2k.rsync                 # Dateiname des differentiellen Images (Erweiterung .rsync)
 Image =                              # erst eintragen, wenn es erzeugt werden soll
 BaseImage = win2k.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
                                      # bei Windows ist Boot und Root immer dieselbe Partition
 Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
 Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
                                      # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
-                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
-Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+                                     # bei SATA-Platten statt /dev/sda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/sda
 StartEnabled = yes                   # "Start"-Button anzeigen
 SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
 NewEnabled = yes                     # "Neu+Start"-Button anzeigen

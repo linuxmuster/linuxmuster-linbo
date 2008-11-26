@@ -6,7 +6,7 @@
 # Festplatte 40G (IDE)
 
 [LINBO]                  # Start der globalen Konfiguration
-Cache = /dev/hda2        # lokale Cache Partition
+Cache = /dev/sda2        # lokale Cache Partition
 Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
@@ -15,28 +15,28 @@ AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Sta
 UseMulticast = no        # kein Image-Download per Multicast
 
 [Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Kubuntu)
-Dev = /dev/hda1          # Device-Name der Partition (hda1 = erste Partition auf erster IDE-Platte)
+Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte)
 Size = 6291456           # Partitionsgroesse in kB (Bsp.: 6G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext3            # Dateisystem ext3
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Cachepartition
-Dev = /dev/hda2          # Device-Name der Partition (hda2 = zweite Partition auf erster IDE-Platte)
+Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster IDE-Platte)
 Size = 10485760          # Partitionsgroesse 8388608 kB (Bsp.: 10G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = reiserfs        # Dateisystem reiserfs (empf. für Cache)
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Definition der Swap-Partition
-Dev = /dev/hda3          # Device-Name der Partition (hda3 = dritte Partition auf erster IDE-Platte)
+Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster IDE-Platte)
 Size = 524288            # Partitionsgroesse in kB (Bsp.: 512M)
 Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = swap            # Dateisystem swap
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Datenpartition
-Dev = /dev/hda4          # Device-Name der Partition (hda4 = vierte Partition auf erster IDE-Platte)
+Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster IDE-Platte)
 Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 25G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext3            # Dateisystem ext3
@@ -49,8 +49,8 @@ Description = Kubuntu 8.04 Hardy    # Beschreibung
 #Image =  hardy.rsync               # Dateiname des differentiellen Images (Erweiterung .rsync)
 Image =                             # erst eintragen, wenn es erzeugt werden soll
 BaseImage = hardy.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/hda1                    # Partition, die Kernel & Initrd enthaelt
-Root = /dev/hda1                    # Rootpartition, in die das BS installiert ist
+Boot = /dev/sda1                    # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                    # Rootpartition, in die das BS installiert ist
 Kernel = vmlinuz                    # Relativer Pfad zum Kernel
 Initrd = initrd.img                 # Relativer Pfad zur Initrd
 Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen

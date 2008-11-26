@@ -5,7 +5,7 @@
 # Festplatte 20G (IDE)
 
 [LINBO]                  # globale Konfiguration
-Cache = /dev/hda3        # lokale Cache Partition
+Cache = /dev/sda3        # lokale Cache Partition
 Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
@@ -14,21 +14,21 @@ AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Sta
 UseMulticast = no        # kein Image-Download per Multicast
 
 [Partition]              # Start einer Partitionsdefinition, Windows XP
-Dev = /dev/hda1          # Device-Name der Partition (hda1 = erste Partition auf erster IDE-Platte)
+Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte)
 Size = 5192000           # Partitionsgroesse in kB (Bsp.: 5G)
 Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ntfs            # Dateisystem auf der Partition
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Datenpartition
-Dev = /dev/hda2          # Device-Name der Partition (hda2 = zweite Partition auf erster IDE-Platte)
+Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster IDE-Platte)
 Size = 8388608           # Partitionsgroesse 8388608 kB (Bsp.: 8G)
 Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ntfs            # Dateisystem auf der Partition
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Definition der Cache-Partition
-Dev = /dev/hda3          # Device-Name der Partition (hda3 = dritte Partition auf erster IDE-Platte)
+Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster IDE-Platte)
 Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = reiserfs        # Dateisystem fuer Cache-Partition (reiserfs empf.)
@@ -40,14 +40,14 @@ Version =                            # Version (optional, frei waehlbar)
 Description = Windows 2000 SP4       # Beschreibung
 Image =                              # kein differentielles Image von NTFS-Partitionen
 BaseImage = win2k.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
                                      # bei Windows ist Boot und Root immer dieselbe Partition
 Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
 Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
                                      # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
-                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
-Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+                                     # bei SATA-Platten statt /dev/sda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/sda
 StartEnabled = yes                   # "Start"-Button anzeigen
 SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
 NewEnabled = yes                     # "Neu+Start"-Button anzeigen
@@ -60,14 +60,14 @@ Version =                            # Version (optional, frei waehlbar)
 Description = Windows XP SP2         # Beschreibung
 Image =                              # kein differentielles Image von NTFS-Partitionen
 BaseImage = winxp.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
                                      # bei Windows ist Boot und Root immer dieselbe Partition
 Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
 Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
                                      # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
-                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
-Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+                                     # bei SATA-Platten statt /dev/sda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/sda
 StartEnabled = yes                   # "Start"-Button anzeigen
 SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
 NewEnabled = yes                     # "Neu+Start"-Button anzeigen

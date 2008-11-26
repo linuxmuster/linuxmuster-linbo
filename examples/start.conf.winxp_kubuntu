@@ -8,7 +8,7 @@
 # Festplatte 60G (IDE)
 
 [LINBO]                  # globale Konfiguration
-Cache = /dev/hda6        # lokale Cache Partition
+Cache = /dev/sda6        # lokale Cache Partition
 Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
@@ -17,41 +17,41 @@ AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Sta
 UseMulticast = no        # kein Image-Download per Multicast
 
 [Partition]              # Start einer Partitionsdefinition, Windows XP mit FAT32
-Dev = /dev/hda1          # Device-Name der Partition (hda1 = 1. Partition auf erster IDE-Platte)
+Dev = /dev/sda1          # Device-Name der Partition (sda1 = 1. Partition auf erster IDE-Platte)
 Size = 5192000           # Partitionsgroesse in kB (Bsp.: 5G)
 Id = c                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = vfat            # Dateisystem auf der Partition (FAT32)
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Kubuntu
-Dev = /dev/hda2          # Device-Name der Partition (hda2 = 2. Partition auf erster IDE-Platte)
+Dev = /dev/sda2          # Device-Name der Partition (sda2 = 2. Partition auf erster IDE-Platte)
 Size = 6291456           # Partitionsgroesse in kB (Bsp.: 6G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext3            # Dateisystem auf der Partition (ext3)
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Definition der Swappartition
-Dev = /dev/hda3          # Device-Name der Partition (hda3 = 3. Partition auf erster IDE-Platte)
+Dev = /dev/sda3          # Device-Name der Partition (sda3 = 3. Partition auf erster IDE-Platte)
 Size = 1048576           # Partitionsgroesse in kB (Bsp.: 1G)
 Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = swap            # Dateisystem auf der Partition (swap)
 
 [Partition]              # Erweiterte Partition
-Dev = /dev/hda4          # Device-Name der Partition (hda4 = 4. Partition auf erster IDE-Platte)
+Dev = /dev/sda4          # Device-Name der Partition (sda4 = 4. Partition auf erster IDE-Platte)
 Size =                   # Partitionsgroesse in kB (leer bei erweiterter Partition)
 Id = 5                   # Partitionstyp (5 = erweiterte Partition)
 FSType =                 # Dateisystem auf der Partition (leer bei erweiterter Partition)
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Datenpartition mit FAT32
-Dev = /dev/hda5          # Device-Name der Partition (hda5 = 5. Partition auf erster IDE-Platte)
+Dev = /dev/sda5          # Device-Name der Partition (sda5 = 5. Partition auf erster IDE-Platte)
 Size = 31457280          # Partitionsgroesse in kB (Bsp.: 30G)
 Id = c                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = vfat            # Dateisystem auf der Partition
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Definition der Cache-Partition
-Dev = /dev/hda6          # Device-Name der Partition (hda6 = 6. Partition auf erster IDE-Platte)
+Dev = /dev/sda6          # Device-Name der Partition (sda6 = 6. Partition auf erster IDE-Platte)
 Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 18G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = reiserfs        # Dateisystem fuer Cache-Partition (reiserfs empf.)
@@ -64,14 +64,14 @@ Description = Windows XP Prof. SP2   # Beschreibung
 #Image = winxp.rsync                 # Dateiname des differentiellen Images (Erweiterung .rsync)
 Image =                              # erst eintragen, wenn es erzeugt werden soll
 BaseImage  = winxp.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/hda1                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/hda1                     # Rootpartition, in die das BS installiert ist
+Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
                                      # bei Windows ist Boot und Root immer dieselbe Partition
 Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
 Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
                                      # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
-                                     # bei SATA-Platten statt /dev/hda /dev/sda eintragen
-Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/hda
+                                     # bei SATA-Platten statt /dev/sda /dev/sda eintragen
+Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/sda
 StartEnabled = yes                   # "Start"-Button anzeigen
 SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
 NewEnabled = yes                     # "Neu+Start"-Button anzeigen
@@ -85,8 +85,8 @@ Description = Kubuntu 8.04 Hardy     # Beschreibung
 #Image =  hardy.rsync                # Dateiname des differentiellen Images (Erweiterung .rsync)
 Image =                              # erst eintragen, wenn es erzeugt werden soll
 BaseImage = hardy.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/hda2                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/hda2                     # Rootpartition, in die das BS installiert ist
+Boot = /dev/sda2                     # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda2                     # Rootpartition, in die das BS installiert ist
 Kernel = vmlinuz                     # Relativer Pfad zum Kernel
 Initrd = initrd.img                  # Relativer Pfad zur Initrd
 Append = ro splash                   # Kernel-Append-Parameter, ggf. anpassen
