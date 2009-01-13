@@ -556,8 +556,9 @@ start(){
 #     LOADED="true"
 #    fi
 #    [ -r "$KERNEL" ] || KERNEL="/usr/lib/grub.exe" # Use builtin
-    # tschmitt: use builtin grub.exe in any case
-    KERNEL="/usr/lib/grub.exe"
+    # tschmitt: use builtin grub.exe or badgrub.exe in any case
+    KERNEL="/usr/lib/$3"
+    [ -e "$KERNEL" ] || KERNEL="/usr/lib/grub.exe"
     # provide an APPEND line if no one is given
     [ -z "$APPEND" ] && APPEND="--config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) $disk"
     ;;

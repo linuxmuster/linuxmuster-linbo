@@ -1,3 +1,10 @@
+linuxmuster-linbo (1.1.4-1) unstable; urgency=low
+
+  * updated grub4dos to 0.4.4-2009-01-11.
+  * added grub4dos' badgrub.exe as an alternative for machines not booting with grub.exe.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 13 Jan 2009 11:21:09 +0100
+
 linuxmuster-linbo (1.1.3-1) unstable; urgency=low
 
   * updated grub4dos to 0.4.4-12-29
