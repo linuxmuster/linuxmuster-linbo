@@ -1,3 +1,18 @@
+linuxmuster-linbo (1.1.6-1) unstable; urgency=low
+
+  * new upstream versions of
+    - grub4dos -> 0.4.4-2009-01-22
+    - linux -> 2.6.28.1
+  * providing now empty append line for windows systems in example start.conf files
+  * added IDE start.conf example
+  * removed chipset specific framebuffer drivers from linbo kernel
+  * added old ide drivers again to kernel as modules
+  * changed static compiled sata/pata drivers to modules
+  * added new kernel parameter "useide" which causes the hw detection in linbo's
+    init.sh to use the old ide drivers instead of the pata drivers
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Jan 2009 00:21:34 +0100
+
 linuxmuster-linbo (1.1.5-1) unstable; urgency=low
 
   * added "reboot" start.conf KERNEL value for Windows systems, which will not boot

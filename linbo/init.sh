@@ -222,7 +222,11 @@ network(){
 hwsetup(){
  rm -f /tmp/linbo-cache.done
  UNAME="$(uname -r)"
- HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ide /lib/modules/$UNAME/kernel/drivers/ata /lib/modules/$UNAME/kernel/drivers/usb /lib/modules/$UNAME/kernel/drivers/scsi)"
+ if cat /proc/cmdline | grep -q useide; then
+  HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ide /lib/modules/$UNAME/kernel/drivers/usb /lib/modules/$UNAME/kernel/drivers/scsi)"
+ else
+  HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ata /lib/modules/$UNAME/kernel/drivers/usb /lib/modules/$UNAME/kernel/drivers/scsi)"
+ fi
  FSMODULES="$(findmodules /lib/modules/$UNAME/kernel/fs)"
  # Silence
  for m in $HDDMODULES $FSMODULES; do modprobe "$m" & done
