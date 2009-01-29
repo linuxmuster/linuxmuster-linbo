@@ -56,6 +56,8 @@ init_setup(){
  mount -t proc /proc /proc
  echo 0 >/proc/sys/kernel/printk
  CMDLINE="$(cat /proc/cmdline)"
+ echo "$CMDLINE" | grep -q debug && debug=yes
+ echo "$CMDLINE" | grep -q useide && useide=yes
  mount -t sysfs /sys /sys
  mount -t devpts /dev/pts /dev/pts 2>/dev/null
  loadkmap < /etc/german.kbd
@@ -179,7 +181,13 @@ network(){
  rm -f /tmp/linbo-network.done
  UNAME="$(uname -r)"
  NETMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/net)"
- for m in $NETMODULES; do modprobe "$m" & done
+ for m in $NETMODULES; do
+  if [ -n "$debug" ]; then
+   modprobe -v "$m"
+  else
+   modprobe -q "$m"
+  fi
+ done
  sleep 2
  if [ -n "$ipaddr" ]; then
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
@@ -221,18 +229,27 @@ network(){
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
- UNAME="$(uname -r)"
- HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/usb /lib/modules/$UNAME/kernel/drivers/scsi)"
- if cat /proc/cmdline | grep -q useide; then
-  HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ide) $HDDMODULES"
+ if [ -n "$useide" ]; then
+  HDDMODULES="$(cat /etc/ide_modules)"
+  drive=/dev/hda
  else
-  HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ata) $HDDMODULES"
+  HDDMODULES="$(cat /etc/ata_modules)"
+  drive=/dev/sda
  fi
- FSMODULES="$(findmodules /lib/modules/$UNAME/kernel/fs)"
- # Silence
- for m in $HDDMODULES $FSMODULES; do modprobe "$m" & done
- sleep 1
- enable_dma
+ # load modules only if drive is not yet present
+ if ! sfdisk -l $drive; then 
+  for m in $HDDMODULES; do
+   modprobe -v "$m"
+   if sfdisk -l $drive >/dev/null 2>&1; then
+    echo "Success!"
+    break
+   else
+    modprobe -r "$m"
+   fi
+  done
+  sleep 2
+ fi
+ [ -n "$useide" ] && enable_dma
  echo > /tmp/linbo-cache.done 
 }
 
@@ -240,9 +257,18 @@ hwsetup(){
 echo "Hello, World."
 
 # Initial setup
-init_setup >/dev/null 2>&1
+if [ -n "$debug" ]; then
+ init_setup
+else
+ init_setup >/dev/null 2>&1
+fi
 
 # BG processes (HD and Network detection can run in parallel)
-hwsetup >/dev/null 2>&1 &
-network >/dev/null 2>&1 &
+if [ -n "$debug" ]; then
+ hwsetup &
+ network &
+else
+ hwsetup >/dev/null 2>&1 &
+ network >/dev/null 2>&1 &
+fi
 
