@@ -70,7 +70,7 @@ Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows im
 Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
                                      # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
                                      # bei SATA-Platten statt /dev/sda /dev/sda eintragen
-Append = --config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) /dev/sda
+Append =                             # bleibt bei Windows leer
 StartEnabled = no                    # "Start"-Button deaktiviert
 SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
 NewEnabled = yes                     # "Neu+Start"-Button anzeigen

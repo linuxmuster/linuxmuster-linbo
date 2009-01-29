@@ -547,22 +547,14 @@ start(){
   fi
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
-    # Load grub.exe preferably from cache partition, if present
-#    if [ -r "/cache/$3" ]; then
-#     KERNEL="/cache/$3"
-     # mkgrubmenu "$1"
-     # grub-set-default --root-directory=/cache 1
-     #WINDOWS="yes"
-#     LOADED="true"
-#    fi
-#    [ -r "$KERNEL" ] || KERNEL="/usr/lib/grub.exe" # Use builtin
-    # tschmitt: use builtin grub.exe in any case
-    KERNEL="/usr/lib/grub.exe"
+    # tschmitt: use builtin grub.exe or badgrub.exe in any case
+    KERNEL="/usr/lib/$3"
+    [ -e "$KERNEL" ] || KERNEL="/usr/lib/grub.exe"
     # provide an APPEND line if no one is given
     [ -z "$APPEND" ] && APPEND="--config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) $disk"
     ;;
-   *[Pp][Xx][Ee][Gg][Rr][Uu][Bb]*)
-     # tschmitt: if kernel is pxegrub assume that it is a real windows, which has to be rebootet
+   *[Rr][Ee][Bb][Oo][Oo][Tt]*)
+     # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
      WINDOWS="yes"
      LOADED="true"
      # tschmitt: needed for local boot here
@@ -570,9 +562,6 @@ start(){
       mkgrubmenu "$1"
       grub-set-default --root-directory=/cache 1
      fi
-     # oehler: set windows boot flag
-     flag="$(printf '\%o' 1)"
-     echo -n -e "$flag" | dd seek=432 bs=1 count=1 of=$disk conv=notrunc
      ;;
    *)
     if [ -n "$2" ]; then
@@ -639,7 +628,7 @@ start(){
   else
    sleep 2
    reboot -f
-   sleep 10
+   #sleep 10
   fi
  else
   echo "Betriebssystem konnte nicht geladen werden." >&2

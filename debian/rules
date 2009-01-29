@@ -47,7 +47,7 @@ KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
 GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
-GRUB4DOS_URL=http://download.gna.org/grub4dos
+GRUB4DOS_URL=http://nufans.net/grub4dos
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
@@ -188,8 +188,8 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		echo "[1mPatching cloop sources...[0m" ; \
-		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
+		#echo "[1mPatching cloop sources...[0m" ; \
+		#( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 	fi
 
@@ -199,8 +199,8 @@ configure-stamp:
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
-		echo "[1mPatching kernel sources...[0m" ; \
-		( cd $(KERNEL_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
+		#echo "[1mPatching kernel sources...[0m" ; \
+		#( cd $(KERNEL_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
 	fi
 

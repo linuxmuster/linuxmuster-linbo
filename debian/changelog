@@ -1,3 +1,61 @@
+linuxmuster-linbo (1.1.7-1) unstable; urgency=low
+
+  * new upstream versions of
+    - grub4dos -> 0.4.4-2009-01-26
+    - linux -> 2.6.28.2
+  * kernel config:
+    - activated deprecated old ide/sata option
+  * init.sh: minor code optimations
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Jan 2009 11:44:42 +0100
+
+linuxmuster-linbo (1.1.6-1) unstable; urgency=low
+
+  * new upstream versions of
+    - grub4dos -> 0.4.4-2009-01-22
+    - linux -> 2.6.28.1
+  * providing now empty append line for windows systems in example start.conf files
+  * added IDE start.conf example
+  * removed chipset specific framebuffer drivers from linbo kernel
+  * added old ide drivers again to kernel as modules
+  * changed static compiled sata/pata drivers to modules
+  * added new kernel parameter "useide" which causes the hw detection in linbo's
+    init.sh to use the old ide drivers instead of the pata drivers
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Jan 2009 00:21:34 +0100
+
+linuxmuster-linbo (1.1.5-1) unstable; urgency=low
+
+  * added "reboot" start.conf KERNEL value for Windows systems, which will not boot
+    with grub.exe/badgrub.exe.
+  * updated cloop to version 2.628-2.
+  * removed cloop-2.6.27.diff.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 13 Jan 2009 17:04:18 +0100
+
+linuxmuster-linbo (1.1.4-1) unstable; urgency=low
+
+  * updated grub4dos to 0.4.4-2009-01-11.
+  * added grub4dos' badgrub.exe as an alternative for machines not booting with grub.exe.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 13 Jan 2009 11:21:09 +0100
+
+linuxmuster-linbo (1.1.3-1) unstable; urgency=low
+
+  * updated grub4dos to 0.4.4-12-29
+  * kernel update to 2.6.28
+  * removed atl2 kernel patch
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 8 Jan 2009 13:38:32 +0100
+
+linuxmuster-linbo (1.1.2-1) unstable; urgency=low
+
+  * updated grub4dos to 0.4.4-12-12, changed download source to http://nufans.net/grub4dos
+  * kernel update to 2.6.27.9
+  * added kvm's virtio drivers
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 15 Dec 2008 21:48:34 +0100
+
 linuxmuster-linbo (1.1.1-1) testing; urgency=low
 
   * updated grub4dos to 0.4.4-11-19
