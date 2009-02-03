@@ -1,6 +1,6 @@
 linuxmuster-linbo (1.1.9-1) unstable; urgency=low
 
-  * compiled all sata drivers as modules
+  * compiled all sata drivers and floppy driver as modules
   * new upstream kernel version -> 2.6.28.3
   * new upstream version of grub4dos -> 0.4.4-2009-02-01
   * updated ata module list
