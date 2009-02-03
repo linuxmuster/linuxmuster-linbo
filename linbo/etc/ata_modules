@@ -1,5 +1,17 @@
 ata_piix
+sata_inic162x
+sata_nv
+sata_promise
+sata_qstor
+sata_sil24
+sata_sil
 sata_sis
+sata_svw
+sata_sx4
+sata_uli
+sata_via
+sata_vsc
+pdc_adma
 pata_atiixp
 pata_amd
 pata_via
