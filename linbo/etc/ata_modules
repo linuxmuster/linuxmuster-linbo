@@ -12,6 +12,7 @@ sata_uli
 sata_via
 sata_vsc
 pdc_adma
+sx8
 pata_atiixp
 pata_amd
 pata_via
