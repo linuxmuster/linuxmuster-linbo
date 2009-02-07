@@ -239,7 +239,8 @@ hwsetup(){
  # load modules only if drive is not yet present
  if ! sfdisk -l $drive; then 
   for m in $HDDMODULES; do
-   modprobe -v "$m"
+   echo "Probing $m ..."
+   modprobe "$m" >/dev/null 2>&1
    if sfdisk -l $drive >/dev/null 2>&1; then
     echo "Success!"
     break

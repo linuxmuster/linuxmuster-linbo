@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.1.10-1) unstable; urgency=low
+
+  * added ahci to ata module list
+  * new upstream kernel version -> 2.6.28.4
+  * activated kvm virtualization support in kernel config
+  * new upstream version of grub4dos -> 0.4.4-2009-02-05
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 07 Feb 2009 11:13:43 +0100
+
 linuxmuster-linbo (1.1.9-1) unstable; urgency=low
 
   * compiled all sata drivers and floppy driver as modules
