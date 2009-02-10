@@ -229,28 +229,34 @@ network(){
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
- if [ -n "$useide" ]; then
-  HDDMODULES="$(cat /etc/ide_modules)"
-  drive=/dev/hda
- else
-  HDDMODULES="$(cat /etc/ata_modules)"
-  drive=/dev/sda
- fi
- # load modules only if drive is not yet present
- if ! sfdisk -l $drive; then 
-  for m in $HDDMODULES; do
-   echo "Probing $m ..."
-   modprobe "$m" >/dev/null 2>&1
-   if sfdisk -l $drive >/dev/null 2>&1; then
-    echo "Success!"
-    break
-   else
-    modprobe -r "$m"
+ echo "Searching for storage controller ..." | tee /tmp/linbo.log
+ hwinfo --storage-ctrl | tee -a /tmp/linbo.log
+ modules=`grep modprobe /tmp/linbo.log | awk -F\" '{ print $2 }' | awk '{ print $2 }'`
+ if [ -n "$modules" ]; then
+  if [ -n "$useide" ]; then
+   echo "Probing IDE modules (useide) ..."  | tee -a /tmp/linbo.log
+   HDDMODULES=/etc/ide_modules
+  else
+   echo "Probing SATA/PATA modules ..."  | tee -a /tmp/linbo.log
+   HDDMODULES=/etc/ata_modules
+  fi
+  found=0
+  for m in $modules; do
+   if grep -q "$m" $HDDMODULES; then
+     echo "-> $m"  | tee -a /tmp/linbo.log
+     modprobe $m
+     found=1
    fi
   done
-  sleep 2
+  if [ $found = 0 ]; then
+   echo "Fatal! No modules found!" | tee -a /tmp/linbo.log
+  else
+   [ -n "$useide" ] && enable_dma
+  fi
+ else
+  echo "Fatal! No storage controller found!"
  fi
- [ -n "$useide" ] && enable_dma
+ sleep 2
  echo > /tmp/linbo-cache.done 
 }
 

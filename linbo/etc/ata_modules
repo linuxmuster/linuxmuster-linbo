@@ -14,6 +14,7 @@ sata_via
 sata_vsc
 pdc_adma
 sx8
+dac960
 pata_atiixp
 pata_amd
 pata_via
@@ -57,4 +58,3 @@ pata_sis
 pata_sl82c105
 pata_triflex
 pata_winbond
-

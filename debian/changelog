@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.1.11-1) unstable; urgency=low
+
+  * added pci.ids, hwinfo and lspci to linbofs
+  * init.sh now uses hwinfo for storage controller recognition
+  * new upstream version of grub4dos -> 0.4.4-2009-02-09
+  * dac960 compiled as module and added to ata_modules list
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 10 Feb 2009 20:11:21 +0100
+
 linuxmuster-linbo (1.1.10-1) unstable; urgency=low
 
   * added ahci to ata module list

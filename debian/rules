@@ -74,6 +74,9 @@ SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
 SSMTP_DIR=src/ssmtp
 SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
 
+#pci.ids
+PCIIDS=http://pciids.sourceforge.net/v2.2/pci.ids.gz
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -192,6 +195,11 @@ configure-stamp:
 		#( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 	fi
+
+	# pci.ids
+	wget $(PCIIDS) -O cache/pci.ids.gz
+	( [ -e cache/pci.ids.gz ] && gzip -c cache/pci.ids.gz > src/pci.ids )
+	rm cache/pci.ids.gz
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
@@ -344,7 +352,7 @@ install: build
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
