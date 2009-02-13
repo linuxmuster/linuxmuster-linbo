@@ -56,6 +56,8 @@ init_setup(){
  mount -t proc /proc /proc
  echo 0 >/proc/sys/kernel/printk
  CMDLINE="$(cat /proc/cmdline)"
+ echo "$CMDLINE" | grep -q debug && debug=yes
+ echo "$CMDLINE" | grep -q useide && useide=yes
  mount -t sysfs /sys /sys
  mount -t devpts /dev/pts /dev/pts 2>/dev/null
  loadkmap < /etc/german.kbd
@@ -67,6 +69,10 @@ init_setup(){
  for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
   [ -f "$i" ] && echo "ondemand" > "$i" 2>/dev/null
  done
+ # activate hotplugging
+ echo /sbin/mdev > /proc/sys/kernel/hotplug
+ # populate /dev
+ /sbin/mdev -s
 }
 
 # findmodules dir
@@ -179,7 +185,13 @@ network(){
  rm -f /tmp/linbo-network.done
  UNAME="$(uname -r)"
  NETMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/net)"
- for m in $NETMODULES; do modprobe "$m" & done
+ for m in $NETMODULES; do
+  if [ -n "$debug" ]; then
+   modprobe -v "$m"
+  else
+   modprobe -q "$m"
+  fi
+ done
  sleep 2
  if [ -n "$ipaddr" ]; then
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
@@ -218,21 +230,58 @@ network(){
  echo > /tmp/linbo-network.done 
 }
 
+# check if module name is in /etc/ide_modules
+check_idemod(){
+ local mod=$1
+ local found=1
+ local line
+ while read line; do
+  if [ "$line" = "$mod" ]; then
+   found=0
+   break
+  fi
+ done </etc/ide_modules
+ if [ $found = 0 ]; then
+  [ -z "$useide" ] && found=1
+ else
+  [ -z "$useide" ] && found=0
+ fi 
+ return $found
+}
+
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
- UNAME="$(uname -r)"
- HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/usb /lib/modules/$UNAME/kernel/drivers/scsi)"
- if cat /proc/cmdline | grep -q useide; then
-  HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ide) $HDDMODULES"
+ echo "## Hardware Info - Begin ##" > /tmp/linbo.log
+ hwinfo --short --pci >> /tmp/linbo.log
+ echo "## Hardware Info - End ##" >> /tmp/linbo.log
+ hwinfo --storage-ctrl > /tmp/storage.log
+ modules=`grep modprobe /tmp/storage.log | awk -F\" '{ print $2 }' | awk '{ print $2 }'`
+ echo "## Detailed Storage Controler Info - Begin ##" >> /tmp/linbo.log
+ cat /tmp/storage.log >> /tmp/linbo.log
+ echo "## Detailed Storage Controler Info - End ##" >> /tmp/linbo.log
+ rm /tmp/storage.log
+ [ -n "$useide" ] && echo "Using IDE modules only as requested on command line ..." | tee -a /tmp/linbo.log
+ if [ -n "$modules" ]; then
+  echo "## Loading Storage Modules - Begin ##" >> /tmp/linbo.log
+  local found=0
+  for m in $modules; do
+   if check_idemod $m; then
+    echo "-> $m"  | tee -a /tmp/linbo.log
+    modprobe $m
+    found=1
+   fi
+  done
+  echo "## Loading Storage Modules - End ##" >> /tmp/linbo.log
+  if [ $found = 0 ]; then
+   echo "Fatal! No modules found!" | tee -a /tmp/linbo.log
+  else
+   [ -n "$useide" ] && enable_dma
+  fi
  else
-  HDDMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/ata) $HDDMODULES"
+  echo "Fatal! No storage controller found!"
  fi
- FSMODULES="$(findmodules /lib/modules/$UNAME/kernel/fs)"
- # Silence
- for m in $HDDMODULES $FSMODULES; do modprobe "$m" & done
- sleep 1
- enable_dma
+ sleep 2
  echo > /tmp/linbo-cache.done 
 }
 
@@ -240,9 +289,18 @@ hwsetup(){
 echo "Hello, World."
 
 # Initial setup
-init_setup >/dev/null 2>&1
+if [ -n "$debug" ]; then
+ init_setup
+else
+ init_setup >/dev/null 2>&1
+fi
 
 # BG processes (HD and Network detection can run in parallel)
-hwsetup >/dev/null 2>&1 &
-network >/dev/null 2>&1 &
+if [ -n "$debug" ]; then
+ hwsetup &
+ network &
+else
+ hwsetup >/dev/null 2>&1 &
+ network >/dev/null 2>&1 &
+fi
 

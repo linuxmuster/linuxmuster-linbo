@@ -1,3 +1,66 @@
+linuxmuster-linbo (1.1.12-1) unstable; urgency=low
+
+  * package:
+    - debian/rules: added code to handle hwinfo, vesamode change
+    - debian/control: added build dependencies for hwinfo
+    - hwinfo now self compiled from jaunty source package
+  * kernel:
+    - updated to 2.6.29-rc4
+    - removed pci hotplug drivers
+    - added missing /dev/kvm to initramfs_kernel.conf
+    - changed default vesamode to 771
+  * linbofs:
+    - removed /etc/ata_modules
+    - removed lspci, job is done by hwinfo
+    - removed pci.ids
+    - updated /etc/ide_modules
+    - linbo_cmd, mkgrubmenu(): grub's device.map will also be updated
+    - linbo_cmd, mkgrldr(): fstype is now fetched from start.conf
+    - linbo_cmd: added /dev/vda kvm virtio block device support
+    - linbo_cmd: logs start and ending time of imaging
+    - busybox: updated to 1.13.2
+    - init.sh: added mdev hotplugging
+    - init.sh: hwsetup() uses only ide_modules for controler detection
+    - init.sh: logs additional hw information
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 13 Feb 2009 16:51:58 +0100
+
+linuxmuster-linbo (1.1.11-1) unstable; urgency=low
+
+  * added pci.ids, hwinfo and lspci to linbofs
+  * init.sh now uses hwinfo for storage controller recognition
+  * new upstream version of grub4dos -> 0.4.4-2009-02-09
+  * dac960 compiled as module and added to ata_modules list
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 10 Feb 2009 20:11:21 +0100
+
+linuxmuster-linbo (1.1.10-1) unstable; urgency=low
+
+  * added ahci to ata module list
+  * new upstream kernel version -> 2.6.28.4
+  * activated kvm virtualization support in kernel config
+  * new upstream version of grub4dos -> 0.4.4-2009-02-05
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 07 Feb 2009 11:13:43 +0100
+
+linuxmuster-linbo (1.1.9-1) unstable; urgency=low
+
+  * compiled all sata drivers and floppy driver as modules
+  * new upstream kernel version -> 2.6.28.3
+  * new upstream version of grub4dos -> 0.4.4-2009-02-01
+  * updated ata module list
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 03 Feb 2009 08:54:09 +0100
+
+linuxmuster-linbo (1.1.8-1) unstable; urgency=low
+
+  * compiled sata drivers static, pata and ide drivers as modules
+  * deactivated deprecated old ide/sata option again
+  * new upstream version of grub4dos -> 0.4.4-2009-01-28
+  * init.sh: reworked module loading in hwsetup() using ata and ide module lists
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 29 Jan 2009 20:49:56 +0100
+
 linuxmuster-linbo (1.1.7-1) unstable; urgency=low
 
   * new upstream versions of

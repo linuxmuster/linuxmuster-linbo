@@ -4,7 +4,8 @@ Priority: extra
 Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
 Build-Depends: debhelper (>= 4), build-essential, fakeroot, qt3-dev-tools, flex, wget, gcc-4.1, g++-4.1, ncurses-base,
                coreutils, sysvinit-utils, util-linux, libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip,
-	       gettext, zlib1g-dev, libncurses5-dev, tetex-base, tetex-bin, tetex-extra, udpcast
+	       gettext, zlib1g-dev, libncurses5-dev, tetex-base, tetex-bin, tetex-extra, udpcast, libdbus-1-dev,
+               libhal-dev, doxygen, libdbus-1-3, libhal1
 Standards-Version: 3.6.1
 
 Package: linuxmuster-linbo
