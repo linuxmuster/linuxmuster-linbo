@@ -5,10 +5,11 @@ linuxmuster-linbo (1.1.12-1) unstable; urgency=low
     - debian/control: added build dependencies for hwinfo
     - hwinfo now self compiled from jaunty source package
   * kernel:
-    - updated to 2.6.29-rc4
+    - updated to 2.6.29-rc5
     - removed pci hotplug drivers
     - added missing /dev/kvm to initramfs_kernel.conf
     - changed default vesamode to 771
+    - removed unecessary kvm dom0 support modules
   * linbofs:
     - removed /etc/ata_modules
     - removed lspci, job is done by hwinfo
@@ -18,7 +19,7 @@ linuxmuster-linbo (1.1.12-1) unstable; urgency=low
     - linbo_cmd, mkgrldr(): fstype is now fetched from start.conf
     - linbo_cmd: added /dev/vda kvm virtio block device support
     - linbo_cmd: logs start and ending time of imaging
-    - busybox: updated to 1.13.2
+    - busybox: updated to 1.13.2, some size optimations
     - init.sh: added mdev hotplugging
     - init.sh: hwsetup() uses only ide_modules for controler detection
     - init.sh: logs additional hw information
