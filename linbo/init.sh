@@ -69,6 +69,10 @@ init_setup(){
  for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
   [ -f "$i" ] && echo "ondemand" > "$i" 2>/dev/null
  done
+ # activate hotplugging
+ echo /sbin/mdev > /proc/sys/kernel/hotplug
+ # populate /dev
+ /sbin/mdev -s
 }
 
 # findmodules dir
@@ -179,15 +183,17 @@ network(){
   ;;
  esac
  rm -f /tmp/linbo-network.done
- UNAME="$(uname -r)"
- NETMODULES="$(findmodules /lib/modules/$UNAME/kernel/drivers/net)"
- for m in $NETMODULES; do
-  if [ -n "$debug" ]; then
-   modprobe -v "$m"
-  else
-   modprobe -q "$m"
-  fi
- done
+ modules="$(hwinfo --netcard | grep modprobe | awk -F\" '{ print $2 }' | awk '{ print $2 }')"
+ if [ -n "$modules" ]; then
+  echo "## Loading NIC Modules - Begin ##" > /tmp/linbo.log
+  for m in $modules; do
+   echo "-> $m"  | tee -a /tmp/linbo.log
+   modprobe $m
+  done
+  echo "## Loading NIC Modules - End ##" >> /tmp/linbo.log
+ else
+  echo "Fatal! No netcard found!"
+ fi
  sleep 2
  if [ -n "$ipaddr" ]; then
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
@@ -226,30 +232,51 @@ network(){
  echo > /tmp/linbo-network.done 
 }
 
+# check if module name is in /etc/ide_modules
+check_idemod(){
+ local mod=$1
+ local found=1
+ local line
+ while read line; do
+  if [ "$line" = "$mod" ]; then
+   found=0
+   break
+  fi
+ done </etc/ide_modules
+ if [ $found = 0 ]; then
+  [ -z "$useide" ] && found=1
+ else
+  [ -z "$useide" ] && found=0
+ fi 
+ return $found
+}
+
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
- echo "Searching for storage controller ..." | tee /tmp/linbo.log
- hwinfo --storage-ctrl | tee -a /tmp/linbo.log
- modules=`grep modprobe /tmp/linbo.log | awk -F\" '{ print $2 }' | awk '{ print $2 }'`
+ echo "## Hardware Info - Begin ##" >> /tmp/linbo.log
+ hwinfo --short --pci >> /tmp/linbo.log
+ echo "## Hardware Info - End ##" >> /tmp/linbo.log
+ hwinfo --storage-ctrl > /tmp/storage.log
+ modules=`grep modprobe /tmp/storage.log | awk -F\" '{ print $2 }' | awk '{ print $2 }'`
+ echo "## Detailed Storage Controler Info - Begin ##" >> /tmp/linbo.log
+ cat /tmp/storage.log >> /tmp/linbo.log
+ echo "## Detailed Storage Controler Info - End ##" >> /tmp/linbo.log
+ rm /tmp/storage.log
+ [ -n "$useide" ] && echo "Using IDE modules only as requested on command line ..." | tee -a /tmp/linbo.log
  if [ -n "$modules" ]; then
-  if [ -n "$useide" ]; then
-   echo "Probing IDE modules (useide) ..."  | tee -a /tmp/linbo.log
-   HDDMODULES=/etc/ide_modules
-  else
-   echo "Probing SATA/PATA modules ..."  | tee -a /tmp/linbo.log
-   HDDMODULES=/etc/ata_modules
-  fi
-  found=0
+  echo "## Loading Storage Modules - Begin ##" >> /tmp/linbo.log
+  local found=0
   for m in $modules; do
-   if grep -q "$m" $HDDMODULES; then
-     echo "-> $m"  | tee -a /tmp/linbo.log
-     modprobe $m
-     found=1
+   if check_idemod $m; then
+    echo "-> $m"  | tee -a /tmp/linbo.log
+    modprobe $m
+    found=1
    fi
   done
+  echo "## Loading Storage Modules - End ##" >> /tmp/linbo.log
   if [ $found = 0 ]; then
-   echo "Fatal! No modules found!" | tee -a /tmp/linbo.log
+   echo "Fatal! No storage modules found!" | tee -a /tmp/linbo.log
   else
    [ -n "$useide" ] && enable_dma
   fi

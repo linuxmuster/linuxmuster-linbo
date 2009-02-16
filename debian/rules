@@ -10,13 +10,13 @@ LML_URL=http://pkg.lml.support-netz.de/linbo-build-cache
 LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
 
 # kernel
-#  VESAMODE=771 # 800x600, 256 colors
-VESAMODE=0 # VGA16
+VESAMODE=771 # 800x600, 256 colors
+# VESAMODE=0 # VGA16
 # VESAMODE=791 # 1024x768, 64k colors # Currently not working
 KERNEL_ARCHIVE=$(shell grep linux- debian/md5sums.src | awk '{ print $$2 }')
-KVERS=$(shell echo $(KERNEL_ARCHIVE) | awk -F\- '{ print $$2 }' | sed -e 's/.tar.bz2//')
+KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.bz2//')
 KERNEL_DIR=kernel/linux-$(KVERS)
-KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v2.6
+KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v2.6/testing
 
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
@@ -52,7 +52,7 @@ GRUB4DOS_URL=http://nufans.net/grub4dos
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
 MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tgz//')
-MSSYS_URL=http://prdownloads.sourceforge.net/ms-sys
+MSSYS_URL=$(LML_URL)
 
 # ntfs-3g
 NTFS3G_ARCHIVE=$(shell grep ntfs-3g- debian/md5sums.src | awk '{ print $$2 }')
@@ -62,7 +62,7 @@ NTFS3G_URL=http://www.ntfs-3g.org
 # ntfsprogs
 NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
 NTFSPROGS_DIR=src/$(shell echo $(NTFSPROGS_ARCHIVE) | sed -e 's/.tar.bz2//')
-NTFSPROGS_URL=http://prdownloads.sourceforge.net/linux-ntfs
+NTFSPROGS_URL=$(LML_URL)
 
 #rsync
 RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
@@ -74,8 +74,11 @@ SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
 SSMTP_DIR=src/ssmtp
 SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
 
-#pci.ids
-PCIIDS=http://pciids.sourceforge.net/v2.2/pci.ids.gz
+#hwinfo
+HWINFO_ARCHIVE=$(shell grep hwinfo_ debian/md5sums.src | awk '{ print $$2 }')
+HWINFO_DIR=src/$(shell echo $(HWINFO_ARCHIVE) | sed -e 's/.orig.tar.gz//' | sed -e 's/_/-/' )
+HWINFO_VER=$(shell echo $(HWINFO_ARCHIVE) | sed -e 's/.orig.tar.gz//' | sed -e 's/hwinfo_//' )
+HWINFO_URL=http://archive.ubuntu.com/ubuntu/pool/universe/h/hwinfo
 
 configure: configure-stamp
 configure-stamp:
@@ -175,6 +178,17 @@ configure-stamp:
 		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 	fi
 
+	# hwinfo
+	-@if [ ! -d $(HWINFO_DIR) ]; then \
+		( [ -e cache/$(HWINFO_ARCHIVE) ] || ( cd cache && wget $(HWINFO_URL)/$(HWINFO_ARCHIVE) ) ); \
+		( cd cache && grep $(HWINFO_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(HWINFO_ARCHIVE)...[0m" ; \
+		tar xf cache/$(HWINFO_ARCHIVE) -C src; \
+		echo "[1mPatching hwinfo sources...[0m" ; \
+		( cd $(HWINFO_DIR) && for i in ../../patches/hwinfo/*; do patch -p1 <$$i; done ); \
+		ln -sf ../$(HWINFO_DIR) src/hwinfo; \
+	fi
+
 	# qt
 	-@if [ ! -d $(QT_DIR) ]; then \
 		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL)/$(QT_ARCHIVE) ) ); \
@@ -194,12 +208,6 @@ configure-stamp:
 		#echo "[1mPatching cloop sources...[0m" ; \
 		#( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-	fi
-
-	# pci.ids
-	wget $(PCIIDS) -O cache/pci.ids.gz
-	( [ -e cache/pci.ids.gz ] && gzip -c cache/pci.ids.gz > src/pci.ids )
-	rm cache/pci.ids.gz
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
@@ -272,6 +280,12 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
 		( cd $(SSMTP_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+	fi
+
+	# hwinfo
+	-@if [ ! -e $(HWINFO_DIR)/hwinfo ]; then \
+		echo "[1mBuilding hwinfo...[0m" ; \
+		( cd $(HWINFO_DIR) && make && strip hwinfo src/libhd.so.$(HWINFO_VER) ); \
 	fi
 
 	# qt
@@ -352,7 +366,7 @@ install: build
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \

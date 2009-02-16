@@ -439,21 +439,25 @@ EOT
 }
 
 # mkgrubmenu partition [kernel initrd server append]
-# Creates/updates menu.lst with given partition
+# Creates/updates menu.lst and device.map with given partition/disk
+# installs grub in mbr of disk
 # /cache is already mounted when this is called.
 mkgrubmenu(){
- local menu="/cache/boot/grub/menu.lst"
+ local grubdir="/cache/boot/grub"
+ [ -e "$grubdir" ] || mkdir -p "$grubdir"
+ local menu="$grubdir/menu.lst"
  local grubdisk="hd0"
- case "$1" in
-  *[hs]da) grubdisk=hd0 ;;
-  *[hs]db) grubdisk=hd1 ;;
-  *[hs]dc) grubdisk=hd2 ;;
-  *[hs]dd) grubdisk=hd3 ;;
- esac
- local grubpart="${1##*[hs]d[a-z]}"
+ local disk="${1%%[1-9]*}"
+ local grubpart="${1##*[hsv]d[a-z]}"
  grubpart="$((grubpart - 1))"
+ case "$disk" in
+  *[hsv]da) grubdisk=hd0 ;;
+  *[hsv]db) grubdisk=hd1 ;;
+  *[hsv]dc) grubdisk=hd2 ;;
+  *[hsv]dd) grubdisk=hd3 ;;
+ esac
  local root="root ($grubdisk,$grubpart)"
- echo
+ echo "($grubdisk) $disk" > /cache/boot/grub/device.map
  case "$(cat $menu 2>/dev/null)" in
   *$root*) true ;; # Entry for this partition is already present
   *)
@@ -476,8 +480,8 @@ mkgrubmenu(){
  esac
 }
 
-# tschmitt: mkmenulst bootpart bootfile
-# Creates menu.lst with given partition
+# tschmitt: mkgrldr bootpart bootfile
+# Creates menu.lst on given windows partition
 # /cache and /mnt is already mounted when this is called.
 mkgrldr(){
  local menu="/mnt/menu.lst"
@@ -485,14 +489,14 @@ mkgrldr(){
  local bootfile="$2"
  local driveid="0x80"
  case "$1" in
-  *[hs]da) grubdisk=hd0; driveid="0x80" ;;
-  *[hs]db) grubdisk=hd1; driveid="0x81" ;;
-  *[hs]dc) grubdisk=hd2; driveid="0x82" ;;
-  *[hs]dd) grubdisk=hd3; driveid="0x83" ;;
+  *[hsv]da) grubdisk=hd0; driveid="0x80" ;;
+  *[hsv]db) grubdisk=hd1; driveid="0x81" ;;
+  *[hsv]dc) grubdisk=hd2; driveid="0x82" ;;
+  *[hsv]dd) grubdisk=hd3; driveid="0x83" ;;
  esac
- local grubpart="${1##*[hs]d[a-z]}"
+ local grubpart="${1##*[hsv]d[a-z]}"
  grubpart="$((grubpart - 1))"
- bootlace.com --"$(fstype "$1")" --floppy="$driveid" "$1"
+ bootlace.com --"$(fstype_startconf "$1")" --floppy="$driveid" "$1"
  echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)/$bootfile" > $menu
  cp /usr/lib/grub/grldr /mnt
 }
@@ -542,7 +546,7 @@ start(){
   APPEND="$5"
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
-   [ -e /cache/boot/grub ] || mkdir -p /cache/boot/grub
+   mkgrubmenu "$1"
    grub-install --root-directory=/cache $disk
   fi
   case "$3" in
@@ -559,7 +563,6 @@ start(){
      LOADED="true"
      # tschmitt: needed for local boot here
      if [ -e /cache/boot/grub ] && cache_writable; then
-      mkgrubmenu "$1"
       grub-set-default --root-directory=/cache 1
      fi
      ;;
@@ -676,6 +679,7 @@ cleanup_fs(){
 
 # mk_cloop type inputdev imagename baseimage [timestamp]
 mk_cloop(){
+ echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
  echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
  local size="$(get_partition_size $2)"
@@ -761,6 +765,7 @@ mk_cloop(){
    fi
   ;; 
  esac
+ echo "## $(date) : Beende Erstellung von $1." | tee -a /tmp/image.log
  return "$RC"
 }
 
@@ -795,6 +800,7 @@ update_status(){
 # INITIAL copy
 # cp_cloop imagefile targetdev
 cp_cloop(){
+ echo "## $(date) : Starte Komplettrestore von $1." | tee -a /tmp/image.log
  echo -n "cp_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
  rmmod cloop >/dev/null 2>&1
@@ -838,12 +844,14 @@ cp_cloop(){
   fi
  fi
  [ "$RC" = "0" ] && update_status "$2" "$1"
+ echo "## $(date) : Beende Komplettrestore von $1." | tee -a /tmp/image.log
  return "$RC"
 }
 
 # INCREMENTAL/Synced
 # sync_cloop imagefile targetdev
 sync_cloop(){
+ echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
  local ROPTS="-Ha"
@@ -904,6 +912,7 @@ sync_cloop(){
   RC="$?"
  fi
  [ "$RC" = "0" ] && update_status "$2" "$1"
+ echo "## $(date) : Beende Synchronisation von $1." | tee -a /tmp/image.log
  return "$RC"
 }
 
