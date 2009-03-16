@@ -622,14 +622,14 @@ start(){
   [ "$cpunum" -gt "1" ] && sleep 4
   # We basically do a quick shutdown here.
   killall5 -15
-  sleep 2
+  [ -z "$WINDOWS" ] && sleep 2
   echo -n "c" >/dev/console
   if [ -z "$WINDOWS" ]; then
    exec kexec -e --reset-vga
    # exec kexec -e
    sleep 10
   else
-   sleep 2
+   #sleep 2
    reboot -f
    #sleep 10
   fi

@@ -1,3 +1,21 @@
+linuxmuster-linbo (1.1.13-1) unstable; urgency=low
+
+  * package:
+    - fix syntax error in debian/rules
+    - added link to /usr/sbin/update-linbofs for share/update-linbofs.sh
+    - updated grub4dos preset_menu.lst diff
+  * serverside scripting:
+    - some improvements concerning to config file updates in update-linbofs.sh
+  * kernel:
+    - new upstream version 2.6.29-rc8
+  * linbofs:
+    - grub4dos 0.4.4-2009-03-15
+    - rsync 3.0.5
+    - ntfs-3g 2009.2.1
+    - decreased sleep time before rebooting for windows
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 16 Mar 15:15:59 +0100
+
 linuxmuster-linbo (1.1.12-1) unstable; urgency=low
 
   * package:
