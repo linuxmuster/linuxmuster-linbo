@@ -5,13 +5,13 @@ Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
 Build-Depends: debhelper (>= 4), build-essential, fakeroot, qt3-dev-tools, flex, wget, gcc-4.1, g++-4.1, ncurses-base,
                coreutils, sysvinit-utils, util-linux, libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip,
                gettext, zlib1g-dev, libncurses5-dev, tetex-base, tetex-bin, tetex-extra, udpcast, libdbus-1-dev,
-               libhal-dev, doxygen, libdbus-1-3, libhal1
-Standards-Version: 3.6.1
+               libhal-dev, doxygen, libdbus-1-3, libhal1, nasm, perl
 
 Package: linuxmuster-linbo
 Architecture: any
-Depends: rsync (>= 2.6.9), syslinux, sed, recode, mkisofs, linuxmuster-base (>= 1.4.36), atftpd, udpcast
+Depends: rsync (>= 2.6.9), sed, recode, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), atftpd, udpcast, zip, mbr
 Suggests: dhcp-server | dhcp3-server
+Recommends: wodim
 Description: LINBO PXE boot files
  This package contains the bootfiles and multicast startscripts
  for the Linux-based Network Boot (LINBO) boot/install/repair system.

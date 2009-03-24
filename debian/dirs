@@ -4,7 +4,8 @@
 /var/linbo
 /var/linbo/pxelinux.cfg
 /var/log/linuxmuster/linbo
+/usr/lib/linuxmuster-linbo
 /usr/sbin
 /usr/share/doc/linuxmuster-linbo/examples
 /usr/share/linuxmuster-linbo
-/usr/share/linuxmuster-linbo/cd/isolinux
+

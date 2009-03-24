@@ -24,19 +24,11 @@ set -e
 
 
 LINBODIR=/var/linbo
-PXELINUX0=/usr/lib/syslinux/pxelinux.0
 DISTCONF=/usr/share/linuxmuster/config/dist.conf
 
 case "$1" in
 
     configure)
-
-	# pxelinux link
-	if [ -e "$PXELINUX0" ]; then
-		[ -e "$LINBODIR/pxelinux.0" ] || ln -s $PXELINUX0 $LINBODIR/pxelinux.0
-	else
-		echo "Error: $PXELINUX0 not found!"
-	fi
 
 	# repair link to examples
 	[ ! -L "$LINBODIR/examples" -a -e "$LINBODIR/examples" ] && rm -rf $LINBODIR/examples
