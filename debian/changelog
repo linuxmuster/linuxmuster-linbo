@@ -19,12 +19,12 @@ linuxmuster-linbo (1.1.13-1) unstable; urgency=low
     - enabled some laptop extras scpi drivers
     - disabled apm support
   * linbofs:
-    - grub4dos 0.4.4-2009-03-24
+    - grub4dos 0.4.4-2009-03-25
     - rsync 3.0.5
     - ntfs-3g 2009.2.1
     - decreased sleep time before rebooting for windows
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 24 Mar 2009 12:36:38 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 25 Mar 2009 16:00:47 +0100
 
 linuxmuster-linbo (1.1.12-1) unstable; urgency=low
 
