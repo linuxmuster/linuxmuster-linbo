@@ -17,7 +17,7 @@ exit_error() {
 	exit 0
 }
 
-while read line; do
+while read -r line; do
 
 	# grep sender for errors
 	if echo "$line" | grep ^"From:"; then

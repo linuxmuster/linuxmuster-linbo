@@ -1,3 +1,24 @@
+linuxmuster-linbo (1.1.14-1) unstable; urgency=low
+
+  * kernel:
+    - new upstream version 2.6.29.1
+  * linbofs:
+    - busybox 13.3
+    - grub4dos 0.4.4 final
+    - ntfs-3g 2009.4.4
+    - switched to grub4dos' grub
+    - rsync: now dynamically linked, updated to 3.0.6.pre1 (closes #85)
+    - cloop: new upstream version 2.629-1
+    - linbo_cmd: fix getting server ip from /tmp/dhcp.log (using siaddr instead of serverid) (closes #82)
+    - linbo_cmd: fix vanished cloop device after creation of rsync image -> mountpart() (closes #84)
+    - patch_registry:
+      o from now on only missing registry keys were created (closes #87)
+      o minor code improvements concerning to logging
+  * server side scripting:
+    - mail2log.sh: keeping back slashes in logfiles
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 20 Apr 2009 19:59:43 +0200
+
 linuxmuster-linbo (1.1.13-1) unstable; urgency=low
 
   * package:
@@ -11,7 +32,7 @@ linuxmuster-linbo (1.1.13-1) unstable; urgency=low
     - some file and directory cleaning
   * serverside scripting:
     - some improvements concerning to config file updates in update-linbofs.sh
-		- new skript make-linbo-media.sh which allows creation of bootable usb sticks
+    - new skript make-linbo-media.sh which allows creation of bootable usb sticks
       and cdroms
     - removed make-linbo-iso.sh
   * kernel:

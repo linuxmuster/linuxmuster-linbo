@@ -48,7 +48,7 @@ KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
 #GRUB4DOS_DIR=src/grub4dos-$(shell echo $(GRUB4DOS_ARCHIVE) | awk -F\- '{ print $$2 }')
-GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
+GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/-src.zip//')
 GRUB4DOS_URL=http://nufans.net/grub4dos
 
 # ms-sys
@@ -116,6 +116,7 @@ configure-stamp:
 		( cd src && unzip ../cache/$(GRUB4DOS_ARCHIVE) ); \
 		echo "[1mPatching grub4dos sources...[0m" ; \
 		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
+		chmod 755 $(GRUB4DOS_DIR)/configure; \
 		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
 	fi
 
@@ -257,7 +258,7 @@ build-stamp: configure-stamp
 	# grub4dos
 	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
 		echo "[1mBuilding grub4dos...[0m" ; \
-		( cd $(GRUB4DOS_DIR) && CFLAGS=-fno-stack-protector ./configure --enable-preset-menu=preset_menu.lst && make all );\
+		( cd $(GRUB4DOS_DIR) && CFLAGS=-fno-stack-protector ./configure --prefix=/usr --enable-preset-menu=preset_menu.lst && make all && strip grub/grub );\
 	fi
 
 	# kexec-tools
@@ -287,7 +288,8 @@ build-stamp: configure-stamp
 	# rsync
 	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
 		echo "[1mBuilding rsync...[0m" ; \
-		( cd $(RSYNC_DIR) && LDFLAGS=-static ./configure && make && strip rsync ); \
+		#( cd $(RSYNC_DIR) && LDFLAGS=-static ./configure && make && strip rsync ); \
+		( cd $(RSYNC_DIR) && ./configure --prefix=/usr && make && strip rsync ); \
 	fi
 
 	# ssmtp

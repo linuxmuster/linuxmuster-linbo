@@ -51,7 +51,7 @@ localmode(){
  #[ -n "$1" ] || return 1
  [ -s /tmp/dhcp.log ] || return 0
  [ -s /start.conf ] || return 0
- local ip_dhcp="$(grep -m1 ^serverid= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+ local ip_dhcp="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
  [ -z "$ip_dhcp" ] && return 0
  local ip_startconf="$(grep ^Server /start.conf | awk -F\=  '{ print $2 }' | awk '{ print $1 }')"
  [ "$ip_dhcp" = "$ip_startconf" ] && return 1
@@ -67,7 +67,7 @@ sendlog(){
  elif [ -s /tmp/dhcp.log ]; then
   local domain="$(grep -m1 ^domain= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
   local logname="$(grep -m1 ^hostname= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
-  local serverip="$(grep -m1 ^serverid= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+  local serverip="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
   echo "local domain=$domain" > /etc/sendlog.conf
   echo "local logname=$logname" >> /etc/sendlog.conf
   echo "local serverip=$serverip" >> /etc/sendlog.conf
@@ -117,7 +117,8 @@ Papierkorb/*
 [Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
-tmp/*'
+tmp/*
+var/tmp/*'
 
 bailout(){
  echo "DEBUG: bailout() called, linbo_cmd=$PID, my_pid=$$" >&2
@@ -258,6 +259,10 @@ mountpart(){
  local type=""
  local i=0
  local OPTS=""
+ # fix vanished cloop device
+ if [ "$1" = "/dev/cloop" ]; then
+  [ -e "/dev/cloop" ] || ln -s /dev/cloop0 /dev/cloop
+ fi
  for i in 1 2 3 4 5; do
   type="$(fstype $1)"
   RC="$?"
@@ -680,7 +685,7 @@ cleanup_fs(){
 # mk_cloop type inputdev imagename baseimage [timestamp]
 mk_cloop(){
  echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
- echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
+ #echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
  local size="$(get_partition_size $2)"
  local imgsize=0
