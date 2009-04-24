@@ -1,3 +1,11 @@
+linuxmuster-linbo (1.1.15-1) unstable; urgency=low
+
+  * linbofs:
+    - ramdisk provides now cloop devices 0 to 7 itself
+    - linbo_cmd: removed rsync's -H parameter on creating/restoring batch images (another attempt to close #85)
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 24 Apr 2009 11:24:21 +0200
+
 linuxmuster-linbo (1.1.14-1) unstable; urgency=low
 
   * kernel:

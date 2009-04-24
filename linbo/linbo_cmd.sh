@@ -736,7 +736,9 @@ mk_cloop(){
      if mountpart /dev/cloop /cloop -r ; then
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
-      local ROPTS="-Haz"
+			# tschmitt: -H testweise entfernt
+      #local ROPTS="-Haz"
+      local ROPTS="-az"
       [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rtz"
       # tschmitt: logging
       #rm -f "$TMP"
@@ -859,7 +861,9 @@ sync_cloop(){
  echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
- local ROPTS="-Ha"
+ # tschmitt: -H testweise entfernt
+ #local ROPTS="-Ha"
+ local ROPTS="-a"
 # Knopper's attempt to fix sync problems on vfat
 # [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt -T rsync.tmp --exclude=rsync.tmp"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
