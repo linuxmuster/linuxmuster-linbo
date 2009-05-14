@@ -1,3 +1,22 @@
+linuxmuster-linbo (1.1.17-1) unstable; urgency=low
+
+  * kernel:
+    - new upstream version 2.6.29.3
+    - cloop (2.6.29-1) bugfix (closes #60)
+  * linbofs:
+    - grub4dos: new upstream version 0.4.4-2009-05-13
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 14 May 2009 08:27:36 +0200
+
+linuxmuster-linbo (1.1.16-1) unstable; urgency=low
+
+  * kernel:
+    - new upstream version 2.6.29.2
+  * linbofs:
+    - grub4dos: new upstream version 0.4.4-2009-05-03
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 04 May 2009 16:11:16 +0200
+
 linuxmuster-linbo (1.1.15-1) unstable; urgency=low
 
   * linbofs:

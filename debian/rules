@@ -22,7 +22,8 @@ KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v2.6
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
 CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-[0-9].tar.gz//')
-CLOOP_URL=http://debian-knoppix.alioth.debian.org/sources
+#CLOOP_URL=http://debian-knoppix.alioth.debian.org/sources
+CLOOP_URL=$(LML_URL)
 
 # qt
 QT_ARCHIVE=$(shell grep qt-embedded-free- debian/md5sums.src | awk '{ print $$2 }')
@@ -48,7 +49,7 @@ KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
 #GRUB4DOS_DIR=src/grub4dos-$(shell echo $(GRUB4DOS_ARCHIVE) | awk -F\- '{ print $$2 }')
-GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/-src.zip//')
+GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
 GRUB4DOS_URL=http://nufans.net/grub4dos
 
 # ms-sys
