@@ -1,3 +1,13 @@
+linuxmuster-linbo (1.1.18-1) unstable; urgency=low
+
+  * kernel:
+    - new upstream version 2.6.29.4
+  * linbofs:
+    - grub4dos: new upstream version 0.4.4-2009-05-17
+    - patch_registry: fixed ControlSet00[n] patching
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 03 Jun 2009 11:54:55 +0200
+
 linuxmuster-linbo (1.1.17-1) unstable; urgency=low
 
   * kernel:

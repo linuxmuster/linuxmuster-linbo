@@ -71,6 +71,118 @@ create_key() {
  do_reg "$cmd"
 }
 
+create_cmd() {
+ local key="$1"
+ local ctrlset="$2"
+
+ #####
+ # parse path to value
+ #####
+
+ [ -n "$DEBUG" ] && echo "5  key=$key" | tee -a $tmplog
+ # remove right end and replace it with a backslash
+ key=`rightchopend "$key"`
+ fullpath="$key"
+ key="$key\\"
+
+ [ -n "$DEBUG" ] && echo "6  fullpath=$fullpath" | tee -a $tmplog
+
+ currentkey=`leftget "$key"`
+ [ -n "$DEBUG" ] && echo "7  currentkey=$currentkey" | tee -a $tmplog
+
+ key=`leftchop "$key"`
+ [ -n "$DEBUG" ] && echo "8  key=$key" | tee -a $tmplog
+
+ base_path=""
+ while [ "$currentkey" != "" ]; do
+
+  [ -z "$base_path" ] && base_path="."
+
+  [ -n "$DEBUG" ] && echo "9  base_path=$base_path" | tee -a $tmplog
+
+	# tschmitt: check if currentkey exists in registry, if not create it
+	if ! test_key "$base_path" "$currentkey"; then
+   if [ -n "$ctrlset" ]; then
+    # don't create new keys in supplemental controlsets
+    [ -n "$DEBUG" ] && echo "### Skipping creation of $currentkey in $ctrlset!" | tee -a $tmplog
+    return 1
+   fi
+	 [ -n "$DEBUG" ] && echo "### Creating key $currentkey" | tee -a $tmplog
+	 create_key "$base_path" "$currentkey"
+	fi
+
+	if [ "$base_path" = "." ]; then
+	 base_path="${currentkey}"
+	else
+	 base_path="${base_path}\\${currentkey}"
+	fi
+
+  currentkey=`leftget "$key"`
+  [ -n "$DEBUG" ] && echo "10 currentkey=$currentkey" | tee -a $tmplog
+
+  key=`leftchop "$key"`
+  [ -n "$DEBUG" ] && echo "11 key=$key" | tee -a $tmplog
+
+ done
+
+ base_command="cd ${fullpath}\n"
+}
+
+create_val() {
+ ####
+ # parse value changes
+ ####
+ [ -n "$DEBUG" ] && echo "12 change=$change" | tee -a $tmplog
+
+ if [ "$change" = "" ]; then 
+  return 1
+ fi
+
+ command="${base_command}"
+ [ -n "$DEBUG" ] && echo "13 command=$command" | tee -a $tmplog
+
+ parameter=`leftgetvalue "$change"`
+ [ -n "$DEBUG" ] && echo "14 parameter=$parameter" | tee -a $tmplog
+
+ parameter="$(echo "$parameter" | sed 's,\",,g')"
+ [ -n "$DEBUG" ] && echo "15 parameter=$parameter" | tee -a $tmplog
+
+ value=`rightgetvalue "$change"`
+ [ -n "$DEBUG" ] && echo "16 value=$value" | tee -a $tmplog
+
+ value="$(echo "$value" | sed 's,\",,g')"
+ [ -n "$DEBUG" ] && echo "17 value=$value" | tee -a $tmplog
+          
+ value="$(echo "$value" | sed 's,$,,g')"
+ [ -n "$DEBUG" ] && echo "18 value=$value" | tee -a $tmplog
+
+ # our standard type for strings is REG_SZ
+ type="1"
+ case "$value" in
+  dword*) value="$(echo "$value" | sed 's,^dword:,0x,g')"
+          # set type to REG_DWORD
+          type="4"
+          ;;
+ esac
+ if [ -n "$DEBUG" ]; then
+  echo "19 type=$type" | tee -a $tmplog
+  echo "20 value=$value" | tee -a $tmplog
+ fi
+
+ command="${command}dv ${parameter}\n"
+ command="${command}nv ${type} ${parameter}\n"
+ [ -n "$DEBUG" ] && echo "21 command=$command" | tee -a $tmplog
+
+ command="${command}ed ${parameter}\n"
+ [ -n "$DEBUG" ] && echo "22 command=$command" | tee -a $tmplog
+
+ command="${command}$value\nq\ny\n"
+ [ -n "$DEBUG" ] && echo "23 command=$command" | tee -a $tmplog
+
+ # out final command
+ [ -n "$DEBUG" ] && echo "24 final command=$command" | tee -a $tmplog
+}
+
 while read -r key; do
   [ -n "$DEBUG" ] && echo "$key $((count++))" | tee -a $tmplog
 
@@ -101,107 +213,11 @@ while read -r key; do
           ;;
       esac
 
-      #####
-      # parse path to value
-      #####
-
-      [ -n "$DEBUG" ] && echo "5  key=$key" | tee -a $tmplog
-      # remove right end and replace it with a backslash
-      key=`rightchopend "$key"`
-			fullpath="$key"
-      key="$key\\"
-
-      [ -n "$DEBUG" ] && echo "6  fullpath=$fullpath" | tee -a $tmplog
-
-      currentkey=`leftget "$key"`
-      [ -n "$DEBUG" ] && echo "7  currentkey=$currentkey" | tee -a $tmplog
-
-      key=`leftchop "$key"`
-      [ -n "$DEBUG" ] && echo "8  key=$key" | tee -a $tmplog
-
-      base_path=""
-      while [ "$currentkey" != "" ]; do
-
-				[ -z "$base_path" ] && base_path="."
-
-        [ -n "$DEBUG" ] && echo "9  base_path=$base_path" | tee -a $tmplog
-
-				# tschmitt: check if currentkey exists in registry, if not create it
-				if ! test_key "$base_path" "$currentkey"; then
-					[ -n "$DEBUG" ] && echo "Creating key $currentkey" | tee -a $tmplog
-					create_key "$base_path" "$currentkey"
-				fi
-
-				if [ "$base_path" = "." ]; then
-					base_path="${currentkey}"
-				else
-					base_path="${base_path}\\${currentkey}"
-				fi
-
-        currentkey=`leftget "$key"`
-        [ -n "$DEBUG" ] && echo "10 currentkey=$currentkey" | tee -a $tmplog
-
-        key=`leftchop "$key"`
-        [ -n "$DEBUG" ] && echo "11 key=$key" | tee -a $tmplog
-
-      done
-
-			base_command="cd ${fullpath}\n"
-
-      ####
-      # parse value changes
-      ####
+			create_cmd "$key"
 
       while read -r change; do
-        [ -n "$DEBUG" ] && echo "12 change=$change" | tee -a $tmplog
 
-        if [ "$change" = "" ]; then 
-          break
-        fi
-
-        command="${base_command}"
-        [ -n "$DEBUG" ] && echo "13 command=$command" | tee -a $tmplog
-
-        parameter=`leftgetvalue "$change"`
-        [ -n "$DEBUG" ] && echo "14 parameter=$parameter" | tee -a $tmplog
-
-        parameter="$(echo "$parameter" | sed 's,\",,g')"
-        [ -n "$DEBUG" ] && echo "15 parameter=$parameter" | tee -a $tmplog
-
-        value=`rightgetvalue "$change"`
-        [ -n "$DEBUG" ] && echo "16 value=$value" | tee -a $tmplog
-
-        value="$(echo "$value" | sed 's,\",,g')"
-        [ -n "$DEBUG" ] && echo "17 value=$value" | tee -a $tmplog
-          
-        value="$(echo "$value" | sed 's,$,,g')"
-        [ -n "$DEBUG" ] && echo "18 value=$value" | tee -a $tmplog
-
-        # our standard type for strings is REG_SZ
-        type="1"
-        case "$value" in
-          dword*) value="$(echo "$value" | sed 's,^dword:,0x,g')"
-                  # set type to REG_DWORD
-                  type="4"
-                  ;;
-        esac
-        if [ -n "$DEBUG" ]; then
-          echo "19 type=$type" | tee -a $tmplog
-          echo "20 value=$value" | tee -a $tmplog
-        fi
-
-        command="${command}dv ${parameter}\n"
-        command="${command}nv ${type} ${parameter}\n"
-        [ -n "$DEBUG" ] && echo "21 command=$command" | tee -a $tmplog
-
-        command="${command}ed ${parameter}\n"
-        [ -n "$DEBUG" ] && echo "22 command=$command" | tee -a $tmplog
-
-        command="${command}$value\nq\ny\n"
-        [ -n "$DEBUG" ] && echo "23 command=$command" | tee -a $tmplog
-
-        # out final command
-        [ -n "$DEBUG" ] && echo "24 final command=$command" | tee -a $tmplog
+        create_val || break
 
         do_reg "$command"
 
@@ -209,15 +225,21 @@ while read -r key; do
         case "$command" in
           *ControlSet001*)
 						if [ ! -s "$tmpctrls" ]; then
+							[ -n "$DEBUG" ] && echo "### Writing $tmpctrls ..." | tee -a $tmplog
 							controlcheck="ls\nq\ny\n"
 							do_reg "$controlcheck" "$tmpctrls"
 						fi
 						n=2
 						while [ $n -lt 10 ]; do
 							ctrlset="ControlSet00$n"
+							[ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $tmplog
 							if grep -q "<$ctrlset>" $tmpctrls; then
-								command_new="$(echo "$command" | sed "s,ControlSet001,$ctrlset,g")"
-								do_reg "$command_new"
+								key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
+								[ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $tmplog
+								if create_cmd "$key_new" "$ctrlset"; then
+									create_val
+									do_reg "$command"
+								fi
 							fi
 							let n+=1
 						done
