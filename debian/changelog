@@ -1,3 +1,32 @@
+linuxmuster-linbo (1.1.20-1) unstable; urgency=low
+
+  * linbofs:
+    - compiling kexec again from source, jaunty version does not boot linux kernels
+    - adding "-w" to hostname only if client is really offline, means owns no ip
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 19 Jun 2009 13:25:47 +0200
+
+linuxmuster-linbo (1.1.19-1) unstable; urgency=low
+
+  * various modifications due to new build system Ubuntu 09.4
+  * syslinux: new upstream version 3.82 (used for syslinux.exe and gpxe.lkrn),
+    other syslinux parts were taken from Jaunty
+  * package:
+    - removed hal and dbus dependencies
+    - added udev, syslinux, kexec-tools dependencies
+  * kernel:
+    - new upstream version 2.6.30
+  * linbofs:
+    - added udev support, removed hwinfo
+    - busybox:
+      o new upstream version 1.13.4
+      o changed to dynamic linked binary
+      o removed insmod and modprobe
+    - grub4dos: new upstream version 0.4.4-2009-06-11
+    - kexec now taken from Jaunty
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 13 Jun 2009 18:05:05 +0200
+
 linuxmuster-linbo (1.1.18-1) unstable; urgency=low
 
   * kernel:

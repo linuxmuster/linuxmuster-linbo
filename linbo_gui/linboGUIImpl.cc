@@ -1183,7 +1183,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   this->hide();
 
   linboMsgImpl *waiting = new linboMsgImpl(this, "foo",0,Qt::WStyle_Customize | Qt::WStyle_NoBorder );
-  waiting->message->setText("LINBO 1.1.13-1<br>Netzwerk Check");
+  waiting->message->setText("LINBO 1.1.19-1<br>Netzwerk Check");
 
   QStringList waitCommand = LINBO_CMD("ready")
   waiting->setCommand( waitCommand );

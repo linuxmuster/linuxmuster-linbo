@@ -77,12 +77,6 @@ SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
 SSMTP_DIR=src/ssmtp
 SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
 
-# hwinfo
-HWINFO_ARCHIVE=$(shell grep hwinfo_ debian/md5sums.src | awk '{ print $$2 }')
-HWINFO_DIR=src/$(shell echo $(HWINFO_ARCHIVE) | sed -e 's/.orig.tar.gz//' | sed -e 's/_/-/' )
-HWINFO_VER=$(shell echo $(HWINFO_ARCHIVE) | sed -e 's/.orig.tar.gz//' | sed -e 's/hwinfo_//' )
-HWINFO_URL=http://archive.ubuntu.com/ubuntu/pool/universe/h/hwinfo
-
 # syslinux
 SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }')
 SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.bz2//')
@@ -187,17 +181,6 @@ configure-stamp:
 		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 	fi
 
-	# hwinfo
-	-@if [ ! -d $(HWINFO_DIR) ]; then \
-		( [ -e cache/$(HWINFO_ARCHIVE) ] || ( cd cache && wget $(HWINFO_URL)/$(HWINFO_ARCHIVE) ) ); \
-		( cd cache && grep $(HWINFO_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(HWINFO_ARCHIVE)...[0m" ; \
-		tar xf cache/$(HWINFO_ARCHIVE) -C src; \
-		echo "[1mPatching hwinfo sources...[0m" ; \
-		( cd $(HWINFO_DIR) && for i in ../../patches/hwinfo/*; do patch -p1 <$$i; done ); \
-		ln -sf ../$(HWINFO_DIR) src/hwinfo; \
-	fi
-
 	# syslinux
 	-@if [ ! -d $(SYSLINUX_DIR) ]; then \
 		( [ -e cache/$(SYSLINUX_ARCHIVE) ] || ( cd cache && wget $(SYSLINUX_URL)/$(SYSLINUX_ARCHIVE) ) ); \
@@ -205,7 +188,6 @@ configure-stamp:
 		echo "[1mUnpacking $(SYSLINUX_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SYSLINUX_ARCHIVE) -C src; \
 		ln -sf ../$(SYSLINUX_DIR) src/syslinux; \
-		cp src/syslinux/win32/syslinux.exe src/syslinux; \
 	fi
 
 	# qt
@@ -299,16 +281,10 @@ build-stamp: configure-stamp
 		( cd $(SSMTP_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
-	# hwinfo
-	-@if [ ! -e $(HWINFO_DIR)/hwinfo ]; then \
-		echo "[1mBuilding hwinfo...[0m" ; \
-		( cd $(HWINFO_DIR) && make && strip hwinfo src/libhd.so.$(HWINFO_VER) ); \
-	fi
-
 	# syslinux
 	-@if [ ! -e $(SYSLINUX_DIR)/.compiled ]; then \
 		echo "[1mBuilding syslinux...[0m" ; \
-		( cd $(SYSLINUX_DIR) && make clean && cd gpxe/src && make bin/gpxe.lkrn && cd ../../ && make && touch .compiled ); \
+		( cd $(SYSLINUX_DIR) && cd gpxe/src && make bin/gpxe.lkrn && cd ../../ && touch .compiled ); \
 	fi
 
 	# qt
@@ -317,7 +293,7 @@ build-stamp: configure-stamp
 		( cd linbo_gui && ./build_qt ); \
 		ln -sf ../qmake/qmake $(QT_DIR)/bin/qmake; \
 	fi
-	
+
 	# linbo_gui
 	-@if ! grep -q $(LVERS) linbo_gui/linboGUIImpl.cc; then \
 		sed -e 's|setText("LINBO .*|setText("LINBO $(LVERS)<br>Netzwerk Check");|' -i linbo_gui/linboGUIImpl.cc; \
@@ -341,13 +317,13 @@ build-stamp: configure-stamp
 	:> ../initramfs_kernel.conf ; \
 	rm -f usr/initramfs_data.cpio.gz || true ; \
 	cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	make bzImage modules
+	ARCH=i386 make bzImage modules
 
 	# cloop module
 	@echo "[1mBuilding cloop module...[0m" ; \
 	rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true
 	cd $(CLOOP_DIR) && \
-	( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko )
+	( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko )
 
 	touch build-stamp
 
@@ -372,9 +348,9 @@ install: build
 	dh_installdirs
 	dh_install
 	# kernel
-	( cd $(KERNEL_DIR) && mkdir -p ../modules ; make INSTALL_MOD_PATH=../modules modules_install )
+	( cd $(KERNEL_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking LINBO kernel to /var/linbo/linbo.[0m" ; \
-	cp $(KERNEL_DIR)/arch/i386/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo ; \
+	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo ; \
 	/usr/sbin/rdev -v $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo $(VESAMODE) ; \
 	echo -e "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
 	# cloop module
@@ -388,6 +364,7 @@ install: build
 	:> ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
+	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | grep -v devices | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
 	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
@@ -399,12 +376,12 @@ install: build
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/var/linbo/german.kbd
 	install -m 755 debian/linbo-multicast-server debian/linuxmuster-linbo/usr/sbin/linbo-multicast-server
 	install -m 644 graphics/linbo-pxe-bootscreen.16 debian/linuxmuster-linbo/var/linbo/logo.16
-	install -m 644 src/syslinux/core/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
-	install -m 644 src/syslinux/core/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
-	install -m 644 src/syslinux/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
-	install -m 644 src/syslinux/com32/modules/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
-	install -m 644 src/syslinux/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
-	install -m 755 src/syslinux/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
+	install -m 644 /usr/lib/syslinux/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
+	install -m 644 /usr/lib/syslinux/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
+	install -m 644 /usr/lib/syslinux/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
+	install -m 644 /usr/lib/syslinux/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
+	install -m 755 /usr/bin/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
+	install -m 644 src/syslinux/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
 	install -m 644 src/syslinux/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
 	install -m 644 media/pxelinux.cfg debian/linuxmuster-linbo/etc/linuxmuster/linbo/pxelinux.cfg.default

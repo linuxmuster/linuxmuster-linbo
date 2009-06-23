@@ -52,7 +52,7 @@ localmode(){
  [ -s /tmp/dhcp.log ] || return 0
  [ -s /start.conf ] || return 0
  local ip_dhcp="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
- [ -z "$ip_dhcp" ] && return 0
+ [ -z "$ip_dhcp" ] && touch /tmp/.offline && return 0
  local ip_startconf="$(grep ^Server /start.conf | awk -F\=  '{ print $2 }' | awk '{ print $1 }')"
  [ "$ip_dhcp" = "$ip_startconf" ] && return 1
  return 0
@@ -994,11 +994,11 @@ syncl(){
    # hostname
    local HOSTNAME
    if localmode; then
-    if [ -s /cache/hostname ]; then
-     # add -w to hostname for wlan clients
+    if [ -s /cache/hostname -a -e /tmp/.offline ]; then
+     # add -w to hostname for wlan clients if client is really offline
      HOSTNAME="$(cat /cache/hostname)-w"
     else
-     HOSTNAME="$(hostname)"
+     HOSTNAME="$(cat /cache/hostname)"
     fi
    else
     HOSTNAME="$(hostname)"

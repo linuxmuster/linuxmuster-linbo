@@ -51,28 +51,45 @@ enable_dma(){
  done
 }
 
+# create device nodes
+udev_extra_nodes() {
+  grep '^[^#]' /etc/udev/links.conf | \
+  while read type name arg1; do
+    [ "$type" -a "$name" -a ! -e "/dev/$name" -a ! -L "/dev/$name" ] ||continue
+    case "$type" in
+      L) ln -s $arg1 /dev/$name ;;
+      D) mkdir -p /dev/$name ;;
+      M) mknod -m 600 /dev/$name $arg1 ;;
+      *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
+    esac
+  done
+}
+
 # Setup
 init_setup(){
  mount -t proc /proc /proc
  echo 0 >/proc/sys/kernel/printk
+
  CMDLINE="$(cat /proc/cmdline)"
  echo "$CMDLINE" | grep -q debug && debug=yes
  echo "$CMDLINE" | grep -q useide && useide=yes
+
  mount -t sysfs /sys /sys
- mount -t devpts /dev/pts /dev/pts 2>/dev/null
+ mount -n -o mode=0755 -t tmpfs tmpfs /dev
+ if [ -e /etc/udev/links.conf ]; then
+  udev_extra_nodes
+ fi
+
  loadkmap < /etc/german.kbd
  ifconfig lo 127.0.0.1 up
  hostname linbo
  klogd >/dev/null 2>&1
  syslogd -C 64k >/dev/null 2>&1
+
  # Enable CPU frequency scaling
  for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
   [ -f "$i" ] && echo "ondemand" > "$i" 2>/dev/null
  done
- # activate hotplugging
- echo /sbin/mdev > /proc/sys/kernel/hotplug
- # populate /dev
- /sbin/mdev -s
 }
 
 # findmodules dir
@@ -183,18 +200,6 @@ network(){
   ;;
  esac
  rm -f /tmp/linbo-network.done
- modules="$(hwinfo --netcard | grep modprobe | awk -F\" '{ print $2 }' | awk '{ print $2 }')"
- if [ -n "$modules" ]; then
-  echo "## Loading NIC Modules - Begin ##" > /tmp/linbo.log
-  for m in $modules; do
-   echo "-> $m"  | tee -a /tmp/linbo.log
-   modprobe $m
-  done
-  echo "## Loading NIC Modules - End ##" >> /tmp/linbo.log
- else
-  echo "Fatal! No netcard found!"
- fi
- sleep 2
  if [ -n "$ipaddr" ]; then
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
   ifconfig ${netdevice:-eth0} $ipaddr $nm
@@ -232,57 +237,40 @@ network(){
  echo > /tmp/linbo-network.done 
 }
 
-# check if module name is in /etc/ide_modules
-check_idemod(){
- local mod=$1
- local found=1
- local line
- while read line; do
-  if [ "$line" = "$mod" ]; then
-   found=0
-   break
-  fi
- done </etc/ide_modules
- if [ $found = 0 ]; then
-  [ -z "$useide" ] && found=1
- else
-  [ -z "$useide" ] && found=0
- fi 
- return $found
-}
-
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
- echo "## Hardware Info - Begin ##" >> /tmp/linbo.log
- hwinfo --short --pci >> /tmp/linbo.log
- echo "## Hardware Info - End ##" >> /tmp/linbo.log
- hwinfo --storage-ctrl > /tmp/storage.log
- modules=`grep modprobe /tmp/storage.log | awk -F\" '{ print $2 }' | awk '{ print $2 }'`
- echo "## Detailed Storage Controler Info - Begin ##" >> /tmp/linbo.log
- cat /tmp/storage.log >> /tmp/linbo.log
- echo "## Detailed Storage Controler Info - End ##" >> /tmp/linbo.log
- rm /tmp/storage.log
- [ -n "$useide" ] && echo "Using IDE modules only as requested on command line ..." | tee -a /tmp/linbo.log
- if [ -n "$modules" ]; then
-  echo "## Loading Storage Modules - Begin ##" >> /tmp/linbo.log
-  local found=0
-  for m in $modules; do
-   if check_idemod $m; then
-    echo "-> $m"  | tee -a /tmp/linbo.log
-    modprobe $m
-    found=1
-   fi
-  done
-  echo "## Loading Storage Modules - End ##" >> /tmp/linbo.log
-  if [ $found = 0 ]; then
-   echo "Fatal! No storage modules found!" | tee -a /tmp/linbo.log
-  else
-   [ -n "$useide" ] && enable_dma
-  fi
+ echo "## Hardware-Setup - Begin ##" >> /tmp/linbo.log
+
+ if [ -n "$useide" ]; then
+  echo "Using ide modules ..."
+  rm -rf /lib/modules/`uname -r`/kernel/drivers/ata
  else
-  echo "Fatal! No storage controller found!"
+  echo "Using pata/sata modules ..."
+  rm -rf /lib/modules/`uname -r`/kernel/drivers/ide
  fi
+ depmod -a
+
+ #
+ # Udev starten
+ echo > /sys/kernel/uevent_helper
+ udevd --daemon
+ mkdir -p /dev/.udev/db/ /dev/.udev/queue/
+ udevadm trigger
+ mount /dev/pts
+ udevadm settle || true
+
+ #
+ # Load acpi fan and thermal modules if available, to avoid machine
+ # overheating.
+ modprobe fan >/dev/null 2>&1 || true
+ modprobe thermal >/dev/null 2>&1 || true
+
+ export TERM_TYPE=pts
+
+ dmesg >> /tmp/linbo.log
+ echo "## Hardware-Setup - End ##" >> /tmp/linbo.log
+
  sleep 2
  echo > /tmp/linbo-cache.done 
 }
@@ -299,10 +287,10 @@ fi
 
 # BG processes (HD and Network detection can run in parallel)
 if [ -n "$debug" ]; then
- hwsetup &
+ hwsetup
  network &
 else
- hwsetup >/dev/null 2>&1 &
+ hwsetup >/dev/null 2>&1
  network >/dev/null 2>&1 &
 fi
 
