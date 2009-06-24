@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.1.21-1) unstable; urgency=low
+
+  * linbofs:
+    - improved menu.lst handling in linbo_cmd, custom menu.lsts were not touched anymore,
+      computing menu.lst entry number for windows systems with reboot workaround to be able
+      to set the grub default accordingly.
+      
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 23 Jun 2009 18:35:05 +0200
+
 linuxmuster-linbo (1.1.20-1) unstable; urgency=low
 
   * linbofs:

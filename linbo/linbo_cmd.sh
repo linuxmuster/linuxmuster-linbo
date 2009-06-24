@@ -34,6 +34,15 @@ printargs(){
  echo ""
 }
 
+# test if variable is an integer
+isinteger () {
+ [ $# -eq 1 ] || return 1
+ case $1 in
+ *[!0-9]*|"") return 1;;
+           *) return 0;;
+ esac
+}
+
 # Is /cache writable?
 # Displayed mount permissions may not be correct, do a write-test.
 cache_writable(){
@@ -536,6 +545,27 @@ patch_fstab(){
  fi
 }
 
+# compute grub menu.lst entry number: boot
+grubnr(){
+ [ -s /cache/boot/grub/menu.lst ] || return 1
+ [ -z "$1" ] && return 1
+ [ -e "$1" ] || return 1
+ local partnr="$(echo $1 | sed -e 's|/dev/[a-z]*||')"
+ [ $partnr -lt 1 ] && return 1
+ partnr="$((partnr - 1))"
+ local grubpart="(hd0,$partnr)"
+ local nr=0
+ local line=""
+ grep root /cache/boot/grub/menu.lst | grep -v ^# | grep "(hd" | while read line; do
+  if echo "$line" | grep -q	"$grubpart"; then
+   echo "$nr"
+   return 0
+  fi
+  nr="$((nr + 1))"
+ done
+ return 1
+}
+
 # start boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
@@ -551,7 +581,8 @@ start(){
   APPEND="$5"
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
-   mkgrubmenu "$1"
+   # create menu.lst if no custom menu.lst was downloaded
+   [ -e /cache/.custom.menu.lst ] || mkgrubmenu "$1"
    grub-install --root-directory=/cache $disk
   fi
   case "$3" in
@@ -568,7 +599,15 @@ start(){
      LOADED="true"
      # tschmitt: needed for local boot here
      if [ -e /cache/boot/grub ] && cache_writable; then
-      grub-set-default --root-directory=/cache 1
+      # compute nr of grub menu.lst entry
+      local nr="$(grubnr $1)"
+      if isinteger "$nr"; then
+       echo "Grub-Startnr. $nr ermittelt."
+      else
+       echo "Konnte Grub-Startnr. nicht ermitteln. Setze auf 0."
+       nr=0
+      fi
+      grub-set-default --root-directory=/cache $nr
      fi
      ;;
    *)
@@ -1465,8 +1504,11 @@ update(){
   download "$server" "menu.lst.$group"
   if [ -e "/cache/menu.lst.$group" ]; then
    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
+   # flag for downloaded custom menu.lst
+   touch /cache/.custom.menu.lst
   else
    [ -e /cache/boot/grub/menu.lst ] && rm /cache/boot/grub/menu.lst
+   [ -e /cache/.custom.menu.lst ] && rm /cache/.custom.menu.lst
    mkgrubmenu "$cachedev" "linbo" "linbofs.gz" "$server" "$vga $append"
   fi
   # tschmitt: grub is installed on every start
