@@ -1,11 +1,19 @@
 linuxmuster-linbo (1.1.21-1) unstable; urgency=low
 
+  * package: removed kexec-tools from build dependencies
   * linbofs:
-    - improved menu.lst handling in linbo_cmd, custom menu.lsts were not touched anymore,
-      computing menu.lst entry number for windows systems with reboot workaround to be able
-      to set the grub default accordingly.
+    - changed from busybox mount/unount to Ubuntu's mount/umount
+    - added ext4 support for linux clients.
+    - updated to rsync 3.0.6
+    - linbo_cmd:
+      o improved menu.lst handling in linbo_cmd, custom menu.lsts were not
+        touched anymore, computing menu.lst entry number for windows systems
+        with reboot workaround to be able to set the grub default accordingly.
+      o improved linux client fstab patching:
+        fstab will be patched only on synchronized start not on every start,
+        if fstype of root partition differs it will be corrected.
       
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 23 Jun 2009 18:35:05 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 26 Jun 2009 20:00:14 +0200
 
 linuxmuster-linbo (1.1.20-1) unstable; urgency=low
 
@@ -32,7 +40,7 @@ linuxmuster-linbo (1.1.19-1) unstable; urgency=low
       o changed to dynamic linked binary
       o removed insmod and modprobe
     - grub4dos: new upstream version 0.4.4-2009-06-11
-    - kexec now taken from Jaunty
+    - kexec, insmod and modprobe now taken from Ubuntu
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 13 Jun 2009 18:05:05 +0200
 

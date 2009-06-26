@@ -3,7 +3,7 @@ Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
 Build-Depends: debhelper (>=7.0.17ubuntu4), build-essential (>=11.4), fakeroot, wget, udev (>=141-1.1), udev-extras,
-               nasm, syslinux, ncurses-base, kexec-tools (>=20090000-2.0.0ubuntu3), coreutils, sysvinit-utils, util-linux,
+               nasm, syslinux, ncurses-base, coreutils, sysvinit-utils, util-linux,
                tetex-base, libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip, gettext, zlib1g-dev,
                libncurses5-dev, tetex-bin, tetex-extra, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev,
                qt3-dev-tools, gcc-4.1, g++-4.1, flex, libxext-dev (>= 4.3.0.dfsg.1-4), libxrandr-dev (>= 4.3.0.dfsg.1-4),

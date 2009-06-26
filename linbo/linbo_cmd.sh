@@ -270,7 +270,7 @@ mountpart(){
  local OPTS=""
  # fix vanished cloop device
  if [ "$1" = "/dev/cloop" ]; then
-  [ -e "/dev/cloop" ] || ln -s /dev/cloop0 /dev/cloop
+  [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
  fi
  for i in 1 2 3 4 5; do
   type="$(fstype $1)"
@@ -314,8 +314,7 @@ format(){
  case "$2" in
   swap) mkswap "$1" ;;
   reiserfs) mkreiserfs -f -f  "$1" ;;
-  ext2) mke2fs -b 4096 -f 4096 -m 0 "$1" ;;
-  ext3) mke2fs -b 4096 -f 4096 -m 0 -j "$1" ;;
+  ext2|ext3|ext4) mkfs."$2" "$1" ;;
   [Nn][Tt][Ff][Ss]*) mkfs.ntfs -Q "$1" ;;
   *[Ff][Aa][Tt]*) mkdosfs -F 32 "$1" ;;
   *) return 1 ;;
@@ -515,37 +514,7 @@ mkgrldr(){
  cp /usr/lib/grub/grldr /mnt
 }
 
-# tschmitt
-# patch fstab with root partition
-patch_fstab(){
- echo -n "patch_fstab " ;  printargs "$@"
- local appendstr="$1"
- local line=""
- local rootpart=""
- local found=""
- local item=""
- for item in $appendstr; do
-  echo $item | grep -q ^root && rootpart=`echo $item | awk -F\= '{ print $2 }'`
- done
- [ -z "$rootpart" ] && return 1
- [ -e /tmp/fstab ] && rm -f /tmp/fstab
- while read line; do
-  mntpnt=`echo $line | awk '{ print $2 }'`
-  if [ "$mntpnt" = "/" -a "$found" = "" ] && ! echo "$line" | grep ^#; then
-   echo "$line" | sed -e 's,.* /,'"$rootpart"' /,' - >> /tmp/fstab
-   found=yes
-  else
-    echo "$line" >> /tmp/fstab
-  fi
- done </mnt/etc/fstab
- if [ -n "$found" ]; then
-  echo "Setze Rootpartition in fstab -> $rootpart."
-  mv -f /mnt/etc/fstab /mnt/etc/fstab.bak
-  mv -f /tmp/fstab /mnt/etc
- fi
-}
-
-# compute grub menu.lst entry number: boot
+# compute grub menu.lst entry number: grubnr boot
 grubnr(){
  [ -s /cache/boot/grub/menu.lst ] || return 1
  [ -z "$1" ] && return 1
@@ -629,9 +598,6 @@ start(){
    mkgrldr "$1" io.sys
    # change bootloader for win98 systems
    APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/')"
-  elif [ -e /mnt/etc/fstab ]; then
-   # tschmitt: patch fstab with root device
-   patch_fstab "$APPEND"
   fi
  else
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
@@ -1007,10 +973,71 @@ restore(){
  return "$RC"
 }
 
+# tschmitt
+# patch fstab with root partition and root fstype: patch_fstab rootdev
+patch_fstab(){
+ echo -n "patch_fstab " ;  printargs "$@"
+ local rootdev="$1"
+ local line=""
+ local found=""
+ local fstype_mount=""
+ local fstype_fstab=""
+ local mntpnt=""
+ local changed=""
+ local rootdev_fstab=""
+ local options=""
+ local dump=""
+ local pass=""
+ [ -z "$rootdev" ] && return 1
+ [ -e "$rootdev" ] || return 1
+ [ -e /tmp/fstab ] && rm -f /tmp/fstab
+ while read line; do
+  if [ -n "$line" -a "${line:0:1}" != "#" ]; then
+   mntpnt="$(echo "$line" | awk '{ print $2 }')"
+   if [ "$mntpnt" = "/" -a -z "$found" ]; then
+    found=yes
+    rootdev_fstab="$(echo "$line" | awk '{ print $1 }')"
+    [ -z "$rootdev_fstab" ] && return 1
+    fstype_fstab="$(echo "$line" | awk '{ print $3 }')"
+    [ -z "$fstype_fstab" ] && return 1
+    options="$(echo "$line" | awk '{ print $4 }')"
+    [ -z "$options" ] && return 1
+    dump="$(echo "$line" | awk '{ print $5 }')"
+    [ -z "$dump" ] && return 1
+    pass="$(echo "$line" | awk '{ print $6 }')"
+    [ -z "$pass" ] && return 1
+    if [ "$rootdev_fstab" != "$rootdev" ]; then
+     # change root partition if necessary
+     echo "Setze Rootpartition: $rootdev."
+     rootdev_fstab="$rootdev"
+     line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+     changed=yes
+    fi # rootdev
+    # check for changed filesytem type if partition was formatted
+    fstype_mount="$(cat /proc/mounts | grep "^$rootdev" | awk '{ print $3 }')"
+    [ -z "$fstype_mount" ] && return 1
+    if [ "$fstype_fstab" != "$fstype_mount" ]; then
+     # change filesystem
+     echo "Setze Dateisystem: $fstype_mount."
+     fstype_fstab="$fstype_mount"
+     line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+     changed=yes
+    fi # fstype
+   fi # mntpnt
+  fi # line
+  echo "$line" >> /tmp/fstab
+ done </mnt/etc/fstab # reading fstab
+ if [ -n "$changed" ]; then
+  mv -f /mnt/etc/fstab /mnt/etc/fstab.bak
+  mv -f /tmp/fstab /mnt/etc
+ fi
+}
+
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC=1
  local patchfile=""
+ local rootdev="$5"
  echo -n "syncl " ; printargs "$@"
  mountcache "$1" || return "$?"
  cd /cache
@@ -1063,12 +1090,16 @@ syncl(){
     fi
     rm -f "$TMP"
    fi
+   # patching for linux systems
+   # hostname
    if [ -f /mnt/etc/hostname ]; then
     if [ -n "$HOSTNAME" ]; then
      echo "Setze Hostname -> $HOSTNAME."
      echo "$HOSTNAME" > /mnt/etc/hostname
     fi
    fi
+   # fstab
+   [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
   fi
