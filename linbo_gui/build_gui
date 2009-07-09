@@ -4,7 +4,7 @@
 HERE=`pwd`
 export QTDIR=$HERE/qt-embedded-free-3.3.7
 export QTLIB=$QTDIR/lib/
-export QTBIN=$QTDIR/bin/ 
+export QTBIN=$QTDIR/bin/
 
 qmake
 rm Makefile\.*
@@ -18,4 +18,3 @@ make CXX=g++-4.1
 strip linbo_gui
 make clean
 sed -e "s|$QTDIR|\$\(QTDIR\)|g" -i Makefile
-

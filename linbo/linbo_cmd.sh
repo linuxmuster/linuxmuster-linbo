@@ -34,6 +34,15 @@ printargs(){
  echo ""
 }
 
+# test if variable is an integer
+isinteger () {
+ [ $# -eq 1 ] || return 1
+ case $1 in
+ *[!0-9]*|"") return 1;;
+           *) return 0;;
+ esac
+}
+
 # Is /cache writable?
 # Displayed mount permissions may not be correct, do a write-test.
 cache_writable(){
@@ -51,8 +60,8 @@ localmode(){
  #[ -n "$1" ] || return 1
  [ -s /tmp/dhcp.log ] || return 0
  [ -s /start.conf ] || return 0
- local ip_dhcp="$(grep -m1 ^serverid= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
- [ -z "$ip_dhcp" ] && return 0
+ local ip_dhcp="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+ [ -z "$ip_dhcp" ] && touch /tmp/.offline && return 0
  local ip_startconf="$(grep ^Server /start.conf | awk -F\=  '{ print $2 }' | awk '{ print $1 }')"
  [ "$ip_dhcp" = "$ip_startconf" ] && return 1
  return 0
@@ -67,7 +76,7 @@ sendlog(){
  elif [ -s /tmp/dhcp.log ]; then
   local domain="$(grep -m1 ^domain= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
   local logname="$(grep -m1 ^hostname= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
-  local serverip="$(grep -m1 ^serverid= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+  local serverip="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
   echo "local domain=$domain" > /etc/sendlog.conf
   echo "local logname=$logname" >> /etc/sendlog.conf
   echo "local serverip=$serverip" >> /etc/sendlog.conf
@@ -117,7 +126,8 @@ Papierkorb/*
 [Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
-tmp/*'
+tmp/*
+var/tmp/*'
 
 bailout(){
  echo "DEBUG: bailout() called, linbo_cmd=$PID, my_pid=$$" >&2
@@ -258,6 +268,10 @@ mountpart(){
  local type=""
  local i=0
  local OPTS=""
+ # fix vanished cloop device
+ if [ "$1" = "/dev/cloop" ]; then
+  [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
+ fi
  for i in 1 2 3 4 5; do
   type="$(fstype $1)"
   RC="$?"
@@ -300,8 +314,7 @@ format(){
  case "$2" in
   swap) mkswap "$1" ;;
   reiserfs) mkreiserfs -f -f  "$1" ;;
-  ext2) mke2fs -b 4096 -f 4096 -m 0 "$1" ;;
-  ext3) mke2fs -b 4096 -f 4096 -m 0 -j "$1" ;;
+  ext2|ext3|ext4) mkfs."$2" "$1" ;;
   [Nn][Tt][Ff][Ss]*) mkfs.ntfs -Q "$1" ;;
   *[Ff][Aa][Tt]*) mkdosfs -F 32 "$1" ;;
   *) return 1 ;;
@@ -501,34 +514,25 @@ mkgrldr(){
  cp /usr/lib/grub/grldr /mnt
 }
 
-# tschmitt
-# patch fstab with root partition
-patch_fstab(){
- echo -n "patch_fstab " ;  printargs "$@"
- local appendstr="$1"
+# compute grub menu.lst entry number: grubnr boot
+grubnr(){
+ [ -s /cache/boot/grub/menu.lst ] || return 1
+ [ -z "$1" ] && return 1
+ [ -e "$1" ] || return 1
+ local partnr="$(echo $1 | sed -e 's|/dev/[a-z]*||')"
+ [ $partnr -lt 1 ] && return 1
+ partnr="$((partnr - 1))"
+ local grubpart="(hd0,$partnr)"
+ local nr=0
  local line=""
- local rootpart=""
- local found=""
- local item=""
- for item in $appendstr; do
-  echo $item | grep -q ^root && rootpart=`echo $item | awk -F\= '{ print $2 }'`
- done
- [ -z "$rootpart" ] && return 1
- [ -e /tmp/fstab ] && rm -f /tmp/fstab
- while read line; do
-  mntpnt=`echo $line | awk '{ print $2 }'`
-  if [ "$mntpnt" = "/" -a "$found" = "" ] && ! echo "$line" | grep ^#; then
-   echo "$line" | sed -e 's,.* /,'"$rootpart"' /,' - >> /tmp/fstab
-   found=yes
-  else
-    echo "$line" >> /tmp/fstab
+ grep root /cache/boot/grub/menu.lst | grep -v ^# | grep "(hd" | while read line; do
+  if echo "$line" | grep -q	"$grubpart"; then
+   echo "$nr"
+   return 0
   fi
- done </mnt/etc/fstab
- if [ -n "$found" ]; then
-  echo "Setze Rootpartition in fstab -> $rootpart."
-  mv -f /mnt/etc/fstab /mnt/etc/fstab.bak
-  mv -f /tmp/fstab /mnt/etc
- fi
+  nr="$((nr + 1))"
+ done
+ return 1
 }
 
 # start boot root kernel initrd append cache
@@ -546,7 +550,8 @@ start(){
   APPEND="$5"
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
-   mkgrubmenu "$1"
+   # create menu.lst if no custom menu.lst was downloaded
+   [ -e /cache/.custom.menu.lst ] || mkgrubmenu "$1"
    grub-install --root-directory=/cache $disk
   fi
   case "$3" in
@@ -563,7 +568,15 @@ start(){
      LOADED="true"
      # tschmitt: needed for local boot here
      if [ -e /cache/boot/grub ] && cache_writable; then
-      grub-set-default --root-directory=/cache 1
+      # compute nr of grub menu.lst entry
+      local nr="$(grubnr $1)"
+      if isinteger "$nr"; then
+       echo "Grub-Startnr. $nr ermittelt."
+      else
+       echo "Konnte Grub-Startnr. nicht ermitteln. Setze auf 0."
+       nr=0
+      fi
+      grub-set-default --root-directory=/cache $nr
      fi
      ;;
    *)
@@ -585,9 +598,6 @@ start(){
    mkgrldr "$1" io.sys
    # change bootloader for win98 systems
    APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/')"
-  elif [ -e /mnt/etc/fstab ]; then
-   # tschmitt: patch fstab with root device
-   patch_fstab "$APPEND"
   fi
  else
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
@@ -622,14 +632,14 @@ start(){
   [ "$cpunum" -gt "1" ] && sleep 4
   # We basically do a quick shutdown here.
   killall5 -15
-  sleep 2
+  [ -z "$WINDOWS" ] && sleep 2
   echo -n "c" >/dev/console
   if [ -z "$WINDOWS" ]; then
    exec kexec -e --reset-vga
    # exec kexec -e
    sleep 10
   else
-   sleep 2
+   #sleep 2
    reboot -f
    #sleep 10
   fi
@@ -680,7 +690,7 @@ cleanup_fs(){
 # mk_cloop type inputdev imagename baseimage [timestamp]
 mk_cloop(){
  echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
- echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
+ #echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
  local size="$(get_partition_size $2)"
  local imgsize=0
@@ -731,7 +741,9 @@ mk_cloop(){
      if mountpart /dev/cloop /cloop -r ; then
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
-      local ROPTS="-Haz"
+			# tschmitt: -H testweise entfernt
+      #local ROPTS="-Haz"
+      local ROPTS="-az"
       [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rtz"
       # tschmitt: logging
       #rm -f "$TMP"
@@ -854,7 +866,9 @@ sync_cloop(){
  echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
- local ROPTS="-Ha"
+ # tschmitt: -H testweise entfernt
+ #local ROPTS="-Ha"
+ local ROPTS="-a"
 # Knopper's attempt to fix sync problems on vfat
 # [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt -T rsync.tmp --exclude=rsync.tmp"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
@@ -959,10 +973,71 @@ restore(){
  return "$RC"
 }
 
+# tschmitt
+# patch fstab with root partition and root fstype: patch_fstab rootdev
+patch_fstab(){
+ echo -n "patch_fstab " ;  printargs "$@"
+ local rootdev="$1"
+ local line=""
+ local found=""
+ local fstype_mount=""
+ local fstype_fstab=""
+ local mntpnt=""
+ local changed=""
+ local rootdev_fstab=""
+ local options=""
+ local dump=""
+ local pass=""
+ [ -z "$rootdev" ] && return 1
+ [ -e "$rootdev" ] || return 1
+ [ -e /tmp/fstab ] && rm -f /tmp/fstab
+ while read line; do
+  if [ -n "$line" -a "${line:0:1}" != "#" ]; then
+   mntpnt="$(echo "$line" | awk '{ print $2 }')"
+   if [ "$mntpnt" = "/" -a -z "$found" ]; then
+    found=yes
+    rootdev_fstab="$(echo "$line" | awk '{ print $1 }')"
+    [ -z "$rootdev_fstab" ] && return 1
+    fstype_fstab="$(echo "$line" | awk '{ print $3 }')"
+    [ -z "$fstype_fstab" ] && return 1
+    options="$(echo "$line" | awk '{ print $4 }')"
+    [ -z "$options" ] && return 1
+    dump="$(echo "$line" | awk '{ print $5 }')"
+    [ -z "$dump" ] && return 1
+    pass="$(echo "$line" | awk '{ print $6 }')"
+    [ -z "$pass" ] && return 1
+    if [ "$rootdev_fstab" != "$rootdev" ]; then
+     # change root partition if necessary
+     echo "Setze Rootpartition: $rootdev."
+     rootdev_fstab="$rootdev"
+     line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+     changed=yes
+    fi # rootdev
+    # check for changed filesytem type if partition was formatted
+    fstype_mount="$(cat /proc/mounts | grep "^$rootdev" | awk '{ print $3 }')"
+    [ -z "$fstype_mount" ] && return 1
+    if [ "$fstype_fstab" != "$fstype_mount" ]; then
+     # change filesystem
+     echo "Setze Dateisystem: $fstype_mount."
+     fstype_fstab="$fstype_mount"
+     line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+     changed=yes
+    fi # fstype
+   fi # mntpnt
+  fi # line
+  echo "$line" >> /tmp/fstab
+ done </mnt/etc/fstab # reading fstab
+ if [ -n "$changed" ]; then
+  mv -f /mnt/etc/fstab /mnt/etc/fstab.bak
+  mv -f /tmp/fstab /mnt/etc
+ fi
+}
+
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC=1
  local patchfile=""
+ local rootdev="$5"
  echo -n "syncl " ; printargs "$@"
  mountcache "$1" || return "$?"
  cd /cache
@@ -985,11 +1060,11 @@ syncl(){
    # hostname
    local HOSTNAME
    if localmode; then
-    if [ -s /cache/hostname ]; then
-     # add -w to hostname for wlan clients
+    if [ -s /cache/hostname -a -e /tmp/.offline ]; then
+     # add -w to hostname for wlan clients if client is really offline
      HOSTNAME="$(cat /cache/hostname)-w"
     else
-     HOSTNAME="$(hostname)"
+     HOSTNAME="$(cat /cache/hostname)"
     fi
    else
     HOSTNAME="$(hostname)"
@@ -1015,12 +1090,16 @@ syncl(){
     fi
     rm -f "$TMP"
    fi
+   # patching for linux systems
+   # hostname
    if [ -f /mnt/etc/hostname ]; then
     if [ -n "$HOSTNAME" ]; then
      echo "Setze Hostname -> $HOSTNAME."
      echo "$HOSTNAME" > /mnt/etc/hostname
     fi
    fi
+   # fstab
+   [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
   fi
@@ -1456,8 +1535,11 @@ update(){
   download "$server" "menu.lst.$group"
   if [ -e "/cache/menu.lst.$group" ]; then
    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
+   # flag for downloaded custom menu.lst
+   touch /cache/.custom.menu.lst
   else
    [ -e /cache/boot/grub/menu.lst ] && rm /cache/boot/grub/menu.lst
+   [ -e /cache/.custom.menu.lst ] && rm /cache/.custom.menu.lst
    mkgrubmenu "$cachedev" "linbo" "linbofs.gz" "$server" "$vga $append"
   fi
   # tschmitt: grub is installed on every start

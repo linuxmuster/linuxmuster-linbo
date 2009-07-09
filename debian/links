@@ -1,4 +1,9 @@
 etc/linuxmuster/linbo/start.conf.default	var/linbo/start.conf
 etc/linuxmuster/linbo/pxelinux.cfg.default	var/linbo/pxelinux.cfg/default
+usr/lib/linuxmuster-linbo/pxelinux.0	var/linbo/pxelinux.0
 usr/share/doc/linuxmuster-linbo/examples	var/linbo/examples
+usr/share/linuxmuster-linbo/repack-cloop.sh usr/sbin/repack-cloop
+usr/share/linuxmuster-linbo/update-linbofs.sh usr/sbin/update-linbofs
+usr/share/linuxmuster-linbo/make-linbo-media.sh usr/sbin/make-linbo-media
 var/log/linuxmuster/linbo			var/linbo/log
+
