@@ -1,3 +1,9 @@
+linuxmuster-linbo (1.1.22-1) unstable; urgency=low
+
+  * kernel: new upstream version 2.6.30.1
+      
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 09 Jul 2009 08:41:44 +0200
+
 linuxmuster-linbo (1.1.21-1) unstable; urgency=low
 
   * package: removed kexec-tools from build dependencies
@@ -13,7 +19,7 @@ linuxmuster-linbo (1.1.21-1) unstable; urgency=low
         fstab will be patched only on synchronized start not on every start,
         if fstype of root partition differs it will be corrected.
       
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 26 Jun 2009 20:00:14 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Jul 2009 21:46:09 +0200
 
 linuxmuster-linbo (1.1.20-1) unstable; urgency=low
 
