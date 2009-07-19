@@ -1077,7 +1077,7 @@ restore_ntfs_attr(){
  for i in acl attrib reparse_data; do
   [ -f "/mnt/.${i}.gz" ] || continue
   echo -n " $i ..."
-  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=-)
+  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=- 2> /tmp/image.log)
   set_ntfs_admin_attr "/mnt/.${i}.gz"
  done
  sync
