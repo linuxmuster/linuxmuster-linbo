@@ -213,7 +213,7 @@ while read -r key; do
           ;;
       esac
 
-			create_cmd "$key"
+      create_cmd "$key"
 
       while read -r change; do
 
@@ -221,29 +221,28 @@ while read -r key; do
 
         do_reg "$command"
 
-				# tschmitt: patch other controlsets up to 9
+	# tschmitt: patch other controlsets up to 9
         case "$command" in
           *ControlSet001*)
-						if [ ! -s "$tmpctrls" ]; then
-							[ -n "$DEBUG" ] && echo "### Writing $tmpctrls ..." | tee -a $tmplog
-							controlcheck="ls\nq\ny\n"
-							do_reg "$controlcheck" "$tmpctrls"
-						fi
-						n=2
-						while [ $n -lt 10 ]; do
-							ctrlset="ControlSet00$n"
-							[ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $tmplog
-							if grep -q "<$ctrlset>" $tmpctrls; then
-								key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
-								[ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $tmplog
-								if create_cmd "$key_new" "$ctrlset"; then
-									create_val
-									do_reg "$command"
-								fi
-							fi
-							let n+=1
-						done
-						;;
+		if [ ! -s "$tmpctrls" ]; then
+			[ -n "$DEBUG" ] && echo "### Writing $tmpctrls ..." | tee -a $tmplog
+			controlcheck="ls\nq\ny\n"
+			do_reg "$controlcheck" "$tmpctrls"
+		fi
+		n=2
+		while [ $n -lt 10 ]; do
+			ctrlset="ControlSet00$n"
+			[ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $tmplog
+			if grep -q "<$ctrlset>" $tmpctrls; then
+				key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
+				[ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $tmplog
+				if create_cmd "$key_new" "$ctrlset"; then
+					create_val && do_reg "$command"
+				fi
+			fi
+			let n+=1
+		done
+		;;
         esac
 
       done # while read -r change 

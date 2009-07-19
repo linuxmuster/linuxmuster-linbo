@@ -1,3 +1,31 @@
+linuxmuster-linbo (1.99.1-0) unstable; urgency=low
+
+  * minor modfication in registry patch example file
+  * linbofs:
+    - minor fix in patch_registry.
+ 
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 19 Jul 2009 16:47:16 +0200
+
+linuxmuster-linbo (1.99.0-0) unstable; urgency=low
+
+  * package: added attr to build dependencies
+  * linbofs:
+    - linbo_cmd: implemented differential ntfs image support.
+    - added attr utils.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 17 Jul 2009 07:52:14 +0200
+
+linuxmuster-linbo (1.2.0-0) unstable; urgency=low
+
+  * new development branch with differential ntfs image support.
+  * kernel: setting default nls to UTF-8
+  * linbofs:
+    - using ntfs-3g development version 2009.4.4AC.14.
+    - enabled rsync imaging for ntfs in linbo_cmd.sh.
+    - modified ntfs mount options (streams_interface=xattr).
+      
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Jul 2009 06:37:08 +0200
+
 linuxmuster-linbo (1.1.22-1) unstable; urgency=low
 
   * kernel: new upstream version 2.6.30.1

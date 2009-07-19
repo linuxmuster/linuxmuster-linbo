@@ -268,7 +268,7 @@ mountpart(){
  local type=""
  local i=0
  local OPTS=""
- # fix vanished cloop device
+ # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
  fi
@@ -283,7 +283,9 @@ mountpart(){
  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   ntfs)
-   OPTS="force,silent,umask=0,no_def_opts,allow_other,streams_interface=windows"
+   #OPTS="force,silent,umask=0,no_def_opts,allow_other,streams_interface=windows"
+   # ntfs differential image support
+   OPTS="force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
    case "$3" in -r) OPTS="$OPTS,ro" ;; esac
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
@@ -652,6 +654,10 @@ start(){
 # return partition size in kilobytes
 # arg: partition
 get_partition_size(){
+ # fix vanished cloop symlink
+ if [ "$1" = "/dev/cloop" ]; then
+  [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
+ fi
  sfdisk -s "$1"
  return $?
 }
@@ -687,6 +693,26 @@ cleanup_fs(){
  )
 }
 
+# sets admin access rights for given file on ntfs
+set_ntfs_admin_attr(){
+ local acl="0x010004946000000070000000000000001400000002004c000300000000001800a90012000102000000000005200000002302000000001800ff011f000102000000000005200000002002000000001400ff011f000101000000000005120000000102000000000005200000002002000001020000000000052000000020020000"
+ local attrib="0x21000000"
+ setfattr -h -v "$acl" -n system.ntfs_acl "$1"
+ setfattr -h -v "$attrib" -n system.ntfs_attrib "$1"
+}
+
+# saves advanced ntfs attributes of partition mounted in /mnt
+save_ntfs_attr(){
+ echo -n "Sichere erweiterte NTFS Attribute ..."
+ local i=""
+ for i in acl attrib reparse_data; do
+  echo -n " ${i} ..."
+  (cd /mnt && getfattr -R -h -e hex -d -n "system.ntfs_${i}" * 2>/dev/null | gzip -c > ".${i}.gz")
+  set_ntfs_admin_attr "/mnt/.${i}.gz"
+ done
+ echo
+}
+
 # mk_cloop type inputdev imagename baseimage [timestamp]
 mk_cloop(){
  echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
@@ -699,6 +725,7 @@ mk_cloop(){
    if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     cleanup_fs /mnt
+    [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
@@ -733,17 +760,19 @@ mk_cloop(){
    fi
   ;;
   incremental)
-   if mountpart "$2" /mnt -r ; then
+   if mountpart "$2" /mnt -w ; then
     rmmod cloop >/dev/null 2>&1
 #    echo "modprobe cloop file=/cache/$4" | tee -a /tmp/image.log
     if test -s /cache/"$4" && modprobe cloop file=/cache/"$4"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
+      cleanup_fs /mnt
+      [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
-			# tschmitt: -H testweise entfernt
-      #local ROPTS="-Haz"
-      local ROPTS="-az"
+      # rsync mit acl und xattr Optionen
+      local ROPTS="-HazAX"
+      #local ROPTS="-az"
       [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rtz"
       # tschmitt: logging
       #rm -f "$TMP"
@@ -816,6 +845,8 @@ cp_cloop(){
  echo -n "cp_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
  rmmod cloop >/dev/null 2>&1
+ # repair cloop link if vanished
+ [ -e /dev/cloop ] || ln -s /dev/cloop0 /dev/cloop
 # echo "modprobe cloop file=/cache/$1"
  if test -s "$1" && modprobe cloop file=/cache/"$1"; then
   local s1="$(get_partition_size /dev/cloop)"
@@ -860,6 +891,7 @@ cp_cloop(){
  return "$RC"
 }
 
+
 # INCREMENTAL/Synced
 # sync_cloop imagefile targetdev
 sync_cloop(){
@@ -867,8 +899,8 @@ sync_cloop(){
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
  # tschmitt: -H testweise entfernt
- #local ROPTS="-Ha"
- local ROPTS="-a"
+ local ROPTS="-HaAX"
+ #local ROPTS="-a"
 # Knopper's attempt to fix sync problems on vfat
 # [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt -T rsync.tmp --exclude=rsync.tmp"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
@@ -936,17 +968,17 @@ restore(){
  local RC=1
  local disk="${2%%[1-9]*}"
  local force="$3"
- # tschmitt: fetch fstype from start.conf
- local type="$(fstype_startconf "$2")"
  echo -n "Entpacke: $1 -> $2 "
  case "$1" in
   *.[Cc][Ll][Oo]*)
    if [ "$force" != "force" ]; then
     check_status "$2" "$1" || force="force"
    fi
-   if [ "$type" = "ntfs" ]; then
+   if [ "$(fstype "$2")" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
+    # set flag for complete cloop restore
+    touch /tmp/.cloop
    elif [ "$type" = "vfat" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
@@ -959,10 +991,10 @@ restore(){
    fi
    ;;
   *.[Rr][Ss][Yy]*)
-   # tschmitt: if ntfs do nothing
-   [ "$type" = "ntfs" ] && return 0
    echo "[Datei-Sync]..."
    sync_cloop "$1" "$2" ; RC="$?"
+   # remove flag for complete cloop restore because there is an rsync afterwards
+   [ -e /tmp/.cloop ] && rm -f /tmp/.cloop
    ;;
  esac
  if [ "$RC" = "0" ]; then
@@ -1033,6 +1065,25 @@ patch_fstab(){
  fi
 }
 
+# restore NTFS attributes
+restore_ntfs_attr(){
+ # don't restore attributes if a complete cloop restore without rsync afterwards was done
+ if [ -e /tmp/.cloop ]; then
+  rm -f /tmp/.cloop
+  return 0
+ fi
+ echo -n "Restauriere erweiterte NTFS Attribute ..."
+ local i=""
+ for i in acl attrib reparse_data; do
+  [ -f "/mnt/.${i}.gz" ] || continue
+  echo -n " $i ..."
+  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=-)
+  set_ntfs_admin_attr "/mnt/.${i}.gz"
+ done
+ sync
+ echo
+}
+
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC=1
@@ -1090,6 +1141,8 @@ syncl(){
     fi
     rm -f "$TMP"
    fi
+   # restore NTFS attributes
+   [ "$(fstype "$5")" = "ntfs" ] && restore_ntfs_attr
    # patching for linux systems
    # hostname
    if [ -f /mnt/etc/hostname ]; then
@@ -1130,12 +1183,13 @@ create(){
    ;;
   *.[Rr][Ss][Yy]*)
    # tschmitt: for now we do not support rsync images of ntfs partitions
-   if [ "$type" = "ntfs" ]; then
-    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
-    RC=1
-   else
+   # experimental support for rsync images of ntfs partitions
+#   if [ "$type" = "ntfs" ]; then
+#    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
+#    RC=1
+#   else
     mk_cloop incremental "$5" "$2" "$3" ; RC="$?"
-   fi
+#   fi
    ;;
  esac
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2

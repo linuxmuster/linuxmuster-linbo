@@ -60,7 +60,8 @@ MSSYS_URL=$(LML_URL)
 # ntfs-3g
 NTFS3G_ARCHIVE=$(shell grep ntfs-3g- debian/md5sums.src | awk '{ print $$2 }')
 NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
-NTFS3G_URL=http://www.ntfs-3g.org
+#NTFS3G_URL=http://www.ntfs-3g.org
+NTFS3G_URL=$(LML_URL)
 
 # ntfsprogs
 NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
@@ -263,9 +264,9 @@ build-stamp: configure-stamp
 	fi
 
 	# ntfs-3g
-	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
+	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-really-static && make && strip src/ntfs-3g ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4914.0.0 ); \
 	fi
 
 	# rsync

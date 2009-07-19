@@ -276,7 +276,17 @@ hwsetup(){
 }
 
 # Main
-echo "Hello, World."
+#clear
+echo
+echo 'Welcome to'
+echo ' _        _   __     _   ____      _____'
+echo '| |      | | |  \   | | |  _ \    / ___ \'
+echo '| |      | | |   \  | | | | | |  / /   \ \'
+echo '| |      | | | |\ \ | | | |/ /  | |     | |'
+echo '| |      | | | | \ \| | | |\ \  | |     | |'
+echo '| |____  | | | |  \   | |_|_| |  \ \___/ /'
+echo '|______| |_| |_|   \__| |____/    \_____/'
+echo
 
 # Initial setup
 if [ -n "$debug" ]; then
