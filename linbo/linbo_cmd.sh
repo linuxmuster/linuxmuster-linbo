@@ -268,6 +268,7 @@ mountpart(){
  local type=""
  local i=0
  local OPTS=""
+ if [ "$3" = "-r" ]; then OPTS="ro"; else OPTS="rw"; fi
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
@@ -283,20 +284,15 @@ mountpart(){
  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   ntfs)
-   #OPTS="force,silent,umask=0,no_def_opts,allow_other,streams_interface=windows"
-   # ntfs differential image support
-   OPTS="force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
-   case "$3" in -r) OPTS="$OPTS,ro" ;; esac
+   OPTS="$OPTS,force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
-#  vfat)
-# tschmitt: windows does not start here with this
-#   OPTS="umask=000,shortname=winnt"
-#   case "$3" in -r) OPTS="$OPTS,ro" ;; esac
-#   mount -o "$OPTS" "$1" "$2" ; RC="$?"
-#   ;;
+  vfat)
+   mount -o "$OPTS" "$1" "$2" ; RC="$?"
+   ;;
   *)
-   mount $3 "$1" "$2" ; RC="$?"
+   OPTS="$OPTS,acl,user_xattr"
+   mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
  esac
  return "$RC"
@@ -512,7 +508,7 @@ mkgrldr(){
  local grubpart="${1##*[hsv]d[a-z]}"
  grubpart="$((grubpart - 1))"
  bootlace.com --"$(fstype_startconf "$1")" --floppy="$driveid" "$1"
- echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)/$bootfile" > $menu
+ echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)$bootfile" > $menu
  cp /usr/lib/grub/grldr /mnt
 }
 
@@ -589,7 +585,9 @@ start(){
   esac
   # provide a menu.lst for grldr on win2k/xp
   if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-   mkgrldr "$1" ntldr
+   mkgrldr "$1" "/ntldr"
+  elif [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
+   mkgrldr "$1" "/bootmgr"
   elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
    # tschmitt: patch autoexec.bat (win98),
    if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
@@ -597,7 +595,7 @@ start(){
     unix2dos /mnt/AUTOEXEC.BAT
    fi
    # provide a menu.lst for grldr on win98
-   mkgrldr "$1" io.sys
+   mkgrldr "$1" "/io.sys"
    # change bootloader for win98 systems
    APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/')"
   fi
@@ -703,13 +701,31 @@ set_ntfs_admin_attr(){
 
 # saves advanced ntfs attributes of partition mounted in /mnt
 save_ntfs_attr(){
- echo -n "Sichere erweiterte NTFS Attribute ..."
- local i=""
- for i in acl attrib reparse_data; do
-  echo -n " ${i} ..."
-  (cd /mnt && getfattr -R -h -e hex -d -n "system.ntfs_${i}" * 2>/dev/null | gzip -c > ".${i}.gz")
-  set_ntfs_admin_attr "/mnt/.${i}.gz"
- done
+ # disabled
+ return 0
+# echo -n "Sichere erweiterte NTFS Attribute ..."
+ echo "Sichere erweiterte NTFS Attribute ..."
+ local rootdev="$1"
+# local i=""
+# for i in acl attrib reparse_data; do
+#  echo -n " ${i} ..."
+#  (cd /mnt && getfattr -R -h -e hex -d -n "system.ntfs_${i}" * 2>/dev/null | gzip -c > ".${i}.gz")
+#  set_ntfs_admin_attr "/mnt/.${i}.gz"
+# done
+ # security attributes
+ if umount /mnt; then
+  secaudit -b "$rootdev" 2>/dev/null | gzip -c > /tmp/.sec.gz
+ else
+  echo "Kann Partition $rootdev nicht aushängen!"
+  return 1
+ fi
+ if mountpart "$rootdev" /mnt -w ; then
+  mv /tmp/.sec.gz /mnt
+  set_ntfs_admin_attr "/mnt/.sec.gz"
+ else
+  echo "Kann Partition $rootdev nicht einhängen!"
+  return 1
+ fi
  echo
 }
 
@@ -725,7 +741,7 @@ mk_cloop(){
    if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     cleanup_fs /mnt
-    [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
+    [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr "$2"
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
@@ -767,7 +783,7 @@ mk_cloop(){
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
       cleanup_fs /mnt
-      [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
+      [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr "$2"
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
       # rsync mit acl und xattr Optionen
@@ -777,7 +793,7 @@ mk_cloop(){
       # tschmitt: logging
       #rm -f "$TMP"
       #interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --only-write-batch="$3" /mnt/ /cloop
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
       RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
@@ -898,18 +914,14 @@ sync_cloop(){
  echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
- # tschmitt: -H testweise entfernt
  local ROPTS="-HaAX"
- #local ROPTS="-a"
-# Knopper's attempt to fix sync problems on vfat
-# [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt -T rsync.tmp --exclude=rsync.tmp"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
  if mountpart "$2" /mnt -w ; then
   case "$1" in
    *.[Rr][Ss][Yy]*)
     rm -f "$TMP"
     # tschmitt: added logging parameter
-    interruptible rsync "$ROPTS" --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
+    interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
     if [ "$RC" != "0" ]; then
      cat "$TMP" >&2 | tee -a /tmp/image.log
      echo "Fehler beim Synchronisieren des differentiellen Images \"$1\" nach $2, rsync-Fehlercode: $RC." >&2 | tee -a /tmp/image.log
@@ -931,7 +943,7 @@ sync_cloop(){
       # knopper: added --inplace
       #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
       # tschmitt: added logging parameter
-      interruptible rsync "$ROPTS" --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
+      interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
        cat "$TMP" >&2 | tee -a /tmp/image.log
@@ -1065,23 +1077,40 @@ patch_fstab(){
  fi
 }
 
-# restore NTFS attributes
+# restore NTFS attributes: rootdev
 restore_ntfs_attr(){
+ # disabled
+ return 0
+ local rootdev="$1"
  # don't restore attributes if a complete cloop restore without rsync afterwards was done
  if [ -e /tmp/.cloop ]; then
   rm -f /tmp/.cloop
   return 0
  fi
- echo -n "Restauriere erweiterte NTFS Attribute ..."
- local i=""
- for i in acl attrib reparse_data; do
-  [ -f "/mnt/.${i}.gz" ] || continue
-  echo -n " $i ..."
-  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=- 2>> /tmp/image.log)
-  set_ntfs_admin_attr "/mnt/.${i}.gz"
- done
+# echo -n "Restauriere erweiterte NTFS Attribute ..."
+# local i=""
+# for i in acl attrib reparse_data; do
+#  [ -f "/mnt/.${i}.gz" ] || continue
+#  echo -n " $i ..."
+#  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=- 2>> /tmp/image.log)
+#  set_ntfs_admin_attr "/mnt/.${i}.gz"
+# done
+ # restore security attributes
+ if [ -f "/mnt/.sec.gz" ]; then
+  echo "Restauriere erweiterte NTFS Attribute ..."
+  cp /mnt/.sec.gz /tmp || return 1
+  if umount /mnt; then
+   zcat /tmp/.sec.gz | secaudit -s "$rootdev" 2&1>> /tmp/image.log
+   mountpart "$rootdev" /mnt -w
+   rm -f /tmp/.sec.gz
+   set_ntfs_admin_attr "/mnt/.sec.gz"
+  else
+   echo "Kann Partition $rootdev nicht aushängen!"
+   return 1
+  fi
+ fi
  sync
- echo
+# echo
 }
 
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
@@ -1126,8 +1155,8 @@ syncl(){
     rm -f "$TMP"
     sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
     dos2unix "$TMP"
-    # tschmitt: different registry patching for Win98
-    if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+    # tschmitt: different registry patching for Win98, WinXP, Win7
+    if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
      # tschmitt: logging
      echo "Patche System mit $patchfile" >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
@@ -1142,7 +1171,7 @@ syncl(){
     rm -f "$TMP"
    fi
    # restore NTFS attributes
-   [ "$(fstype "$5")" = "ntfs" ] && restore_ntfs_attr
+   [ "$(fstype "$rootdev")" = "ntfs" ] && restore_ntfs_attr "$rootdev"
    # patching for linux systems
    # hostname
    if [ -f /mnt/etc/hostname ]; then

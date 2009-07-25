@@ -64,9 +64,9 @@ NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
 NTFS3G_URL=$(LML_URL)
 
 # ntfsprogs
-NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
-NTFSPROGS_DIR=src/$(shell echo $(NTFSPROGS_ARCHIVE) | sed -e 's/.tar.bz2//')
-NTFSPROGS_URL=$(LML_URL)
+#NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
+#NTFSPROGS_DIR=src/$(shell echo $(NTFSPROGS_ARCHIVE) | sed -e 's/.tar.bz2//')
+#NTFSPROGS_URL=$(LML_URL)
 
 # rsync
 RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
@@ -146,13 +146,13 @@ configure-stamp:
 	fi
 
 	# ntfsprogs
-	-@if [ ! -d $(NTFSPROGS_DIR) ]; then \
-		( [ -e cache/$(NTFSPROGS_ARCHIVE) ] || ( cd cache && wget $(NTFSPROGS_URL)/$(NTFSPROGS_ARCHIVE)?download ) ); \
-		( cd cache && grep $(NTFSPROGS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(NTFSPROGS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(NTFSPROGS_ARCHIVE) -C src; \
-		ln -sf ../$(NTFSPROGS_DIR) src/ntfsprogs; \
-	fi
+#	-@if [ ! -d $(NTFSPROGS_DIR) ]; then \
+#		( [ -e cache/$(NTFSPROGS_ARCHIVE) ] || ( cd cache && wget $(NTFSPROGS_URL)/$(NTFSPROGS_ARCHIVE)?download ) ); \
+#		( cd cache && grep $(NTFSPROGS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(NTFSPROGS_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(NTFSPROGS_ARCHIVE) -C src; \
+#		ln -sf ../$(NTFSPROGS_DIR) src/ntfsprogs; \
+#	fi
 
 	# ntfs-3g
 	-@if [ ! -d $(NTFS3G_DIR) ]; then \
@@ -258,21 +258,20 @@ build-stamp: configure-stamp
 	fi
 
 	# ntfsprogs
-	-@if [ ! -e $(NTFSPROGS_DIR)/ntfsprogs/mkntfs ]; then \
-		echo "[1mBuilding ntfsprogs...[0m" ; \
-		( cd $(NTFSPROGS_DIR) && LDFLAGS=-static ./configure && make && strip ntfsprogs/mkntfs ); \
-	fi
+#	-@if [ ! -e $(NTFSPROGS_DIR)/ntfsprogs/mkntfs ]; then \
+#		echo "[1mBuilding ntfsprogs...[0m" ; \
+#		( cd $(NTFSPROGS_DIR) && LDFLAGS=-static ./configure && make && strip ntfsprogs/mkntfs ); \
+#	fi
 
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4914.0.0 ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4914.0.0 ); \
 	fi
 
 	# rsync
 	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
 		echo "[1mBuilding rsync...[0m" ; \
-		#( cd $(RSYNC_DIR) && LDFLAGS=-static ./configure && make && strip rsync ); \
 		( cd $(RSYNC_DIR) && ./configure --prefix=/usr && make && strip rsync ); \
 	fi
 

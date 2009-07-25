@@ -1,13 +1,13 @@
-8a5eb7f15d4077d18fa97bda7a4e5412  busybox-1.13.4.tar.bz2
+c13b09b4125688d5fca5c95a79bf814a  busybox-1.14.2.tar.bz2
 09addfe7ae469677da39ed66d83858d3  chntpw-source-080526.zip
 0b203f03eb15828bf9e017b310c5c0f1  cloop_2.629-1.tar.gz
 82476af067f5325ebb8be30e5350f839  grub4dos-0.4.4-2009-06-11-src.zip
 d9f2ecd3c3307905f24130a25816e6cc  kexec-tools-2.0.0.tar.bz2
-7da2e2e31f1c00f2673d2dc50de76b33  linux-2.6.30.1.tar.bz2
+890a03483dc9843100c6b51deebfc3bd  linux-2.6.30.2.tar.bz2
 6fad0a69ac89440ad4f696dbbbf11497  ms-sys-2.1.3.tgz
-424f44374fb737d0a4c5c3377d6c7f98  ntfs-3g-2009.4.4AC.14.tgz
-2b39dece8897bc748f4ab4c40ec7699e  ntfsprogs-2.0.0.tar.bz2
+e16a67f191de810ea9af48b05b704ed8  ntfs-3g-2009.4.4AC.15.tgz
 e649dc2587954e1a55c4acf6667a96fc  qt-embedded-free-3.3.7.tar.bz2
 e9865d093a18e4668b9d31b635dc8e99  rsync-3.0.6.tar.gz
+e3735e51dfa47ac36ca8a872a5a4705f  rsync-patches-3.0.6.tar.gz
 257ac04e62ab7e3616e220333a1140cb  ssmtp_2.62.orig.tar.gz
 c9f4e73e385c86b3a8faf9b615a04836  syslinux-3.82.tar.bz2

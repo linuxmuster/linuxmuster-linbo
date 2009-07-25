@@ -184,70 +184,70 @@ create_val() {
 }
 
 while read -r key; do
-  [ -n "$DEBUG" ] && echo "$key $((count++))" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "$key $((count++))" | tee -a $tmplog
 
-  # select file for patching
-  case "$key" in 
-    \[HKEY_LOCAL_MACHINE*) 
-      key="$(leftchop "$key")"
-      [ -n "$DEBUG" ] && echo "1  key=$key" | tee -a $tmplog
+ # select file for patching
+ case "$key" in 
+  \[HKEY_LOCAL_MACHINE*) 
+   key="$(leftchop "$key")"
+   [ -n "$DEBUG" ] && echo "1  key=$key" | tee -a $tmplog
 
-      case `leftget "$key"` in
-        [Ss][Yy][Ss][Tt][Ee][Mm]*) 
-          file="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
-          [ -z "$file" ] && file="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
-          # strip file
-          key=`leftchop "$key"`
-          [ -n "$DEBUG" ] && echo "2  key=$key" | tee -a $tmplog
+   case `leftget "$key"` in
+    [Ss][Yy][Ss][Tt][Ee][Mm]*) 
+     file="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
+     [ -z "$file" ] && file="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
+     # strip file
+     key=`leftchop "$key"`
+     [ -n "$DEBUG" ] && echo "2  key=$key" | tee -a $tmplog
 
-          # change "CurrentControlSet" to "ControlSet001"
-          key="$(echo "$key" | sed 's,CurrentControlSet,ControlSet001,')"
-          [ -n "$DEBUG" ] && echo "3  key=$key" | tee -a $tmplog
-          ;;
-        [Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee]*) 
-     	    file="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
-     	    [ -z "$file" ] && file="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
-          # strip file
-          key=`leftchop "$key"`
-          [ -n "$DEBUG" ] && echo "4  key=$key" | tee -a $tmplog
-          ;;
-      esac
+     # change "CurrentControlSet" to "ControlSet001"
+     key="$(echo "$key" | sed 's,CurrentControlSet,ControlSet001,')"
+     [ -n "$DEBUG" ] && echo "3  key=$key" | tee -a $tmplog
+     ;;
+    [Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee]*) 
+     file="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
+     [ -z "$file" ] && file="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
+     # strip file
+     key=`leftchop "$key"`
+     [ -n "$DEBUG" ] && echo "4  key=$key" | tee -a $tmplog
+     ;;
+   esac
 
-      create_cmd "$key"
+   create_cmd "$key"
 
-      while read -r change; do
+   while read -r change; do
 
-        create_val || break
+    create_val || break
 
-        do_reg "$command"
+    do_reg "$command"
 
-	# tschmitt: patch other controlsets up to 9
-        case "$command" in
-          *ControlSet001*)
-		if [ ! -s "$tmpctrls" ]; then
-			[ -n "$DEBUG" ] && echo "### Writing $tmpctrls ..." | tee -a $tmplog
-			controlcheck="ls\nq\ny\n"
-			do_reg "$controlcheck" "$tmpctrls"
-		fi
-		n=2
-		while [ $n -lt 10 ]; do
-			ctrlset="ControlSet00$n"
-			[ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $tmplog
-			if grep -q "<$ctrlset>" $tmpctrls; then
-				key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
+	  # tschmitt: patch other controlsets up to 9
+    case "$command" in
+     *ControlSet001*)
+		  if [ ! -s "$tmpctrls" ]; then
+		   [ -n "$DEBUG" ] && echo "### Writing $tmpctrls ..." | tee -a $tmplog
+		   controlcheck="ls\nq\ny\n"
+		   do_reg "$controlcheck" "$tmpctrls"
+		  fi
+		  n=2
+		  while [ $n -lt 10 ]; do
+			 ctrlset="ControlSet00$n"
+			 [ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $tmplog
+			 if grep -q "<$ctrlset>" $tmpctrls; then
+			  key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
 				[ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $tmplog
 				if create_cmd "$key_new" "$ctrlset"; then
-					create_val && do_reg "$command"
+				 create_val && do_reg "$command"
 				fi
-			fi
-			let n+=1
-		done
-		;;
-        esac
+			 fi
+			 let n+=1
+		  done
+		  ;;
+    esac
 
-      done # while read -r change 
-      ;;
-  esac # case "$key"
+   done # while read -r change 
+   ;;
+ esac # case "$key"
 
 done < "$1" # while read -r key
 
