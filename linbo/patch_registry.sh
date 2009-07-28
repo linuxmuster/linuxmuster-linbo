@@ -19,10 +19,8 @@ fi
 
 # this generates a LOT of debugging messages
 DEBUG="-v"
-file=""
-tmplog="/tmp/output"
-tmpctrls="/tmp/controlsets"
-tmptest="/tmp/keytest"
+hive=""
+logfile="/tmp/output"
 
 leftchop(){
   echo "$1" | cut -d \\ -f 2-
@@ -44,34 +42,44 @@ rightchopend(){
   echo "$1" | sed 's,]$,,' | sed 's,\\$,,'
 }
 
-do_reg() {
+exec_command() {
  local cmd="$1"
- local logfile="$2"
- [ -z "$logfile" ] && logfile="$tmplog"
- chntpw $DEBUG -e "$file" >> $logfile <<.
+ chntpw $DEBUG -e "$hive" >> $logfile <<.
 $(echo -e "$cmd")
 .
 }
 
 test_key() {
- local path="$1"
- local key="$2"
- local RC=0
- local cmd="ls ${path}\nq\ny\n"
- [ -e "$tmptest" ] && rm $tmptest
- do_reg "$cmd" "$tmptest"
- grep -q "<${key}>" $tmptest || RC=1
+ local key="$1"
+ local RC=1
+ echo -e "cd $key\nq\ny\n" | chntpw -e "$hive" | grep -q "not found\!" || RC="0"
  return $RC
 }
 
 create_key() {
- local path="$1"
- local key="$2"
- local cmd="cd ${path}\nnk ${key}\nq\ny\n"
- do_reg "$cmd"
+ local fpath="$1"
+ local tpath=""
+ local bpath=""
+ local cmd=""
+ local i=""
+ local OIFS="$IFS"
+ IFS="\\"
+ for i in $fpath; do
+  bpath="$tpath"
+  if [ -n "$tpath" ]; then tpath="${tpath}\\${i}"; else tpath="$i"; fi
+  if ! test_key "$tpath"; then
+   if [ "$bpath" = "" ]; then
+    cmd="nk ${i}\nq\ny\n"
+   else
+    cmd="cd ${bpath}\nnk ${i}\nq\ny\n"
+   fi
+   exec_command "$cmd"
+  fi
+ done
+ IFS="$OIFS"
 }
 
-create_cmd() {
+create_keypath() {
  local key="$1"
  local ctrlset="$2"
 
@@ -79,82 +87,66 @@ create_cmd() {
  # parse path to value
  #####
 
- [ -n "$DEBUG" ] && echo "5  key=$key" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo " 5 key=$key" | tee -a $logfile
  # remove right end and replace it with a backslash
  key=`rightchopend "$key"`
  fullpath="$key"
- key="$key\\"
 
- [ -n "$DEBUG" ] && echo "6  fullpath=$fullpath" | tee -a $tmplog
-
- currentkey=`leftget "$key"`
- [ -n "$DEBUG" ] && echo "7  currentkey=$currentkey" | tee -a $tmplog
-
- key=`leftchop "$key"`
- [ -n "$DEBUG" ] && echo "8  key=$key" | tee -a $tmplog
-
- base_path=""
- while [ "$currentkey" != "" ]; do
-
-  [ -z "$base_path" ] && base_path="."
-
-  [ -n "$DEBUG" ] && echo "9  base_path=$base_path" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo " 6 fullpath=$fullpath" | tee -a $logfile
 
 	# tschmitt: check if currentkey exists in registry, if not create it
-	if ! test_key "$base_path" "$currentkey"; then
-   if [ -n "$ctrlset" ]; then
-    # don't create new keys in supplemental controlsets
-    [ -n "$DEBUG" ] && echo "### Skipping creation of $currentkey in $ctrlset!" | tee -a $tmplog
-    return 1
-   fi
-	 [ -n "$DEBUG" ] && echo "### Creating key $currentkey" | tee -a $tmplog
-	 create_key "$base_path" "$currentkey"
+	if ! test_key "$fullpath"; then
+  if [ -n "$ctrlset" ]; then
+   # don't create new keys in supplemental controlsets
+   [ -n "$DEBUG" ] && echo "### Skipping $fullpath" | tee -a $logfile
+   return 1
+  fi
+	 [ -n "$DEBUG" ] && echo "### Creating key $fullpath" | tee -a $logfile
+	 create_key "$fullpath"
 	fi
-
-	if [ "$base_path" = "." ]; then
-	 base_path="${currentkey}"
-	else
-	 base_path="${base_path}\\${currentkey}"
-	fi
-
-  currentkey=`leftget "$key"`
-  [ -n "$DEBUG" ] && echo "10 currentkey=$currentkey" | tee -a $tmplog
-
-  key=`leftchop "$key"`
-  [ -n "$DEBUG" ] && echo "11 key=$key" | tee -a $tmplog
-
- done
-
- base_command="cd ${fullpath}\n"
 }
 
-create_val() {
+# returns success if old value is equal to new value
+test_value(){
+ local fpath="$1"
+ local newval="$2"
+ local curval="$(echo -e "cat ${fpath}\nq\ny\n" | chntpw -e "$hive" | grep -Fi "$newval")"
+ if [ -n "$curval" ]; then
+  [ -n "$DEBUG" ] && echo "### $parameter is already set to $curval. Skipping." | tee -a $logfile
+  return 0
+ else
+  [ -n "$DEBUG" ] && echo "### $parameter is not equal to $newval. Patching." | tee -a $logfile
+  return 1
+ fi
+}
+
+create_command() {
  ####
  # parse value changes
  ####
- [ -n "$DEBUG" ] && echo "12 change=$change" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
 
  if [ "$change" = "" ]; then 
   return 1
  fi
 
- command="${base_command}"
- [ -n "$DEBUG" ] && echo "13 command=$command" | tee -a $tmplog
+ command="cd ${fullpath}\n"
+ [ -n "$DEBUG" ] && echo " 8 command=$command" | tee -a $logfile
 
  parameter=`leftgetvalue "$change"`
- [ -n "$DEBUG" ] && echo "14 parameter=$parameter" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo " 9 parameter=$parameter" | tee -a $logfile
 
  parameter="$(echo "$parameter" | sed 's,\",,g')"
- [ -n "$DEBUG" ] && echo "15 parameter=$parameter" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "10 parameter=$parameter" | tee -a $logfile
 
  value=`rightgetvalue "$change"`
- [ -n "$DEBUG" ] && echo "16 value=$value" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "11 value=$value" | tee -a $logfile
 
  value="$(echo "$value" | sed 's,\",,g')"
- [ -n "$DEBUG" ] && echo "17 value=$value" | tee -a $tmplog
-          
+ [ -n "$DEBUG" ] && echo "12 value=$value" | tee -a $logfile
+
  value="$(echo "$value" | sed 's,$,,g')"
- [ -n "$DEBUG" ] && echo "18 value=$value" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "13 value=$value" | tee -a $logfile
 
  # our standard type for strings is REG_SZ
  type="1"
@@ -165,84 +157,83 @@ create_val() {
           ;;
  esac
  if [ -n "$DEBUG" ]; then
-  echo "19 type=$type" | tee -a $tmplog
-  echo "20 value=$value" | tee -a $tmplog
+  echo "14 type=$type" | tee -a $logfile
+  echo "15 value=$value" | tee -a $logfile
+ fi
+
+ # return if value is already set -> nothing to do
+ if [ -n "$value" ]; then
+  test_value "${fullpath}\\${parameter}" "$value" && return 1
  fi
 
  command="${command}dv ${parameter}\n"
+ [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
+
  command="${command}nv ${type} ${parameter}\n"
- [ -n "$DEBUG" ] && echo "21 command=$command" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "17 command=$command" | tee -a $logfile
 
  command="${command}ed ${parameter}\n"
- [ -n "$DEBUG" ] && echo "22 command=$command" | tee -a $tmplog
-
- command="${command}$value\nq\ny\n"
- [ -n "$DEBUG" ] && echo "23 command=$command" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "18 command=$command" | tee -a $logfile
 
  # out final command
- [ -n "$DEBUG" ] && echo "24 final command=$command" | tee -a $tmplog
+ command="${command}$value\nq\ny\n"
+ [ -n "$DEBUG" ] && echo "19 final command=$command" | tee -a $logfile
 }
 
 while read -r key; do
- [ -n "$DEBUG" ] && echo "$key $((count++))" | tee -a $tmplog
+ [ -n "$DEBUG" ] && echo "$key $((count++))" | tee -a $logfile
 
- # select file for patching
+ # select hive for patching
  case "$key" in 
   \[HKEY_LOCAL_MACHINE*) 
    key="$(leftchop "$key")"
-   [ -n "$DEBUG" ] && echo "1  key=$key" | tee -a $tmplog
+   [ -n "$DEBUG" ] && echo " 1 key=$key" | tee -a $logfile
 
    case `leftget "$key"` in
     [Ss][Yy][Ss][Tt][Ee][Mm]*) 
-     file="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
-     [ -z "$file" ] && file="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
-     # strip file
+     hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
+     [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
+     # strip hive
      key=`leftchop "$key"`
-     [ -n "$DEBUG" ] && echo "2  key=$key" | tee -a $tmplog
+     [ -n "$DEBUG" ] && echo " 2 key=$key" | tee -a $logfile
 
      # change "CurrentControlSet" to "ControlSet001"
      key="$(echo "$key" | sed 's,CurrentControlSet,ControlSet001,')"
-     [ -n "$DEBUG" ] && echo "3  key=$key" | tee -a $tmplog
+     [ -n "$DEBUG" ] && echo " 3 key=$key" | tee -a $logfile
      ;;
     [Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee]*) 
-     file="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
-     [ -z "$file" ] && file="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
-     # strip file
+     hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
+     [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
+     # strip hive
      key=`leftchop "$key"`
-     [ -n "$DEBUG" ] && echo "4  key=$key" | tee -a $tmplog
+     [ -n "$DEBUG" ] && echo " 4 key=$key" | tee -a $logfile
      ;;
    esac
 
-   create_cmd "$key"
+   create_keypath "$key"
 
    while read -r change; do
 
-    create_val || break
+    create_command || break
+    exec_command "$command"
 
-    do_reg "$command"
-
-	  # tschmitt: patch other controlsets up to 9
+	  # tschmitt: patch other controlsets up to 3
     case "$command" in
      *ControlSet001*)
-		  if [ ! -s "$tmpctrls" ]; then
-		   [ -n "$DEBUG" ] && echo "### Writing $tmpctrls ..." | tee -a $tmplog
-		   controlcheck="ls\nq\ny\n"
-		   do_reg "$controlcheck" "$tmpctrls"
-		  fi
-		  n=2
-		  while [ $n -lt 10 ]; do
-			 ctrlset="ControlSet00$n"
-			 [ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $tmplog
-			 if grep -q "<$ctrlset>" $tmpctrls; then
-			  key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
-				[ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $tmplog
-				if create_cmd "$key_new" "$ctrlset"; then
-				 create_val && do_reg "$command"
-				fi
-			 fi
-			 let n+=1
-		  done
-		  ;;
+		    n=2
+		    while [ $n -lt 4 ]; do
+			    ctrlset="ControlSet00$n"
+			    [ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $logfile
+			    if test_key "$ctrlset"; then
+			     key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
+				    [ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $logfile
+				    if create_keypath "$key_new" "$ctrlset"; then
+				     create_command && exec_command "$command"
+				    fi
+			    fi
+			    let n+=1
+		    done
+		    ;;
     esac
 
    done # while read -r change 
@@ -250,8 +241,4 @@ while read -r key; do
  esac # case "$key"
 
 done < "$1" # while read -r key
-
-# merge logfiles
-cat $tmplog >> $tmpctrls
-mv $tmpctrls $tmplog
 

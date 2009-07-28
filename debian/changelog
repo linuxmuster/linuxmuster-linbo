@@ -1,21 +1,28 @@
 linuxmuster-linbo (1.99.2-0) unstable; urgency=low
 
-  * kernel: new version 2.6.30.2
+  * kernel:
+    - new version 2.6.30.2
+    - setting default nls back to iso8859-1
   * linbofs:
     - moved from self compiled mkntfs to Ubuntu's mkntfs
+    - patch_registry: 
+      o some code cleanup
+      o improved test_key function
+      o added test_value function to patch only values which have changed
     - linbo_cmd:
-      o added option --fake-super to rsync command
-      o mounting linux partitions with acls and xattrs enabled
-      o added code to save and restore extended ntfs attributes
-        with setfattr, getfattr and secaudit (disabled for now to test rsync --fake-super)
+      o added acl and xattr rsync and mount options
+      o changed option name "incremental" to "differential"
+      o minor modifications to differential ntfs image support
+      o added code to save and restore ntfs extended attributes with
+        get- and setfattr as a workaround
     - ntfs-3g:
       o new version 2009.4.4AC.15
-      o added secaudit binary 
     - busybox:
       o new version 1.14.2
       o removed few unneeded applets
+    - rsync: added Knopper's xattr patch
  
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 25 Jul 2009 15:24:11 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Jul 2009 17:06:11 +0200
 
 linuxmuster-linbo (1.99.1-0) unstable; urgency=low
 

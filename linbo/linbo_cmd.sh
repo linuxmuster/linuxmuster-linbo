@@ -199,7 +199,7 @@ echo "
  Image types: 
  .cloop - full block device (partition) image, cloop-compressed
           accompanied by a .list file for quicksync
- .rsync - incremental rsync batch, cloop-compressed
+ .rsync - differential rsync batch, cloop-compressed
  " 1>&2
 }
 
@@ -701,32 +701,14 @@ set_ntfs_admin_attr(){
 
 # saves advanced ntfs attributes of partition mounted in /mnt
 save_ntfs_attr(){
- # disabled
- return 0
-# echo -n "Sichere erweiterte NTFS Attribute ..."
- echo "Sichere erweiterte NTFS Attribute ..."
+ echo -n "Sichere erweiterte NTFS Attribute ..."
  local rootdev="$1"
-# local i=""
-# for i in acl attrib reparse_data; do
-#  echo -n " ${i} ..."
-#  (cd /mnt && getfattr -R -h -e hex -d -n "system.ntfs_${i}" * 2>/dev/null | gzip -c > ".${i}.gz")
-#  set_ntfs_admin_attr "/mnt/.${i}.gz"
-# done
- # security attributes
- if umount /mnt; then
-  secaudit -b "$rootdev" 2>/dev/null | gzip -c > /tmp/.sec.gz
- else
-  echo "Kann Partition $rootdev nicht aushängen!"
-  return 1
- fi
- if mountpart "$rootdev" /mnt -w ; then
-  mv /tmp/.sec.gz /mnt
-  set_ntfs_admin_attr "/mnt/.sec.gz"
- else
-  echo "Kann Partition $rootdev nicht einhängen!"
-  return 1
- fi
- echo
+ local i=""
+ for i in acl attrib reparse_data; do
+  (cd /mnt && getfattr -R -h -e hex -d -n "system.ntfs_${i}" * 2>>/tmp/image.log | gzip -c > ".${i}.gz")
+  set_ntfs_admin_attr "/mnt/.${i}.gz"
+ done
+ echo " fertig."
 }
 
 # mk_cloop type inputdev imagename baseimage [timestamp]
@@ -741,7 +723,8 @@ mk_cloop(){
    if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     cleanup_fs /mnt
-    [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr "$2"
+    # save extended ntfs attributes
+    [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
@@ -775,7 +758,7 @@ mk_cloop(){
     echo "Das Komprimieren ist fehlgeschlagen." | tee -a /tmp/image.log
    fi
   ;;
-  incremental)
+  differential)
    if mountpart "$2" /mnt -w ; then
     rmmod cloop >/dev/null 2>&1
 #    echo "modprobe cloop file=/cache/$4" | tee -a /tmp/image.log
@@ -783,7 +766,8 @@ mk_cloop(){
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
       cleanup_fs /mnt
-      [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr "$2"
+      # save extended ntfs attributes
+      [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
       # rsync mit acl und xattr Optionen
@@ -793,7 +777,8 @@ mk_cloop(){
       # tschmitt: logging
       #rm -f "$TMP"
       #interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --only-write-batch="$3" /mnt/ /cloop
-      interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      #interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
       RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
@@ -908,20 +893,22 @@ cp_cloop(){
 }
 
 
-# INCREMENTAL/Synced
+# differential/Synced
 # sync_cloop imagefile targetdev
 sync_cloop(){
  echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
  local ROPTS="-HaAX"
+ #local ROPTS="-a"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
  if mountpart "$2" /mnt -w ; then
   case "$1" in
    *.[Rr][Ss][Yy]*)
     rm -f "$TMP"
     # tschmitt: added logging parameter
-    interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
+    #interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
+    interruptible rsync "$ROPTS" --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
     if [ "$RC" != "0" ]; then
      cat "$TMP" >&2 | tee -a /tmp/image.log
      echo "Fehler beim Synchronisieren des differentiellen Images \"$1\" nach $2, rsync-Fehlercode: $RC." >&2 | tee -a /tmp/image.log
@@ -943,7 +930,8 @@ sync_cloop(){
       # knopper: added --inplace
       #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
       # tschmitt: added logging parameter
-      interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
+      #interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
+      interruptible rsync "$ROPTS" --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
        cat "$TMP" >&2 | tee -a /tmp/image.log
@@ -1079,38 +1067,19 @@ patch_fstab(){
 
 # restore NTFS attributes: rootdev
 restore_ntfs_attr(){
- # disabled
- return 0
- local rootdev="$1"
  # don't restore attributes if a complete cloop restore without rsync afterwards was done
  if [ -e /tmp/.cloop ]; then
   rm -f /tmp/.cloop
   return 0
  fi
-# echo -n "Restauriere erweiterte NTFS Attribute ..."
-# local i=""
-# for i in acl attrib reparse_data; do
-#  [ -f "/mnt/.${i}.gz" ] || continue
-#  echo -n " $i ..."
-#  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=- 2>> /tmp/image.log)
-#  set_ntfs_admin_attr "/mnt/.${i}.gz"
-# done
- # restore security attributes
- if [ -f "/mnt/.sec.gz" ]; then
-  echo "Restauriere erweiterte NTFS Attribute ..."
-  cp /mnt/.sec.gz /tmp || return 1
-  if umount /mnt; then
-   zcat /tmp/.sec.gz | secaudit -s "$rootdev" 2&1>> /tmp/image.log
-   mountpart "$rootdev" /mnt -w
-   rm -f /tmp/.sec.gz
-   set_ntfs_admin_attr "/mnt/.sec.gz"
-  else
-   echo "Kann Partition $rootdev nicht aushängen!"
-   return 1
-  fi
- fi
- sync
-# echo
+ echo -n "Restauriere erweiterte NTFS Attribute ..."
+ local i=""
+ for i in acl attrib reparse_data; do
+  [ -f "/mnt/.${i}.gz" ] || continue
+  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=- 2>> /tmp/image.log)
+  set_ntfs_admin_attr "/mnt/.${i}.gz"
+ done
+ echo " Fertig."
 }
 
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
@@ -1158,10 +1127,11 @@ syncl(){
     # tschmitt: different registry patching for Win98, WinXP, Win7
     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
      # tschmitt: logging
-     echo "Patche System mit $patchfile" >/tmp/patch.log
+     echo -n "Patche System mit $patchfile ... " >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
+     echo "Fertig."
      [ "$(fstype "$5")" = "vfat" ] && ms-sys -2 "$5"
     elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
      cp -f "$TMP" /mnt/linbo.reg
@@ -1170,8 +1140,6 @@ syncl(){
     fi
     rm -f "$TMP"
    fi
-   # restore NTFS attributes
-   [ "$(fstype "$rootdev")" = "ntfs" ] && restore_ntfs_attr "$rootdev"
    # patching for linux systems
    # hostname
    if [ -f /mnt/etc/hostname ]; then
@@ -1182,6 +1150,8 @@ syncl(){
    fi
    # fstab
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+   # restore extended ntfs attributes
+   [ "$(fstype "$5")" = "ntfs" ] && restore_ntfs_attr
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
   fi
@@ -1217,7 +1187,7 @@ create(){
 #    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
 #    RC=1
 #   else
-    mk_cloop incremental "$5" "$2" "$3" ; RC="$?"
+    mk_cloop differential "$5" "$2" "$3" ; RC="$?"
 #   fi
    ;;
  esac
