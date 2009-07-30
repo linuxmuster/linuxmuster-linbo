@@ -968,24 +968,25 @@ restore(){
  local RC=1
  local disk="${2%%[1-9]*}"
  local force="$3"
+ local fstype="$(fstype_startconf "$2")"
  echo -n "Entpacke: $1 -> $2 "
  case "$1" in
   *.[Cc][Ll][Oo]*)
    if [ "$force" != "force" ]; then
     check_status "$2" "$1" || force="force"
    fi
-   if [ "$(fstype "$2")" = "ntfs" -a "$force" = "force" ]; then
+   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
     # set flag for complete cloop restore
     touch /tmp/.cloop
-   elif [ "$type" = "vfat" -a "$force" = "force" ]; then
+   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
    else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then
-      format "$2" "$type" || return 1
+      format "$2" "$fstype" || return 1
     fi
     sync_cloop "$1" "$2" ; RC="$?"
    fi

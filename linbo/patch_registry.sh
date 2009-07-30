@@ -125,10 +125,7 @@ create_command() {
  # parse value changes
  ####
  [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
-
- if [ "$change" = "" ]; then 
-  return 1
- fi
+ [ "${change// /}" = "" ] && return 1
 
  command="cd ${fullpath}\n"
  [ -n "$DEBUG" ] && echo " 8 command=$command" | tee -a $logfile

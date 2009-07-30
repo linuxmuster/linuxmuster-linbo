@@ -1,3 +1,16 @@
+linuxmuster-linbo (1.99.3-0) unstable; urgency=low
+
+  * package:
+    - removed registry-tools from build-deps
+  * kernel:
+    - new version 2.6.30.3
+  * linbofs:
+    - patch_registry: minor fix
+    - back to busybox 1.13.4 (bb 1.14.2 breaks bash math support in 1.99.2)
+    - linbo_cmd: fixed broken fstype in restore()
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Jul 2009 07:56:56 +0200
+
 linuxmuster-linbo (1.99.2-0) unstable; urgency=low
 
   * kernel:
