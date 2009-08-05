@@ -83,6 +83,11 @@ SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }'
 SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.bz2//')
 SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
 
+# ctorrent
+CTORRENT_ARCHIVE=$(shell grep ctorrent- debian/md5sums.src | awk '{ print $$2 }')
+CTORRENT_DIR=src/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
+CTORRENT_URL=http://www.rahul.net/dholmes/ctorrent
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -193,6 +198,15 @@ configure-stamp:
 		ln -sf ../$(SYSLINUX_DIR) src/syslinux; \
 	fi
 
+	# ctorrent
+	-@if [ ! -d $(CTORRENT_DIR) ]; then \
+		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL)/$(CTORRENT_ARCHIVE) ) ); \
+		( cd cache && grep $(CTORRENT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(CTORRENT_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CTORRENT_ARCHIVE) -C src; \
+		ln -sf ../$(CTORRENT_DIR) src/ctorrent; \
+	fi
+
 	# qt
 	-@if [ ! -d $(QT_DIR) ]; then \
 		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL)/$(QT_ARCHIVE) ) ); \
@@ -287,6 +301,12 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(SYSLINUX_DIR)/.compiled ]; then \
 		echo "[1mBuilding syslinux...[0m" ; \
 		( cd $(SYSLINUX_DIR) && cd gpxe/src && make bin/gpxe.lkrn && cd ../../ && touch .compiled ); \
+	fi
+
+	# ctorrent
+	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
+		echo "[1mBuilding ctorrent...[0m" ; \
+		( cd $(CTORRENT_DIR) && ./configure --with-ssl=no && make && strip ctorrent ); \
 	fi
 
 	# qt
@@ -393,6 +413,8 @@ install: build
 	install -m 644 doc/LINBO-Vortrag-2007-09-25.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO-Vortrag.pdf
 	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
+	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
+	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
 	install -m 644 debian/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	install -m 755 share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/

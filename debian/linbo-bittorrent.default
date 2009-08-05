@@ -1,0 +1,64 @@
+# default start values for LINBO bittorrent server
+
+# start the LINBO bittorrent server (0 | 1)?
+# to enable set this to "1"
+START_BITTORRENT=0
+
+# where the linbo stuff is located
+LINBODIR=/var/linbo
+
+# path to file with workstation data
+WIMPORTDATA=/etc/linuxmuster/workstations
+
+# set portnum as the minimum port to listen on,
+# counts up if unavailable (default 6881)
+MINPORT=6881
+
+# only allow num uploads at once per image (default 4)
+MAX_UPLOADS=20
+
+# maximum rate to upload at in kilobytes per image,
+# 0 means no limit (default 0)
+MAX_UPLOAD_RATE=0
+
+# request more peers every secs seconds (default 300)
+REREQUEST_INTERVAL=60
+
+# do not rerequest if we have num peers already (default 20)
+MIN_PEERS=20
+
+# stop initiating new connections when we have num peers (default 40)
+MAX_INITIATE=40
+
+# pause secs seconds between sending keepalives (default 120)
+KEEPALIVE_INTERVAL=120
+
+# query for bytes bytes per request (default 32768)
+DOWNLOAD_SLICE_SIZE=131072
+
+# keep num requests in a single pipe at once (default 5)
+REQUEST_BACKLOG=5
+
+# set bytes to the maximum length prefix encoding you’ll accept over the wire -
+# larger  values get the connection dropped (default 8388608)
+MAX_MESSAGE_LENGTH=8388608
+
+# wait secs before closing sockets which nothing has been received on (default 300)
+TIMEOUT=300
+
+# check whether connections have timed out every secs seconds (default 60)
+TIMEOUT_CHECK_INTERVAL=60
+
+# set  secs  to  the  maximum  amount  of  time  to guess the current rate
+# estimate represents (default 20)
+MAX_RATE_PERIOD=20
+
+# set the time equivalent of writing to kernel-level TCP buffer to secs (default 5)
+UPLOAD_RATE_FUDGE=5
+
+# update displayed information every secs seconds (default 0.1)
+DISPLAY_INTERVAL=1
+
+# requests from peers larger than bytes bytes are ignored (default 131072)
+MAX_SLICE_LENGTH=131072
+

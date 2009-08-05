@@ -1,3 +1,50 @@
+linuxmuster-linbo (1.99.4-0) unstable; urgency=low
+
+  * package:
+    - control: added bittorrent to Depends.
+    - rules: added code to get, compile and add ctorrent.
+    - postinst:
+      o added update-rc.d command for linbo-bittorrent.
+      o checking $LINBODIR/start.conf for changed server ip.
+      o setting PORT, DAEMONUSER, REANNOUNCE_INTERVAL and ALLOWED_DIR in /etc/default/bittorrent.
+      o creating bittorrent user.
+      o changing UseMulticast to Downloadtype in start.confs.
+    - new: debian/linbo-bittorrent.init -> /etc/init.d/linbo-bittorrent.
+    - new: debian/linbo-bittorrent.default -> /etc/default/linbo-bittorrent.
+  * server side scripting:
+    - added linbo-bittorrent init script to start bittorrent seeds for image rollout
+      and default config file for daemon start options (s.a.).
+    - rsync-post.sh:
+      o reloading multicast and bittorrent service if a new image was successfully uploaded.
+      o avoid adding identical host data to workstations file multiple times (closes #98)
+    - start.conf: new global option DownloadType (rsync|torrent|multicast), defaults to rsync,
+      UseMulticast is obsolete.
+    - added new option DownloadType to start.conf examples.
+    - added helperfunctions.sh for commonly used script functions.
+  * linbofs:
+    - added ctorrent binary.
+    - linbo_cmd: added lots of code to add torrent functionality.
+    - linbo_cmd: keeping /cache mounted except for partitioning and formatting.
+    - linbo_cmd ip(): if no client ip is determined gui now shows "OFFLINE".
+    - linbo_cmd initcache(): removing obsolete image files (not found in start.conf) from /cache.
+    - linbo_cmd initcache(): using download_if_newer() for cache file updates
+      (multicast does no more download whole image file though it was completely present).
+    - linbo_cmd initcache(), download_if_newer(), upload(): do not execute in localmode.
+    - linbo_cmd initcache(): ignoring downloadtype parameter when invoked from gui,
+      DownloadType from start.conf is used.
+    - linbo_cmd downloadtype(): new function, fetches DownloadType (s.a.) from start.conf.
+    - linbo_cmd download_if_newer(): moved download of multicast.list to init.
+    - linbo_cmd localmode(): simplified network connection recognition by looking for
+      /tmp/network.ok (s.b.).
+    - init.sh network(): setting /tmp/network.ok flag if start.conf could be downloaded from server.
+    - init.sh network(): added download of torrent-client.conf and multicast.list.
+      Better to get them once at boot time.
+    - init.sh init_setup(): parsing cmdline to get serverip if it is given like server=10.16.1.3.
+    - init.sh get_server(): try to get serverip from /tmp/dhcp.log:siaddr which is more reliable
+      than serverid.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 5 Aug 2009 18:38:11 +0200
+
 linuxmuster-linbo (1.99.3-0) unstable; urgency=low
 
   * package:

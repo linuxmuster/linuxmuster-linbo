@@ -15,7 +15,7 @@ Build-Depends: debhelper (>=7.0.17ubuntu4), build-essential (>=11.4), fakeroot, 
 
 Package: linuxmuster-linbo
 Architecture: any
-Depends: rsync (>= 2.6.9), sed, recode, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), atftpd, udpcast, zip, mbr
+Depends: rsync (>= 2.6.9), bittorrent, sed, recode, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), atftpd, udpcast, zip, mbr
 Suggests: dhcp-server | dhcp3-server
 Recommends: wodim
 Description: LINBO PXE boot files
