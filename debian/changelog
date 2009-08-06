@@ -1,5 +1,6 @@
 linuxmuster-linbo (1.99.4-0) unstable; urgency=low
 
+  * First implementation of torrent technology for image downloading (#128).
   * package:
     - control: added bittorrent to Depends.
     - rules: added code to get, compile and add ctorrent.
@@ -25,7 +26,7 @@ linuxmuster-linbo (1.99.4-0) unstable; urgency=low
     - added ctorrent binary.
     - linbo_cmd: added lots of code to add torrent functionality.
     - linbo_cmd: keeping /cache mounted except for partitioning and formatting.
-    - linbo_cmd ip(): if no client ip is determined gui now shows "OFFLINE".
+    - linbo_cmd ip(): if no client ip is determined gui now shows "OFFLINE" (closes #120).
     - linbo_cmd initcache(): removing obsolete image files (not found in start.conf) from /cache.
     - linbo_cmd initcache(): using download_if_newer() for cache file updates
       (multicast does no more download whole image file though it was completely present).
@@ -39,11 +40,11 @@ linuxmuster-linbo (1.99.4-0) unstable; urgency=low
     - init.sh network(): setting /tmp/network.ok flag if start.conf could be downloaded from server.
     - init.sh network(): added download of torrent-client.conf and multicast.list.
       Better to get them once at boot time.
-    - init.sh init_setup(): parsing cmdline to get serverip if it is given like server=10.16.1.3.
+    - init.sh init_setup(): parsing cmdline to get serverip if it is given like server=10.16.1.3 (#83).
     - init.sh get_server(): try to get serverip from /tmp/dhcp.log:siaddr which is more reliable
       than serverid.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 5 Aug 2009 18:38:11 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 6 Aug 2009 11:38:11 +0200
 
 linuxmuster-linbo (1.99.3-0) unstable; urgency=low
 
@@ -128,7 +129,7 @@ linuxmuster-linbo (1.1.21-1) unstable; urgency=low
     - linbo_cmd:
       o improved menu.lst handling in linbo_cmd, custom menu.lsts were not
         touched anymore, computing menu.lst entry number for windows systems
-        with reboot workaround to be able to set the grub default accordingly.
+        with reboot workaround to be able to set the grub default accordingly (#109).
       o improved linux client fstab patching:
         fstab will be patched only on synchronized start not on every start,
         if fstype of root partition differs it will be corrected.

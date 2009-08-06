@@ -1426,7 +1426,7 @@ download_torrent(){
  [ -n "$pid" ] && kill "$pid"
  local pnr="$(ps w | grep -v grep | grep -c ctorrent)"
  local PORT=$(($MINPORT+$pnr))
- local OPTS="-I $ip -p $PORT -M $MAX_INITIATE -z $SLICE_SIZE"
+ local OPTS="-e 10000 -I $ip -p $PORT -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
  echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
