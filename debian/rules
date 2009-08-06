@@ -317,10 +317,6 @@ build-stamp: configure-stamp
 	fi
 
 	# linbo_gui
-	-@if ! grep -q $(LVERS) linbo_gui/linboGUIImpl.cc; then \
-		sed -e 's|setText("LINBO .*|setText("LINBO $(LVERS)<br>Netzwerk Check");|' -i linbo_gui/linboGUIImpl.cc; \
-		rm linbo_gui/linbo_gui; \
-	fi
 	-@if [ ! -e linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
 		ln -sf /usr/bin/uic $(QT_DIR)/bin/uic; \

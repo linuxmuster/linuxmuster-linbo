@@ -3,7 +3,9 @@ linuxmuster-linbo (1.99.4-0) unstable; urgency=low
   * First implementation of torrent technology for image downloading (#128).
   * package:
     - control: added bittorrent to Depends.
-    - rules: added code to get, compile and add ctorrent.
+    - rules:
+      o added code to get, compile and add ctorrent.
+      o removed patching LINBO version in linboGUIImpl.cc, it is now hardcoded to 1.99.
     - postinst:
       o added update-rc.d command for linbo-bittorrent.
       o checking $LINBODIR/start.conf for changed server ip.
@@ -44,7 +46,7 @@ linuxmuster-linbo (1.99.4-0) unstable; urgency=low
     - init.sh get_server(): try to get serverip from /tmp/dhcp.log:siaddr which is more reliable
       than serverid.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 6 Aug 2009 11:38:11 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 6 Aug 2009 11:59:11 +0200
 
 linuxmuster-linbo (1.99.3-0) unstable; urgency=low
 
