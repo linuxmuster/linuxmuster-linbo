@@ -1,3 +1,169 @@
+linuxmuster-linbo (1.99.6-0) unstable; urgency=low
+
+  * package:
+    - control: removed attr from build depends, recode from depends.
+    - postinst:
+      o installs all syslinux related binaries from downloaded archive (compiled on debian etch).
+  * kernel: new version 2.6.30.5.
+  * server side scripting:
+    - update-linbofs.sh, make-linbo-media.sh: removed creation of group specific linbofs.
+  * linbofs:
+    - added /etc/modprobe.d/sata_nv.conf: options sata_nv swnc=0
+      (reported by Knopper to make sata_nv controllers boot with grub.exe)
+    - rsync: new fname/xattr patch from Knopper (r347).
+    - busybox: removed setfattr and getfattr.
+    - linbo_cmd:
+      o removed workaround for save and restore extended ntfs attributes,
+        it's now done by rsync hopefully.
+      o removed download of group specific linbofs.gz.
+      o removed --partial parameter from rsync imaging commands.
+      o some cleanup.
+    - init.sh:
+      o some cleanup.
+      o copy downloaded start.conf to local cache so that group specific linbofs is obsolete.
+      o writes /etc/ssmtp.conf if valid a server ip could be obtained.
+      o now uses a cmdline given valid cache partition: cache=/dev/sdb1
+        (fixes copyfromcache).
+      o network(): removed waiting for hwsetup is finished.
+      o added kernel parameter conf to give an extra start.conf location on cmdline:
+        conf=<partition>:<absolute_path_to_file>
+        conf=/dev/sdb1:/start.conf.foo
+        If conf is defined an eventually set cache parameter will not be evaluated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Sep 2009 13:11:24 +0200
+
+linuxmuster-linbo (1.99.5-0) unstable; urgency=low
+
+  * linbofs:
+    - patch_registry:
+      o create_keypath(): activated key creation for supplemental controlsets.
+      o create_command(): splitted value editing in three commands, removed value check.
+    - linbo_cmd: removed useless file list creation and up/download.
+  * server side scripting:
+    - rsync-post.sh:
+      o reloading bittorrent tracker as well if a new image was successfully uploaded.
+    - mail2log.sh:
+      o removed utf8 recoding.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 Aug 2009 09:11:42 +0200
+
+linuxmuster-linbo (1.99.4-0) unstable; urgency=low
+
+  * First implementation of torrent technology for image downloading (#128).
+  * package:
+    - control: added bittorrent to Depends.
+    - rules:
+      o added code to get, compile and add ctorrent.
+      o removed patching LINBO version in linboGUIImpl.cc, it is now hardcoded to 1.99.
+    - postinst:
+      o added update-rc.d command for linbo-bittorrent.
+      o checking $LINBODIR/start.conf for changed server ip.
+      o setting PORT, DAEMONUSER, REANNOUNCE_INTERVAL and ALLOWED_DIR in /etc/default/bittorrent.
+      o creating bittorrent user.
+      o changing UseMulticast to Downloadtype in start.confs.
+    - new: debian/linbo-bittorrent.init -> /etc/init.d/linbo-bittorrent.
+    - new: debian/linbo-bittorrent.default -> /etc/default/linbo-bittorrent.
+  * server side scripting:
+    - added linbo-bittorrent init script to start bittorrent seeds for image rollout
+      and default config file for daemon start options (s.a.).
+    - rsync-post.sh:
+      o reloading multicast and bittorrent service if a new image was successfully uploaded.
+      o avoid adding identical host data to workstations file multiple times (closes #98)
+    - start.conf: new global option DownloadType (rsync|torrent|multicast), defaults to rsync,
+      UseMulticast is obsolete.
+    - added new option DownloadType to start.conf examples.
+    - added helperfunctions.sh for commonly used script functions.
+  * linbofs:
+    - added ctorrent binary.
+    - linbo_cmd: added lots of code to add torrent functionality.
+    - linbo_cmd: keeping /cache mounted except for partitioning and formatting.
+    - linbo_cmd ip(): if no client ip is determined gui now shows "OFFLINE" (closes #120).
+    - linbo_cmd initcache(): removing obsolete image files (not found in start.conf) from /cache.
+    - linbo_cmd initcache(): using download_if_newer() for cache file updates
+      (multicast does no more download whole image file though it was completely present).
+    - linbo_cmd initcache(), download_if_newer(), upload(): do not execute in localmode.
+    - linbo_cmd initcache(): ignoring downloadtype parameter when invoked from gui,
+      DownloadType from start.conf is used.
+    - linbo_cmd downloadtype(): new function, fetches DownloadType (s.a.) from start.conf.
+    - linbo_cmd download_if_newer(): moved download of multicast.list to init.
+    - linbo_cmd localmode(): simplified network connection recognition by looking for
+      /tmp/network.ok (s.b.).
+    - init.sh network(): setting /tmp/network.ok flag if start.conf could be downloaded from server.
+    - init.sh network(): added download of torrent-client.conf and multicast.list.
+      Better to get them once at boot time.
+    - init.sh init_setup(): parsing cmdline to get serverip if it is given like server=10.16.1.3 (#83).
+    - init.sh get_server(): try to get serverip from /tmp/dhcp.log:siaddr which is more reliable
+      than serverid.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 6 Aug 2009 11:59:11 +0200
+
+linuxmuster-linbo (1.99.3-0) unstable; urgency=low
+
+  * package:
+    - removed registry-tools from build-deps
+  * kernel:
+    - new version 2.6.30.3
+  * linbofs:
+    - patch_registry: minor fix
+    - back to busybox 1.13.4 (bb 1.14.2 breaks bash math support in 1.99.2)
+    - linbo_cmd: fixed broken fstype in restore()
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 30 Jul 2009 07:56:56 +0200
+
+linuxmuster-linbo (1.99.2-0) unstable; urgency=low
+
+  * kernel:
+    - new version 2.6.30.2
+    - setting default nls back to iso8859-1
+  * linbofs:
+    - moved from self compiled mkntfs to Ubuntu's mkntfs
+    - patch_registry: 
+      o some code cleanup
+      o improved test_key function
+      o added test_value function to patch only values which have changed
+    - linbo_cmd:
+      o added acl and xattr rsync and mount options
+      o changed option name "incremental" to "differential"
+      o minor modifications to differential ntfs image support
+      o added code to save and restore ntfs extended attributes with
+        get- and setfattr as a workaround
+    - ntfs-3g:
+      o new version 2009.4.4AC.15
+    - busybox:
+      o new version 1.14.2
+      o removed few unneeded applets
+    - rsync: added Knopper's xattr patch
+ 
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Jul 2009 17:06:11 +0200
+
+linuxmuster-linbo (1.99.1-0) unstable; urgency=low
+
+  * minor modfication in registry patch example file
+  * linbofs:
+    - minor fix in patch_registry.
+ 
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 19 Jul 2009 16:47:16 +0200
+
+linuxmuster-linbo (1.99.0-0) unstable; urgency=low
+
+  * package: added attr to build dependencies
+  * linbofs:
+    - linbo_cmd: implemented differential ntfs image support.
+    - added attr utils.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 17 Jul 2009 07:52:14 +0200
+
+linuxmuster-linbo (1.2.0-0) unstable; urgency=low
+
+  * new development branch with differential ntfs image support.
+  * kernel: setting default nls to UTF-8
+  * linbofs:
+    - using ntfs-3g development version 2009.4.4AC.14.
+    - enabled rsync imaging for ntfs in linbo_cmd.sh.
+    - modified ntfs mount options (streams_interface=xattr).
+      
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Jul 2009 06:37:08 +0200
+
 linuxmuster-linbo (1.1.22-1) unstable; urgency=low
 
   * kernel: new upstream version 2.6.30.1
@@ -14,7 +180,7 @@ linuxmuster-linbo (1.1.21-1) unstable; urgency=low
     - linbo_cmd:
       o improved menu.lst handling in linbo_cmd, custom menu.lsts were not
         touched anymore, computing menu.lst entry number for windows systems
-        with reboot workaround to be able to set the grub default accordingly.
+        with reboot workaround to be able to set the grub default accordingly (#109).
       o improved linux client fstab patching:
         fstab will be patched only on synchronized start not on every start,
         if fstype of root partition differs it will be corrected.

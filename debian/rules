@@ -60,12 +60,13 @@ MSSYS_URL=$(LML_URL)
 # ntfs-3g
 NTFS3G_ARCHIVE=$(shell grep ntfs-3g- debian/md5sums.src | awk '{ print $$2 }')
 NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
-NTFS3G_URL=http://www.ntfs-3g.org
+#NTFS3G_URL=http://www.ntfs-3g.org
+NTFS3G_URL=$(LML_URL)
 
 # ntfsprogs
-NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
-NTFSPROGS_DIR=src/$(shell echo $(NTFSPROGS_ARCHIVE) | sed -e 's/.tar.bz2//')
-NTFSPROGS_URL=$(LML_URL)
+#NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
+#NTFSPROGS_DIR=src/$(shell echo $(NTFSPROGS_ARCHIVE) | sed -e 's/.tar.bz2//')
+#NTFSPROGS_URL=$(LML_URL)
 
 # rsync
 RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
@@ -80,7 +81,13 @@ SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
 # syslinux
 SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }')
 SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.bz2//')
-SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
+#SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
+SYSLINUX_URL=$(LML_URL)
+
+# ctorrent
+CTORRENT_ARCHIVE=$(shell grep ctorrent- debian/md5sums.src | awk '{ print $$2 }')
+CTORRENT_DIR=src/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
+CTORRENT_URL=http://www.rahul.net/dholmes/ctorrent
 
 configure: configure-stamp
 configure-stamp:
@@ -145,13 +152,13 @@ configure-stamp:
 	fi
 
 	# ntfsprogs
-	-@if [ ! -d $(NTFSPROGS_DIR) ]; then \
-		( [ -e cache/$(NTFSPROGS_ARCHIVE) ] || ( cd cache && wget $(NTFSPROGS_URL)/$(NTFSPROGS_ARCHIVE)?download ) ); \
-		( cd cache && grep $(NTFSPROGS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(NTFSPROGS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(NTFSPROGS_ARCHIVE) -C src; \
-		ln -sf ../$(NTFSPROGS_DIR) src/ntfsprogs; \
-	fi
+#	-@if [ ! -d $(NTFSPROGS_DIR) ]; then \
+#		( [ -e cache/$(NTFSPROGS_ARCHIVE) ] || ( cd cache && wget $(NTFSPROGS_URL)/$(NTFSPROGS_ARCHIVE)?download ) ); \
+#		( cd cache && grep $(NTFSPROGS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(NTFSPROGS_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(NTFSPROGS_ARCHIVE) -C src; \
+#		ln -sf ../$(NTFSPROGS_DIR) src/ntfsprogs; \
+#	fi
 
 	# ntfs-3g
 	-@if [ ! -d $(NTFS3G_DIR) ]; then \
@@ -168,6 +175,8 @@ configure-stamp:
 		( cd cache && grep $(RSYNC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(RSYNC_ARCHIVE)...[0m" ; \
 		tar xf cache/$(RSYNC_ARCHIVE) -C src; \
+		echo "[1mPatching rsync sources...[0m" ; \
+		( cd $(RSYNC_DIR) && for i in ../../patches/rsync/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(RSYNC_DIR) src/rsync; \
 	fi
 
@@ -188,6 +197,15 @@ configure-stamp:
 		echo "[1mUnpacking $(SYSLINUX_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SYSLINUX_ARCHIVE) -C src; \
 		ln -sf ../$(SYSLINUX_DIR) src/syslinux; \
+	fi
+
+	# ctorrent
+	-@if [ ! -d $(CTORRENT_DIR) ]; then \
+		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL)/$(CTORRENT_ARCHIVE) ) ); \
+		( cd cache && grep $(CTORRENT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(CTORRENT_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CTORRENT_ARCHIVE) -C src; \
+		ln -sf ../$(CTORRENT_DIR) src/ctorrent; \
 	fi
 
 	# qt
@@ -257,21 +275,20 @@ build-stamp: configure-stamp
 	fi
 
 	# ntfsprogs
-	-@if [ ! -e $(NTFSPROGS_DIR)/ntfsprogs/mkntfs ]; then \
-		echo "[1mBuilding ntfsprogs...[0m" ; \
-		( cd $(NTFSPROGS_DIR) && LDFLAGS=-static ./configure && make && strip ntfsprogs/mkntfs ); \
-	fi
+#	-@if [ ! -e $(NTFSPROGS_DIR)/ntfsprogs/mkntfs ]; then \
+#		echo "[1mBuilding ntfsprogs...[0m" ; \
+#		( cd $(NTFSPROGS_DIR) && LDFLAGS=-static ./configure && make && strip ntfsprogs/mkntfs ); \
+#	fi
 
 	# ntfs-3g
-	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
+	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-really-static && make && strip src/ntfs-3g ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4914.0.0 ); \
 	fi
 
 	# rsync
 	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
 		echo "[1mBuilding rsync...[0m" ; \
-		#( cd $(RSYNC_DIR) && LDFLAGS=-static ./configure && make && strip rsync ); \
 		( cd $(RSYNC_DIR) && ./configure --prefix=/usr && make && strip rsync ); \
 	fi
 
@@ -281,10 +298,16 @@ build-stamp: configure-stamp
 		( cd $(SSMTP_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
-	# syslinux
-	-@if [ ! -e $(SYSLINUX_DIR)/.compiled ]; then \
-		echo "[1mBuilding syslinux...[0m" ; \
-		( cd $(SYSLINUX_DIR) && cd gpxe/src && make bin/gpxe.lkrn && cd ../../ && touch .compiled ); \
+	# syslinux (already built on etch)
+#	-@if [ ! -e $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn ]; then \
+#		echo "[1mBuilding syslinux...[0m" ; \
+#		( cd $(SYSLINUX_DIR)/gpxe/src && make bin/gpxe.lkrn ); \
+#	fi
+
+	# ctorrent
+	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
+		echo "[1mBuilding ctorrent...[0m" ; \
+		( cd $(CTORRENT_DIR) && ./configure --with-ssl=no && make && strip ctorrent ); \
 	fi
 
 	# qt
@@ -295,10 +318,6 @@ build-stamp: configure-stamp
 	fi
 
 	# linbo_gui
-	-@if ! grep -q $(LVERS) linbo_gui/linboGUIImpl.cc; then \
-		sed -e 's|setText("LINBO .*|setText("LINBO $(LVERS)<br>Netzwerk Check");|' -i linbo_gui/linboGUIImpl.cc; \
-		rm linbo_gui/linbo_gui; \
-	fi
 	-@if [ ! -e linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
 		ln -sf /usr/bin/uic $(QT_DIR)/bin/uic; \
@@ -376,13 +395,13 @@ install: build
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/var/linbo/german.kbd
 	install -m 755 debian/linbo-multicast-server debian/linuxmuster-linbo/usr/sbin/linbo-multicast-server
 	install -m 644 graphics/linbo-pxe-bootscreen.16 debian/linuxmuster-linbo/var/linbo/logo.16
-	install -m 644 /usr/lib/syslinux/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
-	install -m 644 /usr/lib/syslinux/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
-	install -m 644 /usr/lib/syslinux/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
-	install -m 644 /usr/lib/syslinux/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
-	install -m 755 /usr/bin/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
-	install -m 644 src/syslinux/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
-	install -m 644 src/syslinux/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
+	install -m 644 $(SYSLINUX_DIR)/core/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
+	install -m 644 $(SYSLINUX_DIR)/core/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
+	install -m 644 $(SYSLINUX_DIR)/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
+	install -m 644 $(SYSLINUX_DIR)/com32/modules/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
+	install -m 755 $(SYSLINUX_DIR)/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
+	install -m 644 $(SYSLINUX_DIR)/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
+	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
 	install -m 644 media/pxelinux.cfg debian/linuxmuster-linbo/etc/linuxmuster/linbo/pxelinux.cfg.default
 	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png
@@ -391,6 +410,8 @@ install: build
 	install -m 644 doc/LINBO-Vortrag-2007-09-25.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO-Vortrag.pdf
 	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
+	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
+	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
 	install -m 644 debian/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	install -m 755 share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/

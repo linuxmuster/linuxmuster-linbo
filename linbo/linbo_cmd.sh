@@ -57,13 +57,7 @@ local testfile="/cache/.write_test"
 # Check for "nonetwork" boot option or availability of linbo server
 localmode(){
  case "$(cat /proc/cmdline)" in *\ nonetwork*|*\ localmode*) return 0;; esac
- #[ -n "$1" ] || return 1
- [ -s /tmp/dhcp.log ] || return 0
- [ -s /start.conf ] || return 0
- local ip_dhcp="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
- [ -z "$ip_dhcp" ] && touch /tmp/.offline && return 0
- local ip_startconf="$(grep ^Server /start.conf | awk -F\=  '{ print $2 }' | awk '{ print $1 }')"
- [ "$ip_dhcp" = "$ip_startconf" ] && return 1
+ [ -e /tmp/network.ok ] && return 1
  return 0
 }
 
@@ -158,7 +152,7 @@ bailout(){
  sync; sync; sleep 1
  umount /mnt >/dev/null 2>&1 || umount -l /mnt >/dev/null 2>&1
  sendlog
- umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
+ #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
  umount /cloop >/dev/null 2>&1 || umount -l /cloop >/dev/null 2>&1
  rmmod cloop >/dev/null 2>&1
  rm -f "$TMP" /tmp/rsync.exclude
@@ -198,8 +192,7 @@ echo "
 
  Image types: 
  .cloop - full block device (partition) image, cloop-compressed
-          accompanied by a .list file for quicksync
- .rsync - incremental rsync batch, cloop-compressed
+ .rsync - differential rsync batch, cloop-compressed
  " 1>&2
 }
 
@@ -219,6 +212,30 @@ fstype(){
   *) echo "auto" ;;
  esac
  return 0
+}
+
+# tschmitt
+# get DownloadType from start.conf
+downloadtype(){
+ local RET=""
+ if [ -s /start.conf ]; then
+  RET="$(grep -i ^downloadtype /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z)"
+  # get old option for compatibility issue
+  if [ -z "$RET" ]; then
+   RET="$(grep -i ^usemulticast /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z)"
+   [ "$RET" = "yes" ] && RET="multicast"
+  fi
+ fi
+ echo "$RET"
+}
+
+# tschmitt
+# fetch hostgroup from start.conf
+hostgroup(){
+ local hostgroup=""
+ [ -s /start.conf ] || return 1
+ hostgroup=`grep -i ^group /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
+ echo "$hostgroup"
 }
 
 # tschmitt
@@ -268,7 +285,8 @@ mountpart(){
  local type=""
  local i=0
  local OPTS=""
- # fix vanished cloop device
+ if [ "$3" = "-r" ]; then OPTS="ro"; else OPTS="rw"; fi
+ # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
  fi
@@ -283,18 +301,15 @@ mountpart(){
  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   ntfs)
-   OPTS="force,silent,umask=0,no_def_opts,allow_other,streams_interface=windows"
-   case "$3" in -r) OPTS="$OPTS,ro" ;; esac
+   OPTS="$OPTS,force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
-#  vfat)
-# tschmitt: windows does not start here with this
-#   OPTS="umask=000,shortname=winnt"
-#   case "$3" in -r) OPTS="$OPTS,ro" ;; esac
-#   mount -o "$OPTS" "$1" "$2" ; RC="$?"
-#   ;;
+  vfat)
+   mount -o "$OPTS" "$1" "$2" ; RC="$?"
+   ;;
   *)
-   mount $3 "$1" "$2" ; RC="$?"
+   OPTS="$OPTS,acl,user_xattr"
+   mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
  esac
  return "$RC"
@@ -362,7 +377,12 @@ mountcache(){
   /dev/*) # local cache
    # Check if cache partition exists
    if grep -q "${1##*/}" /proc/partitions; then
-    mountpart "$1" /cache $2 ; RC="$?"
+    if cat /proc/mounts | grep -q /cache; then
+     echo "Cache ist bereits gemountet."
+     RC=0
+    else
+     mountpart "$1" /cache $2 ; RC="$?"
+    fi
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
      local cachefs="$(fstype_startconf "$1")"
@@ -391,6 +411,26 @@ mountcache(){
 # partitions with known fstypes are formatted.
 partition(){
  echo -n "partition " ;  printargs "$@"
+ local WAIT=10
+ # check for running torrents and kill them if any
+ if ps w | grep ctorrent | grep -v grep &>/dev/null; then
+  echo "Killing torrents ..."
+  killall ctorrent
+  sleep "$WAIT"
+  ps w | grep ctorrent | grep -v grep &>/dev/null && sleep "$WAIT"
+ fi
+ # umount /cache if mounted
+ if cat /proc/mounts | grep -q /cache; then
+  cd /
+  if ! umount /cache &>/dev/null; then
+   umount -l /cache &>/dev/null
+   sleep "$WAIT"
+   if cat /proc/mounts | grep -q /cache; then
+    echo "Kann /cache nicht unmounten." >&2
+    return 1
+   fi
+  fi
+ fi
  local table=""
  local formats=""
  local disk="${1%%[1-9]*}"
@@ -510,7 +550,7 @@ mkgrldr(){
  local grubpart="${1##*[hsv]d[a-z]}"
  grubpart="$((grubpart - 1))"
  bootlace.com --"$(fstype_startconf "$1")" --floppy="$driveid" "$1"
- echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)/$bootfile" > $menu
+ echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)$bootfile" > $menu
  cp /usr/lib/grub/grldr /mnt
 }
 
@@ -587,7 +627,9 @@ start(){
   esac
   # provide a menu.lst for grldr on win2k/xp
   if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-   mkgrldr "$1" ntldr
+   mkgrldr "$1" "/ntldr"
+  elif [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
+   mkgrldr "$1" "/bootmgr"
   elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
    # tschmitt: patch autoexec.bat (win98),
    if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
@@ -595,7 +637,7 @@ start(){
     unix2dos /mnt/AUTOEXEC.BAT
    fi
    # provide a menu.lst for grldr on win98
-   mkgrldr "$1" io.sys
+   mkgrldr "$1" "/io.sys"
    # change bootloader for win98 systems
    APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/')"
   fi
@@ -603,7 +645,7 @@ start(){
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
   umount /mnt 2>/dev/null
   sendlog
-  umount /cache 2>/dev/null
+  #umount /cache 2>/dev/null
   return 1
  fi
 
@@ -617,8 +659,10 @@ start(){
  fi
 
  umount /mnt 2>/dev/null
+ # kill torrents if any
+ ps w | grep ctorrent | grep -v grep && { killall ctorrent; sleep 3; }
  sendlog
- umount /cache 2>/dev/null
+ umount /cache || umount -l /cache 2>/dev/null
 
  if [ -n "$LOADED" ]; then
   # Workaround for missing speedstep-capability of Windows
@@ -652,6 +696,10 @@ start(){
 # return partition size in kilobytes
 # arg: partition
 get_partition_size(){
+ # fix vanished cloop symlink
+ if [ "$1" = "/dev/cloop" ]; then
+  [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
+ fi
  sfdisk -s "$1"
  return $?
 }
@@ -691,6 +739,12 @@ cleanup_fs(){
 mk_cloop(){
  echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
  #echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
+ # kill torrent process for this image
+ local pid="$(ps w | grep ctorrent | grep "$3.torrent" | grep -v grep | awk '{ print $1 }')"
+ [ -n "$pid" ] && kill "$pid"
+ # remove torrent files
+ [ -e "/cache/$3.torrent" ] && rm "/cache/$3.torrent"
+ [ -e "/cache/$3.complete" ] && rm "/cache/$3.complete"
  local RC=1
  local size="$(get_partition_size $2)"
  local imgsize=0
@@ -713,8 +767,9 @@ mk_cloop(){
     # Sync is asynchronous, unless started twice at least.
     sync ; sync ; sync 
     rm -f /mnt/zero*.tmp
-    echo "Dateiliste erzeugen..." | tee -a /tmp/image.log
-    ( cd /mnt/ ; find . | sed 's,^\.,,' ) > "$3".list
+    # we don't need the file list anymore
+    #echo "Dateiliste erzeugen..." | tee -a /tmp/image.log
+    #( cd /mnt/ ; find . | sed 's,^\.,,' ) > "$3".list
     umount /mnt || umount -l /mnt
    fi
    echo "Starte Kompression von $2 -> $3 (ganze Partition, ${size}K)." | tee -a /tmp/image.log
@@ -732,23 +787,25 @@ mk_cloop(){
     echo "Das Komprimieren ist fehlgeschlagen." | tee -a /tmp/image.log
    fi
   ;;
-  incremental)
-   if mountpart "$2" /mnt -r ; then
+  differential)
+   if mountpart "$2" /mnt -w ; then
     rmmod cloop >/dev/null 2>&1
 #    echo "modprobe cloop file=/cache/$4" | tee -a /tmp/image.log
     if test -s /cache/"$4" && modprobe cloop file=/cache/"$4"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
+      cleanup_fs /mnt
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
-			# tschmitt: -H testweise entfernt
-      #local ROPTS="-Haz"
-      local ROPTS="-az"
+      # rsync mit acl und xattr Optionen
+      local ROPTS="-HazAX"
+      #local ROPTS="-az"
       [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rtz"
       # tschmitt: logging
       #rm -f "$TMP"
       #interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --only-write-batch="$3" /mnt/ /cloop
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      #interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
       RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
@@ -777,6 +834,13 @@ mk_cloop(){
    fi
   ;; 
  esac
+ # create torrent files
+ if [ "$RC" = "0" -a "$(downloadtype)" = "torrent" ]; then
+  echo "Erstelle torrent Dateien ..." | tee -a /tmp/image.log
+  touch "$3".complete
+  local serverip="$(grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  ctorrent -t -u http://"$serverip":6969/announce -s "$3".torrent "$3" | tee -a /tmp/image.log
+ fi
  echo "## $(date) : Beende Erstellung von $1." | tee -a /tmp/image.log
  return "$RC"
 }
@@ -816,6 +880,8 @@ cp_cloop(){
  echo -n "cp_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
  rmmod cloop >/dev/null 2>&1
+ # repair cloop link if vanished
+ [ -e /dev/cloop ] || ln -s /dev/cloop0 /dev/cloop
 # echo "modprobe cloop file=/cache/$1"
  if test -s "$1" && modprobe cloop file=/cache/"$1"; then
   local s1="$(get_partition_size /dev/cloop)"
@@ -860,24 +926,23 @@ cp_cloop(){
  return "$RC"
 }
 
-# INCREMENTAL/Synced
+
+# differential/Synced
 # sync_cloop imagefile targetdev
 sync_cloop(){
  echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
- # tschmitt: -H testweise entfernt
- #local ROPTS="-Ha"
- local ROPTS="-a"
-# Knopper's attempt to fix sync problems on vfat
-# [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt -T rsync.tmp --exclude=rsync.tmp"
+ local ROPTS="-HaAX"
+ #local ROPTS="-a"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
  if mountpart "$2" /mnt -w ; then
   case "$1" in
    *.[Rr][Ss][Yy]*)
     rm -f "$TMP"
     # tschmitt: added logging parameter
-    interruptible rsync "$ROPTS" --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
+    #interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
+    interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
     if [ "$RC" != "0" ]; then
      cat "$TMP" >&2 | tee -a /tmp/image.log
      echo "Fehler beim Synchronisieren des differentiellen Images \"$1\" nach $2, rsync-Fehlercode: $RC." >&2 | tee -a /tmp/image.log
@@ -891,15 +956,17 @@ sync_cloop(){
     if test -s "$1" && modprobe cloop file=/cache/"$1"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
-      list="$1".list
-      FROMLIST=""
-      [ -r "$list" ] && FROMLIST="--files-from=$list"
+      # file list is obsolete
+      #list="$1".list
+      #FROMLIST=""
+      #[ -r "$list" ] && FROMLIST="--files-from=$list"
       mkexclude
       rm -f "$TMP"
       # knopper: added --inplace
       #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
       # tschmitt: added logging parameter
-      interruptible rsync "$ROPTS" --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
+      #interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
        cat "$TMP" >&2 | tee -a /tmp/image.log
@@ -936,31 +1003,28 @@ restore(){
  local RC=1
  local disk="${2%%[1-9]*}"
  local force="$3"
- # tschmitt: fetch fstype from start.conf
- local type="$(fstype_startconf "$2")"
+ local fstype="$(fstype_startconf "$2")"
  echo -n "Entpacke: $1 -> $2 "
  case "$1" in
   *.[Cc][Ll][Oo]*)
    if [ "$force" != "force" ]; then
     check_status "$2" "$1" || force="force"
    fi
-   if [ "$type" = "ntfs" ]; then
+   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
-   elif [ "$type" = "vfat" -a "$force" = "force" ]; then
+   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
    else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then
-      format "$2" "$type" || return 1
+      format "$2" "$fstype" || return 1
     fi
     sync_cloop "$1" "$2" ; RC="$?"
    fi
    ;;
   *.[Rr][Ss][Yy]*)
-   # tschmitt: if ntfs do nothing
-   [ "$type" = "ntfs" ] && return 0
    echo "[Datei-Sync]..."
    sync_cloop "$1" "$2" ; RC="$?"
    ;;
@@ -1075,13 +1139,14 @@ syncl(){
     rm -f "$TMP"
     sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
     dos2unix "$TMP"
-    # tschmitt: different registry patching for Win98
-    if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+    # tschmitt: different registry patching for Win98, WinXP, Win7
+    if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
      # tschmitt: logging
-     echo "Patche System mit $patchfile" >/tmp/patch.log
+     echo -n "Patche System mit $patchfile ... " >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
+     echo "Fertig."
      [ "$(fstype "$5")" = "vfat" ] && ms-sys -2 "$5"
     elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
      cp -f "$TMP" /mnt/linbo.reg
@@ -1104,8 +1169,8 @@ syncl(){
    umount /mnt || umount -l /mnt
   fi
  fi
- cd / ; sendlog ; umount /cache
-# cd / ; umount /cache
+ cd / ; sendlog
+ #umount /cache
  return "$RC"
 }
 
@@ -1116,7 +1181,7 @@ create(){
  mountcache "$1" || return "$?"
  if ! cache_writable; then
   echo "Cache-Partition ist nicht schreibbar, Abbruch." >&2 | tee -a /tmp/image.log
-  sendlog ; umount /cache
+  sendlog
   #umount /cache
   return 1
  fi
@@ -1130,17 +1195,18 @@ create(){
    ;;
   *.[Rr][Ss][Yy]*)
    # tschmitt: for now we do not support rsync images of ntfs partitions
-   if [ "$type" = "ntfs" ]; then
-    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
-    RC=1
-   else
-    mk_cloop incremental "$5" "$2" "$3" ; RC="$?"
-   fi
+   # experimental support for rsync images of ntfs partitions
+#   if [ "$type" = "ntfs" ]; then
+#    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
+#    RC=1
+#   else
+    mk_cloop differential "$5" "$2" "$3" ; RC="$?"
+#   fi
    ;;
  esac
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2
- cd / ; sendlog ; umount /cache
- #cd / ; umount /cache
+ cd / ; sendlog
+ #umount /cache
  return "$RC"
 }
 
@@ -1186,14 +1252,6 @@ partitionsize=$3
 imagesize=$4"
 }
 
-# tschmitt
-# fetch UseMulticast from start.conf
-usemulticast(){
- [ -s /start.conf ] || return 1
- local multicast=`grep -i ^usemulticast /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
- echo "$multicast" | tr A-Z a-z
-}
-
 # get_multicast_server file
 get_multicast_server(){
  local file=""
@@ -1204,7 +1262,7 @@ get_multicast_server(){
    echo "${serverport%%:*}"
    return 0
   fi
- done <multicast.list
+ done </multicast.list
  return 1
 }
 
@@ -1218,7 +1276,7 @@ get_multicast_port(){
    echo "${serverport##*:}"
    return 0
   fi
- done <multicast.list
+ done </multicast.list
  return 1
 }
 
@@ -1228,6 +1286,111 @@ download_multicast(){
  echo "MULTICAST Download $interface($1):$2 -> $3"
  echo "udp-receiver --log /tmp/image.log --nosync --nokbd --interface $interface --rcvbuf 4194304 --portbase $2 --file $3"
  interruptible udp-receiver --log /tmp/image.log --nosync --nokbd --interface "$interface" --rcvbuf 4194304 --portbase "$2" --file "$3" 2>&1 ; RC="$?"
+ return "$RC"
+}
+
+#check_torrent_complete image
+check_torrent_complete(){
+ local image="$1"
+ local complete="$image".complete
+ local logfile=/tmp/"$image".log
+ local RC=1
+ [ -e "$logfile" ] || return "$RC"
+ if [ -e "$complete" ]; then
+  RC=0
+ else
+  grep "$image" "$logfile" | grep -q "(100%)" && { touch "$complete"; RC=0; }
+ fi
+ return "$RC"
+}
+
+# torrent_watchdog image timeout
+torrent_watchdog(){
+ local image="$1"
+ local torrent="$image".torrent
+ local logfile=/tmp/"$image".log
+ local timeout="$2"
+ local line=""
+ local line_old=""
+ local pid=""
+ local int=10
+ local RC=1
+ local c=0
+ while [ $c -lt $timeout ]; do
+  sleep $int
+  # check if torrent is complete
+  check_torrent_complete "$image" && { RC=0; break; }
+  line="$(tail -1 "$logfile" | awk '{ print $3 }')"
+  [ -z "$line_old" ] && line_old="$line"
+  if [ "$line_old" = "$line" ]; then
+   [ $c -eq 0 ] || echo "Torrent-Überwachung: Download von $image hängt seit $c Sekunden." >&2 | tee -a /tmp/image.log
+   c=$(($c+$int))
+  else
+   line_old="$line"
+   c=0
+  fi
+ done
+ if [ "$RC" = "1" ]; then
+  echo "Download von $image wurde wegen Zeitüberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
+  pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
+  [ -n "$pid" ] && kill "$pid"
+ fi
+ pid="$(ps w | grep "tail -f $logfile" | grep -v grep | awk '{ print $1 }')"
+ [ -n "$pid" ] && kill "$pid"
+ echo
+ if [ "$RC" = "0" ]; then
+  echo "Image $image wurde komplett heruntergeladen. :-)" | tee -a /tmp/image.log
+ fi
+ return "$RC"
+}
+
+# download_torrent_check image opts
+download_torrent_check() {
+ local image="$1"
+ local OPTS="$2"
+ local complete="$image".complete
+ local torrent="$image".torrent
+ local logfile=/tmp/"$image".log
+ local RC=1
+ ctorrent -dd -X "touch $complete" $OPTS "$torrent" > "$logfile"
+ tail -f "$logfile"
+ [ -e "$complete" ] && RC=0
+ rm -f "$logfile"
+ return "$RC"
+}
+
+# download_torrent image
+download_torrent(){
+ local image="$1"
+ local torrent="$image".torrent
+ local complete="$image".complete
+ local RC=1
+ [ -e "$torrent" ] || return "$RC"
+ local ip="$(ip)"
+ [ -z "$ip" -o "$ip" = "OFFLINE" ] && return "$RC"
+ # default values
+ local MINPORT=6881
+ local MAX_INITIATE=40
+ local MAX_UPLOAD_RATE=0
+ local SLICE_SIZE=128
+ local TIMEOUT=300
+ [ -e /torrent-client.conf ] && . /torrent-client.conf
+ [ -n "$DOWNLOAD_SLICE_SIZE" ] && SLICE_SIZE=$(($DOWNLOAD_SLICE_SIZE/1024))
+ local pid="$(ps w | grep ctorrent | grep "$1.torrent" | grep -v grep | awk '{ print $1 }')"
+ [ -n "$pid" ] && kill "$pid"
+ local pnr="$(ps w | grep -v grep | grep -c ctorrent)"
+ local PORT=$(($MINPORT+$pnr))
+ local OPTS="-e 10000 -I $ip -p $PORT -M $MAX_INITIATE -z $SLICE_SIZE"
+ [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
+ echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
+ echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
+ if [ -e "$complete" ]; then
+  ctorrent -f -d $OPTS "$torrent"
+ else
+  torrent_watchdog "$image" "$TIMEOUT" &
+  interruptible download_torrent_check "$image" "$OPTS"
+ fi
+ [ -e "$complete" ] && RC=0
  return "$RC"
 }
 
@@ -1252,15 +1415,20 @@ download_all(){
 # Download info files, compare timestamps
 # download_if_newer server file
 download_if_newer(){
+ # do not execute in localmode
+ localmode && return 0
  local RC=0
  local DOWNLOAD_ALL=""
  local FTYPE=""
+ local md5sum_before=""
+ local md5sum_after=""
  if [ ! -s "$2" -o ! -s "$2".info ]; then # File not there, download all
   DOWNLOAD_ALL="true"
  else
   mv -f "$2".info "$2".info.old 2>/dev/null
   download "$1" "$2".info
-  download "$1" "$2".list >/dev/null 2>&1
+  # file list is obsolete
+  #download "$1" "$2".list >/dev/null 2>&1
   download "$1" "$2".desc >/dev/null 2>&1
   if [ -s "$2".info ]; then
    local ts1="$(getinfo "$2".info.old timestamp)"
@@ -1283,10 +1451,33 @@ download_if_newer(){
  case "$2" in
   *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) FTYPE="image" ;;
  esac
+ # extra check for torrents
+ if [ "$(downloadtype)" = "torrent" -a -n "$FTYPE" ]; then
+  [ -e "$2".torrent ] && md5sum_before="$(md5sum "$2".torrent | awk '{ print $1 }')"
+  download "$1" "$2".torrent
+  md5sum_after="$(md5sum "$2".torrent | awk '{ print $1 }')"
+  if [ "$md5sum_after" != "$md5sum_before" ]; then
+   # remove old image if there is a new torrent file for it
+   rm -f "$2"
+   DOWNLOAD_ALL="true"
+  fi
+  [ -z "$DOWNLOAD_ALL" ] && download_torrent "$2" ; RC="$?"
+ fi
+ # download images according to download type
  if [ -n "$DOWNLOAD_ALL" ]; then
-  if [ "$(usemulticast)" = "yes" -a -n "$FTYPE" ]; then
-   download "$1" "multicast.list" important
-   if [ -s /cache/multicast.list ]; then
+  if [ "$(downloadtype)" = "torrent" -a -n "$FTYPE" ]; then
+   rm -f "$2".complete
+   download_torrent "$2" ; RC="$?"
+   if [ "$RC" = "0" ]; then
+    # file list is obsolete
+    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    download_all "$1" "$2".info "$2".desc "$2".reg ; RC="$?"
+   else
+    echo "Konnte $2 nicht herunterladen!"
+    RC=1
+   fi
+  elif [ "$(downloadtype)" = "multicast" -a -n "$FTYPE" ]; then
+   if [ -s /multicast.list ]; then
     local MPORT="$(get_multicast_port "$2")"
     if [ -n "$MPORT" ]; then
      download_multicast "$1" "$MPORT" "$2"
@@ -1298,12 +1489,16 @@ download_if_newer(){
     RC=1
    fi
    if [ "$RC" = "0" ]; then
-    download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    # file list is obsolete
+    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    download_all "$1" "$2".info  "$2".desc "$2".reg ; RC="$?"
    else
     echo "Keine multicast.list gefunden, kein Multicast-Download möglich." >&2
    fi
   else
-   download_all "$1" "$2" "$2".info "$2".list "$2".desc "$2".reg
+    # file list is obsolete
+   #download_all "$1" "$2" "$2".info "$2".list "$2".desc "$2".reg
+   download_all "$1" "$2" "$2".info "$2".desc "$2".reg
    RC="$?"
   fi
  else
@@ -1316,7 +1511,7 @@ download_if_newer(){
 # Authenticate server user password share
 authenticate(){
  local RC=1
- localmode "$1"; RC="$?"
+ localmode ; RC="$?"
  if [ "$RC" = "1" ]; then
   export RSYNC_PASSWORD="$3"
   echo "Logge $2 ein auf $1..."
@@ -1348,6 +1543,8 @@ authenticate(){
 
 # upload server user password cache file
 upload(){
+ # do not execute in localmode
+ localmode && return 0
  local RC=0
  local file
  local ext
@@ -1359,11 +1556,13 @@ upload(){
  fi
  # We may need this password for mountcache as well!
  export RSYNC_PASSWORD="$3"
- mountcache "$4" -r || return "$?"
+ mountcache "$4" || return "$?"
  cd /cache
  if [ -s "$5" ]; then
   local FILES="$5"
-  for ext in info list reg desc; do
+  # file list is obsolete
+  #for ext in info list reg desc torrent; do
+  for ext in info reg desc torrent; do
    [ -s "${5}.${ext}" ] && FILES="$FILES ${5}.${ext}"
   done
   echo "Uploade $FILES auf $1..." | tee -a /tmp/linbo.log
@@ -1374,6 +1573,11 @@ upload(){
     #cat "$TMP" >&2
     #rm -f "$TMP"
     break
+   else
+    # start torrent service for image
+    case "$file" in
+     *.torrent) ps w | grep ctorrent | grep "$file" | grep -v grep || download_torrent "${file%.torrent}" ;;
+    esac
    fi
    #rm -f "$TMP"
   done
@@ -1386,7 +1590,8 @@ upload(){
  else
   echo "Upload von $FILES nach $1 ist fehlgeschlagen." | tee -a /tmp/linbo.log
  fi
- cd / ; sendlog ; umount /cache
+ cd / ; sendlog 
+ #umount /cache
  return "$RC"
 }
 
@@ -1405,8 +1610,8 @@ syncr(){
    localmode || rm -f "$i".reg 2>/dev/null
    download "$1" "$i".reg >/dev/null 2>&1
   done
-  cd / ; sendlog ; umount /cache
-  #cd / ; umount /cache
+  cd / ; sendlog
+  #umount /cache
   # Also update LINBO, while we are here.
   update "$1" "$2"
  fi
@@ -1414,82 +1619,63 @@ syncr(){
  syncl "$@"
 }
 
-# initcache server cachedev multicast|rsync images...
+# initcache server cachedev downloadtype images...
 initcache(){
+ # do not execute in localmode
+ localmode && return 0
  echo -n "initcache " ;  printargs "$@"
- local RC=0
  local server="$1"
  local cachedev="$2"
  local download_type="$3"
  local i
- local ext
+ local u
+ local used_images
+ local group
+ local found
  if remote_cache "$cachedev"; then
   echo "Cache $cachedev ist nicht lokal, und muss daher nicht aktualisiert werden."
   return 1
  fi
  mountcache "$cachedev" || return "$?"
  cd /cache
- shift; shift
+ shift; shift; shift
 
- case "$download_type" in
-  multicast)
-   download "$server" "multicast.list" important
-   if [ ! -s multicast.list ]; then
-    echo "Keine multicast.list gefunden, kein Multicast-Download möglich." >&2
-    sendlog ; umount /cache
-    #umount /cache
-    return 1
+ # clean up obsolete linbofs files
+ rm -f linbofs[.a-zA-Z0-9_-]*.gz*
+
+ # clean up obsolete image files
+ used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ used_images="$used_images $(grep -i ^image /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ for i in *.cloop *.rsync; do
+  [ -e "$i" ] || continue
+  found=0
+  for u in $used_images; do
+   if [ "$i" = "$u" ]; then
+    found=1
+    break
    fi
-   shift
-  ;;
-  rsync) shift ;;
- esac
-
- for i in "$@"; do
-  if [ -n "$i" ]; then
-   case "$download_type" in
-    multicast)
-     multicast_server="$(get_multicast_server "$i")"
-     multicast_port="$(get_multicast_port "$i")"
-     if [ -n "$multicast_server" -a -n "$multicast_port" ]; then
-      download_multicast "$multicast_server" "$multicast_port" "$i" ; RC="$?"
-      if [ "$RC" != "0" -o ! -s "$i" ]; then
-       echo "Download von $i per Multicast von $multicast_server:$multicast_port hat nicht geklappt, bitte noch mal mit RSYNC versuchen." >&2
-       # download "$server" "$i" important
-      fi
-     else
-      echo "$i nicht in multicast.list gefunden, hole per RSYNC."
-     fi
-    ;;
-    *)
-     download "$server" "$i" important
-    ;;
-   esac
-   # Get info files via rsync
-   for ext in info list reg desc; do
-    download "$server" "${i}.${ext}" >/dev/null 2>&1 || rm -f "${i}.${ext}"
-   done
+  done
+  if [ "$found" = "0" ]; then
+   echo "Entferne nicht mehr benötigte Imagedatei $i." | tee -a /tmp/image.log
+   rm -f "$i" "$i".*
   fi
  done
- cd / ; sendlog ; umount /cache
- #cd / ; umount /cache
- update "$server" "$cachedev"
-}
 
-# tschmitt
-# fetch hostgroup from start.conf
-hostgroup(){
- local hostgroup=""
- [ -s /start.conf ] || return 1
- hostgroup=`grep -m1 ^Group /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }'`
- echo "$hostgroup"
+ # update cache files
+ for i in "$@"; do
+  if [ -n "$i" ]; then
+   download_if_newer "$server" "$i"
+  fi
+ done
+ cd / ; sendlog
+ update "$server" "$cachedev"
 }
 
 # update server cachedev
 update(){
  echo -n "update " ;  printargs "$@"
  local RC=0
- local group="$(hostgroup)"
+# local group="$(hostgroup)"
  local server="$1"
  local cachedev="$2"
  local disk="${cachedev%%[1-9]*}"
@@ -1505,13 +1691,13 @@ update(){
  local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
  local linbofs_fs1="$(get_filesize linbofs.gz)"
  # tschmitt: download group specific linbofs
- [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
- if [ -e "linbofs.$group.gz" ]; then
-  rm linbofs.gz; ln linbofs.$group.gz linbofs.gz
-  rm linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
- else
+# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
+# if [ -e "linbofs.$group.gz" ]; then
+#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
+#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
+# else
   download_if_newer "$server" linbofs.gz
- fi
+# fi
  local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
  local linbofs_fs2="$(get_filesize linbofs.gz)"
  # tschmitt: update grub on every synced start not only if newer linbo is available
@@ -1546,8 +1732,8 @@ update(){
   #grub-install --root-directory=/cache "$disk"
  fi
  RC="$?"
- cd / ; sendlog ; umount /cache
- #cd / ; umount /cache
+ cd / ; sendlog
+ #umount /cache
  [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
  return "$RC"
 }
@@ -1565,15 +1751,15 @@ update(){
 # readfile cachepartition filename [destinationfile]
 readfile(){
  local RC=0
- mountcache "$1" -r || return "$?"
+ mountcache "$1" || return "$?"
  if [ -n "$3" ]; then
   cp -a /cache/"$2" "$3"
  else
   cat /cache/"$2"
  fi
  RC="$?"
- #sendlog ; umount /cache
- umount /cache
+ #sendlog
+ #umount /cache
  return "$RC"
 }
 
@@ -1592,8 +1778,8 @@ writefile(){
   echo "Cache ist nicht schreibbar, Datei $2 nicht gespeichert." >&2
   RC=1
  fi
- #sendlog ; umount /cache
- umount /cache
+ #sendlog
+ #umount /cache
  return "$RC"
 }
 
@@ -1651,20 +1837,22 @@ register(){
 }
 
 ip(){
- ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}'
+ local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')"
+ [ -z "$ip" ] && ip="OFFLINE"
+ echo "$ip"
 }
 
 clientname(){
  if localmode; then
   local cachedev="$(grep ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
   if [ -n "$cachedev" ]; then
-   if mountcache $cachedev -r; then
+   if mountcache $cachedev; then
     if [ -s /cache/hostname ]; then
      cat /cache/hostname
-     umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
+     #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
      return 0
     fi
-    umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
+    #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
    fi
   fi
   echo `hostname`

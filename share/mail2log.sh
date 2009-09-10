@@ -67,7 +67,8 @@ while read -r line; do
 		date_printed=yes
 	fi
 
-	echo "$line" | recode lat1..utf8 >> $linbolog
+#	echo "$line" | recode lat1..utf8 >> $linbolog
+	echo "$line" >> $linbolog
 
 done
 

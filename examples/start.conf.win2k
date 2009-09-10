@@ -11,7 +11,7 @@ RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # automatisches Formatieren aller Partitionen beim LINBO-Start
 AutoInitCache = no       # automatisches Befüllen des Caches beim LINBO-Start
-UseMulticast = no        # Image-Download per Multicast
+DownloadType = rsync     # Image-Download per torrent|multicast|rsync, default ist rsync
 
 [Partition]              # Start einer Partitionsdefinition, Windows XP
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte )

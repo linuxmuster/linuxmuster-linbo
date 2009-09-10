@@ -1,0 +1,219 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          linbo-bittorrent
+# Required-Start:    $network $local_fs
+# Required-Stop:     $network $local_fs
+# Should-Start:      
+# Should-Stop:       
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start a complete bittorrent download
+# Description:       Starts a complete bittorrent download for LINBO images
+### END INIT INFO
+
+#set -e
+
+action="$1"
+image="$2"
+force="$3"
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DESC="BitTorrent service for"
+NAME=btdownloadheadless
+DAEMON=/usr/bin/$NAME
+PIDDIR=/var/run/linbo-bittorrent
+SCRIPTNAME=/etc/init.d/linbo-bittorrent
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# default values
+MINPORT=6881
+MAX_UPLOADS=20
+MAX_UPLOAD_RATE=0
+REREQUEST_INTERVAL=60
+MIN_PEERS=20
+MAX_INITIATE=20
+KEEPALIVE_INTERVAL=120
+DOWNLOAD_SLICE_SIZE=131072
+REQUEST_BACKLOG=5
+MAX_MESSAGE_LENGTH=8388608
+TIMEOUT=300
+TIMEOUT_CHECK_INTERVAL=60
+MAX_RATE_PERIOD=20
+UPLOAD_RATE_FUDGE=5
+DISPLAY_INTERVAL=1
+MAX_SLICE_LENGTH=131072
+
+# read defaults
+[ -e /etc/default/linbo-bittorrent ] || exit 1
+. /etc/default/linbo-bittorrent
+[ "$START_BITTORRENT" = "1" ] || exit 0
+. /etc/default/bittorrent || exit 1
+[ "$START_BTTRACK" = "1" ] || exit 0
+. /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+. /lib/lsb/init-functions
+
+CLIENT_CONFIG="$LINBODIR/torrent-client.conf"
+all_images="/var/linbo/*.cloop /var/linbo/*.rsync"
+
+# write client torrent config
+write_client_config(){
+ echo "MINPORT=$MINPORT"
+ echo "MAX_INITIATE=$MAX_INITIATE"
+ echo "MAX_UPLOAD_RATE=$MAX_UPLOAD_RATE"
+ echo "DOWNLOAD_SLICE_SIZE=$DOWNLOAD_SLICE_SIZE"
+ echo "TIMEOUT=$TIMEOUT"
+}
+
+# compute nr of images and MAXPORT
+images_maxport(){
+ local c=0
+ local i=""
+ for i in $all_images; do
+  # check if image is in use
+  image_in_use "$i" || continue
+  # count images
+  if [ -z "$images_used" ]; then
+   images_used="$i"
+  else
+   images_used="$images_used $i"
+  fi
+  c=$(($c+1))
+ done
+ MAXPORT=$(($MINPORT+$c-1))
+ # optional second parameter is an image file or "all"
+ if [ -n "$image" -a "$image" != "all" ]; then
+  if image_in_use "$image"; then
+   images_used="$image"
+  else
+   images_used=""
+  fi
+ fi
+}
+
+start(){
+ # read server ip
+ [ -z "$LINBODEFAULTCONF" ] && LINBODEFAULTCONF="$LINBODIR/start.conf"
+ serverip="$(grep ^Server "$LINBODEFAULTCONF" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+
+ # dirs under /var/run can go away on reboots
+ mkdir -p "$PIDDIR"
+
+ images_maxport
+ write_client_config > "$CLIENT_CONFIG"
+
+ if [ -z "$images_used" ]; then
+  echo "linbo-bittorrent: No images found!"
+  exit 0
+ fi
+
+ local i=""
+ for i in $images_used; do
+
+  #  create torrent file
+  [ ! -e "$i.torrent" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+
+  # start torrent daemon for image only if torrent file is present
+  [ -e "$i.torrent" ] || continue
+
+  # start daemon stuff
+  log_daemon_msg "Starting $DESC" "$(basename "$i")"
+  PIDFILE="$PIDDIR/$(basename "$i").pid"
+
+  if [ -e "$PIDFILE" ]; then
+   echo
+   log_failure_msg "$PIDFILE detected. Skipped!"
+   continue
+  fi
+
+  OPTIONS="$i.torrent \
+           --minport $MINPORT \
+           --maxport $MAXPORT \
+           --max_uploads $MAX_UPLOADS \
+           --max_upload_rate $MAX_UPLOAD_RATE \
+           --rerequest_interval $REREQUEST_INTERVAL \
+           --min_peers $MIN_PEERS \
+           --max_initiate $MAX_INITIATE \
+           --keepalive_interval $KEEPALIVE_INTERVAL \
+           --download_slice_size $DOWNLOAD_SLICE_SIZE \
+           --request_backlog $REQUEST_BACKLOG \
+           --max_message_length $MAX_MESSAGE_LENGTH \
+           --timeout $TIMEOUT \
+           --timeout_check_interval $TIMEOUT_CHECK_INTERVAL \
+           --max_rate_period $MAX_RATE_PERIOD \
+           --upload_rate_fudge $UPLOAD_RATE_FUDGE \
+           --display_interval $DISPLAY_INTERVAL \
+           --max_slice_length $MAX_SLICE_LENGTH \
+           --check_hashes 0 \
+           --saveas $i"
+  if start-stop-daemon --start --quiet --background --make-pidfile --exec $DAEMON \
+                       --pidfile $PIDFILE -- $OPTIONS; then
+   log_end_msg 0
+  else
+   log_end_msg 1
+  fi
+  sleep 2
+  if ! ps --no-heading -p `cat $PIDFILE` &>/dev/null; then
+   log_failure_msg "failed!"
+   rm $PIDFILE
+  fi
+ done
+}
+
+stop(){
+ # optional second parameter is an image file or "all"
+ if [ -n "$image" -a "$image" != "all" ]; then
+  if [ -e "$image" ]; then
+   all_images="$image"
+   local omit_killall="yes"
+  else
+   return 1
+  fi
+ fi
+ local i=""
+ local ci=""
+ local pid=""
+ for i in $all_images; do
+  ci="$(basename $i)"
+  PIDFILE="$PIDDIR/$ci.pid"
+  [ -e "$PIDFILE" ] || continue
+  if ps --no-heading -p `cat $PIDFILE` &>/dev/null; then
+    log_daemon_msg "Stopping $DESC" "$ci"
+    start-stop-daemon --stop --pidfile $PIDFILE ; RC="$?"
+    log_end_msg "$RC"
+  fi
+  [ -e "$PIDFILE" ] && rm "$PIDFILE"
+ done
+ if [ -z "$omit_killall" ]; then
+  if ps ax | grep $NAME | grep -v grep &> /dev/null; then
+   log_daemon_msg "Sending all remaining $NAME processes the TERM signal."
+   killall $NAME ; RC="$?"
+   log_end_msg "$RC"
+  fi
+  rm -f $PIDDIR/*.pid
+ fi
+}
+
+case "$action" in
+ start)
+	 start
+	 ;;
+ stop)
+	 stop
+	 ;;
+ restart)
+	 stop
+  sleep 2
+	 start
+	 ;;
+ *)
+	 echo "Usage: $0 {start|stop|restart} [<imagefile>|all] [force]" >&2
+	 exit 1
+	 ;;
+esac
+
+exit 0
+
