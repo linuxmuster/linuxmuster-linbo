@@ -1,3 +1,52 @@
+linuxmuster-linbo (1.99.6-0) unstable; urgency=low
+
+  * package:
+    - control: removed attr from build depends, recode from depends.
+    - postinst:
+      o installs all syslinux related binaries from downloaded archive (compiled on debian etch).
+  * kernel: new version 2.6.30.5.
+  * server side scripting:
+    - update-linbofs.sh, make-linbo-media.sh: removed creation of group specific linbofs.
+  * linbofs:
+    - added /etc/modprobe.d/sata_nv.conf: options sata_nv swnc=0
+      (reported by Knopper to make sata_nv controllers boot with grub.exe)
+    - rsync: new fname/xattr patch from Knopper (r347).
+    - busybox: removed setfattr and getfattr.
+    - linbo_cmd:
+      o removed workaround for save and restore extended ntfs attributes,
+        it's now done by rsync hopefully.
+      o removed download of group specific linbofs.gz.
+      o removed --partial parameter from rsync imaging commands.
+      o some cleanup.
+    - init.sh:
+      o some cleanup.
+      o copy downloaded start.conf to local cache so that group specific linbofs is obsolete.
+      o writes /etc/ssmtp.conf if valid a server ip could be obtained.
+      o now uses a cmdline given valid cache partition: cache=/dev/sdb1
+        (fixes copyfromcache).
+      o network(): removed waiting for hwsetup is finished.
+      o added kernel parameter conf to give an extra start.conf location on cmdline:
+        conf=<partition>:<absolute_path_to_file>
+        conf=/dev/sdb1:/start.conf.foo
+        If conf is defined an eventually set cache parameter will not be evaluated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Sep 2009 13:11:24 +0200
+
+linuxmuster-linbo (1.99.5-0) unstable; urgency=low
+
+  * linbofs:
+    - patch_registry:
+      o create_keypath(): activated key creation for supplemental controlsets.
+      o create_command(): splitted value editing in three commands, removed value check.
+    - linbo_cmd: removed useless file list creation and up/download.
+  * server side scripting:
+    - rsync-post.sh:
+      o reloading bittorrent tracker as well if a new image was successfully uploaded.
+    - mail2log.sh:
+      o removed utf8 recoding.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 10 Aug 2009 09:11:42 +0200
+
 linuxmuster-linbo (1.99.4-0) unstable; urgency=low
 
   * First implementation of torrent technology for image downloading (#128).

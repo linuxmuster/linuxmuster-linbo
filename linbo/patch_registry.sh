@@ -96,11 +96,11 @@ create_keypath() {
 
 	# tschmitt: check if currentkey exists in registry, if not create it
 	if ! test_key "$fullpath"; then
-  if [ -n "$ctrlset" ]; then
-   # don't create new keys in supplemental controlsets
-   [ -n "$DEBUG" ] && echo "### Skipping $fullpath" | tee -a $logfile
-   return 1
-  fi
+#  if [ -n "$ctrlset" ]; then
+#   # don't create new keys in supplemental controlsets
+#   [ -n "$DEBUG" ] && echo "### Skipping $fullpath" | tee -a $logfile
+#   return 1
+#  fi
 	 [ -n "$DEBUG" ] && echo "### Creating key $fullpath" | tee -a $logfile
 	 create_key "$fullpath"
 	fi
@@ -127,16 +127,16 @@ create_command() {
  [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
  [ "${change// /}" = "" ] && return 1
 
- command="cd ${fullpath}\n"
+ local command="cd ${fullpath}\n"
  [ -n "$DEBUG" ] && echo " 8 command=$command" | tee -a $logfile
 
- parameter=`leftgetvalue "$change"`
+ local parameter=`leftgetvalue "$change"`
  [ -n "$DEBUG" ] && echo " 9 parameter=$parameter" | tee -a $logfile
 
  parameter="$(echo "$parameter" | sed 's,\",,g')"
  [ -n "$DEBUG" ] && echo "10 parameter=$parameter" | tee -a $logfile
 
- value=`rightgetvalue "$change"`
+ local value=`rightgetvalue "$change"`
  [ -n "$DEBUG" ] && echo "11 value=$value" | tee -a $logfile
 
  value="$(echo "$value" | sed 's,\",,g')"
@@ -146,7 +146,7 @@ create_command() {
  [ -n "$DEBUG" ] && echo "13 value=$value" | tee -a $logfile
 
  # our standard type for strings is REG_SZ
- type="1"
+ local type="1"
  case "$value" in
   dword*) value="$(echo "$value" | sed 's,^dword:,0x,g')"
           # set type to REG_DWORD
@@ -159,22 +159,26 @@ create_command() {
  fi
 
  # return if value is already set -> nothing to do
- if [ -n "$value" ]; then
-  test_value "${fullpath}\\${parameter}" "$value" && return 1
- fi
+# if [ -n "$value" ]; then
+#  test_value "${fullpath}\\${parameter}" "$value" && return 1
+# fi
 
- command="${command}dv ${parameter}\n"
+ local basecommand="${command}"
+
+ # delete value
+ command="${basecommand}dv ${parameter}\nq\ny\n"
+ exec_command "$command"
  [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
 
- command="${command}nv ${type} ${parameter}\n"
+ # create value
+ command="${basecommand}nv ${type} ${parameter}\nq\ny\n"
+ exec_command "$command"
  [ -n "$DEBUG" ] && echo "17 command=$command" | tee -a $logfile
 
- command="${command}ed ${parameter}\n"
+ # edit value
+ command="${basecommand}ed ${parameter}\n$value\nq\ny\n"
+ exec_command "$command"
  [ -n "$DEBUG" ] && echo "18 command=$command" | tee -a $logfile
-
- # out final command
- command="${command}$value\nq\ny\n"
- [ -n "$DEBUG" ] && echo "19 final command=$command" | tee -a $logfile
 }
 
 while read -r key; do
@@ -212,7 +216,6 @@ while read -r key; do
    while read -r change; do
 
     create_command || break
-    exec_command "$command"
 
 	  # tschmitt: patch other controlsets up to 3
     case "$command" in
@@ -224,9 +227,7 @@ while read -r key; do
 			    if test_key "$ctrlset"; then
 			     key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
 				    [ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $logfile
-				    if create_keypath "$key_new" "$ctrlset"; then
-				     create_command && exec_command "$command"
-				    fi
+				    create_keypath "$key_new" "$ctrlset" && create_command
 			    fi
 			    let n+=1
 		    done

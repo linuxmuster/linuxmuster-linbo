@@ -192,7 +192,6 @@ echo "
 
  Image types: 
  .cloop - full block device (partition) image, cloop-compressed
-          accompanied by a .list file for quicksync
  .rsync - differential rsync batch, cloop-compressed
  " 1>&2
 }
@@ -235,7 +234,7 @@ downloadtype(){
 hostgroup(){
  local hostgroup=""
  [ -s /start.conf ] || return 1
- hostgroup=`grep -m1 ^Group /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }'`
+ hostgroup=`grep -i ^group /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
  echo "$hostgroup"
 }
 
@@ -736,26 +735,6 @@ cleanup_fs(){
  )
 }
 
-# sets admin access rights for given file on ntfs
-set_ntfs_admin_attr(){
- local acl="0x010004946000000070000000000000001400000002004c000300000000001800a90012000102000000000005200000002302000000001800ff011f000102000000000005200000002002000000001400ff011f000101000000000005120000000102000000000005200000002002000001020000000000052000000020020000"
- local attrib="0x21000000"
- setfattr -h -v "$acl" -n system.ntfs_acl "$1"
- setfattr -h -v "$attrib" -n system.ntfs_attrib "$1"
-}
-
-# saves advanced ntfs attributes of partition mounted in /mnt
-save_ntfs_attr(){
- echo -n "Sichere erweiterte NTFS Attribute ..."
- local rootdev="$1"
- local i=""
- for i in acl attrib reparse_data; do
-  (cd /mnt && getfattr -R -h -e hex -d -n "system.ntfs_${i}" * 2>>/tmp/image.log | gzip -c > ".${i}.gz")
-  set_ntfs_admin_attr "/mnt/.${i}.gz"
- done
- echo " fertig."
-}
-
 # mk_cloop type inputdev imagename baseimage [timestamp]
 mk_cloop(){
  echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
@@ -774,8 +753,6 @@ mk_cloop(){
    if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     cleanup_fs /mnt
-    # save extended ntfs attributes
-    [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
@@ -790,8 +767,9 @@ mk_cloop(){
     # Sync is asynchronous, unless started twice at least.
     sync ; sync ; sync 
     rm -f /mnt/zero*.tmp
-    echo "Dateiliste erzeugen..." | tee -a /tmp/image.log
-    ( cd /mnt/ ; find . | sed 's,^\.,,' ) > "$3".list
+    # we don't need the file list anymore
+    #echo "Dateiliste erzeugen..." | tee -a /tmp/image.log
+    #( cd /mnt/ ; find . | sed 's,^\.,,' ) > "$3".list
     umount /mnt || umount -l /mnt
    fi
    echo "Starte Kompression von $2 -> $3 (ganze Partition, ${size}K)." | tee -a /tmp/image.log
@@ -817,8 +795,6 @@ mk_cloop(){
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
       cleanup_fs /mnt
-      # save extended ntfs attributes
-      [ "$(fstype "$2")" = "ntfs" ] && save_ntfs_attr
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
       # rsync mit acl und xattr Optionen
@@ -829,7 +805,7 @@ mk_cloop(){
       #rm -f "$TMP"
       #interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --only-write-batch="$3" /mnt/ /cloop
       #interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
       RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
@@ -966,7 +942,7 @@ sync_cloop(){
     rm -f "$TMP"
     # tschmitt: added logging parameter
     #interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
-    interruptible rsync "$ROPTS" --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
+    interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
     if [ "$RC" != "0" ]; then
      cat "$TMP" >&2 | tee -a /tmp/image.log
      echo "Fehler beim Synchronisieren des differentiellen Images \"$1\" nach $2, rsync-Fehlercode: $RC." >&2 | tee -a /tmp/image.log
@@ -980,16 +956,17 @@ sync_cloop(){
     if test -s "$1" && modprobe cloop file=/cache/"$1"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
-      list="$1".list
-      FROMLIST=""
-      [ -r "$list" ] && FROMLIST="--files-from=$list"
+      # file list is obsolete
+      #list="$1".list
+      #FROMLIST=""
+      #[ -r "$list" ] && FROMLIST="--files-from=$list"
       mkexclude
       rm -f "$TMP"
       # knopper: added --inplace
       #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
       # tschmitt: added logging parameter
       #interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
-      interruptible rsync "$ROPTS" --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
        cat "$TMP" >&2 | tee -a /tmp/image.log
@@ -1036,8 +1013,6 @@ restore(){
    if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
-    # set flag for complete cloop restore
-    touch /tmp/.cloop
    elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
@@ -1052,8 +1027,6 @@ restore(){
   *.[Rr][Ss][Yy]*)
    echo "[Datei-Sync]..."
    sync_cloop "$1" "$2" ; RC="$?"
-   # remove flag for complete cloop restore because there is an rsync afterwards
-   [ -e /tmp/.cloop ] && rm -f /tmp/.cloop
    ;;
  esac
  if [ "$RC" = "0" ]; then
@@ -1124,23 +1097,6 @@ patch_fstab(){
  fi
 }
 
-# restore NTFS attributes: rootdev
-restore_ntfs_attr(){
- # don't restore attributes if a complete cloop restore without rsync afterwards was done
- if [ -e /tmp/.cloop ]; then
-  rm -f /tmp/.cloop
-  return 0
- fi
- echo -n "Restauriere erweiterte NTFS Attribute ..."
- local i=""
- for i in acl attrib reparse_data; do
-  [ -f "/mnt/.${i}.gz" ] || continue
-  (cd /mnt && zcat ".${i}.gz" | setfattr --restore=- 2>> /tmp/image.log)
-  set_ntfs_admin_attr "/mnt/.${i}.gz"
- done
- echo " Fertig."
-}
-
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC=1
@@ -1209,8 +1165,6 @@ syncl(){
    fi
    # fstab
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
-   # restore extended ntfs attributes
-   [ "$(fstype "$5")" = "ntfs" ] && restore_ntfs_attr
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
   fi
@@ -1473,7 +1427,8 @@ download_if_newer(){
  else
   mv -f "$2".info "$2".info.old 2>/dev/null
   download "$1" "$2".info
-  download "$1" "$2".list >/dev/null 2>&1
+  # file list is obsolete
+  #download "$1" "$2".list >/dev/null 2>&1
   download "$1" "$2".desc >/dev/null 2>&1
   if [ -s "$2".info ]; then
    local ts1="$(getinfo "$2".info.old timestamp)"
@@ -1514,7 +1469,9 @@ download_if_newer(){
    rm -f "$2".complete
    download_torrent "$2" ; RC="$?"
    if [ "$RC" = "0" ]; then
-    download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    # file list is obsolete
+    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    download_all "$1" "$2".info "$2".desc "$2".reg ; RC="$?"
    else
     echo "Konnte $2 nicht herunterladen!"
     RC=1
@@ -1532,12 +1489,16 @@ download_if_newer(){
     RC=1
    fi
    if [ "$RC" = "0" ]; then
-    download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    # file list is obsolete
+    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
+    download_all "$1" "$2".info  "$2".desc "$2".reg ; RC="$?"
    else
     echo "Keine multicast.list gefunden, kein Multicast-Download möglich." >&2
    fi
   else
-   download_all "$1" "$2" "$2".info "$2".list "$2".desc "$2".reg
+    # file list is obsolete
+   #download_all "$1" "$2" "$2".info "$2".list "$2".desc "$2".reg
+   download_all "$1" "$2" "$2".info "$2".desc "$2".reg
    RC="$?"
   fi
  else
@@ -1599,7 +1560,9 @@ upload(){
  cd /cache
  if [ -s "$5" ]; then
   local FILES="$5"
-  for ext in info list reg desc torrent; do
+  # file list is obsolete
+  #for ext in info list reg desc torrent; do
+  for ext in info reg desc torrent; do
    [ -s "${5}.${ext}" ] && FILES="$FILES ${5}.${ext}"
   done
   echo "Uploade $FILES auf $1..." | tee -a /tmp/linbo.log
@@ -1678,18 +1641,7 @@ initcache(){
  shift; shift; shift
 
  # clean up obsolete linbofs files
- group="$(hostgroup)"
- if [ -e "linbofs.$group.gz" ]; then
-  for i in linbofs.*.gz*; do
-   [ -e "$i" ] || continue
-   if [ "$i" = "linbofs.$group.gz" -o "$i" = "linbofs.$group.gz.info" ]; then
-    continue
-   else
-    echo "Entferne nicht mehr benötigte Datei $i." | tee -a /tmp/image.log
-    rm "$i"
-   fi
-  done
- fi
+ rm -f linbofs[.a-zA-Z0-9_-]*.gz*
 
  # clean up obsolete image files
  used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -1723,7 +1675,7 @@ initcache(){
 update(){
  echo -n "update " ;  printargs "$@"
  local RC=0
- local group="$(hostgroup)"
+# local group="$(hostgroup)"
  local server="$1"
  local cachedev="$2"
  local disk="${cachedev%%[1-9]*}"
@@ -1739,13 +1691,13 @@ update(){
  local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
  local linbofs_fs1="$(get_filesize linbofs.gz)"
  # tschmitt: download group specific linbofs
- [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
- if [ -e "linbofs.$group.gz" ]; then
-  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
-  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
- else
+# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
+# if [ -e "linbofs.$group.gz" ]; then
+#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
+#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
+# else
   download_if_newer "$server" linbofs.gz
- fi
+# fi
  local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
  local linbofs_fs2="$(get_filesize linbofs.gz)"
  # tschmitt: update grub on every synced start not only if newer linbo is available

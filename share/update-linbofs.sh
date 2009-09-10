@@ -41,10 +41,8 @@ Group = $group" -i $conf
 set_pxeconfig(){
 	local group=$1
 	local conf="$LINBODIR/pxelinux.cfg/$group"
-	local linbofs=linbofs.$group.gz
 	[ -e "$conf" ] || cp $PXELINUXCFG $conf
-	grep -q $linbofs $conf && return 0
-	sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=$linbofs|g" -i $conf
+	sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
 }
 
 # this script makes only sense if imaging=linbo
@@ -143,11 +141,11 @@ for i in $groups; do
 	# copy group specific start.conf
 	cp -f $LINBODIR/start.conf.$i start.conf
 
-	# pack group specific linbofs.gz
-	find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.$i.gz ; RC=$?
-	[ $RC -ne 0 ] && bailout "failed!"
-	echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.$i.gz | awk '{print $5}'`" > $LINBODIR/linbofs.$i.gz.info
-	echo "Ok!"
+	# pack group specific linbofs.gz (obsolete)
+#find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.$i.gz ; RC=$?
+#[ $RC -ne 0 ] && bailout "failed!"
+#echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.$i.gz | awk '{print $5}'`" > $LINBODIR/linbofs.$i.gz.info
+echo "Ok!"
 
 done
 

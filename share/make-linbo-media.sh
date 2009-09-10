@@ -29,6 +29,8 @@ usage(){
 	echo " -i <output dir>         creates cdrom iso in output dir"
 	echo " -u                      create usb media, has to be used with -d or -z"
 	echo " -z <output dir>         creates zip archive with usb boot media files in output dir"
+ echo
+ echo "<output dir> is optional. Not given current directory is used."
 	echo
 	echo " Examples:"
 	echo
@@ -51,7 +53,7 @@ usage(){
 
 
 # process cmdline
-while getopts ":bcd:g:hi:uz:" opt; do
+while getopts ":bcd:g:hiuz" opt; do
   case $opt in
     b)
       DEBUG=yes
@@ -59,33 +61,35 @@ while getopts ":bcd:g:hi:uz:" opt; do
     c)
       CDROM=yes
       [ -n "$USB" ] && usage
-			MEDIA=CDROM
+			   MEDIA=CDROM
       ;;
     u)
       USB=yes
       [ -n "$CDROM" ] && usage
-			MEDIA=USB
+			   MEDIA=USB
       ;;
     d)
       DEVICE=$OPTARG
       if [ ! -e "$DEVICE" ]; then
         echo "Device $DEVICE does not exist!"
-				usage
+				    usage
       fi
-			[ -n "$ISO" ] && usage
-			[ -n "$ZIP" ] && usage
+			   [ -n "$ISO" ] && usage
+	   		[ -n "$ZIP" ] && usage
 			;;
     i)
       ISO=yes
-			[ -n "$DEVICE" ] && usage
-			[ -n "$ZIP" ] && usage
-			OUTDIR=$OPTARG
+		   	[ -n "$DEVICE" ] && usage
+	   		[ -n "$ZIP" ] && usage
+	     OUTDIR=$OPTARG
+      [ -z "$OPTARG" ] && OUTDIR=`pwd`
       ;;
     z)
       ZIP=yes
-			[ -n "$DEVICE" ] && usage
-			[ -n "$ISO" ] && usage
-			OUTDIR=$OPTARG
+		   	[ -n "$DEVICE" ] && usage
+	   		[ -n "$ISO" ] && usage
+	   		OUTDIR=$OPTARG
+      [ -z "$OPTARG" ] && OUTDIR=`pwd`
       ;;
     g)
       GRPS=$OPTARG
@@ -160,6 +164,7 @@ OUTFILE="$OUTDIR/linbo_${GRPS_CHECKED// /-}_${VERSION}"
 
 MNTPNT=/var/tmp/mnt.$$
 CURDIR=`pwd`
+LINBOFS=linbofs.gz
 
 # write sys/isolinux config file
 writecfg() {
@@ -184,20 +189,11 @@ MENU TITLE LINBO $VERSION Startmenue
 menu color title                1;31;40    #90ffff00 #00000000
 " > $outfile
 
-	m=1; l=1
+	m=1
 	for i in $GRPS_CHECKED; do
 
-		if [ "$i" = "default" ]; then LINBOFS=linbofs.gz; else LINBOFS=linbofs.$i.gz; fi
-
-		if [ "$2" = "isolinux" ]; then
-			LINBOFS_NEW=/linbof$l.gz
-		else
-			LINBOFS_NEW=/$LINBOFS
-		fi
-		l=$(($l +1))
-
-		append1=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | tail -1 | sed -e "s|initrd=$LINBOFS|initrd=$LINBOFS_NEW|"`
-		append2=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | head -1 | sed -e "s|initrd=$LINBOFS|initrd=$LINBOFS_NEW|"`
+		append1=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | tail -1 | sed -e 's|linbofs.gz|/linbofs.gz|'`
+ 	append2=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | head -1 | sed -e 's|linbofs.gz|/linbofs.gz|'`
 
 		echo "LABEL menu$m
 MENU LABEL ^$m. LINBO: $i
@@ -236,36 +232,21 @@ KERNEL $sysdir/`basename $REBOOTC32`" >> $outfile
 writefiles() {
 	if [ "$1" = "syslinux" ]; then
 		local targetdir=$MNTPNT/boot/$1
+ 	mkdir -p $targetdir
 	else
 		local targetdir=$MNTPNT/$1
+ 	mkdir -p $targetdir
+  cp $ISOLINUXBIN $targetdir
 	fi
 	local targetcfg=$targetdir/$1.cfg
-	mkdir -p $targetdir
 	writecfg $targetcfg $1
 	cp $BACKGRND $targetdir/linbo.png
 	cp $GERMANKBD $targetdir
 	cp $REBOOTC32 $targetdir
 	cp $VMENUC32 $targetdir
 	cp $GPXEKRN $targetdir
-	[ "$1" = "isolinux" ] && cp $ISOLINUXBIN $targetdir
 	cp $LINBODIR/linbo $MNTPNT
-	l=1
-	for i in $GRPS_CHECKED; do
-		if [ "$i" = "default" ]; then
-			if [ "$1" = "isolinux" ]; then
-				cp $LINBODIR/linbofs.gz $MNTPNT/linbof$l.gz
-			else
-				cp $LINBODIR/linbofs.gz $MNTPNT
-			fi
-		else
-			if [ "$1" = "isolinux" ]; then
-				cp $LINBODIR/linbofs.$i.gz $MNTPNT/linbof$l.gz
-			else
-				cp $LINBODIR/linbofs.$i.gz $MNTPNT
-			fi
-		fi
-		l=$(($l +1))
-	done
+	cp $LINBODIR/linbofs.gz $MNTPNT
 	if [ -n "$ZIP" -a "$1" = "syslinux" ]; then
 		mkdir -p $MNTPNT/utils/linux
 		mkdir -p $MNTPNT/utils/win32
@@ -372,7 +353,7 @@ make_usb() {
 # cdrom stuff
 make_cd() {
 
-  echo -n "Writing files to temp dir ..."
+ echo -n "Writing files to temp dir ..."
 	writefiles isolinux
 	echo "Ok!"
 

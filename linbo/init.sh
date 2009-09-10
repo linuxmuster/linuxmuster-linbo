@@ -77,6 +77,12 @@ init_setup(){
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
  for i in $CMDLINE; do case "$i" in *=*) eval "$i";; esac; done
 
+ # get optionally given start.conf location
+ if [ -n "$conf" ]; then
+  confpart="$(echo $conf | awk -F\: '{ print $1 }')"
+  extraconf="$(echo $conf | awk -F\: '{ print $2 }')"
+ fi
+
  mount -t sysfs /sys /sys
  mount -n -o mode=0755 -t tmpfs tmpfs /dev
  if [ -e /etc/udev/links.conf ]; then
@@ -95,16 +101,6 @@ init_setup(){
  done
 }
 
-# findmodules dir
-# Returns module names for modprobe
-findmodules(){
- for m in `find "$@" -name \*.ko 2>/dev/null`; do
-  m="${m##*/}"
-  m="${m%%.ko}"
-  echo "$m"
- done
-}
-
 # trycopyfromdevice device filename
 trycopyfromdevice(){
  local RC=1
@@ -120,15 +116,64 @@ trycopyfromdevice(){
  fi
  return "$RC"
 }
- 
+
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
  local major="" minor="" blocks="" device="" relax=""
- [ -n "$cache" ] && trycopyfromdevice "$1" && return 0
+ [ -b "$cache" ] && trycopyfromdevice "$cache" "$1" && return 0
  while read major minor blocks device relax; do
    [ -n "$device" ] && trycopyfromdevice "$device" "$1" && return 0
  done < /proc/partitions
  return 1
+}
+
+# modify cache entry in start.conf
+modify_cache(){
+ [ -s "$1" ] || return 1
+ if grep -qi ^cache "$1"; then
+  sed -e "s|^[Cc][Aa][Cc][Hh][Ee].*|Cache = $cache|g" -i "$1"
+ else
+		sed -e "/^\[LINBO\]/a\
+Cache = $cache" -i "$1"
+ fi
+}
+
+# copytocache file - copies start.conf to local cache
+copytocache(){
+ local cachepart
+ if [ -b "$cache" ]; then
+  cachepart="$cache"
+ else
+  cachepart="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ fi
+ case "$cachepart" in
+  /dev/*) # local cache
+   mount "$cachepart" /cache || return 1
+   cp -a /start.conf /cache
+   [ "$cachepart" = "$cache" ] && modify_cache /cache/start.conf
+   umount /cache || umount -l /cache
+   ;;
+  *)
+   echo "No local cache partition found!"
+   return 1
+   ;;
+ esac
+}
+
+# copy extra start.conf given on cmdline
+copyextra(){
+ [ -z "$confpart" ] && return 1
+ [ -z "$extraconf" ] && return 1
+ mkdir -p /extra
+ mount "$confpart" /extra || return 1
+ local RC=1
+ if [ -s "/extra$extraconf" ]; then
+  cp "/extra$extraconf" /start.conf ; RC="$?"
+  umount /extra || umount -l /extra
+ else
+  RC=1
+ fi
+ return "$RC"
 }
 
 # Try to read the first valid ip address from all up network interfaces
@@ -235,6 +280,7 @@ network(){
  mv -f start.conf start.conf.dist
  if [ -n "$server" ]; then
   echo "linbo_server='$server'" >> /tmp/dhcp.log
+  echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" >/dev/null 2>&1 && break
   done
@@ -245,18 +291,21 @@ network(){
   esac
   [ -n "$dlfile" ] && rsync -L "$server::linbo/$dlfile" "$dlfile" >/dev/null 2>&1
  fi
+ # copy start.conf optionally given on cmdline
+ copyextra && local extra=yes
  if [ ! -s start.conf ]; then
   # No new version / no network available, look for a cached copy.
-  while [ ! -e "/tmp/linbo-cache.done" ]; do # Wait unil harddisk is available
-   sleep 1
-  done
   copyfromcache start.conf
  else
   # flag for network connection
   echo > /tmp/network.ok
+  # copy start.conf to cache if no extra start.conf was given on cmdline
+  [ -z "$extra" ] && copytocache
  fi
  # Still nothing new, revert to old version.
  [ -s start.conf ] || mv -f start.conf.dist start.conf
+ # modify cache in start.conf if cache was given and no extra start.conf was defined
+ [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  echo > /tmp/linbo-network.done 
 }
 

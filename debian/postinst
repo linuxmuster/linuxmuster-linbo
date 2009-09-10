@@ -154,7 +154,7 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
  	[ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
  	chown nobody $LINBOLOGDIR
 
- 	# update group specific linbofs.gz
+ 	# update linbofs.gz
  	$LINBOUPDATE
 
  ;;

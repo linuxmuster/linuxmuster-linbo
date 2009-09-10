@@ -43,6 +43,7 @@ if [ -s "$BACKUP" ]; then
    timage="$(btshowmetainfo "$LINBODIR/${FILE##*/}" | grep ^"file name" | awk '{ print $3 }')"
    echo "Torrent file for $timage detected. Restarting bittorrent service." >&2
    /etc/init.d/linbo-bittorrent restart >&2
+   /etc/init.d/bittorrent restart >&2
   fi
  else
  # If upload failed, move old file back from backup.
