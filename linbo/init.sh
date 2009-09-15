@@ -75,7 +75,25 @@ init_setup(){
  case "$CMDLINE" in *\ useide*) useide=yes;; esac
  case "$CMDLINE" in *\ debug*) debug=yes;; esac
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
- for i in $CMDLINE; do case "$i" in *=*) eval "$i";; esac; done
+
+ # process parameters given on kernel command line
+ for i in $CMDLINE; do
+
+  case "$i" in
+
+   # evalutate sata_nv options
+   sata_nv.swnc=*)
+    value="$(echo $i | awk -F\= '{ print $2 }')"
+    echo "options sata_nv swnc=$value" > /etc/modprobe.d/sata_nv.conf
+   ;;
+
+   *=*)
+    eval "$i"
+   ;;
+
+  esac
+
+ done # cmdline
 
  # get optionally given start.conf location
  if [ -n "$conf" ]; then

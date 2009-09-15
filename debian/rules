@@ -26,10 +26,10 @@ CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' |
 CLOOP_URL=$(LML_URL)
 
 # qt
-QT_ARCHIVE=$(shell grep qt-embedded-free- debian/md5sums.src | awk '{ print $$2 }')
-QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.bz2//')
-#QT_URL=http://wftp.tu-chemnitz.de/pub/Qt/qt/source
-QT_URL=$(LML_URL)
+QT_ARCHIVE=$(shell grep qt-embedded-linux-opensource-src- debian/md5sums.src | awk '{ print $$2 }')
+QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
+QT_URL=http://ftp.heanet.ie/mirrors/ftp.trolltech.com/pub/qt/source
+#QT_URL=$(LML_URL)
 
 # busybox
 BB_ARCHIVE=$(shell grep busybox- debian/md5sums.src | awk '{ print $$2 }')
@@ -137,8 +137,6 @@ configure-stamp:
 		( cd cache && grep $(KEXEC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(KEXEC_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KEXEC_ARCHIVE) -C src; \
-		echo "[1mPatching kexec-tools sources...[0m" ; \
-		( cd $(KEXEC_DIR) && for i in ../../patches/kexec-tools/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(KEXEC_DIR) src/kexec-tools; \
 	fi
 
@@ -214,8 +212,8 @@ configure-stamp:
 		( cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ; \
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui; \
-		echo "[1mPatching qt sources...[0m" ; \
-		( cd $(QT_DIR) && for i in ../../patches/qt/*; do patch -p1 <$$i; done ); \
+		echo "[1mPatching qt4 sources...[0m" ; \
+		( cd $(QT_DIR) && for i in ../../patches/qt4/*; do patch -p1 <$$i; done ); \
 	fi
 
 	# cloop
@@ -283,7 +281,7 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4914.0.0 ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4917.0.0 ); \
 	fi
 
 	# rsync
@@ -314,13 +312,11 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(QT_DIR)/bin/moc ]; then \
 		echo "[1mBuilding QT...[0m" ; \
 		( cd linbo_gui && ./build_qt ); \
-		ln -sf ../qmake/qmake $(QT_DIR)/bin/qmake; \
 	fi
 
 	# linbo_gui
 	-@if [ ! -e linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
-		ln -sf /usr/bin/uic $(QT_DIR)/bin/uic; \
 		( cd linbo_gui && ./build_gui ); \
 	fi
 	

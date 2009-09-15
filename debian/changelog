@@ -1,3 +1,18 @@
+linuxmuster-linbo (1.99.7-0) unstable; urgency=low
+
+  * kernel: new version 2.6.30.6
+  * linbo_gui:
+    - imported new qt4 based sources
+    - modified build environment according to to qt4
+  * linbofs:
+    - kexec-tools: new version 2.0.1
+    - ntfs-3g: new version 2009.4.4AR.17
+    - removed /etc/modprobe.d/sata_nv.conf, does not work with all controllers.
+    - init.sh:
+      o added code to evaluate sata_nv.swnc module options on boot time.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Sep 2009 09:05:47 +0200
+
 linuxmuster-linbo (1.99.6-0) unstable; urgency=low
 
   * package:
