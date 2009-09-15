@@ -1,11 +1,11 @@
 #ifndef LINBOGUIIMPL_HH
 #define LINBOGUIIMPL_HH
 
-#include "linboGUI.hh"
+#include "ui_linboGUI.h"
 #include "image_description.hh"
 #include <qstring.h>
-#include <qprocess.h>
-#include <qtextbrowser.h>
+#include <q3process.h>
+#include <q3textbrowser.h>
 #include <qdatetime.h>
 #include <qtimer.h>
 #include <vector>
@@ -23,7 +23,7 @@ class linboPasswordBoxImpl;
 // class linboProgressImpl;
 
 
-class linboGUIImpl : public linboGUI
+class linboGUIImpl : public QDialog, public Ui::linboGUI
 {
   Q_OBJECT
 
@@ -44,7 +44,7 @@ private:
   QString linestdout, linestderr;
   QString logfilepath;
   bool root, withicons, outputvisible;
-  QProcess* myprocess;
+  Q3Process* myprocess;
   QDialog* myQPasswordBox;
   linboPasswordBoxImpl* myLPasswordBox;
   linbopushbutton *autostart, *autopartition, *autoinitcache;
@@ -66,7 +66,7 @@ public:
   linboGUIImpl( QWidget* parent = 0,
                 const char* name = 0,
                 bool modal = FALSE,
-                WFlags fl = 0 );
+                Qt::WFlags fl = 0 );
 
   ~linboGUIImpl();
 

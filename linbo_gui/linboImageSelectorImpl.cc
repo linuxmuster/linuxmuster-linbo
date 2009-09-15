@@ -1,22 +1,21 @@
 #include "linboImageSelectorImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboGUIImpl.hh"
-#include <qprogressbar.h>
+#include <q3progressbar.h>
 #include <qapplication.h>
-#include <qbuttongroup.h>
-#include <qlistbox.h>
+#include <q3buttongroup.h>
+#include <q3listbox.h>
+#include <QtGui>
 #include <qradiobutton.h>
+//Added by qt3to4:
+#include <Q3TextStream>
 #include "linboImageUploadImpl.hh"
 #include "linboPushButton.hh"
 
-linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent,
-                                       const char* name,
-                                       bool modal,
-                                       WFlags fl ) : linboImageSelector( parent,
-                                                                    name ), 
-                                                     linboDialog()
+linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog()
 {
-  process = new QProcess( this );
+  Ui_linboImageSelector::setupUi((QDialog*)this);
+  process = new Q3Process( this );
 
   connect( cancelButton, SIGNAL(pressed()), this, SLOT(close()) );
   connect( createButton, SIGNAL(pressed()), this, SLOT(postcmd()) );
@@ -34,6 +33,7 @@ linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent,
   specialName->setEnabled( false );
   imageButtons->setEnabled( false );
 
+  myParent = parent;
   upload=false;
   neighbourDialog = 0;
 }
@@ -42,7 +42,7 @@ linboImageSelectorImpl::~linboImageSelectorImpl()
 {
 } 
 
-void linboImageSelectorImpl::setTextBrowser( QTextBrowser* newBrowser )
+void linboImageSelectorImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
@@ -95,11 +95,11 @@ void linboImageSelectorImpl::selectionWatcher() {
 
     file = new QFile( myLoadCommand[4] );
     // read content
-    if( !file->open( IO_ReadOnly ) ) {
+    if( !file->open( QIODevice::ReadOnly ) ) {
       Console->append("Keine passende Beschreibung im Cache.");
     } 
     else {
-      QTextStream ts( file );
+      Q3TextStream ts( file );
       infoEditor->setText( ts.read() );
       file->close();
     }
@@ -127,12 +127,11 @@ void linboImageSelectorImpl::postcmd2() {
 void linboImageSelectorImpl::postcmd() {
   this->hide();
   linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
-
   QString selection, imageName;
-  
+
   selection = listBox->currentText();
 
-  linbopushbutton* neighbour = (static_cast<linbopushbutton*>(this->parentWidget()))->getNeighbour();
+ linbopushbutton* neighbour = (static_cast<linbopushbutton*>(myParent))->getNeighbour();
 
   neighbourDialog = 0;
   neighbourDialog = neighbour->getLinboDialog();
@@ -153,7 +152,6 @@ void linboImageSelectorImpl::postcmd() {
 
   } else {
     // user choosed to build a new image
-
     if( ! (infoEditor->text()).isEmpty() )
       info = infoEditor->text();
     else
@@ -184,7 +182,7 @@ void linboImageSelectorImpl::postcmd() {
     // expand save command 
     mySaveCommand[3] = imageName + QString(".desc");
     mySaveCommand[4] = QString("/tmp/") + imageName + QString(".desc");
-  
+
     // this expands our neighbour
     if( neighbourDialog  ) {
       if( ! (static_cast<linboImageUploadImpl*>(neighbourDialog))->listBox->findItem( imageName ) ) {
@@ -192,12 +190,12 @@ void linboImageSelectorImpl::postcmd() {
       }
     }
   }
-  
+
   writeInfo();
- 
+
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
+    linboProgressImpl *progwindow = new linboProgressImpl(0);//,"Arbeite...",0, Qt::WStyle_Tool );
     progwindow->setProcess( process );
     connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->show();
@@ -262,10 +260,10 @@ QStringList linboImageSelectorImpl::getCommand()
 
 void linboImageSelectorImpl::writeInfo() {
   file = new QFile( mySaveCommand[4] );
-  if ( !file->open( IO_WriteOnly ) ) {
+  if ( !file->open( QIODevice::WriteOnly ) ) {
     Console->append("Fehler beim Speichern der Beschreibung.");
   } else {
-    QTextStream ts( file );
+    Q3TextStream ts( file );
     ts << info;
     file->flush();
     file->close();

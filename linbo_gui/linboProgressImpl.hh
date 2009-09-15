@@ -1,32 +1,31 @@
 #ifndef LINBOPROGRESSIMPL_HH
 #define LINBOPROGRESSIMPL_HH
 
-#include "linboProgress.hh"
+#include "ui_linboProgress.h"
+
+// #include "linboProgress.hh"
 #include <qobject.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <qprocess.h>
+#include <q3process.h>
 #include <qpushbutton.h>
-#include <qtextbrowser.h>
+#include <q3textbrowser.h>
 
-class linboProgressImpl : public linboProgress
+class linboProgressImpl : public QWidget, public Ui::linboProgress
 {
   Q_OBJECT
 
 private:
-  QProcess *myProcess;
-  QTextBrowser* Console;
+  Q3Process *myProcess;
+  Q3TextBrowser* Console;
 
 public:
-  linboProgressImpl( QWidget* parent = 0,
-                     const char* name = 0,
-                     bool modal = FALSE,
-                     WFlags fl = 0 );
+  linboProgressImpl( QWidget* parent = 0 );
 
   ~linboProgressImpl();
 
-  void setProcess( QProcess* newProcess );
-  void setTextBrowser( QTextBrowser* newBrowser );
+  void setProcess( Q3Process* newProcess );
+  void setTextBrowser( Q3TextBrowser* newBrowser );
 
 public slots:
   void killLinboCmd();

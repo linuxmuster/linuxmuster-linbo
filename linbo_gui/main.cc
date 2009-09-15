@@ -1,24 +1,26 @@
 // STL-includes
 #include <iostream>
 #include <qwindowsystem_qws.h>
+#include <QWSServer>
 #include <qimage.h>
 #include <qtimer.h>
-#include <qgfx_qws.h>
-
 // qt
 #include <qapplication.h>
 #include "linboGUIImpl.hh"
-
+#include <QtGui>
+#include <QBrush> 
+#include <QScreen>
+#include <QLocale>
 #include <qkbdpc101_qws.h>
+
 void GermanKeyboard()
 {
   QWSKeyboardHandler *kh=QWSServer::keyboardHandler();
   if(!kh) return;
-
   QWSKeyMap germanpc102[] = {
     { Qt::Key_unknown,    Qt::Key_unknown,    Qt::Key_unknown,     Qt::Key_unknown },
     { Qt::Key_Escape,     27,                 27,                  Qt::Key_unknown },
-    { Qt::Key_1,          '1',                '!',                 Qt::Key_onesuperior },
+    { Qt::Key_1,          '1',                '!',                 '1' },
     { Qt::Key_2,          '2',                '"',                 Qt::Key_twosuperior },
     { Qt::Key_3,          '3',                Qt::Key_section,     Qt::Key_threesuperior },
     { Qt::Key_4,          '4',                '$',                 Qt::Key_onequarter },
@@ -107,43 +109,71 @@ void GermanKeyboard()
     { Qt::Key_F12,        Qt::Key_unknown,    Qt::Key_Ucircumflex, Qt::Key_ucircumflex },
     { Qt::Key_unknown,    Qt::Key_unknown,    Qt::Key_unknown,     Qt::Key_unknown },
     { Qt::Key_unknown,    Qt::Key_unknown,    Qt::Key_unknown,     Qt::Key_unknown }, // 90
-    { 0,                  Qt::Key_unknown,    Qt::Key_unknown,     Qt::Key_unknown }
+     {   Qt::Key_unknown,    0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_unknown,    0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_unknown,    0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_unknown,    0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_Enter,      13      , 13      , 0xffff  },
+    {   Qt::Key_Control,    0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Slash,                '/'     , '/'     , 0xffff  },
+    {   Qt::Key_SysReq,    0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Meta,                0xffff  , 0xffff  , 0xffff  }, // 100
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  }, // break
+    {        Qt::Key_Home,            0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Up,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_PageUp,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Left,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Right,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_End,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Down,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_PageDown,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_Insert,                0xffff  , 0xffff  , 0xffff  }, // 110
+    {        Qt::Key_Delete,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  }, // macro
+    {   Qt::Key_F13,        0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_F14,        0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_Help,       0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  }, // do
+    {   Qt::Key_F17,        0xffff  , 0xffff  , 0xffff  },
+    {   Qt::Key_Plus,       '+'     , '-'     , 0xffff  },
+    {        Qt::Key_Pause,                0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {        Qt::Key_unknown,        0xffff  , 0xffff  , 0xffff  },
+    {   0,          0xffff  , 0xffff  , 0xffff  }
+
   };
   kh->setKeyMap(germanpc102);
 }
 
-
 int main( int argc, char* argv[] )
 {
-  QColor black(0,0,0);
 
   QApplication myapp( argc, argv );
-  bool backgroundpicture = true;
 
-  if ( backgroundpicture ) {
-    QImage myImage;
+  QWSServer* wsServer = QWSServer::instance();
 
-    myImage.load( "/usr/lib/linbo_wallpaper.png", "PNG" );
+  QImage bgimg( "/usr/lib/linbo_wallpaper.png", "PNG" );
+  int width = qt_screen->deviceWidth();
+  int height = qt_screen->deviceHeight();
 
-    int width = qt_screen->deviceWidth();
-    int height = qt_screen->deviceHeight();
+  bgimg.smoothScale( width, height );
 
-    qwsServer->setDesktopBackground( myImage.smoothScale ( width, height ) );
+  if ( wsServer ) {
+    wsServer->setBackground( QBrush( bgimg ) );
+    wsServer->refresh();
   }
- 
-  linboGUIImpl* w = new linboGUIImpl(0,"LINBO", 0, Qt::WStyle_Customize | Qt::WStyle_NoBorder );
-  // linboGUIImpl* w = new linboGUIImpl(0,"LINBO", 0, Qt::WStyle_Customize | Qt::WStyle_Title  | Qt::WStyle_SysMenu | Qt::WStyle_MinMax | Qt::WStyle_Tool );
-  // 
-  // linboGUIImpl* w = new linboGUIImpl(0,"LINBO", 0, Qt::WStyle_Customize | Qt::WStyle_Tool );
-  // linboGUIImpl* w = new linboGUIImpl(0,"LINBO", 0, Qt::WStyle_Tool );
+
   GermanKeyboard();
-  w->show();
-  w->setActiveWindow();
+  linboGUIImpl* myGUI = new linboGUIImpl; 
 
-  myapp.setMainWidget( w );
-
-  QTimer::singleShot( 100, w, SLOT(executeAutostart()) );
-  
+  myGUI->show();
+  QTimer::singleShot( 100, myGUI, SLOT(executeAutostart()) );  
 
   return myapp.exec();
 }

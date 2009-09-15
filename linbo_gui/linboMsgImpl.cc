@@ -2,16 +2,12 @@
 #include <qapplication.h>
 #include <unistd.h>
 
-linboMsgImpl::linboMsgImpl(  QWidget* parent,
-                                             const char* name,
-                                             bool modal,
-                                             WFlags fl ) : linboMsg( parent,
-                                                                     name,
-                                                                     modal,
-                                                                     fl ), 
-                                                           linboDialog()
+linboMsgImpl::linboMsgImpl(  QWidget* parent ) : linboDialog()
 {
-  myProcess = new QProcess();
+
+  Ui_linboMsg::setupUi((QDialog*)this);
+
+  myProcess = new Q3Process();
   // connect stdout and stderr to linbo console
   connect( myProcess, SIGNAL(readyReadStdout()),
            this, SLOT(readFromStdout()) );

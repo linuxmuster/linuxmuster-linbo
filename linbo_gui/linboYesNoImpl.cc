@@ -1,18 +1,16 @@
 #include "linboYesNoImpl.hh"
 #include "linboProgressImpl.hh"
-#include <qprogressbar.h>
+#include <QtGui>
+#include <q3progressbar.h>
 #include <qapplication.h>
 
-linboYesNoImpl::linboYesNoImpl(  QWidget* parent,
-                                 const char* name,
-                                 bool modal,
-                                 WFlags fl ) : linboYesNo( parent,
-                                                           name ), 
-                                                           linboDialog()
+linboYesNoImpl::linboYesNoImpl(  QWidget* parent ) : linboDialog()
 {
-  process = new QProcess( this );
+  Ui_linboYesNo::setupUi((QDialog*)this);
+
+  process = new Q3Process( this );
   connect(YesButton,SIGNAL(clicked()),this,SLOT(postcmd()));
-  connect(NoButton,SIGNAL(clicked()),this,SLOT(close()));
+  connect(NoButton,SIGNAL(clicked()),this,SLOT(close())); 
 
   // connect stdout and stderr to linbo console
   connect( process, SIGNAL(readyReadStdout()),
@@ -35,7 +33,7 @@ void linboYesNoImpl::postcmd() {
   linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
 
   if( app ) {
-    linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
+    linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
     connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->setProcess( process );
 
@@ -75,7 +73,7 @@ void linboYesNoImpl::postcmd() {
   this->close();
 }
 
-void linboYesNoImpl::setTextBrowser( QTextBrowser* newBrowser )
+void linboYesNoImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 {
   Console = newBrowser;
 }

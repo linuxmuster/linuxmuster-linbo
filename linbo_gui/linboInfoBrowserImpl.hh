@@ -1,23 +1,24 @@
 #ifndef LINBOINFOBROWSERIMPL_HH
 #define LINBOINFOBROWSERIMPL_HH
 
-#include "linboInfoBrowser.hh"
+#include "ui_linboInfoBrowser.h"
+
 #include <qobject.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <qtextbrowser.h>
+#include <q3textbrowser.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <qprocess.h>
+#include <q3process.h>
 #include <qfile.h>
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
 
 
-class linboInfoBrowserImpl : public linboInfoBrowser, public linboDialog
+class linboInfoBrowserImpl : public QWidget, public Ui::linboInfoBrowser, public linboDialog
 {
   Q_OBJECT
 
@@ -25,11 +26,11 @@ private:
   QString line;
   QWidget *myMainApp;
   linboGUIImpl *app;
-  QProcess* myProcess;
+  Q3Process* myProcess;
   QStringList myUploadCommand, myLoadCommand, mySaveCommand;
   QString filepath;
   QFile *file;
-  QTextBrowser *Console;
+  Q3TextBrowser *Console;
   
 
 public slots:
@@ -41,14 +42,11 @@ public slots:
 
 
 public:
-  linboInfoBrowserImpl( QWidget* parent = 0,
-                        const char* name = 0,
-                        bool modal = FALSE,
-                        WFlags fl = 0);
+  linboInfoBrowserImpl( QWidget* parent );
 
   ~linboInfoBrowserImpl();
 
-  void setTextBrowser( QTextBrowser* newBrowser );
+  void setTextBrowser( Q3TextBrowser* newBrowser );
   void setMainApp( QWidget* newMainApp );
 
   void setCommand(const QStringList& );

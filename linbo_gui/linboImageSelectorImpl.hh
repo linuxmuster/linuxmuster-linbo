@@ -1,32 +1,33 @@
 #ifndef LINBOIMAGESELECTORIMPL_HH
 #define LINBOIMAGESELECTORIMPL_HH
 
-#include "linboImageSelector.hh"
+#include "ui_linboImageSelector.h"
+
 #include <qobject.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <qtextbrowser.h>
+#include <q3textbrowser.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <qprocess.h>
+#include <q3process.h>
 
 #include "linboDialog.hh"
 
 
-class linboImageSelectorImpl : public linboImageSelector, public linboDialog
+class linboImageSelectorImpl : public QWidget, public Ui::linboImageSelector, public linboDialog
 {
   Q_OBJECT
 
 private:
   QString line, myCache, mySavePath, info, baseImage;
   QStringList myCommand, mySaveCommand, myLoadCommand;
-  QProcess *process;
+  Q3Process *process;
   QFile *file;
-  QWidget *myMainApp;
-  QTextBrowser *Console;
+  QWidget *myMainApp,*myParent;
+  Q3TextBrowser *Console;
   bool upload;
   linboDialog* neighbourDialog;
 
@@ -39,14 +40,11 @@ public slots:
   void selectionWatcher();
 
 public:
-  linboImageSelectorImpl( QWidget* parent = 0,
-                     const char* name = 0,
-                     bool modal = FALSE,
-                     WFlags fl = 0);
+  linboImageSelectorImpl( QWidget* parent = 0);
 
   ~linboImageSelectorImpl();
 
-  void setTextBrowser( QTextBrowser* newBrowser );
+  void setTextBrowser( Q3TextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   void setLoadCommand(const QStringList& arglist);
   void setSaveCommand(const QStringList& arglist);

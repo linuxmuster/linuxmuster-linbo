@@ -1,19 +1,16 @@
 #include "linboRegisterBoxImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboGUIImpl.hh"
-#include <qprogressbar.h>
+#include <q3progressbar.h>
 #include <qapplication.h>
 #include "linboPushButton.hh"
 #include "linboYesNoImpl.hh"
 
-linboRegisterBoxImpl::linboRegisterBoxImpl(  QWidget* parent,
-                                       const char* name,
-                                       bool modal,
-                                       WFlags fl ) : linboRegisterBox( parent,
-                                                                    name ), 
-                                                     linboDialog()
+linboRegisterBoxImpl::linboRegisterBoxImpl(  QWidget* parent ) : linboDialog()
 {
-  process = new QProcess( this );
+  Ui_linboRegisterBox::setupUi((QDialog*)this);
+
+  process = new Q3Process( this );
 
   connect(registerButton,SIGNAL(clicked()),this,SLOT(postcmd()));
   connect(cancelButton,SIGNAL(clicked()),this,SLOT(close()));
@@ -30,7 +27,7 @@ linboRegisterBoxImpl::~linboRegisterBoxImpl()
 {
 } 
 
-void linboRegisterBoxImpl::setTextBrowser( QTextBrowser* newBrowser )
+void linboRegisterBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
@@ -67,7 +64,7 @@ void linboRegisterBoxImpl::postcmd() {
 
     if( app ) {
       // do something
-      linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
+      linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
       progwindow->setProcess( process );
       connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
       progwindow->show();

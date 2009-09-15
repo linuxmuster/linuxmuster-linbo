@@ -1,20 +1,19 @@
 #include "linboMulticastBoxImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboGUIImpl.hh"
-#include <qprogressbar.h>
+#include <q3progressbar.h>
 #include <qapplication.h>
 #include <qradiobutton.h>
 #include "linboPushButton.hh"
 #include "linboYesNoImpl.hh"
+#include <QtGui>
 
-linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent,
-                                       const char* name,
-                                       bool modal,
-                                       WFlags fl ) : linboMulticastBox( parent,
-                                                                    name ), 
-                                                     linboDialog()
+linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
 {
-  process = new QProcess( this );
+
+  Ui_linboMulticastBox::setupUi((QDialog*)this);
+
+  process = new Q3Process( this );
 
   // nothing to do
   connect(okButton,SIGNAL(pressed()),this,SLOT(postcmd()));
@@ -32,7 +31,7 @@ linboMulticastBoxImpl::~linboMulticastBoxImpl()
 {
 } 
 
-void linboMulticastBoxImpl::setTextBrowser( QTextBrowser* newBrowser )
+void linboMulticastBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
@@ -60,7 +59,7 @@ void linboMulticastBoxImpl::postcmd() {
 
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
+    linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
     connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
 
     progwindow->setTextBrowser( Console );
