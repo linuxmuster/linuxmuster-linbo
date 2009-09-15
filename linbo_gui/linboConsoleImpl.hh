@@ -1,37 +1,39 @@
 #ifndef LINBOCONSOLEIMPL_HH
 #define LINBOCONSOLEIMPL_HH
 
-#include "ui_linboConsole.h"
-
+#include "linboConsole.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3process.h>
+#include <qprocess.h>
 #include <qstring.h>
-#include <q3textbrowser.h>
-#include <q3textedit.h>
+#include <qtextbrowser.h>
+#include <qtextedit.h>
 
 #include "linboDialog.hh"
 
-class linboConsoleImpl : public QWidget, public Ui::linboConsole, public linboDialog
+class linboConsoleImpl : public linboConsole, public linboDialog
 {
   Q_OBJECT
   
 private:
-  Q3Process* process;
+  QProcess* process;
   QStringList myCommand;
   QString line;
   QWidget *myMainApp;
-  Q3TextBrowser *Console;
+  QTextBrowser *Console;
 
 public:
-  linboConsoleImpl( QWidget* parent = 0 );
+  linboConsoleImpl( QWidget* parent = 0,
+                const char* name = 0,
+                bool modal = FALSE,
+                WFlags fl = 0);
 
   ~linboConsoleImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here
@@ -43,6 +45,6 @@ public slots:
   virtual void precmd();
   void readFromStderr();
   void readFromStdout();
- 
+
 };
 #endif

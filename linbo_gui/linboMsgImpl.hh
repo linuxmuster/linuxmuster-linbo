@@ -1,29 +1,32 @@
 #ifndef LINBOMSGIMPL_HH
 #define LINBOMSGIMPL_HH
 
-#include "ui_linboMsg.h"
+#include "linboMsg.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3process.h>
+#include <qprocess.h>
 #include <qstring.h>
 
 #include "linboDialog.hh"
 
 
-class linboMsgImpl : public QWidget, public Ui::linboMsg, public linboDialog
+class linboMsgImpl : public linboMsg, public linboDialog
 {
   Q_OBJECT
 
   
 private:
-  Q3Process* myProcess;
+  QProcess* myProcess;
   QString line;
 
 public:
-  linboMsgImpl( QWidget* parent = 0 );
+  linboMsgImpl( QWidget* parent = 0,
+                const char* name = 0,
+                bool modal = FALSE,
+                WFlags fl = 0);
 
    ~linboMsgImpl();
 

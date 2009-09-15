@@ -1,158 +1,150 @@
 #include "linboInfoBrowserImpl.hh"
 #include <qapplication.h>
-#include <QtGui>
-#include <q3textstream.h>
+#include <qtextstream.h>
 
-linboInfoBrowserImpl::linboInfoBrowserImpl(QWidget* parent ) : linboDialog()
+linboInfoBrowserImpl::linboInfoBrowserImpl(  QWidget* parent,
+                                             const char* name,
+                                             bool modal,
+                                             WFlags fl ) : linboInfoBrowser( parent,
+                                                                             name ), 
+                                                           linboDialog()
 {
-   Ui_linboInfoBrowser::setupUi((QDialog*)this);
+  myProcess = new QProcess();
+  connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
 
-   myProcess = new Q3Process( this );
-   connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
+  connect( myProcess, SIGNAL(readyReadStdout()),
+           this, SLOT(readFromStdout()) );
+  connect( myProcess, SIGNAL(readyReadStderr()),
+           this, SLOT(readFromStderr()) );
 
-   connect( myProcess, SIGNAL(readyReadStdout()),
-            this, SLOT(readFromStdout()) );
-
-   connect( myProcess, SIGNAL(readyReadStderr()),
-            this, SLOT(readFromStderr()) );  
 }
 
 linboInfoBrowserImpl::~linboInfoBrowserImpl()
 {
-  delete myProcess;
 } 
 
-void linboInfoBrowserImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboInfoBrowserImpl::setTextBrowser( QTextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
 
 void linboInfoBrowserImpl::setMainApp( QWidget* newMainApp ) {
-  if ( newMainApp ) {
-    myMainApp = newMainApp;
-  }
+  myMainApp = newMainApp;
 }
 
 
 void linboInfoBrowserImpl::precmd() {
   app = static_cast<linboGUIImpl*>( myMainApp );
-  
-  if( app ) {
-    if ( app->isRoot() ) {
-      saveButton->setText("Speichern");
-      saveButton->setEnabled( true );
-      editor->setReadOnly( false );
-      // connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
-    } else {
-      saveButton->setText("Schliessen");
-      saveButton->setEnabled( true );
-      editor->setReadOnly( true );
-      // connect( this->saveButton, SIGNAL(clicked()), this, SLOT(close()));
-    }
+  if ( app->isRoot() ) {
+    saveButton->setText("Speichern");
+    saveButton->setEnabled( true );
+    editor->setReadOnly( false );
+    // connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
+  } else {
+    saveButton->setText("Schliessen");
+    saveButton->setEnabled( true );
+    editor->setReadOnly( true );
+    // connect( this->saveButton, SIGNAL(clicked()), this, SLOT(close()));
+  }
 
-    myProcess->clearArguments();
-    myProcess->setArguments( myLoadCommand );
+  myProcess->clearArguments();
+  myProcess->setArguments( myLoadCommand );
 
 #ifdef DEBUG
-    Console->append(QString("linboInfoBrowserImpl: myLoadCommand"));
-    QStringList list = myProcess->arguments();
-    QStringList::Iterator it = list.begin();
-    while( it != list.end() ) {
-      Console->append( *it );
-      ++it;
-    }
-    Console->append(QString("*****"));
+  Console->append(QString("linboInfoBrowserImpl: myLoadCommand"));
+  QStringList list = myProcess->arguments();
+  QStringList::Iterator it = list.begin();
+  while( it != list.end() ) {
+    Console->append( *it );
+    ++it;
+  }
+  Console->append(QString("*****"));
 #endif
 
-    if( myProcess->start() ) {
-      while( myProcess->isRunning() ) {
-        usleep( 1000 );
-      }
-    } else {
-      Console->append("myLoadCommand didn't start");
+  if( myProcess->start() ) {
+    while( myProcess->isRunning() ) {
+      usleep( 1000 );
     }
-
-    file = new QFile( filepath );
-    // read content
-    if( !file->open( QIODevice::ReadOnly ) ) {
-      Console->append("Keine passende Beschreibung im Cache.");
-    } 
-    else {
-      Q3TextStream ts( file );
-      editor->setText( ts.read() );
-      file->close();
-    }
+  } else {
+    Console->append("myLoadCommand didn't start");
   }
-  
+
+  file = new QFile( filepath );
+  // read content
+  if( !file->open( IO_ReadOnly ) ) {
+    Console->append("Keine passende Beschreibung im Cache.");
+  } 
+  else {
+    QTextStream ts( file );
+    editor->setText( ts.read() );
+    file->close();
+  }
 }
 
 
 void linboInfoBrowserImpl::postcmd() {
-  
-  if( app ) {
-    if ( app->isRoot() ) {
 
-      if ( !file->open( QIODevice::WriteOnly ) ) {
-        Console->append("Fehler beim Speichern der Beschreibung.");
-      } 
-      else {
-        Q3TextStream ts( file );
-        ts << editor->text();
-        file->flush();
-        file->close();
+  if ( app->isRoot() ) {
 
-        myProcess->clearArguments();
-        myProcess->setArguments( mySaveCommand ); 
+    if ( !file->open( IO_WriteOnly ) ) {
+      Console->append("Fehler beim Speichern der Beschreibung.");
+    } 
+    else {
+      QTextStream ts( file );
+      ts << editor->text();
+      file->flush();
+      file->close();
 
-#ifdef DEBUG
-        Console->append(QString("linboInfoBrowserImpl: mySaveCommand"));
-        QStringList list = myProcess->arguments();
-        QStringList::Iterator it = list.begin();
-      
-        while( it != list.end() ) {
-          Console->append( *it );
-          ++it;
-        }
-        Console->append(QString("*****"));
-#endif
-
-        if( myProcess->start() ) {
-          while( myProcess->isRunning() ) {
-            usleep( 1000 );
-          }
-        } else {
-          Console->append("mySaveCommand didn't start");
-        }
-      
-        myProcess->clearArguments();
-        myProcess->setArguments( myUploadCommand );
+      myProcess->clearArguments();
+      myProcess->setArguments( mySaveCommand ); 
 
 #ifdef DEBUG
-        Console->append(QString("linboInfoBrowserImpl: myUploadCommand"));
-        list = myProcess->arguments();
-        it = list.begin();
+      Console->append(QString("linboInfoBrowserImpl: mySaveCommand"));
+      QStringList list = myProcess->arguments();
+      QStringList::Iterator it = list.begin();
       
-        while( it != list.end() ) {
-          Console->append( *it );
-          ++it;
-        }
-        Console->append(QString("*****"));
-#endif
-
-        if( myProcess->start() ) {
-          while( myProcess->isRunning() ) {
-            usleep( 1000 );
-          }
-        } else {
-          Console->append("myUploadCommand didn't start");
-        }
-
-
+      while( it != list.end() ) {
+        Console->append( *it );
+        ++it;
       }
+      Console->append(QString("*****"));
+#endif
+
+      if( myProcess->start() ) {
+        while( myProcess->isRunning() ) {
+          usleep( 1000 );
+        }
+      } else {
+        Console->append("mySaveCommand didn't start");
+      }
+      
+      myProcess->clearArguments();
+      myProcess->setArguments( myUploadCommand );
+
+#ifdef DEBUG
+      Console->append(QString("linboInfoBrowserImpl: myUploadCommand"));
+      list = myProcess->arguments();
+      it = list.begin();
+      
+      while( it != list.end() ) {
+        Console->append( *it );
+        ++it;
+      }
+      Console->append(QString("*****"));
+#endif
+
+      if( myProcess->start() ) {
+        while( myProcess->isRunning() ) {
+          usleep( 1000 );
+        }
+      } else {
+        Console->append("myUploadCommand didn't start");
+      }
+
+
     }
-    this->close();
   }
-  
+  this->close();
 }
 
 void linboInfoBrowserImpl::setCommand( const QStringList& newArguments ) {

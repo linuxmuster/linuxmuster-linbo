@@ -4,8 +4,8 @@
 #include <qpushbutton.h>
 #include <qstring.h>
 #include <qwidget.h>
-#include <q3process.h>
-#include <q3textbrowser.h>
+#include <qprocess.h>
+#include <qtextbrowser.h>
 #include <qstringlist.h>
 #include <qtimer.h>
 #include <qdialog.h>
@@ -13,7 +13,7 @@
 #include "linboYesNoImpl.hh"
 #include "linboPasswordBoxImpl.hh"
 #include "linboMsgImpl.hh"
-#include "ui_linboInfoBrowser.h"
+#include "linboInfoBrowser.hh"
 #include "linboInputBoxImpl.hh"
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
@@ -26,13 +26,12 @@ class linbopushbutton : public QPushButton
 
 private:
   QString myCommand, line;
-  Q3TextBrowser* Console;
-  Q3Process *myprocess;
+  QTextBrowser* Console;
+  QProcess *myprocess;
   QTimer *timer;
   QDialog* myQDialog;
   linboDialog* myLinboDialog;
   QWidget *myMainApp;
-  // QDialog *myMainApp;
   linboGUIImpl* app;
   bool progress;
   linbopushbutton* neighbour;
@@ -41,12 +40,11 @@ public:
   linbopushbutton( QWidget* parent = 0,
                    const char* name = 0,
                    bool modal = FALSE,
-                   Qt::WFlags fl = 0 );
+                   WFlags fl = 0 );
 
   ~linbopushbutton();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
-  // void setMainApp( QDialog* newMainApp );
+  void setTextBrowser( QTextBrowser* newBrowser );
   void setMainApp( QWidget* newMainApp );
   void setLinboDialog( linboDialog* newDialog );
   linboDialog* getLinboDialog();

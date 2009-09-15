@@ -1,8 +1,7 @@
 #ifndef LINBOPASSWORDBOXIMPL_HH
 #define LINBOPASSWORDBOXIMPL_HH
 
-#include "ui_linboPasswordBox.h"
-
+#include "linboPasswordBox.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -11,17 +10,16 @@
 #include <qdialog.h>
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
-#include "ui_linboGUI.h"
+#include "linboGUI.hh"
 #include <qstringlist.h>
-#include <q3textbrowser.h>
+#include <qtextbrowser.h>
 #include <qtimer.h>
-#include "linboCounterImpl.hh"
+#include "linboCounter.hh"
 #include "linboGUIImpl.hh"
 
-using namespace Ui;
 class linboGUIImpl;
 
-class linboPasswordBoxImpl : public QWidget, public Ui::linboPasswordBox, public linboDialog
+class linboPasswordBoxImpl : public linboPasswordBox, public linboDialog
 {
   Q_OBJECT
 
@@ -29,15 +27,18 @@ private:
   QWidget* myMainApp;
   linboGUIImpl* app;
   QStringList myCommand;
-  Q3Process* process;
+  QProcess* process;
   QString line;
-  Q3TextBrowser *Console;
-  linboCounterImpl* myCounter;
+  QTextBrowser *Console;
+  linboCounter* myCounter;
   QTimer* myTimer;
   int currentTimeout;
 
 public:
-  linboPasswordBoxImpl( QDialog* parent = 0 );
+  linboPasswordBoxImpl( QWidget* parent = 0,
+                        const char* name = 0,
+                        bool modal = FALSE,
+                        WFlags fl = 0);
 
    ~linboPasswordBoxImpl();
 
@@ -46,7 +47,7 @@ public:
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextBrowser* newBrowser );
 
 
 public slots:

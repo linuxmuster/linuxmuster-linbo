@@ -2,60 +2,10 @@
 
 # Build QT embedded. This can be painful...
 
-( cd qt-embedded-linux-opensource-src-4.5.2
+SRCDIR=qt-embedded-free-3.3.7
+
+( cd $SRCDIR
   export QTDIR=`pwd`
-  export CXX=g++-4.3
-  make clean
-  ./configure \
- -embedded x86 \
- -prefix $QTDIR \
- -opensource \
- -release \
- -static \
- -no-accessibility \
- -no-xmlpatterns \
- -no-phonon \
- -no-phonon-backend \
- -no-webkit \
- -no-exceptions \
- -no-svg \
- -no-scripttools \
- -no-nis \
- -no-cups \
- -no-stl \
- -verbose \
- -qt-zlib \
- -qt-libpng \
- -no-gif \
- -no-libjpeg \
- -no-openssl \
- -no-iconv \
- -no-dbus \
- -depths 4,8,16 \
- -no-mouse-yopy \
- -no-mouse-vr41xx \
- -no-largefile \
- -no-xinerama \
- -no-xrender \
- -no-freetype \
- -qt-gfx-linuxfb \
- -no-gfx-vnc \
- -no-gfx-multiscreen \
- -no-gfx-transformed \
- -no-gfx-qvfb \
- -no-opengl \
- -qt-decoration-default \
- -no-decoration-windows \
- -no-decoration-styled \
- -no-kbd-sl5000 \
- -no-kbd-yopy \
- -no-kbd-vr41xx \
- -no-mouse-yopy \
- -no-mouse-vr41xx \
- -no-mouse-tslib \
- -no-glib \
-  )
-( cd qt-embedded-linux-opensource-src-4.5.2
-  export QTDIR=`pwd`
-  export CXX=g++-4.3
-  make -j 2 )
+  export CXX=g++-4.1
+  echo -e "yes\n" | ./configure -embedded x86 -prefix /usr -release -static -no-ipv6 -disable-network -disable-opengl -disable-sql -no-exceptions -no-nis -no-cups -no-stl -verbose -no-gif -depths 4,8,16 -no-kbd-sl5000 -no-kbd-yopy -no-kbd-vr41xx -no-mouse-yopy -no-mouse-vr41xx -no-largefile -no-style-cde -no-style-compact -no-style-motif -no-style-motifplus -no-style-platinum -no-style-sgi -no-xinerama -no-xrender -no-xft -no-freetype -qt-gfx-vga16
+  make sub-src)

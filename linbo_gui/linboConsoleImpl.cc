@@ -1,16 +1,18 @@
 #include "linboConsoleImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboGUIImpl.hh"
-#include <q3progressbar.h>
+#include <qprogressbar.h>
 #include <qapplication.h>
-#include <QtGui>
 #include "linboPushButton.hh"
 
-
-linboConsoleImpl::linboConsoleImpl(  QWidget* parent ) : linboDialog()
+linboConsoleImpl::linboConsoleImpl(  QWidget* parent,
+                                       const char* name,
+                                       bool modal,
+                                       WFlags fl ) : linboConsole( parent,
+                                                                    name ), 
+                                                     linboDialog()
 {
-  Ui_linboConsole::setupUi((QDialog*)this);
-  process = new Q3Process( this );
+  process = new QProcess( this );
   output->setMaxLogLines( 1000 );
 
   connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
@@ -26,7 +28,7 @@ linboConsoleImpl::~linboConsoleImpl()
 {
 } 
 
-void linboConsoleImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboConsoleImpl::setTextBrowser( QTextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
@@ -88,4 +90,3 @@ void linboConsoleImpl::readFromStderr()
       output->append( line );
     } 
 }
-

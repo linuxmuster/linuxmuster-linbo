@@ -1,32 +1,31 @@
 #ifndef LINBOINPUTBOXIMPL_HH
 #define LINBOINPUTBOXIMPL_HH
 
-#include "ui_linboInputBox.h"
-
+#include "linboInputBox.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <qtextbrowser.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
+#include <qprocess.h>
 
 #include "linboDialog.hh"
 
 
-class linboInputBoxImpl : public QWidget, public Ui::linboInputBox, public linboDialog
+class linboInputBoxImpl : public linboInputBox, public linboDialog
 {
   Q_OBJECT
 
 private:
   QString line;
   QStringList myCommand;
-  Q3Process *process;
+  QProcess *process;
   QWidget *myMainApp;
-  Q3TextBrowser *Console;
+  QTextBrowser *Console;
   
 
 public slots:
@@ -38,14 +37,18 @@ public slots:
 
 
 public:
-  linboInputBoxImpl( QWidget* parent = 0);
+  linboInputBoxImpl( QWidget* parent = 0,
+                     const char* name = 0,
+                     bool modal = FALSE,
+                     WFlags fl = 0);
+
   ~linboInputBoxImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   void setMainApp( QWidget* newMainApp );
-  
+
 
 };
 #endif

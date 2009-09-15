@@ -1,16 +1,20 @@
 #include "linboImageUploadImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboGUIImpl.hh"
-#include <q3progressbar.h>
+#include <qprogressbar.h>
 #include <qapplication.h>
-#include <q3listbox.h>
+#include <qlistbox.h>
 #include "linboPushButton.hh"
 #include "linboYesNoImpl.hh"
 
-linboImageUploadImpl::linboImageUploadImpl(  QWidget* parent ) : linboDialog()
+linboImageUploadImpl::linboImageUploadImpl(  QWidget* parent,
+                                       const char* name,
+                                       bool modal,
+                                       WFlags fl ) : linboImageUpload( parent,
+                                                                    name ), 
+                                                     linboDialog()
 {
-  Ui_linboImageUpload::setupUi((QDialog*)this);
-  process = new Q3Process( this );
+  process = new QProcess( this );
 
   connect( cancelButton, SIGNAL(pressed()), this, SLOT(close()) );
   connect( okButton, SIGNAL(pressed()), this, SLOT(postcmd()) );
@@ -27,7 +31,7 @@ linboImageUploadImpl::~linboImageUploadImpl()
 {
 } 
 
-void linboImageUploadImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboImageUploadImpl::setTextBrowser( QTextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
@@ -53,7 +57,7 @@ void linboImageUploadImpl::postcmd() {
   
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0);//,"Arbeite...",0, Qt::WStyle_Tool );
+    linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
     progwindow->setProcess( process );
     connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->show();

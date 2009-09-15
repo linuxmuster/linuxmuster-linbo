@@ -1,1 +1,0 @@
-QTDIR=`pwd`/qt-embedded-linux-opensource-src-4.5.2/ qt-embedded-linux-opensource-src-4.5.2/bin/qmake -project -o linboGUI_1.pro  -d -norecursive

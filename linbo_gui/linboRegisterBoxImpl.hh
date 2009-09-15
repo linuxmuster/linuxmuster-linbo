@@ -1,36 +1,39 @@
 #ifndef LINBOREGISTERBOXIMPL_HH
 #define LINBOREGISTERBOXIMPL_HH
 
-#include "ui_linboRegisterBox.h"
+#include "linboRegisterBox.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3process.h>
+#include <qprocess.h>
 #include <qstring.h>
-#include <q3textedit.h>
-#include <Qt3Support/Q3TextBrowser>
+#include <qtextedit.h>
 
 #include "linboDialog.hh"
 
-class linboRegisterBoxImpl : public QWidget, public Ui::linboRegisterBox, public linboDialog
+class linboRegisterBoxImpl : public linboRegisterBox, public linboDialog
 {
   Q_OBJECT
 
   
 private:
-  Q3Process* process;
+  QProcess* process;
   QStringList myCommand;
   QString line;
   QWidget *myMainApp;
-  Q3TextBrowser *Console;
+  QTextBrowser *Console;
 
 public:
-  linboRegisterBoxImpl( QWidget* parent = 0 );
+  linboRegisterBoxImpl( QWidget* parent = 0,
+                const char* name = 0,
+                bool modal = FALSE,
+                WFlags fl = 0);
+
    ~linboRegisterBoxImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here

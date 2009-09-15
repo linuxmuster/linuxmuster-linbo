@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
-#include <q3progressbar.h>
+#include <qprogressbar.h>
 #include <iostream>
 #include <qapplication.h>
 #include "linboPushButton.hh"
@@ -8,12 +8,15 @@
 linbopushbutton::linbopushbutton( QWidget* parent,
                                   const char* name,
                                   bool modal,
-                                  Qt::WFlags fl) : QPushButton( parent,
-                                                                 name )                     
+                                  WFlags fl) : QPushButton( parent,
+                                                                 name )
+                                /*,
+                                                                modal,
+                                                                0 ) */
 {
   connect(this, SIGNAL(clicked()), this, SLOT(lclicked()));
 
-  myprocess = new Q3Process( this );;
+  myprocess = new QProcess( this );
 
   myQDialog = 0;
   myLinboDialog = 0;
@@ -44,11 +47,12 @@ void linbopushbutton::setCommand(const QStringList& arglist )
   myprocess->setArguments( arglist );
 }
 
-void linbopushbutton::setTextBrowser( Q3TextBrowser* newBrowser )
+void linbopushbutton::setTextBrowser( QTextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
 
+// void linbopushbutton::setDialog( QDialog* newDialog )
 void linbopushbutton::setLinboDialog( linboDialog* newDialog )
 {
   myLinboDialog = newDialog;
@@ -64,7 +68,8 @@ void linbopushbutton::lclicked()
 {
   app = static_cast<linboGUIImpl*>( myMainApp );
 
-  linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
+  // disable main window
+  linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
 
   // disable cancel button for non-root users
   if ( !app->isRoot() ) 
@@ -78,14 +83,14 @@ void linbopushbutton::lclicked()
       myLinboDialog->precmd();
 
       // show dialog
-      //myMainApp->setEnabled( false );
+      // myMainApp->setEnabled( false );
       myQDialog->show();
       myQDialog->raise();
       myQDialog->setActiveWindow();
       myQDialog->setEnabled( true ); 
 
   }
-  
+
   // do we need the progress bar?
   if ( progress ) {
     
@@ -101,34 +106,42 @@ void linbopushbutton::lclicked()
     progwindow->setEnabled( true );
   }
   // disable buttons
-  
+
   app->disableButtons();
 
   // wait for progress bar 
   usleep( 10000 );
 
   // start the command
-  if( myprocess->arguments().size() > 0 )
-    {
-      myprocess->start();
+  myprocess->start();
 
-      if ( progress ) {
-    
-        while( myprocess->isRunning() ) {
-          for( int i = 0; i <= 100; i++ ) {
-            usleep(10000);
-            progwindow->progressBar->setProgress(i,100);
-            progwindow->update();
-            
-            qApp->processEvents();
-          }
-        }
-        if( ! myprocess->isRunning() ) {
-          progwindow->close();
-        }
+  if ( progress ) {
+    while( myprocess->isRunning() ) {
+      for( int i = 0; i <= 100; i++ ) {
+        usleep(10000);
+        progwindow->progressBar->setProgress(i,100);
+        progwindow->update();
+        
+        qApp->processEvents();
       }
+    }
+    if( ! myprocess->isRunning() ) {
+      progwindow->close();
+    }
   }
   app->restoreButtonsState();
+
+/*  if ( myLinboDialog != 0 ) {
+    // run post commands
+    while( myprocess->isRunning() ) {};
+    
+    int result = myprocess->exitStatus();
+    myLinboDialog->postcmd( result );
+    } 
+*/
+
+  // reenable main window
+  // myMainApp->setEnabled( true );
   
 }
 

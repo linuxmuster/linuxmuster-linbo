@@ -1,0 +1,63 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>linboMovie</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>linboMovie</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>133</width>
+            <height>147</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Root </string>
+    </property>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>text</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>111</width>
+                <height>31</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Root Modus</string>
+        </property>
+        <property name="alignment">
+            <set>AlignCenter</set>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>pictureLabel</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>30</x>
+                <y>50</y>
+                <width>80</width>
+                <height>80</height>
+            </rect>
+        </property>
+        <property name="pixmap">
+            <pixmap>image0</pixmap>
+        </property>
+        <property name="scaledContents">
+            <bool>true</bool>
+        </property>
+    </widget>
+</widget>
+<images>
+    <image name="image0">
+        <data format="PNG" length="1277">89504e470d0a1a0a0000000d4948445200000020000000200806000000737a7af4000004c4494441545885ed9541681c5518c77f2b23bc852dbc8128b390c36ea9d288859d82c216846ef5b4f660d3e660a407b7f5604c4fc1434d724a7b31eec92c05c9a660ec166ce341e956946e04a53914ba854ab760e904b2b8032ecc4016e78103cfc3246b3649b569d583f67f1886f7def7feffeffbfeef3d7882ff3b623b593c75764a9bc2a4e5b79042820053989c7cefe48ef6d988a71e66d14c71460fbe31a89552384d87a44c1297717cdfa73c5f4608a1a5947af8f8b0dea9803f557ef9c2653d777e8ec24881a3478ef6ccb5565ab49a2d54a8a87d5fa372bec2e09e0603fb52d49b71ecd7c6792b590203c88c117bf6d8b65c0f145078bba09d158785cf17304d73c34c40b00a8d7b0d7cd7c7531e4999a4fa6d9513cd22e98c0491847b8d885c0ab007606f9ed8eec92d7cdbb6607c725ccf9d9f8bcd7c58de440e10272ee2980993800042f07c8f6c364b4d1e02a5a265fd16b0f6ef99d0a96f9be81601fafab816f5b30c1f943abdc7eac9bcfba7028230204e1cf55b44124fc42165e3347d502db0d2202574fc2836547f2d40972d4da3ccc448960b1fd8c4dbc59ecc0182d500a514aa136d289e162814c21048cb868e88aae02bb004f403a6024330fce656937605e8b2a5f15d502e349c48f16209eaaf770b10ac06b86d1767d9c1eff8042a000304020c304d93529806e58372a2b824d06f42a8a85cacc4368bf8a302bb0e800fb8441f67291a6f56616982200cf0db3e5edbc36ffb049da09b795cc4910989a73caa37a0741bbac924721082d34c71b998d7958b95d81601ba6c697e71606f1e2c1b58ebbd702327fb67f19b55bc8ec2eff800a850610a130c907d12b7ed52bd5a65f6d3594adf81d326f260a808aede21ddbfccd1a11cfafe544f050c005c05a21555e099242404b400734d4008ea5e0dfa071086c0c38b4e412740858a6abd4a7da94eed871a63a726b8562c70f25c9559c385e5255e9d873b7219b280217a3cd02d873e8d5e27a31f901bbce74140967afa239c9683effab4da2dbcb647e3a706ae1bf9e25af51a49e9905e9c006b99f889c89041351bf94a29b00788e597babc4657ca91290815ceb922e950815813a12225955b4b146f8f221322326018a03a0aa5140b9585a8153289341ac032ec82a0a22001240ec1be1aac383de43d02622f4fc674d9d22f5c82b4003b23b00d850a7d1a86e0c248817cf10cbb9fdfdd0dbef2c51502028410082930fb04e68f6bee5f054ca02f0f7d92854b26c7c696b6dc845b06065e1cd0773e1904e33ab41723892b10b803545353a49f4b476d5a6f97017ec7471882eb37eaf8b74a9c4935206581bd1f0c4179fe2613f30ad775b7f0199b0772afe4205187ce014041273a8e6eb3c1e8c7a3a45369ec976c92561281c06dbbb4da2d9c9f1c1a771b28df273d0427a4c05b84d1af6ad4ee0af667f653fdbaba996e7b4829f5fd2f47b4be99d7fa9b9cd625f4fde3a2e7f8ac3fc1524a2dc4a639d0294977acf04e41cf14671efea99e2dcdea94447ff67e4aff5aceea9f4fa173196bc76f3d8065595a4ab9f3d8e1a1e8cab404da123c12f93aa68bd38f169f3f9c7f2c6280f1d3e38fb7c7d4e4d48e4b68676c9dda937a6cf15dcc1467f46c79560f0e0d3e508c9452e70fe7b510428f9d1afbfbc83762ba38ad070f3f5844ee60ee9f21de0e23ef8e74c9ec8cfdef113fc17f0ebf03151e2c074c50135d0000000049454e44ae426082</data>
+    </image>
+</images>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

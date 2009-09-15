@@ -1,8 +1,7 @@
 #ifndef LINBOYESNOIMPL_HH
 #define LINBOYESNOIMPL_HH
 
-#include "ui_linboYesNo.h"
-
+#include "linboYesNo.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -10,48 +9,47 @@
 #include <qwidget.h>
 #include <qdialog.h>
 #include <qpushbutton.h>
-#include <q3process.h>
-#include <q3textbrowser.h>
+#include <qprocess.h>
+#include <qtextbrowser.h>
 #include <qstringlist.h>
-#include <q3process.h>
+#include <qprocess.h>
 #include <iostream>
 #include "linboGUIImpl.hh"
 
 #include "linboDialog.hh"
 
-using namespace Ui;
 
-class linboYesNoImpl : public QWidget, public Ui::linboYesNo, public linboDialog
+class linboYesNoImpl : public linboYesNo, public linboDialog
 {
   Q_OBJECT
 
 private:
   QString line;
   QStringList myCommand;
-  Q3Process *process;
+  QProcess *process;
   QWidget *myMainApp;
-  Q3TextBrowser *Console;
+  QTextBrowser *Console;
 
 public slots:
   virtual void precmd();
   virtual void postcmd();
   void readFromStdout();
   void readFromStderr();
-  
-protected slots:
-virtual void languageChange() {};
-  
+
 public:
-  linboYesNoImpl( QWidget* parent = 0 );
+  linboYesNoImpl( QWidget* parent = 0,
+                        const char* name = 0,
+                        bool modal = FALSE,
+                        WFlags fl = 0);
 
    ~linboYesNoImpl();
 
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextBrowser* newBrowser );
   QStringList getCommand();
   void setCommand(const QStringList& arglist);
   void setMainApp( QWidget* newMainApp );
-  
+
 
 };
 #endif

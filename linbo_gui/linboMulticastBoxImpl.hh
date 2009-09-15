@@ -1,34 +1,31 @@
 #ifndef LINBOMULTICASTBOXIMPL_HH
 #define LINBOMULTICASTBOXIMPL_HH
 
-#include "ui_linboMulticastBox.h"
-
+#include "linboMulticastBox.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <qtextbrowser.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
+#include <qprocess.h>
 
 #include "linboDialog.hh"
 
-using namespace Ui;
-class linboGUIImpl;
 
-class linboMulticastBoxImpl : public QWidget, public Ui::linboMulticastBox, public linboDialog
+class linboMulticastBoxImpl : public linboMulticastBox, public linboDialog
 {
   Q_OBJECT
 
 private:
   QString line;
   QStringList myCommand, myRsyncCommand, myMulticastCommand;
-  Q3Process *process;
+  QProcess *process;
   QWidget *myMainApp;
-  Q3TextBrowser *Console;
+  QTextBrowser *Console;
   
 
 public slots:
@@ -40,11 +37,14 @@ public slots:
 
 
 public:
-  linboMulticastBoxImpl( QWidget* parent = 0 );
+  linboMulticastBoxImpl( QWidget* parent = 0,
+                     const char* name = 0,
+                     bool modal = FALSE,
+                     WFlags fl = 0);
 
   ~linboMulticastBoxImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setRsyncCommand(const QStringList& arglist);
