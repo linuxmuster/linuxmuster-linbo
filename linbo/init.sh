@@ -156,19 +156,25 @@ Cache = $cache" -i "$1"
  fi
 }
 
+# print cache partition
+printcache(){
+ local cachedev=""
+ if [ -n "$cache" ]; then
+  cachedev="$cache"
+ else
+  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ fi
+ [ -b "$cachedev" ] && echo "$cachedev"
+}
+
 # copytocache file - copies start.conf to local cache
 copytocache(){
- local cachepart
- if [ -b "$cache" ]; then
-  cachepart="$cache"
- else
-  cachepart="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
- fi
- case "$cachepart" in
+ local cachedev="$(printcache)"
+ case "$cachedev" in
   /dev/*) # local cache
-   mount "$cachepart" /cache || return 1
+   mount "$cachedev" /cache || return 1
    cp -a /start.conf /cache
-   [ "$cachepart" = "$cache" ] && modify_cache /cache/start.conf
+   [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
   *)
@@ -259,6 +265,28 @@ $(route -n)
  return 1
 }
 
+# check if reboot is set in start.conf
+isreboot(){
+ if [ -s /start.conf ]; then
+  grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
+ fi
+ return 1
+}
+
+# remove linbo reboot flag
+rmlinboreboot(){
+ isreboot || return 0
+ local device="" properties="" cachedev="$(printcache)"
+ sfdisk -l | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
+  [ "$cachedev" = "$device" ] && continue
+  if mount "$device" /mnt; then
+   [ -e /mnt/.linbo.reboot ] && rm -f /mnt/.linbo.reboot
+   [ -e /mnt/.grub.reboot ] && rm -f /mnt/.grub.reboot
+   umount /mnt
+  fi
+ done
+}
+
 # get DownloadType from start.conf
 downloadtype(){
  local RET=""
@@ -324,6 +352,8 @@ network(){
  [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # remove reboot flag
+ rmlinboreboot
  echo > /tmp/linbo-network.done 
 }
 

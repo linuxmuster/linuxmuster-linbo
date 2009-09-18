@@ -3,6 +3,7 @@
 #include "linboGUIImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>
+#include <QtGui>
 #include "linboPushButton.hh"
 #include "linboYesNoImpl.hh"
 
@@ -21,6 +22,16 @@ linboRegisterBoxImpl::linboRegisterBoxImpl(  QWidget* parent ) : linboDialog()
   connect( process, SIGNAL(readyReadStderr()),
            this, SLOT(readFromStderr()) );
 
+  Qt::WindowFlags flags;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  setWindowFlags( flags );
+
+  QRect qRect(QApplication::desktop()->screenGeometry());
+  // open in the center of our screen
+  int xpos=qRect.width()/2-this->width()/2;
+  int ypos=qRect.height()/2-this->height()/2;
+  this->move(xpos,ypos);
+  this->setFixedSize( this->width(), this->height() );
 }
 
 linboRegisterBoxImpl::~linboRegisterBoxImpl()

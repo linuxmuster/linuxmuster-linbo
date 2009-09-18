@@ -13,14 +13,14 @@ linboProgressImpl::linboProgressImpl(  QWidget* parent )
   connect( cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
 
   Qt::WindowFlags flags;
-  flags = Qt::FramelessWindowHint;
-  //flags = Qt::CustomizeWindowHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
   setWindowFlags( flags );
 
   QRect qRect(QApplication::desktop()->screenGeometry());
   int xpos=qRect.width()/2-this->width()/2;
   int ypos=qRect.height()/2-this->height()/2;
   this->move(xpos,ypos);
+  this->setFixedSize( this->width(), this->height() );
 }
 
 linboProgressImpl::~linboProgressImpl() {

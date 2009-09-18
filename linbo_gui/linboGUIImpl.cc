@@ -184,12 +184,18 @@ QStringList mkpartitioncommand_noformat(vector <diskpartition> &p) {
   return command;
 }
 
-
-QStringList mkcacheinitcommand(globals& config, vector<os_item> &os, bool multicast) {
+// type is 0 for rsync, 1 for multicast, 3 for bittorrent
+QStringList mkcacheinitcommand(globals& config, vector<os_item> &os, int type) {
   QStringList command = LINBO_CMD("initcache");
   command.append(config.get_server());
   command.append(config.get_cache());
-  command.append(multicast?"multicast":"rsync");
+  switch( type ) {
+  case 0: command.append("rsync"); break;
+  case 1: command.append("multicast"); break;
+  case 2: command.append("torrent"); break;
+  default : command.append("rsync"); break;
+  }
+
   for(unsigned int i = 0; i < os.size(); i++) {
     command.append(os[i].get_baseimage());
     for(unsigned int j = 0; j < os[i].image_history.size(); j++) {
@@ -220,9 +226,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   QImage tmpImage;
 
   Qt::WindowFlags flags;
-  flags = Qt::FramelessWindowHint;
-  // flags = Qt::CustomizeWindowHint;
+  flags = Qt::FramelessWindowHint | Qt::WindowStaysOnBottomHint;
   setWindowFlags( flags );
+  setAttribute( Qt::WA_AlwaysShowToolTips );
 
   QRect qRect(QApplication::desktop()->screenGeometry());
 
@@ -859,8 +865,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   linboMulticastBoxImpl *multicastbox = new linboMulticastBoxImpl( multicastbuttonimaging ); 
   multicastbox->setMainApp(this );
   multicastbox->setTextBrowser( Console );
-  multicastbox->setRsyncCommand( mkcacheinitcommand( config, elements, false) );
-  multicastbox->setMulticastCommand( mkcacheinitcommand( config, elements, true ) );
+  multicastbox->setRsyncCommand( mkcacheinitcommand( config, elements, 0) );
+  multicastbox->setMulticastCommand( mkcacheinitcommand( config, elements, 1) );
+  multicastbox->setBittorrentCommand( mkcacheinitcommand( config, elements, 2) );
 
   multicastbuttonimaging->setProgress( false );
   multicastbuttonimaging->setMainApp(this );

@@ -25,7 +25,7 @@ class linboMulticastBoxImpl : public QWidget, public Ui::linboMulticastBox, publ
 
 private:
   QString line;
-  QStringList myCommand, myRsyncCommand, myMulticastCommand;
+  QStringList myCommand, myRsyncCommand, myMulticastCommand, myBittorrentCommand;
   Q3Process *process;
   QWidget *myMainApp;
   Q3TextBrowser *Console;
@@ -49,6 +49,7 @@ public:
   virtual QStringList getCommand();
   virtual void setRsyncCommand(const QStringList& arglist);
   virtual void setMulticastCommand(const QStringList& arglist);
+  virtual void setBittorrentCommand(const QStringList& arglist);
 
   void setMainApp( QWidget* newMainApp );
 

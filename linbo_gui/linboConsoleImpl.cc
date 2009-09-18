@@ -4,27 +4,58 @@
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <QtGui>
+#include <QByteArray>
 #include "linboPushButton.hh"
 
 
 linboConsoleImpl::linboConsoleImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboConsole::setupUi((QDialog*)this);
-  process = new Q3Process( this );
-  output->setMaxLogLines( 1000 );
 
-  connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
-  // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  mysh = new QProcess( this );
+  mysh->setReadChannelMode(QProcess::MergedChannels);
+  connect (mysh, SIGNAL(readyReadStandardOutput()),
+           this, SLOT(showOutput()));
 
+  // new shell handling - use sh in interactive mode 
+  mysh->start("sh", QStringList() << "-i");
+
+  //  connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
+  connect(input,SIGNAL(returnPressed()),this,SLOT(execute()));
+
+  Qt::WindowFlags flags;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  setWindowFlags( flags );
+
+  QRect qRect(QApplication::desktop()->screenGeometry());
+  // open in the upper left of our screen
+  int xpos=qRect.width()/2-this->width()/2;
+  int ypos=qRect.height()/2-this->height()/2;
+  this->move(xpos,ypos);
+  this->setFixedSize( this->width(), this->height() );
 }
 
 linboConsoleImpl::~linboConsoleImpl()
 {
 } 
+
+void linboConsoleImpl::showOutput() { 
+    QByteArray bytes = mysh->readAllStandardOutput();
+    QStringList lines = QString(bytes).split("\n");
+    foreach (QString line, lines) {
+        output->append(line);
+    }
+}
+
+void linboConsoleImpl::execute() {
+    QString cmdStr = input->text() + "\n";
+    input->setText("");
+    output->append(cmdStr);
+    QByteArray bytes = cmdStr.toUtf8(); /* 8-bit Unicode Transformation Format
+    */
+    mysh->write(bytes); /* Send the data into the stdin stream
+    of the bash child process */
+}
 
 void linboConsoleImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 {
@@ -42,20 +73,7 @@ void linboConsoleImpl::precmd() {
 
 
 void linboConsoleImpl::postcmd() {
-  // here, some further checks are needed
-  if( !input->text().isEmpty() ) {
-    myCommand.clear();
-    myCommand = QStringList::split(" ", input->text());
-    input->clear();
-    myCommand.push_front(QString("busybox"));
- 
-    process->clearArguments();
-    process->setArguments( myCommand );
-    process->start();
-    output->append("***");
-
-  }
-  
+   // nothing to do
 }
 
 void linboConsoleImpl::setCommand(const QStringList& arglist)
@@ -71,21 +89,11 @@ QStringList linboConsoleImpl::getCommand()
 
 void linboConsoleImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      output->append( line );
-    } 
+  // nothing to do
 }
 
 void linboConsoleImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      output->append( line );
-    } 
+  // nothing to do
 }
 

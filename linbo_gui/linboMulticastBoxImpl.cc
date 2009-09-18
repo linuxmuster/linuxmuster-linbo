@@ -25,6 +25,16 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
   connect( process, SIGNAL(readyReadStderr()),
            this, SLOT(readFromStderr()) );
 
+  Qt::WindowFlags flags;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  setWindowFlags( flags );
+
+  QRect qRect(QApplication::desktop()->screenGeometry());
+  // open in the center of our screen
+  int xpos=qRect.width()/2-this->width()/2;
+  int ypos=qRect.height()/2-this->height()/2;
+  this->move(xpos,ypos);
+  this->setFixedSize( this->width(), this->height() );
 }
 
 linboMulticastBoxImpl::~linboMulticastBoxImpl()
@@ -53,8 +63,10 @@ void linboMulticastBoxImpl::postcmd() {
   process->clearArguments();
   if ( this->rsyncButton->isChecked() )
     process->setArguments( myRsyncCommand );
-  else
+  if ( this->multicastButton->isChecked() )
     process->setArguments( myMulticastCommand );
+  if ( this->torrentButton->isChecked() )
+    process->setArguments( myBittorrentCommand );
     
 
   if( app ) {
@@ -103,6 +115,11 @@ void linboMulticastBoxImpl::setRsyncCommand(const QStringList& arglist)
 void linboMulticastBoxImpl::setMulticastCommand(const QStringList& arglist)
 {
   myMulticastCommand = QStringList(arglist); // Create local copy
+}
+
+void linboMulticastBoxImpl::setBittorrentCommand(const QStringList& arglist)
+{
+  myBittorrentCommand = QStringList(arglist); // Create local copy
 }
 
 void linboMulticastBoxImpl::setCommand(const QStringList& arglist)

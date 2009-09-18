@@ -491,47 +491,70 @@ EOT
  fi
 }
 
+# mkgrub disk
+mkgrub(){
+ [ -z "$1" ] && return 1
+ [ -e /menu.lst ] || return 1
+ [ -e /cache/.custom.menu.lst ] && return 0
+ [ -e /tmp/.mkgrub.done ] && return 0
+ local grubdir="/cache/boot/grub"
+ [ -e "$grubdir" ] || mkdir -p "$grubdir"
+ local disk="$1"
+ echo "(hd0) $disk" > /cache/boot/grub/device.map 
+ local append=""
+ local i
+ for i in $(cat /proc/cmdline); do
+  case "$i" in
+   BOOT_IMAGE=*|server=*|cache=*) true ;;
+   *) append="$append $i" ;;
+  esac
+ done
+ sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+ grub-install --root-directory=/cache "$disk"
+ touch /tmp/.mkgrub.done
+}
+
 # mkgrubmenu partition [kernel initrd server append]
 # Creates/updates menu.lst and device.map with given partition/disk
 # installs grub in mbr of disk
 # /cache is already mounted when this is called.
-mkgrubmenu(){
- local grubdir="/cache/boot/grub"
- [ -e "$grubdir" ] || mkdir -p "$grubdir"
- local menu="$grubdir/menu.lst"
- local grubdisk="hd0"
- local disk="${1%%[1-9]*}"
- local grubpart="${1##*[hsv]d[a-z]}"
- grubpart="$((grubpart - 1))"
- case "$disk" in
-  *[hsv]da) grubdisk=hd0 ;;
-  *[hsv]db) grubdisk=hd1 ;;
-  *[hsv]dc) grubdisk=hd2 ;;
-  *[hsv]dd) grubdisk=hd3 ;;
- esac
- local root="root ($grubdisk,$grubpart)"
- echo "($grubdisk) $disk" > /cache/boot/grub/device.map
- case "$(cat $menu 2>/dev/null)" in
-  *$root*) true ;; # Entry for this partition is already present
-  *)
-    if [ -n "$2" ]; then
-     echo "default saved"
-     echo "timeout 0"
-     echo ""
-     echo "title LINBO ($1)"
-     echo "$root"
-     echo "kernel /$2 server=$4 cache=$1 $5"
-     echo "initrd /$3"
-    else
-     echo ""
-     echo "title WINDOWS ($1)"
-     echo "$root"
-     echo "chainloader +1"
-     echo "savedefault 0"
-    fi >>"$menu"
-    ;;
- esac
-}
+#mkgrubmenu(){
+# local grubdir="/cache/boot/grub"
+# [ -e "$grubdir" ] || mkdir -p "$grubdir"
+# local menu="$grubdir/menu.lst"
+# local grubdisk="hd0"
+# local disk="${1%%[1-9]*}"
+# local grubpart="${1##*[hsv]d[a-z]}"
+# grubpart="$((grubpart - 1))"
+# case "$disk" in
+#  *[hsv]da) grubdisk=hd0 ;;
+#  *[hsv]db) grubdisk=hd1 ;;
+#  *[hsv]dc) grubdisk=hd2 ;;
+#  *[hsv]dd) grubdisk=hd3 ;;
+# esac
+# local root="root ($grubdisk,$grubpart)"
+# echo "($grubdisk) $disk" > /cache/boot/grub/device.map
+# case "$(cat $menu 2>/dev/null)" in
+#  *$root*) true ;; # Entry for this partition is already present
+#  *)
+#    if [ -n "$2" ]; then
+#     echo "default saved"
+#     echo "timeout 0"
+#     echo ""
+#     echo "title LINBO ($1)"
+#     echo "$root"
+#     echo "kernel /$2 server=$4 cache=$1 $5"
+#     echo "initrd /$3"
+#    else
+#     echo ""
+#     echo "title WINDOWS ($1)"
+#     echo "$root"
+#     echo "chainloader +1"
+#     echo "savedefault 0"
+#    fi >>"$menu"
+#    ;;
+# esac
+#}
 
 # tschmitt: mkgrldr bootpart bootfile
 # Creates menu.lst on given windows partition
@@ -591,8 +614,8 @@ start(){
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
    # create menu.lst if no custom menu.lst was downloaded
-   [ -e /cache/.custom.menu.lst ] || mkgrubmenu "$1"
-   grub-install --root-directory=/cache $disk
+   mkgrub "$disk"
+   #grub-install --root-directory=/cache $disk
   fi
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
@@ -606,18 +629,20 @@ start(){
      # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
      WINDOWS="yes"
      LOADED="true"
-     # tschmitt: needed for local boot here
-     if [ -e /cache/boot/grub ] && cache_writable; then
-      # compute nr of grub menu.lst entry
-      local nr="$(grubnr $1)"
-      if isinteger "$nr"; then
-       echo "Grub-Startnr. $nr ermittelt."
-      else
-       echo "Konnte Grub-Startnr. nicht ermitteln. Setze auf 0."
-       nr=0
-      fi
-      grub-set-default --root-directory=/cache $nr
-     fi
+     dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1
+     cp /mnt/.linbo.reboot /mnt/.grub.reboot
+#     # tschmitt: needed for local boot here
+#     if [ -e /cache/boot/grub ] && cache_writable; then
+#      # compute nr of grub menu.lst entry
+#      local nr="$(grubnr $1)"
+#      if isinteger "$nr"; then
+#       echo "Grub-Startnr. $nr ermittelt."
+#      else
+#       echo "Konnte Grub-Startnr. nicht ermitteln. Setze auf 0."
+#       nr=0
+#      fi
+#      grub-set-default --root-directory=/cache $nr
+#     fi
      ;;
    *)
     if [ -n "$2" ]; then
@@ -639,7 +664,7 @@ start(){
    # provide a menu.lst for grldr on win98
    mkgrldr "$1" "/io.sys"
    # change bootloader for win98 systems
-   APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/')"
+   APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
   fi
  else
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
@@ -1619,6 +1644,64 @@ syncr(){
  syncl "$@"
 }
 
+# update server cachedev
+update(){
+ echo -n "update " ;  printargs "$@"
+ local RC=0
+ local group="$(hostgroup)"
+ local server="$1"
+ local cachedev="$2"
+ local disk="${cachedev%%[1-9]*}"
+ mountcache "$cachedev" ; RC="$?" || return "$?"
+ cd /cache
+ echo "Suche nach LINBO-Updates auf $1."
+ download_if_newer "$server" grub.exe
+ local linbo_ts1="$(getinfo linbo.info timestamp)"
+ local linbo_fs1="$(get_filesize linbo)"
+ download_if_newer "$server" linbo
+ local linbo_ts2="$(getinfo linbo.info timestamp)"
+ local linbo_fs2="$(get_filesize linbo)"
+ local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
+ local linbofs_fs1="$(get_filesize linbofs.gz)"
+ # tschmitt: download group specific linbofs
+# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
+# if [ -e "linbofs.$group.gz" ]; then
+#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
+#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
+# else
+  download_if_newer "$server" linbofs.gz
+# fi
+ local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
+ local linbofs_fs2="$(get_filesize linbofs.gz)"
+ # tschmitt: update grub on every synced start not only if newer linbo is available
+ # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
+ #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
+ #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
+ if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ]; then
+  echo "Update Master-Bootrecord von $disk."
+  # fetch pxe kernel
+  download "$server" "gpxe.krn"
+  mkdir -p /cache/boot/grub
+  # tschmitt: provide custom local menu.lst
+  download "$server" "menu.lst.$group"
+  if [ -e "/cache/menu.lst.$group" ]; then
+   mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
+   # flag for downloaded custom menu.lst
+   touch /cache/.custom.menu.lst
+  else
+    mkgrub "$disk"
+    #mkgrubmenu "$cachedev" "linbo" "linbofs.gz" "$server" "$vga $append"
+  fi
+  # tschmitt: grub is installed on every start
+  #grub-install --root-directory=/cache "$disk"
+ fi
+ RC="$?"
+ cd / ; sendlog
+ #umount /cache
+ [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+ return "$RC"
+}
+
 # initcache server cachedev downloadtype images...
 initcache(){
  # do not execute in localmode
@@ -1669,73 +1752,6 @@ initcache(){
  done
  cd / ; sendlog
  update "$server" "$cachedev"
-}
-
-# update server cachedev
-update(){
- echo -n "update " ;  printargs "$@"
- local RC=0
-# local group="$(hostgroup)"
- local server="$1"
- local cachedev="$2"
- local disk="${cachedev%%[1-9]*}"
- mountcache "$cachedev" ; RC="$?" || return "$?"
- cd /cache
- echo "Suche nach LINBO-Updates auf $1."
- download_if_newer "$server" grub.exe
- local linbo_ts1="$(getinfo linbo.info timestamp)"
- local linbo_fs1="$(get_filesize linbo)"
- download_if_newer "$server" linbo
- local linbo_ts2="$(getinfo linbo.info timestamp)"
- local linbo_fs2="$(get_filesize linbo)"
- local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
- local linbofs_fs1="$(get_filesize linbofs.gz)"
- # tschmitt: download group specific linbofs
-# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
-# if [ -e "linbofs.$group.gz" ]; then
-#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
-#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
-# else
-  download_if_newer "$server" linbofs.gz
-# fi
- local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
- local linbofs_fs2="$(get_filesize linbofs.gz)"
- # tschmitt: update grub on every synced start not only if newer linbo is available
- # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
- #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
- #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
- if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ]; then
-  echo "Update Master-Bootrecord von $disk."
-  local append=""
-  local vga="vga=791"
-  local i
-  for i in $(cat /proc/cmdline); do
-   case "$i" in
-    vga=*) vga="$i" ;; 
-    BOOT_IMAGE=*|server=*|cache=*) true ;;
-    *) append="$append $i" ;;
-   esac
-  done
-  mkdir -p /cache/boot/grub
-  # tschmitt: provide custom local menu.lst
-  download "$server" "menu.lst.$group"
-  if [ -e "/cache/menu.lst.$group" ]; then
-   mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
-   # flag for downloaded custom menu.lst
-   touch /cache/.custom.menu.lst
-  else
-   [ -e /cache/boot/grub/menu.lst ] && rm /cache/boot/grub/menu.lst
-   [ -e /cache/.custom.menu.lst ] && rm /cache/.custom.menu.lst
-   mkgrubmenu "$cachedev" "linbo" "linbofs.gz" "$server" "$vga $append"
-  fi
-  # tschmitt: grub is installed on every start
-  #grub-install --root-directory=/cache "$disk"
- fi
- RC="$?"
- cd / ; sendlog
- #umount /cache
- [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
- return "$RC"
 }
 
 ### Main ###

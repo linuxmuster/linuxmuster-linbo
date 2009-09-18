@@ -405,6 +405,7 @@ install: build
 	install -m 644 doc/LINBO-M3.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO.pdf
 	install -m 644 doc/LINBO-Vortrag-2007-09-25.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO-Vortrag.pdf
 	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
+	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/menu.lst.default
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
