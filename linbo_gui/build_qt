@@ -6,7 +6,7 @@
   export QTDIR=`pwd`
   export CXX=g++-4.3
   make clean
-  ./configure \
+  echo -e "yes\n" | ./configure \
  -embedded x86 \
  -prefix $QTDIR \
  -opensource \
