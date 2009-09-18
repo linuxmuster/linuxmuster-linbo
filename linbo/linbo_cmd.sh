@@ -514,48 +514,6 @@ mkgrub(){
  touch /tmp/.mkgrub.done
 }
 
-# mkgrubmenu partition [kernel initrd server append]
-# Creates/updates menu.lst and device.map with given partition/disk
-# installs grub in mbr of disk
-# /cache is already mounted when this is called.
-#mkgrubmenu(){
-# local grubdir="/cache/boot/grub"
-# [ -e "$grubdir" ] || mkdir -p "$grubdir"
-# local menu="$grubdir/menu.lst"
-# local grubdisk="hd0"
-# local disk="${1%%[1-9]*}"
-# local grubpart="${1##*[hsv]d[a-z]}"
-# grubpart="$((grubpart - 1))"
-# case "$disk" in
-#  *[hsv]da) grubdisk=hd0 ;;
-#  *[hsv]db) grubdisk=hd1 ;;
-#  *[hsv]dc) grubdisk=hd2 ;;
-#  *[hsv]dd) grubdisk=hd3 ;;
-# esac
-# local root="root ($grubdisk,$grubpart)"
-# echo "($grubdisk) $disk" > /cache/boot/grub/device.map
-# case "$(cat $menu 2>/dev/null)" in
-#  *$root*) true ;; # Entry for this partition is already present
-#  *)
-#    if [ -n "$2" ]; then
-#     echo "default saved"
-#     echo "timeout 0"
-#     echo ""
-#     echo "title LINBO ($1)"
-#     echo "$root"
-#     echo "kernel /$2 server=$4 cache=$1 $5"
-#     echo "initrd /$3"
-#    else
-#     echo ""
-#     echo "title WINDOWS ($1)"
-#     echo "$root"
-#     echo "chainloader +1"
-#     echo "savedefault 0"
-#    fi >>"$menu"
-#    ;;
-# esac
-#}
-
 # tschmitt: mkgrldr bootpart bootfile
 # Creates menu.lst on given windows partition
 # /cache and /mnt is already mounted when this is called.
@@ -577,27 +535,6 @@ mkgrldr(){
  cp /usr/lib/grub/grldr /mnt
 }
 
-# compute grub menu.lst entry number: grubnr boot
-grubnr(){
- [ -s /cache/boot/grub/menu.lst ] || return 1
- [ -z "$1" ] && return 1
- [ -e "$1" ] || return 1
- local partnr="$(echo $1 | sed -e 's|/dev/[a-z]*||')"
- [ $partnr -lt 1 ] && return 1
- partnr="$((partnr - 1))"
- local grubpart="(hd0,$partnr)"
- local nr=0
- local line=""
- grep root /cache/boot/grub/menu.lst | grep -v ^# | grep "(hd" | while read line; do
-  if echo "$line" | grep -q	"$grubpart"; then
-   echo "$nr"
-   return 0
-  fi
-  nr="$((nr + 1))"
- done
- return 1
-}
-
 # start boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
@@ -613,9 +550,7 @@ start(){
   APPEND="$5"
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
-   # create menu.lst if no custom menu.lst was downloaded
    mkgrub "$disk"
-   #grub-install --root-directory=/cache $disk
   fi
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
@@ -631,18 +566,6 @@ start(){
      LOADED="true"
      dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1
      cp /mnt/.linbo.reboot /mnt/.grub.reboot
-#     # tschmitt: needed for local boot here
-#     if [ -e /cache/boot/grub ] && cache_writable; then
-#      # compute nr of grub menu.lst entry
-#      local nr="$(grubnr $1)"
-#      if isinteger "$nr"; then
-#       echo "Grub-Startnr. $nr ermittelt."
-#      else
-#       echo "Konnte Grub-Startnr. nicht ermitteln. Setze auf 0."
-#       nr=0
-#      fi
-#      grub-set-default --root-directory=/cache $nr
-#     fi
      ;;
    *)
     if [ -n "$2" ]; then
@@ -1690,7 +1613,6 @@ update(){
    touch /cache/.custom.menu.lst
   else
     mkgrub "$disk"
-    #mkgrubmenu "$cachedev" "linbo" "linbofs.gz" "$server" "$vga $append"
   fi
   # tschmitt: grub is installed on every start
   #grub-install --root-directory=/cache "$disk"

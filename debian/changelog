@@ -14,11 +14,12 @@ linuxmuster-linbo (1.99.9-0) unstable; urgency=low
       o update(): download also pxe kernel gpxe.krn. Local booted client are now
         able to pxe boot also.
       o update(), start(), mkgrub(): reworked creation of local cached menu.lst.
-      o mkgrubmenu(), removed.
+      o removed mkgrubmenu() grubnr().
+      o some code cleanup.
       Notice: For using the reboot workaround the client bios has only to be changed from
       pxe to local boot. All the other things will manage LINBO.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Sep 2009 10:10:13 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Sep 2009 15:20:13 +0200
 
 linuxmuster-linbo (1.99.8-0) unstable; urgency=low
 
