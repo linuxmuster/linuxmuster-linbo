@@ -26,7 +26,7 @@ private:
   QProcess* mysh;
   QStringList myCommand;
   QString line;
-  QWidget *myMainApp;
+  QWidget *myMainApp, *myParent;
   Q3TextBrowser *Console;
 
 public:
@@ -37,7 +37,6 @@ public:
   void setTextBrowser( Q3TextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
-  // not needed here
   virtual void setMainApp( QWidget* newMainApp );
 
 

@@ -12,6 +12,9 @@ linboInputBoxImpl::linboInputBoxImpl(  QWidget* parent ) : linboDialog()
   Ui_linboInputBox::setupUi((QDialog*)this);
   process = new Q3Process( this );
 
+  if( parent )
+    myParent = parent;
+
   // nothing to do
   connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
 

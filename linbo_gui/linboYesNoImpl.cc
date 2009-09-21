@@ -9,6 +9,10 @@ linboYesNoImpl::linboYesNoImpl(  QWidget* parent ) : linboDialog()
   Ui_linboYesNo::setupUi((QDialog*)this);
 
   process = new Q3Process( this );
+
+  if( parent )
+    myParent = parent;
+
   connect(YesButton,SIGNAL(clicked()),this,SLOT(postcmd()));
   connect(NoButton,SIGNAL(clicked()),this,SLOT(close())); 
 

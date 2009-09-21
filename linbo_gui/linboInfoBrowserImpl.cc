@@ -8,6 +8,10 @@ linboInfoBrowserImpl::linboInfoBrowserImpl(QWidget* parent ) : linboDialog()
    Ui_linboInfoBrowser::setupUi((QDialog*)this);
 
    myProcess = new Q3Process( this );
+   
+   if( parent)
+     myParent = parent;
+
    connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
 
    connect( myProcess, SIGNAL(readyReadStdout()),

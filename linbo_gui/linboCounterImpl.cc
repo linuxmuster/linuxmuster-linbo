@@ -12,6 +12,9 @@ linboCounterImpl::linboCounterImpl(  QWidget* parent ) : linboDialog()
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
   setWindowFlags( flags );
 
+  if( parent )
+    myParent = parent;
+
   QRect qRect(QApplication::desktop()->screenGeometry());
   // open in the upper left of our screen
   int xpos= 10; 
@@ -43,17 +46,24 @@ void linboCounterImpl::readFromStdout()
   // nothing to do
 }
 
+void linboCounterImpl::setMainApp( QWidget* newMainApp ) {
+  if ( newMainApp ) {
+    myMainApp = newMainApp;
+  }
+}
+
 void linboCounterImpl::readFromStderr()
 {
   // nothing to do
 }
 
 QStringList linboCounterImpl::getCommand() {
-  return QStringList(); 
+  return myCommand; 
 }
 
 
 void linboCounterImpl::setCommand(const QStringList& arglist)
 {
   // nothing to do
+  myCommand = arglist;
 }

@@ -15,6 +15,9 @@ linboPasswordBoxImpl::linboPasswordBoxImpl(  QDialog* parent ) : linboDialog()
   connect(passwordInput,SIGNAL(returnPressed()),this,SLOT(postcmd()));
 
   process=new Q3Process( this );
+  if(parent)
+    myParent = parent;
+
   myTimer = new QTimer(this);
   myCounter = new linboCounterImpl(this);
 

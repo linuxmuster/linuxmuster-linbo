@@ -23,7 +23,7 @@ private:
   Q3Process* process;
   QStringList myCommand;
   QString line;
-  QWidget *myMainApp;
+  QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
 
 public:

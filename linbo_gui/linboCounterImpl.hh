@@ -22,6 +22,8 @@ private:
   Q3TextBrowser *Console;
   Q3Process* myProcess;
   QString line;
+  QWidget *myMainApp,*myParent;
+  QStringList myCommand;
 
 public:
   linboCounterImpl( QWidget* parent = 0 );
@@ -33,7 +35,7 @@ public:
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here
-  virtual void setMainApp( QWidget* newMainApp ) {};
+  virtual void setMainApp( QWidget* newMainApp );
   void setTextBrowser( Q3TextBrowser* newBrowser );
 
 public slots:

@@ -41,6 +41,7 @@ public slots:
   void reboot();
 
 private:
+  linboMsgImpl *waiting;
   QString linestdout, linestderr;
   QString logfilepath;
   bool root, withicons, outputvisible;
@@ -63,10 +64,7 @@ public:
   vector<os_item> elements;
   vector<diskpartition> partitions;
 
-  linboGUIImpl( QWidget* parent = 0,
-                const char* name = 0,
-                bool modal = FALSE,
-                Qt::WFlags fl = 0 );
+  linboGUIImpl();
 
   ~linboGUIImpl();
 

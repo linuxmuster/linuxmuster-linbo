@@ -25,7 +25,7 @@ private:
   QString line;
   QStringList myCommand;
   Q3Process *process;
-  QWidget *myMainApp;
+  QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
   
 

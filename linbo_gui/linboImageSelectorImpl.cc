@@ -17,6 +17,9 @@ linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog
   Ui_linboImageSelector::setupUi((QDialog*)this);
   process = new Q3Process( this );
 
+  if( parent )
+    myParent = parent;
+
   connect( cancelButton, SIGNAL(pressed()), this, SLOT(close()) );
   connect( createButton, SIGNAL(pressed()), this, SLOT(postcmd()) );
   connect( createUploadButton, SIGNAL(pressed()), this, SLOT(postcmd2()) );

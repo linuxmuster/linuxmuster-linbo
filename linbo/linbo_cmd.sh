@@ -493,25 +493,25 @@ EOT
 
 # mkgrub disk
 mkgrub(){
- [ -z "$1" ] && return 1
- [ -e /menu.lst ] || return 1
- [ -e /cache/.custom.menu.lst ] && return 0
- [ -e /tmp/.mkgrub.done ] && return 0
+ local disk="$1"
  local grubdir="/cache/boot/grub"
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
- local disk="$1"
- echo "(hd0) $disk" > /cache/boot/grub/device.map 
- local append=""
- local i
- for i in $(cat /proc/cmdline); do
-  case "$i" in
-   BOOT_IMAGE=*|server=*|cache=*) true ;;
-   *) append="$append $i" ;;
-  esac
- done
- sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
- grub-install --root-directory=/cache "$disk"
- touch /tmp/.mkgrub.done
+ if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
+  local append=""
+  local i
+  for i in $(cat /proc/cmdline); do
+   case "$i" in
+    BOOT_IMAGE=*|server=*|cache=*) true ;;
+    *) append="$append $i" ;;
+   esac
+  done
+  sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+ fi
+ if [ ! -e /tmp/.mkgrub.done -a -b "$disk" ]; then
+  echo "(hd0) $disk" > /cache/boot/grub/device.map 
+  grub-install --root-directory=/cache "$disk"
+  touch /tmp/.mkgrub.done
+ fi
 }
 
 # tschmitt: mkgrldr bootpart bootfile
@@ -1361,10 +1361,12 @@ download_all(){
 }
 
 # Download info files, compare timestamps
-# download_if_newer server file
+# download_if_newer server file downloadtype
 download_if_newer(){
  # do not execute in localmode
  localmode && return 0
+ local DLTYPE="$3"
+ [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
  local RC=0
  local DOWNLOAD_ALL=""
  local FTYPE=""
@@ -1400,7 +1402,7 @@ download_if_newer(){
   *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) FTYPE="image" ;;
  esac
  # extra check for torrents
- if [ "$(downloadtype)" = "torrent" -a -n "$FTYPE" ]; then
+ if [ "$DLTYPE" = "torrent" -a -n "$FTYPE" ]; then
   [ -e "$2".torrent ] && md5sum_before="$(md5sum "$2".torrent | awk '{ print $1 }')"
   download "$1" "$2".torrent
   md5sum_after="$(md5sum "$2".torrent | awk '{ print $1 }')"
@@ -1413,7 +1415,7 @@ download_if_newer(){
  fi
  # download images according to download type
  if [ -n "$DOWNLOAD_ALL" ]; then
-  if [ "$(downloadtype)" = "torrent" -a -n "$FTYPE" ]; then
+  if [ "$DLTYPE" = "torrent" -a -n "$FTYPE" ]; then
    rm -f "$2".complete
    download_torrent "$2" ; RC="$?"
    if [ "$RC" = "0" ]; then
@@ -1424,7 +1426,7 @@ download_if_newer(){
     echo "Konnte $2 nicht herunterladen!"
     RC=1
    fi
-  elif [ "$(downloadtype)" = "multicast" -a -n "$FTYPE" ]; then
+  elif [ "$DLTYPE" = "multicast" -a -n "$FTYPE" ]; then
    if [ -s /multicast.list ]; then
     local MPORT="$(get_multicast_port "$2")"
     if [ -n "$MPORT" ]; then
@@ -1567,7 +1569,7 @@ syncr(){
  syncl "$@"
 }
 
-# update server cachedev
+# update server cachedev 
 update(){
  echo -n "update " ;  printargs "$@"
  local RC=0
@@ -1612,10 +1614,9 @@ update(){
    # flag for downloaded custom menu.lst
    touch /cache/.custom.menu.lst
   else
-    mkgrub "$disk"
+   rm -f /cache/.custom.menu.lst
   fi
-  # tschmitt: grub is installed on every start
-  #grub-install --root-directory=/cache "$disk"
+  mkgrub "$disk"
  fi
  RC="$?"
  cd / ; sendlog
@@ -1669,7 +1670,7 @@ initcache(){
  # update cache files
  for i in "$@"; do
   if [ -n "$i" ]; then
-   download_if_newer "$server" "$i"
+   download_if_newer "$server" "$i" "$download_type"
   fi
  done
  cd / ; sendlog

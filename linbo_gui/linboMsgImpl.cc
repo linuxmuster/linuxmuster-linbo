@@ -8,12 +8,15 @@ linboMsgImpl::linboMsgImpl(  QWidget* parent ) : linboDialog()
   Ui_linboMsg::setupUi((QDialog*)this);
 
   myProcess = new Q3Process();
+  if( parent )
+    myParent = parent;
+
   // connect stdout and stderr to linbo console
   connect( myProcess, SIGNAL(readyReadStdout()),
            this, SLOT(readFromStdout()) );
   connect( myProcess, SIGNAL(readyReadStderr()),
            this, SLOT(readFromStderr()) );
-  //  connect( myProcess, SIGNAL(processExited()), this, SLOT(close()));
+  connect( myProcess, SIGNAL(processExited()), this, SLOT(close()));
 }
 
 linboMsgImpl::~linboMsgImpl()
@@ -63,6 +66,12 @@ void linboMsgImpl::readFromStderr()
       qApp->processEvents();
       usleep(50000);
     } 
+}
+
+void linboMsgImpl::setMainApp( QWidget* newMainApp ) {
+  if ( newMainApp ) {
+    myMainApp = newMainApp;
+  }
 }
 
 QStringList linboMsgImpl::getCommand() {

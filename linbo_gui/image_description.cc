@@ -3,17 +3,18 @@
 globals::globals():roottimeout(120) {
   autopartition = 0;
   autoinitcache = 0;
-  usemulticast = 0;
+  downloadtype = "rsync";
   autoformat = 0;
 }
+
 globals::~globals() {}
 const QString& globals::get_server() const { return server; }
 const QString& globals::get_cache() const { return cache; }
 const QString& globals::get_hostgroup() const { return hostgroup; }
-const unsigned int globals::get_roottimeout() const { return roottimeout; }
+const unsigned int& globals::get_roottimeout() const { return roottimeout; }
 const bool& globals::get_autopartition() { return autopartition; };
 const bool& globals::get_autoinitcache() { return autoinitcache; };
-const bool& globals::get_usemulticast() { return usemulticast; };
+const QString& globals::get_downloadtype() { return downloadtype; };
 const bool& globals::get_autoformat() { return autoformat; };
 void globals::set_server( const QString& new_server ) { server = new_server; }
 void globals::set_cache( const QString& new_cache ) { cache = new_cache; }
@@ -21,7 +22,7 @@ void globals::set_hostgroup( const QString& new_hostgroup ) { hostgroup = new_ho
 void globals::set_roottimeout( const unsigned int& new_roottimeout ) { roottimeout = new_roottimeout; }
 void globals::set_autopartition( const bool& new_autopartition ) { autopartition = new_autopartition; };
 void globals::set_autoinitcache( const bool& new_autoinitcache ) { autoinitcache = new_autoinitcache; };
-void globals::set_usemulticast( const bool& new_usemulticast ) { usemulticast = new_usemulticast; };
+void globals::set_downloadtype( const QString& new_downloadtype ) { downloadtype = new_downloadtype; };
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
 
 
@@ -31,7 +32,7 @@ diskpartition::~diskpartition() {}
 const QString& diskpartition::get_dev() const { return dev; }
 const QString& diskpartition::get_id() const { return id; }
 const QString& diskpartition::get_fstype() const { return fstype; }
-const unsigned int diskpartition::get_size() const { return size; }
+const unsigned int& diskpartition::get_size() const { return size; }
 const bool& diskpartition::get_bootable() const { return bootable; }
 void diskpartition::set_dev( const QString& new_dev ) { dev = new_dev; }
 void diskpartition::set_id( const QString& new_id ) { id = new_id; }
@@ -84,8 +85,8 @@ void os_item::add_history_entry( image_item& ie ) { image_history.push_back( ie 
 
 
 // Return the first image in image_history where "start" is enabled.
-const unsigned int os_item::find_current_image() const {
- for(unsigned int i; i < image_history.size(); i++) {
+unsigned int os_item::find_current_image() const {
+ for(unsigned int i = 0; i < image_history.size(); i++) {
   if(image_history[i].get_startbutton()) return i;
  }
  return 0;

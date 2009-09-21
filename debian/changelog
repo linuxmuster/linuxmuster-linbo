@@ -4,7 +4,7 @@ linuxmuster-linbo (1.99.9-0) unstable; urgency=low
     - added symlink from /usr/lib/linuxmuster-linbo/gpxe.krn to	/var/linbo/gpxe.krn.
     - added menu.lst example files.
   * linbo_gui:
-    - new upstream revision 355:
+    - new upstream revision 357:
       o new start.conf option DownloadType.
       o console enhancements.
   * linbofs:
@@ -19,7 +19,7 @@ linuxmuster-linbo (1.99.9-0) unstable; urgency=low
       Notice: For using the reboot workaround the client bios has only to be changed from
       pxe to local boot. All the other things will manage LINBO.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Sep 2009 15:20:13 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Sep 2009 11:38:13 +0200
 
 linuxmuster-linbo (1.99.8-0) unstable; urgency=low
 

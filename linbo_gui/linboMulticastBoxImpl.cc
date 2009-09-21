@@ -1,19 +1,21 @@
 #include "linboMulticastBoxImpl.hh"
 #include "linboProgressImpl.hh"
-#include "linboGUIImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <qradiobutton.h>
 #include "linboPushButton.hh"
-#include "linboYesNoImpl.hh"
+#include <q3process.h>
 #include <QtGui>
+#include <iostream>
 
 linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
 {
-
-  Ui_linboMulticastBox::setupUi((QDialog*)this);
-
+  Ui_linboMulticastBox::setupUi((QDialog*)this);  
+  
   process = new Q3Process( this );
+
+  if( parent )
+    myParent = parent;
 
   // nothing to do
   connect(okButton,SIGNAL(pressed()),this,SLOT(postcmd()));
@@ -22,6 +24,7 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
   // connect stdout and stderr to linbo console
   connect( process, SIGNAL(readyReadStdout()),
            this, SLOT(readFromStdout()) );
+
   connect( process, SIGNAL(readyReadStderr()),
            this, SLOT(readFromStderr()) );
 
@@ -47,7 +50,9 @@ void linboMulticastBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 }
 
 void linboMulticastBoxImpl::setMainApp( QWidget* newMainApp ) {
-  myMainApp = newMainApp;
+  if ( newMainApp ) {
+    myMainApp = newMainApp;
+  }
 }
 
 
@@ -59,16 +64,16 @@ void linboMulticastBoxImpl::precmd() {
 void linboMulticastBoxImpl::postcmd() {
   this->hide();
   
-  linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
+  app = static_cast<linboGUIImpl*>( myMainApp );
   process->clearArguments();
+  
   if ( this->rsyncButton->isChecked() )
     process->setArguments( myRsyncCommand );
   if ( this->multicastButton->isChecked() )
     process->setArguments( myMulticastCommand );
   if ( this->torrentButton->isChecked() )
     process->setArguments( myBittorrentCommand );
-    
-
+  
   if( app ) {
     // do something
     linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
@@ -109,27 +114,28 @@ void linboMulticastBoxImpl::postcmd() {
 
 void linboMulticastBoxImpl::setRsyncCommand(const QStringList& arglist)
 {
-  myRsyncCommand = QStringList(arglist); // Create local copy
+  myRsyncCommand = arglist; // Create local copy
 }
 
 void linboMulticastBoxImpl::setMulticastCommand(const QStringList& arglist)
 {
-  myMulticastCommand = QStringList(arglist); // Create local copy
+  myMulticastCommand = arglist; // Create local copy
 }
 
 void linboMulticastBoxImpl::setBittorrentCommand(const QStringList& arglist)
 {
-  myBittorrentCommand = QStringList(arglist); // Create local copy
+  
+  myBittorrentCommand = arglist; // Create local copy
 }
 
 void linboMulticastBoxImpl::setCommand(const QStringList& arglist)
 {
   // no sense setting this here
+  myCommand = arglist;
 }
 
 QStringList linboMulticastBoxImpl::getCommand()
 {
-  // no sense setting this here
   return myCommand;
 }
 

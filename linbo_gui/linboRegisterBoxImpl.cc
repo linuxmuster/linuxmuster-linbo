@@ -13,6 +13,9 @@ linboRegisterBoxImpl::linboRegisterBoxImpl(  QWidget* parent ) : linboDialog()
 
   process = new Q3Process( this );
 
+  if( parent )
+    myParent = parent;
+
   connect(registerButton,SIGNAL(clicked()),this,SLOT(postcmd()));
   connect(cancelButton,SIGNAL(clicked()),this,SLOT(close()));
 

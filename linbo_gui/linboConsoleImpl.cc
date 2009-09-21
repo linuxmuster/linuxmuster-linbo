@@ -20,6 +20,9 @@ linboConsoleImpl::linboConsoleImpl(  QWidget* parent ) : linboDialog()
   // new shell handling - use sh in interactive mode 
   mysh->start("sh", QStringList() << "-i");
 
+  if( parent )
+    myParent = parent;
+
   //  connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
   connect(input,SIGNAL(returnPressed()),this,SLOT(execute()));
 
@@ -62,11 +65,6 @@ void linboConsoleImpl::setTextBrowser( Q3TextBrowser* newBrowser )
   Console = newBrowser;
 }
 
-void linboConsoleImpl::setMainApp( QWidget* newMainApp ) {
-  myMainApp = newMainApp;
-}
-
-
 void linboConsoleImpl::precmd() {
   // nothing to do
 }
@@ -74,6 +72,12 @@ void linboConsoleImpl::precmd() {
 
 void linboConsoleImpl::postcmd() {
    // nothing to do
+}
+
+void linboConsoleImpl::setMainApp( QWidget* newMainApp ) {
+  if ( newMainApp ) {
+    myMainApp = newMainApp;
+  }
 }
 
 void linboConsoleImpl::setCommand(const QStringList& arglist)

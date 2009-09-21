@@ -18,6 +18,7 @@ class linboProgressImpl : public QWidget, public Ui::linboProgress
 private:
   Q3Process *myProcess;
   Q3TextBrowser* Console;
+  QWidget *myParent;
 
 public:
   linboProgressImpl( QWidget* parent = 0 );

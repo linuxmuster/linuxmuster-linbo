@@ -12,6 +12,9 @@ linboProgressImpl::linboProgressImpl(  QWidget* parent )
   Ui_linboProgress::setupUi((QDialog*)this);
   connect( cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
 
+  if( parent )
+    myParent = parent;
+
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
   setWindowFlags( flags );

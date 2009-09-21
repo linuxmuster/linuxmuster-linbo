@@ -3,6 +3,7 @@ DEPENDPATH += .
 INCLUDEPATH += .
 CFLAGS += -DQWS -static
 QT += qt3support
+QMAKE_POST_LINK=strip $(TARGET)
 RESOURCES = linbo.qrc
 
 # Input
