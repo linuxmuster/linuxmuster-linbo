@@ -95,6 +95,13 @@ images_maxport(){
 }
 
 start(){
+
+ local STARTED=false
+ local MAXTRIES=25
+ local NEWTORRENT=""
+ local RC=0
+ local c=0
+
  # read server ip
  [ -z "$LINBODEFAULTCONF" ] && LINBODEFAULTCONF="$LINBODIR/start.conf"
  serverip="$(grep ^Server "$LINBODEFAULTCONF" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -114,7 +121,10 @@ start(){
  for i in $images_used; do
 
   #  create torrent file
-  [ ! -e "$i.torrent" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+  if [ ! -e "$i.torrent" -o "$force" = "force" ]; then
+   create_torrent "$i" "$serverip" "$PORT"
+   [ -e "$i.torrent" ] && NEWTORRENT=yes
+  fi
 
   # start torrent daemon for image only if torrent file is present
   [ -e "$i.torrent" ] || continue
@@ -149,18 +159,32 @@ start(){
            --max_slice_length $MAX_SLICE_LENGTH \
            --check_hashes 0 \
            --saveas $i"
-  if start-stop-daemon --start --quiet --background --make-pidfile --exec $DAEMON \
-                       --pidfile $PIDFILE -- $OPTIONS; then
-   log_end_msg 0
-  else
-   log_end_msg 1
-  fi
-  sleep 2
-  if ! ps --no-heading -p `cat $PIDFILE` &>/dev/null; then
-   log_failure_msg "failed!"
-   rm $PIDFILE
-  fi
+  STARTED=false
+  c=0
+  RC=0
+  while [ "$STARTED" = "false" ]; do
+   start-stop-daemon --start --quiet --background --make-pidfile --exec $DAEMON \
+                     --pidfile $PIDFILE -- $OPTIONS
+   sleep 2
+   c=$(($c+1))
+   if ! ps --no-heading -p `cat $PIDFILE` &>/dev/null; then
+    rm $PIDFILE
+    if [ $c -gt $MAXTRIES ]; then
+     echo -n " "
+     log_failure_msg "failed!"
+     RC=1
+     break
+    fi
+   else
+    STARTED=true
+   fi
+   echo -n "."
+  done
+  [ "$RC" = "0" ] && echo
  done
+
+ # restart bittorrent service if a new torrent file was created
+ [ -n "$NEWTORRENT" ] && /etc/init.d/bittorrent restart
 }
 
 stop(){

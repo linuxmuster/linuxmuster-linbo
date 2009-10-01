@@ -1602,7 +1602,7 @@ update(){
  # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
  #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
  #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
- if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ]; then
+ if [ -b "$disk" -a -s "linbo" -a -s "linbofs.gz" ]; then
   echo "Update Master-Bootrecord von $disk."
   # fetch pxe kernel
   download "$server" "gpxe.krn"

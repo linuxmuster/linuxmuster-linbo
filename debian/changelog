@@ -1,3 +1,21 @@
+linuxmuster-linbo (1.99.10-0) unstable; urgency=low
+
+  * package:
+    - linbo-bittorrent.default: setting MAX_UPLOADS to 4.
+    - linbo-bittorrent.init:
+      o restart bittorrent service if a new torrent file was created.
+      o improved error handling in start().
+  * server side scripting:
+    - rsync-post.sh: changed order of torrent services restart.
+    - helperfunctions.sh: fixed missing -H option for grep.
+  * kernel:
+    - new version 2.6.31.
+    - cloop: new version 2.631-1.
+  * linbofs:
+    - update(): fixed condition for mbr update.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 1 Oct 2009 11:34:29 +0200
+
 linuxmuster-linbo (1.99.9-0) unstable; urgency=low
 
   * package:

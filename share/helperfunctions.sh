@@ -2,7 +2,7 @@
 # check if image is in use
 image_in_use() {
  local image="$(basename $1)"
- local configs="$(grep $image $LINBODIR/start.conf.* | grep -v \:# | awk -F\: '{ print $1 }')"
+ local configs="$(grep -H $image $LINBODIR/start.conf.* | grep -v \:# | awk -F\: '{ print $1 }')"
  # check if image is defined in start.conf
  [ -z "$configs" ] && return 1
  local i=""
