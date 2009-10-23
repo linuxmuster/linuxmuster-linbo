@@ -6,7 +6,7 @@
 # $2 is the path to the windows system root
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 20.04.2009
+# 23.10.2009
 #
 
 # trust in this code
@@ -49,39 +49,24 @@ $(echo -e "$cmd")
 .
 }
 
+# test_key basepath key (returns case sensitive key name or nothing)
 test_key() {
- local key="$1"
- local RC=1
- echo -e "cd $key\nq\ny\n" | chntpw -e "$hive" | grep -q "not found\!" || RC="0"
- return $RC
+ local cmd=""
+ if [ -n "$1" ]; then
+  cmd="cd $1\nls\nq\ny\n"
+ else
+  cmd="ls\nq\ny\n"
+ fi
+ echo -e "$cmd" | chntpw -e "$hive" | grep -i "\<$2\>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }'
 }
 
-create_key() {
- local fpath="$1"
+create_keypath() {
+ local key="$1"
  local tpath=""
  local bpath=""
  local cmd=""
  local i=""
  local OIFS="$IFS"
- IFS="\\"
- for i in $fpath; do
-  bpath="$tpath"
-  if [ -n "$tpath" ]; then tpath="${tpath}\\${i}"; else tpath="$i"; fi
-  if ! test_key "$tpath"; then
-   if [ "$bpath" = "" ]; then
-    cmd="nk ${i}\nq\ny\n"
-   else
-    cmd="cd ${bpath}\nnk ${i}\nq\ny\n"
-   fi
-   exec_command "$cmd"
-  fi
- done
- IFS="$OIFS"
-}
-
-create_keypath() {
- local key="$1"
- local ctrlset="$2"
 
  #####
  # parse path to value
@@ -94,30 +79,26 @@ create_keypath() {
 
  [ -n "$DEBUG" ] && echo " 6 fullpath=$fullpath" | tee -a $logfile
 
-	# tschmitt: check if currentkey exists in registry, if not create it
-	if ! test_key "$fullpath"; then
-#  if [ -n "$ctrlset" ]; then
-#   # don't create new keys in supplemental controlsets
-#   [ -n "$DEBUG" ] && echo "### Skipping $fullpath" | tee -a $logfile
-#   return 1
-#  fi
-	 [ -n "$DEBUG" ] && echo "### Creating key $fullpath" | tee -a $logfile
-	 create_key "$fullpath"
-	fi
-}
-
-# returns success if old value is equal to new value
-test_value(){
- local fpath="$1"
- local newval="$2"
- local curval="$(echo -e "cat ${fpath}\nq\ny\n" | chntpw -e "$hive" | grep -Fi "$newval")"
- if [ -n "$curval" ]; then
-  [ -n "$DEBUG" ] && echo "### $parameter is already set to $curval. Skipping." | tee -a $logfile
-  return 0
- else
-  [ -n "$DEBUG" ] && echo "### $parameter is not equal to $newval. Patching." | tee -a $logfile
-  return 1
- fi
+ # iterate over path chunks and create keys if necessary
+ IFS="\\"
+ for i in $fullpath; do
+  # get case sensitive key name from registry
+  tpath="$(test_key "$bpath" "$i")"
+  # create the key if test_key returns an empty key name
+  if [ -z "$tpath" ]; then
+   [ -n "$DEBUG" ] && echo "### Creating new key $bpath $i" | tee -a $logfile
+   tpath="$i"
+   cmd="cd ${bpath}\nnk ${tpath}\nq\ny\n"
+   exec_command "$cmd"
+  fi
+  if [ -n "$bpath" ]; then
+   bpath="${bpath}\\${tpath}"
+  else
+   bpath="$tpath"
+  fi
+ done
+ IFS="$OIFS"
+ fullpath="$bpath"
 }
 
 create_command() {
@@ -127,7 +108,7 @@ create_command() {
  [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
  [ "${change// /}" = "" ] && return 1
 
- local command="cd ${fullpath}\n"
+ command="cd ${fullpath}\n"
  [ -n "$DEBUG" ] && echo " 8 command=$command" | tee -a $logfile
 
  local parameter=`leftgetvalue "$change"`
@@ -158,27 +139,25 @@ create_command() {
   echo "15 value=$value" | tee -a $logfile
  fi
 
- # return if value is already set -> nothing to do
-# if [ -n "$value" ]; then
-#  test_value "${fullpath}\\${parameter}" "$value" && return 1
-# fi
-
  local basecommand="${command}"
 
- # delete value
- command="${basecommand}dv ${parameter}\nq\ny\n"
- exec_command "$command"
- [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
+ # get real case sensitive parameter name from registry
+ local tpara=""
+ tpara="$(test_key "$fullpath" "$parameter")"
 
- # create value
- command="${basecommand}nv ${type} ${parameter}\nq\ny\n"
- exec_command "$command"
- [ -n "$DEBUG" ] && echo "17 command=$command" | tee -a $logfile
+ # create parameter if not found or set parameter name to case sensitive name found in registry
+ if [ -z "$tpara" ]; then
+  command="${basecommand}nv ${type} ${parameter}\nq\ny\n"
+  exec_command "$command"
+  [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
+ else
+  parameter="$tpara"
+ fi
 
  # edit value
  command="${basecommand}ed ${parameter}\n$value\nq\ny\n"
  exec_command "$command"
- [ -n "$DEBUG" ] && echo "18 command=$command" | tee -a $logfile
+ [ -n "$DEBUG" ] && echo "17 command=$command" | tee -a $logfile
 }
 
 while read -r key; do
@@ -217,17 +196,17 @@ while read -r key; do
 
     create_command || break
 
-	  # tschmitt: patch other controlsets up to 3
+	   # tschmitt: patch other controlsets up to 3
     case "$command" in
      *ControlSet001*)
 		    n=2
 		    while [ $n -lt 4 ]; do
 			    ctrlset="ControlSet00$n"
 			    [ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $logfile
-			    if test_key "$ctrlset"; then
-			     key_new="$(echo "$key" | sed "s,ControlSet001,$ctrlset,")"
+			    if [ -n "$(test_key "" "$ctrlset")" ]; then
+			     key_new="$(echo "$key" | sed "s,ControlSet00[1-9],$ctrlset,")"
 				    [ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $logfile
-				    create_keypath "$key_new" "$ctrlset" && create_command
+				    create_keypath "$key_new" && create_command
 			    fi
 			    let n+=1
 		    done

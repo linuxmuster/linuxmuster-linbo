@@ -574,10 +574,11 @@ start(){
     ;;
   esac
   # provide a menu.lst for grldr on win2k/xp
-  if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-   mkgrldr "$1" "/ntldr"
-  elif [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
+  if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
    mkgrldr "$1" "/bootmgr"
+   APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
+  elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+   mkgrldr "$1" "/ntldr"
   elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
    # tschmitt: patch autoexec.bat (win98),
    if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then

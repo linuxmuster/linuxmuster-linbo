@@ -1,3 +1,17 @@
+linuxmuster-linbo (1.99.11-0) unstable; urgency=low
+
+  * package:
+    - removed stale symlink to obsolete /usr/sbin/repack-cloop.
+    - added Windows 7 registry patch example file.
+  * linbofs:
+    - linbo_cmd.sh:
+      o start(): fixed APPEND variable for Windows 7's bootmgr.
+    - patch_registry.sh:
+      o fixed matching cases in key paths.
+      o more fixes according to Windows 7 registry.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Oct 2009 19:38:43 +0200
+
 linuxmuster-linbo (1.99.10-0) unstable; urgency=low
 
   * package:
