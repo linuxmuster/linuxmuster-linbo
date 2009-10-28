@@ -128,6 +128,8 @@ configure-stamp:
 		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CHNTPW_ARCHIVE)...[0m" ; \
 		( cd src && unzip ../cache/$(CHNTPW_ARCHIVE) ); \
+		echo "[1mPatching chntpw sources...[0m" ; \
+		( cd $(CHNTPW_DIR) && for i in ../../patches/chntpw/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CHNTPW_DIR) src/chntpw; \
 	fi
 
@@ -257,7 +259,7 @@ build-stamp: configure-stamp
 	# grub4dos
 	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
 		echo "[1mBuilding grub4dos...[0m" ; \
-		( cd $(GRUB4DOS_DIR) && CFLAGS=-fno-stack-protector ./configure --prefix=/usr --enable-preset-menu=preset_menu.lst && make all && strip grub/grub );\
+		( cd $(GRUB4DOS_DIR) && CC=gcc-4.1 CFLAGS=-fno-stack-protector ./configure --prefix=/usr --enable-preset-menu=preset_menu.lst && make all && strip grub/grub );\
 	fi
 
 	# kexec-tools
@@ -270,6 +272,12 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(MSSYS_DIR)/bin/ms-sys ]; then \
 		echo "[1mBuilding ms-sys...[0m" ; \
 		( cd $(MSSYS_DIR) && make && strip bin/ms-sys ); \
+	fi
+
+	# chntpw
+	-@if [ ! -e $(CHNTPW_DIR)/bin/reged ]; then \
+ 	echo "[1mBuilding reged...[0m"; \
+	 ( cd $(CHNTPW_DIR) && make reged && strip reged ); \
 	fi
 
 	# ntfsprogs
@@ -354,12 +362,12 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-	dh_clean
+	dh_clean -d
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	#dh_clean -k
 	dh_installdirs
 	dh_install
 	# kernel

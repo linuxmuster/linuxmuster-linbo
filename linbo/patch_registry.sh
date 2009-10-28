@@ -44,7 +44,7 @@ rightchopend(){
 
 exec_command() {
  local cmd="$1"
- chntpw $DEBUG -e "$hive" >> $logfile <<.
+ reged $DEBUG -e "$hive" >> $logfile <<.
 $(echo -e "$cmd")
 .
 }
@@ -52,12 +52,15 @@ $(echo -e "$cmd")
 # test_key basepath key (returns case sensitive key name or nothing)
 test_key() {
  local cmd=""
+# local RET=""
  if [ -n "$1" ]; then
   cmd="cd $1\nls\nq\ny\n"
  else
   cmd="ls\nq\ny\n"
  fi
- echo -e "$cmd" | chntpw -e "$hive" | grep -i "\<$2\>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }'
+ echo -e "$cmd" | reged -e "$hive" | grep -i "\<$2\>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }' | grep -i "$2"
+# RET="$(echo -e "$cmd" | reged -e "$hive" | grep -i "\<$2\>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }')"
+# echo "$RET" | grep -i $2
 }
 
 create_keypath() {
@@ -204,9 +207,9 @@ while read -r key; do
 			    ctrlset="ControlSet00$n"
 			    [ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $logfile
 			    if [ -n "$(test_key "" "$ctrlset")" ]; then
-			     key_new="$(echo "$key" | sed "s,ControlSet00[1-9],$ctrlset,")"
-				    [ -n "$DEBUG" ] && echo "### Patching $ctrlset with new key: $key_new" | tee -a $logfile
-				    create_keypath "$key_new" && create_command
+			     key="$(echo "$key" | sed "s,ControlSet00[1-9],$ctrlset,")"
+				    [ -n "$DEBUG" ] && echo "### Patching $ctrlset ..." | tee -a $logfile
+				    create_keypath "$key" && create_command
 			    fi
 			    let n+=1
 		    done

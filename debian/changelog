@@ -1,3 +1,26 @@
+linuxmuster-linbo (1.99.12-0) unstable; urgency=low
+
+  * package:
+    - some modifications to build on Ubuntu 9.10.
+    - rules: compiling grub4dos with gcc-4.1.
+    - control, build dependencies:
+      o changed version for udev to 147 (Karmic).
+      o added gcc-4.3 and g++-4-3.
+  * linbofs:
+    - kernel:
+      o new version 2.6.31.5.
+      o activated inotify support (required by udev 147).
+      o deactivated SYSFS_DEPRECATED option.
+    - grub4dos: new version 0.4.4-2009-10-16.
+    - chntpw:
+      o added patches from fedora 12 source package.
+    - patch_registry.sh:
+      o using smaller reged instead of chtnpw.
+      o more fixes due to controlset patching.
+    - removed badgrub.exe.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Oct 2009 11:01:09 +0100
+
 linuxmuster-linbo (1.99.11-0) unstable; urgency=low
 
   * package:

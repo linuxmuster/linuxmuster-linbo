@@ -2,15 +2,16 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
-Build-Depends: debhelper (>=7.0.17ubuntu4), build-essential (>=11.4), fakeroot, wget, udev (>=141-1.1), udev-extras,
+Build-Depends: debhelper (>=7.0.17ubuntu4), build-essential (>=11.4), fakeroot, wget, udev (>=147~-6),
                nasm, ncurses-base, coreutils, sysvinit-utils, util-linux, ntfsprogs,
                tetex-base, libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip, gettext, zlib1g-dev,
                libncurses5-dev, tetex-bin, tetex-extra, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev,
-               qt3-dev-tools, gcc-4.1, g++-4.1, flex, libxext-dev (>= 4.3.0.dfsg.1-4), libxrandr-dev (>= 4.3.0.dfsg.1-4),
-               libsm-dev (>= 4.3.0.dfsg.1-4), libxmu-dev (>= 4.3.0.dfsg.1-4), libice-dev (>= 4.3.0.dfsg.1-4),
-               libx11-dev (>= 4.3.0.dfsg.1-4), libxt-dev (>= 4.3.0.dfsg.1-4), libxrender-dev, libxcursor-dev, libxinerama-dev,
-               libxi-dev, zlib1g-dev, libjpeg62-dev, libmng-dev (>= 1.0.3), libpng12-dev | libpng12-0-dev, libfontconfig1-dev,
-               libfreetype6-dev, libxft-dev, libiodbc2-dev (>= 3.51.2-4), libmysqlclient15-dev | libmysqlclient-dev, libpq-dev,
+               qt3-dev-tools, gcc-4.1, g++-4.1, gcc-4.3, g++-4.3, flex, libxext-dev (>= 4.3.0.dfsg.1-4),
+               libxrandr-dev (>= 4.3.0.dfsg.1-4), libsm-dev (>= 4.3.0.dfsg.1-4), libxmu-dev (>= 4.3.0.dfsg.1-4),
+               libice-dev (>= 4.3.0.dfsg.1-4), libx11-dev (>= 4.3.0.dfsg.1-4), libxt-dev (>= 4.3.0.dfsg.1-4),
+               libxrender-dev, libxcursor-dev, libxinerama-dev, libxi-dev, zlib1g-dev, libjpeg62-dev,
+               libmng-dev (>= 1.0.3), libpng12-dev | libpng12-0-dev, libfontconfig1-dev, libfreetype6-dev,
+               libxft-dev, libiodbc2-dev (>= 3.51.2-4), libmysqlclient15-dev | libmysqlclient-dev, libpq-dev,
                libaudio-dev, libcupsys2-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libsqlite3-dev
 
 Package: linuxmuster-linbo

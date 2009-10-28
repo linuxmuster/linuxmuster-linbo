@@ -1,0 +1,29 @@
+diff -ur chntpw-080526/ntreg.c chntpw-080526.get_abs_path/ntreg.c
+--- chntpw-080526/ntreg.c	2009-06-08 14:32:00.000000000 +0100
++++ chntpw-080526.get_abs_path/ntreg.c	2009-06-08 14:30:08.000000000 +0100
+@@ -1193,7 +1193,7 @@
+ {
+   /* int newnkofs; */
+   struct nk_key *key;
+-  char tmp[ABSPATHLEN+1];
++  char tmp[ABSPATHLEN];
+ 
+   maxlen = (maxlen < ABSPATHLEN ? maxlen : ABSPATHLEN);
+ 
+@@ -1209,6 +1209,7 @@
+   }
+ 
+   strncpy(tmp,path,ABSPATHLEN-1);
++  tmp[ABSPATHLEN-1] = '\0';
+ 
+   if ( (strlen(path) + key->len_name) >= maxlen-6) {
+     snprintf(path,maxlen,"(...)%s",tmp);
+@@ -1216,7 +1217,7 @@
+   }
+   *path = '\\';
+   memcpy(path+1,key->keyname,key->len_name);
+-  strncpy(path+key->len_name+1,tmp,maxlen);
++  strcpy(path+key->len_name+1,tmp);
+   return(get_abs_path(hdesc, key->ofs_parent+0x1004, path, maxlen)); /* go back one more */
+ }
+ 
