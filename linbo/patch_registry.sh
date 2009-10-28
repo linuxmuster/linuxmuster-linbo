@@ -145,22 +145,27 @@ create_command() {
  local basecommand="${command}"
 
  # get real case sensitive parameter name from registry
- local tpara=""
- tpara="$(test_key "$fullpath" "$parameter")"
+ local found=""
+ found="$(test_key "$fullpath" "$parameter")"
+ [ -n "$found" ] && parameter="$found"
 
- # create parameter if not found or set parameter name to case sensitive name found in registry
- if [ -z "$tpara" ]; then
-  command="${basecommand}nv ${type} ${parameter}\nq\ny\n"
-  exec_command "$command"
-  [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
- else
-  parameter="$tpara"
+ # value is empty and parameter was not found in registry
+ if [ -z "$value" -a -z "$found" ]; then
+  command="${basecommand}nv ${parameter}\nq\ny\n"
+ # value is set and parameter was not found in registry
+ elif [ -n "$value" -a -z "$found" ]; then
+  command="${basecommand}nv ${parameter}\ned ${parameter}\n$value\nq\ny\n"
+ # value is empty and parameter is already present in registry
+ elif [ -z "$value" -a -n "$found" ]; then
+  command="${basecommand}dv ${parameter}\nnv ${parameter}\nq\ny\n"
+ # value is set and parameter is already present in registry
+ elif [ -n "$value" -a -n "$found" ]; then
+  command="${basecommand}ed ${parameter}\n$value\nq\ny\n"
  fi
 
- # edit value
- command="${basecommand}ed ${parameter}\n$value\nq\ny\n"
+ # execute command
  exec_command "$command"
- [ -n "$DEBUG" ] && echo "17 command=$command" | tee -a $logfile
+ [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
 }
 
 while read -r key; do
