@@ -160,7 +160,7 @@ create_command() {
   command="${basecommand}dv ${parameter}\nnv ${parameter}\nq\ny\n"
  # value is set and parameter is already present in registry
  elif [ -n "$value" -a -n "$found" ]; then
-  command="${basecommand}ed ${parameter}\n$value\nq\ny\n"
+  command="${basecommand}dv ${parameter}\nnv ${parameter}\ned ${parameter}\n$value\nq\ny\n"
  fi
 
  # execute command
