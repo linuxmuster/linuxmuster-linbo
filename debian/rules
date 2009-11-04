@@ -275,7 +275,7 @@ build-stamp: configure-stamp
 	fi
 
 	# chntpw
-	-@if [ ! -e $(CHNTPW_DIR)/bin/reged ]; then \
+	-@if [ ! -e $(CHNTPW_DIR)/reged ]; then \
  	echo "[1mBuilding reged...[0m"; \
 	 ( cd $(CHNTPW_DIR) && make reged && strip reged ); \
 	fi
@@ -406,6 +406,7 @@ install: build
 	install -m 755 $(SYSLINUX_DIR)/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
 	install -m 644 $(SYSLINUX_DIR)/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
 	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
+	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
 	install -m 644 media/pxelinux.cfg debian/linuxmuster-linbo/etc/linuxmuster/linbo/pxelinux.cfg.default
 	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png

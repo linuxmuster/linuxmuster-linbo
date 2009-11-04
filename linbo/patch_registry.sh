@@ -6,7 +6,7 @@
 # $2 is the path to the windows system root
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-# 23.10.2009
+# 30.10.2009
 #
 
 # trust in this code
@@ -52,18 +52,16 @@ $(echo -e "$cmd")
 # test_key basepath key (returns case sensitive key name or nothing)
 test_key() {
  local cmd=""
-# local RET=""
  if [ -n "$1" ]; then
   cmd="cd $1\nls\nq\ny\n"
  else
   cmd="ls\nq\ny\n"
  fi
- echo -e "$cmd" | reged -e "$hive" | grep -i "\<$2\>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }' | grep -i "$2"
-# RET="$(echo -e "$cmd" | reged -e "$hive" | grep -i "\<$2\>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }')"
-# echo "$RET" | grep -i $2
+ echo -e "$cmd" | reged -e "$hive" | grep -i "<${2}>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }'
 }
 
-create_keypath() {
+# create_fullkey key (creates the full key path if necessary)
+create_fullkey() {
  local key="$1"
  local tpath=""
  local bpath=""
@@ -71,14 +69,10 @@ create_keypath() {
  local i=""
  local OIFS="$IFS"
 
- #####
- # parse path to value
- #####
-
  [ -n "$DEBUG" ] && echo " 5 key=$key" | tee -a $logfile
  # remove right end and replace it with a backslash
  key=`rightchopend "$key"`
- fullpath="$key"
+ local fullpath="$key"
 
  [ -n "$DEBUG" ] && echo " 6 fullpath=$fullpath" | tee -a $logfile
 
@@ -91,7 +85,11 @@ create_keypath() {
   if [ -z "$tpath" ]; then
    [ -n "$DEBUG" ] && echo "### Creating new key $bpath $i" | tee -a $logfile
    tpath="$i"
-   cmd="cd ${bpath}\nnk ${tpath}\nq\ny\n"
+   if [ -n "$bpath" ]; then
+    cmd="cd ${bpath}\nnk ${tpath}\nq\ny\n"
+   else
+    cmd="nk ${tpath}\nq\ny\n"
+   fi
    exec_command "$cmd"
   fi
   if [ -n "$bpath" ]; then
@@ -104,14 +102,34 @@ create_keypath() {
  fullpath="$bpath"
 }
 
-create_command() {
- ####
- # parse value changes
- ####
- [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
- [ "${change// /}" = "" ] && return 1
+# create_key key
+create_key() {
+ local key="$1"
+ local key_new=""
+ local i=""
+ create_fullkey "$key"
+ case "$key" in
+  *ControlSet001*)
+   for i in ControlSet002 ControlSet003; do
+    if [ -n "$(test_key "" "$i")" ]; then
+     key_new=`echo "$key" | sed -e "s|ControlSet001|$i|")`
+     create_fullkey "$key_new"
+    fi 
+   done
+  ;;
+ esac
+}
 
- command="cd ${fullpath}\n"
+# parse change to value
+create_command() {
+
+ local key="$1"
+ local change="$2"
+ local fullpath=`rightchopend "$key"`
+
+ [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
+
+ local command="cd ${fullpath}\n"
  [ -n "$DEBUG" ] && echo " 8 command=$command" | tee -a $logfile
 
  local parameter=`leftgetvalue "$change"`
@@ -144,45 +162,47 @@ create_command() {
 
  local basecommand="${command}"
 
- # get real case sensitive parameter name from registry
+ # get case sensitive parameter name from registry
  local found=""
  found="$(test_key "$fullpath" "$parameter")"
  [ -n "$found" ] && parameter="$found"
+ [ -n "$DEBUG" ] && echo "16 found=$found" | tee -a $logfile
 
  # value is empty and parameter was not found in registry
  if [ -z "$value" -a -z "$found" ]; then
-  command="${basecommand}nv ${parameter}\nq\ny\n"
+  command="${basecommand}nv ${type} ${parameter}\nq\ny\n"
  # value is set and parameter was not found in registry
  elif [ -n "$value" -a -z "$found" ]; then
-  command="${basecommand}nv ${parameter}\ned ${parameter}\n$value\nq\ny\n"
+  command="${basecommand}nv ${type} ${parameter}\ned ${parameter}\n$value\nq\ny\n"
  # value is empty and parameter is already present in registry
  elif [ -z "$value" -a -n "$found" ]; then
-  command="${basecommand}dv ${parameter}\nnv ${parameter}\nq\ny\n"
+  command="${basecommand}dv ${parameter}\nnv ${type} ${parameter}\nq\ny\n"
  # value is set and parameter is already present in registry
  elif [ -n "$value" -a -n "$found" ]; then
-  command="${basecommand}dv ${parameter}\nnv ${parameter}\ned ${parameter}\n$value\nq\ny\n"
+  command="${basecommand}ed ${parameter}\n$value\nq\ny\n"
  fi
 
  # execute command
+ [ -n "$DEBUG" ] && echo "17 command=$command" | tee -a $logfile
  exec_command "$command"
- [ -n "$DEBUG" ] && echo "16 command=$command" | tee -a $logfile
 }
 
-while read -r key; do
- [ -n "$DEBUG" ] && echo "$key $((count++))" | tee -a $logfile
+# read patch file
+while read -r line; do
+ [ -n "$DEBUG" ] && echo "$line $((count++))" | tee -a $logfile
 
  # select hive for patching
- case "$key" in 
+ case "$line" in 
   \[HKEY_LOCAL_MACHINE*) 
-   key="$(leftchop "$key")"
-   [ -n "$DEBUG" ] && echo " 1 key=$key" | tee -a $logfile
+   tkey="$(leftchop "$line")"
+   [ -n "$DEBUG" ] && echo " 1 tkey=$tkey" | tee -a $logfile
 
-   case `leftget "$key"` in
+   case `leftget "$tkey"` in
     [Ss][Yy][Ss][Tt][Ee][Mm]*) 
      hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
      [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
      # strip hive
-     key=`leftchop "$key"`
+     key=`leftchop "$tkey"`
      [ -n "$DEBUG" ] && echo " 2 key=$key" | tee -a $logfile
 
      # change "CurrentControlSet" to "ControlSet001"
@@ -193,37 +213,36 @@ while read -r key; do
      hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
      [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
      # strip hive
-     key=`leftchop "$key"`
+     key=`leftchop "$tkey"`
      [ -n "$DEBUG" ] && echo " 4 key=$key" | tee -a $logfile
      ;;
+    *) key="" ;;
    esac
 
-   create_keypath "$key"
+  [ -n "$key" ] && create_key "$key"
+  continue
+  ;;
+ esac
 
-   while read -r change; do
+ # check for valid line
+ [ "${line:0:1}" = "\"" -a -n "$key" ] || continue
 
-    create_command || break
+ # patches the value found in line
+ create_command "$key" "$line"
 
-	   # tschmitt: patch other controlsets up to 3
-    case "$command" in
-     *ControlSet001*)
-		    n=2
-		    while [ $n -lt 4 ]; do
-			    ctrlset="ControlSet00$n"
-			    [ -n "$DEBUG" ] && echo "### Checking $ctrlset ..." | tee -a $logfile
-			    if [ -n "$(test_key "" "$ctrlset")" ]; then
-			     key="$(echo "$key" | sed "s,ControlSet00[1-9],$ctrlset,")"
-				    [ -n "$DEBUG" ] && echo "### Patching $ctrlset ..." | tee -a $logfile
-				    create_keypath "$key" && create_command
-			    fi
-			    let n+=1
-		    done
-		    ;;
-    esac
+ # patch other controlsets up to 3
+ case "$key" in
+  *ControlSet001*)
+   for i in ControlSet002 ControlSet003; do
+    echo "### Checking $i ..."
+	   if [ -n "$(test_key "" "$i")" ]; then
+	    key_new=`echo "$key" | sed -e "s|ControlSet001|$i|"`
+	    [ -n "$DEBUG" ] && echo "### Patching $i ..." | tee -a $logfile
+     create_command "$key_new" "$line"
+	   fi
+	  done
+	 ;;
+ esac
 
-   done # while read -r change 
-   ;;
- esac # case "$key"
-
-done < "$1" # while read -r key
+done < "$1" # while read -r line
 

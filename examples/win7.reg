@@ -8,11 +8,12 @@ Windows Registry Editor Version 5.00
 "DisablePasswordChange"=dword:00000001
 "MaximumPasswordAge"=dword:000f4240
 "RefusePasswordChange"=dword:00000001
-"RequireSignOrSeal"=dword:00000000
-"RequireStrongKey"=dword:00000000
+"RequireSignOrSeal"=dword:00000001
+"RequireStrongKey"=dword:00000001
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\]
-"DefaultUserName"=""
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\]
+"dontdisplaylastusername"=dword:00000001
+"DefaultLogonDomain"="SCHULE"
 
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ActiveComputerName\]
 "ComputerName"="{$HostName$}"

@@ -6,8 +6,7 @@
 # flag (/.grub.reboot).
 # If the reboot flag was found grub sets the root partition accordingly and
 # compares the two flag files. If they are different grub falls back to the
-# second menu entry "LINBO PXE" and tries to pxe boot. If that fails it falls
-# back to local linbo boot.
+# second menu entry "LINBO LOCAL" and tries to boot the linbo kernel from cache.
 # If the two flag files were identical grub writes the string "DONE" to the
 # grub flag file so that they are different on next boot. After that it tries
 # to boot on three different ways before it falls back to second entry.
@@ -19,20 +18,15 @@ hiddenmenu
 
 title REBOOT
 fallback 1
-find --set-root /.linbo.reboot
+find --ignore-floppies --ignore-cd --set-root /.linbo.reboot
 cmp /.linbo.reboot /.grub.reboot || ls FALLBACK
 write /.grub.reboot DONE
 ls /boot/grub/menu.lst && configfile /boot/grub/menu.lst
 ls /menu.lst && configfile /menu.lst
 chainloader +1
 
-title LINBO PXE
-fallback 2
-find --set-root /gpxe.krn
-kernel /gpxe.krn
-
 title LINBO LOCAL
-find --set-root /linbofs.gz
+find --ignore-floppies --ignore-cd --set-root /linbofs.gz
 kernel /linbo quiet
 initrd /linbofs.gz
 

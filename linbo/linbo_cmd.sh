@@ -554,7 +554,7 @@ start(){
   fi
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
-    # tschmitt: use builtin grub.exe or badgrub.exe in any case
+    # tschmitt: use builtin grub.exe in any case
     KERNEL="/usr/lib/$3"
     [ -e "$KERNEL" ] || KERNEL="/usr/lib/grub.exe"
     # provide an APPEND line if no one is given
@@ -1581,7 +1581,7 @@ update(){
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
  echo "Suche nach LINBO-Updates auf $1."
- download_if_newer "$server" grub.exe
+ #download_if_newer "$server" grub.exe
  local linbo_ts1="$(getinfo linbo.info timestamp)"
  local linbo_fs1="$(get_filesize linbo)"
  download_if_newer "$server" linbo

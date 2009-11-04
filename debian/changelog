@@ -2,10 +2,23 @@ linuxmuster-linbo (1.99.12-0) unstable; urgency=low
 
   * package:
     - some modifications to build on Ubuntu 9.10.
-    - rules: compiling grub4dos with gcc-4.1.
+    - rules:
+      o compiling grub4dos with gcc-4.1.
+      o installing grub.exe to /var/linbo.
     - control, build dependencies:
       o changed version for udev to 147 (Karmic).
       o added gcc-4.3 and g++-4-3.
+    - links:
+      o added vesamenu.c32 link to	/var/linbo.
+    - updated default pxelinux.cfg configuration file with new boot
+      method for reboot workaround clients.
+  * server side scripting:
+    - updated Windows 7 registry patch example according to Samba 3.4.x.
+    - update-linbofs.sh:
+      o some code cleanup.
+      o set_pxeconfig(): sets default boot method for reboot workaround in
+        new provided pxe group config if necessary.
+    - removed menu.lst.without-pxe from examples.
   * linbofs:
     - kernel:
       o new version 2.6.31.5.
@@ -16,10 +29,13 @@ linuxmuster-linbo (1.99.12-0) unstable; urgency=low
       o added patches from fedora 12 source package.
     - patch_registry.sh:
       o using smaller reged instead of chtnpw.
-      o more fixes due to controlset patching.
+      o several fixes due to controlset patching.
     - removed badgrub.exe.
+    - linbo_cmd.sh:
+      o update(): removed grub.exe download to cache.
+    - menu.lst: added --ignore options to find command, removed local pxe boot option.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 28 Oct 2009 11:01:09 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 4 Nov 2009 18:59:09 +0100
 
 linuxmuster-linbo (1.99.11-0) unstable; urgency=low
 

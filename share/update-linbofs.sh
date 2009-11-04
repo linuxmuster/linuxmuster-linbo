@@ -41,8 +41,16 @@ Group = $group" -i $conf
 set_pxeconfig(){
 	local group=$1
 	local conf="$LINBODIR/pxelinux.cfg/$group"
-	[ -e "$conf" ] || cp $PXELINUXCFG $conf
-	sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
+	if [ -e "$conf" ]; then
+	 sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
+ else
+  # copy default pxelinux config for group
+  cp $PXELINUXCFG $conf
+  if grep -i ^kernel $LINBODIR/start.conf.$group | grep -qiw reboot; then
+   # sets default boot method for reboot workaround
+   grep -q ^"LABEL reboot" $conf && sed -e 's|^DEFAULT .*|DEFAULT reboot|' -i $conf
+  fi
+ fi
 }
 
 # this script makes only sense if imaging=linbo
@@ -138,14 +146,7 @@ for i in $groups; do
 	set_group $LINBODIR/start.conf.$i $i
 	set_pxeconfig $i
 
-	# copy group specific start.conf
-	cp -f $LINBODIR/start.conf.$i start.conf
-
-	# pack group specific linbofs.gz (obsolete)
-#find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.$i.gz ; RC=$?
-#[ $RC -ne 0 ] && bailout "failed!"
-#echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.$i.gz | awk '{print $5}'`" > $LINBODIR/linbofs.$i.gz.info
-echo "Ok!"
+ echo "Ok!"
 
 done
 
