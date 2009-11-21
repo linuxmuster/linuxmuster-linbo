@@ -38,6 +38,15 @@ CMDLINE=""
 
 # Utilities
 
+# test if variable is an integer
+isinteger () {
+ [ $# -eq 1 ] || return 1
+ case $1 in
+ *[!0-9]*|"") return 1;;
+           *) return 0;;
+ esac
+}
+
 # DMA
 enable_dma(){
  case "$CMDLINE" in *\ nodma*) return 0 ;; esac
@@ -301,6 +310,38 @@ downloadtype(){
  echo "$RET"
 }
 
+# handle autostart from cmdline
+set_autostart() {
+ # count [OS] entries
+ local counts="$(grep -ci ^"\[OS\]" /start.conf)"
+ # return if autostart value is greater than number of OS entries
+ [ $autostart -gt $counts -o $autostart -lt 0 ] && return
+ # return if autostart shall be suppressed generally
+ if [ "$autostart" = "0" ]; then
+  # set all autostart parameters to no
+  sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
+  return
+ fi
+ # autostart OS at start.conf position given by autostart parameter
+ local c=0
+ local found=0
+ local line=""
+ while read -r line; do
+  if echo "$line" | grep -qi ^"\[OS\]"; then
+   let c=+1
+   [ "$autostart" = "$c" ] && found=1
+  fi
+  # suppress autostart for other OS entries
+  echo "$line" | grep -qi ^autostart || echo "$line" >> /start.conf.new
+  # write autostart line for specific OS
+  if [ "$found" = "1" ]; then
+   echo "Autostart = yes" >> /start.conf.new
+   found=0
+  fi
+ done </start.conf
+ mv /start.conf.new /start.conf
+}
+
 network(){
  [ -n "$localmode" ] && { touch /tmp/linbo-network.done; return 0; }
  rm -f /tmp/linbo-network.done
@@ -352,6 +393,8 @@ network(){
  [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # set autostart if given on cmdline
+ isinteger "$autostart" && set_autostart
  # remove reboot flag
  rmlinboreboot
  echo > /tmp/linbo-network.done 

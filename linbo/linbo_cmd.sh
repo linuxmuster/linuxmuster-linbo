@@ -597,6 +597,8 @@ start(){
   #umount /cache 2>/dev/null
   return 1
  fi
+ # kill torrents if any
+ ps w | grep ctorrent | grep -v grep &> /dev/null && killall -9 ctorrent
 
  # No more timer interrupts
  [ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
@@ -608,8 +610,6 @@ start(){
  fi
 
  umount /mnt 2>/dev/null
- # kill torrents if any
- ps w | grep ctorrent | grep -v grep && { killall ctorrent; sleep 3; }
  sendlog
  umount /cache || umount -l /cache 2>/dev/null
 

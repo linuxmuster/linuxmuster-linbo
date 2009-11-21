@@ -1,3 +1,17 @@
+linuxmuster-linbo (1.99.13-0) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd.sh, start(): moved killing ctorrent processes to earlier position in start process.
+    - init.sh:
+      o handling new parameter autostart=<int>
+        autostart=0 suppresses autostart generally in start.conf,
+        autostart=<nr> sets autostart for OS number nr in start.conf.
+  * server side scripting:
+    - rsync-post.sh: sync time for image and torrent files otherwise bittorrent gets confused
+      if uploaded torrent file time is in future.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 21 Nov 2009 12:01:54 +0100
+
 linuxmuster-linbo (1.99.12-1) unstable; urgency=low
 
   * recompiled grub.exe.
