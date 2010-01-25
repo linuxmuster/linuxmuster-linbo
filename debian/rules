@@ -408,7 +408,6 @@ install: build
 	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
-	install -m 644 media/pxelinux.cfg debian/linuxmuster-linbo/etc/linuxmuster/linbo/pxelinux.cfg.default
 	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png
 	install -m 644 graphics/linbo-usb.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-usb.png
 	install -m 644 doc/LINBO-M3.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO.pdf
@@ -418,9 +417,11 @@ install: build
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
-	install -m 644 debian/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
-	install -m 755 share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/
+	install -m 644 etc/pxelinux.cfg debian/linuxmuster-linbo/etc/linuxmuster/linbo/pxelinux.cfg.default
+	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
+	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
+	install -m 755 share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	sed -e 's|@@version@@|$(LVERS)|' media/boot.msg > debian/linuxmuster-linbo/var/linbo/boot.msg
 
 # Build architecture-independent files here.

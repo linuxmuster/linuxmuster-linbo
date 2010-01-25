@@ -4,7 +4,9 @@
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
 #
-# last change: 24.02.2009
+# GPL V3
+#
+# last change: 28.11.2009
 #
 
 # read linuxmuster environment
@@ -110,6 +112,16 @@ zcat $LINBODIR/linbofs.gz | cpio -i -d -H newc --no-absolute-filenames &> /dev/n
 # create ssmtp.conf
 mkdir -p etc/ssmtp
 echo "mailhub=$serverip:25" > etc/ssmtp/ssmtp.conf
+
+# provide dropbear ssh host key
+mkdir -p etc/dropbear
+cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
+mkdir -p etc/ssh
+cp $SYSCONFDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
+mkdir -p .ssh
+cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
+mkdir -p var/log
+touch var/log/lastlog
 
 if [ -z "$groups" ] || stringinstring default "$groups"; then
 	# begin with default linbofs.gz

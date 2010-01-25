@@ -6,13 +6,12 @@
 #
 # GPL V3
 #
-# last change: 20.03.2009
+# last change: 20.01.2010
 #
 
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
-
 
 # usage info
 usage(){
@@ -29,8 +28,6 @@ usage(){
 	echo " -i <output dir>         creates cdrom iso in output dir"
 	echo " -u                      create usb media, has to be used with -d or -z"
 	echo " -z <output dir>         creates zip archive with usb boot media files in output dir"
- echo
- echo "<output dir> is optional. Not given current directory is used."
 	echo
 	echo " Examples:"
 	echo
@@ -53,59 +50,39 @@ usage(){
 
 
 # process cmdline
-while getopts ":bcd:g:hiuz" opt; do
-  case $opt in
-    b)
-      DEBUG=yes
-      ;;
-    c)
-      CDROM=yes
-      [ -n "$USB" ] && usage
-			   MEDIA=CDROM
-      ;;
-    u)
-      USB=yes
-      [ -n "$CDROM" ] && usage
-			   MEDIA=USB
-      ;;
-    d)
-      DEVICE=$OPTARG
-      if [ ! -e "$DEVICE" ]; then
-        echo "Device $DEVICE does not exist!"
-				    usage
-      fi
-			   [ -n "$ISO" ] && usage
-	   		[ -n "$ZIP" ] && usage
-			;;
-    i)
-      ISO=yes
-		   	[ -n "$DEVICE" ] && usage
-	   		[ -n "$ZIP" ] && usage
-	     OUTDIR=$OPTARG
-      [ -z "$OPTARG" ] && OUTDIR=`pwd`
-      ;;
-    z)
-      ZIP=yes
-		   	[ -n "$DEVICE" ] && usage
-	   		[ -n "$ISO" ] && usage
-	   		OUTDIR=$OPTARG
-      [ -z "$OPTARG" ] && OUTDIR=`pwd`
-      ;;
-    g)
-      GRPS=$OPTARG
-      ;;
-    h)
-      usage
-			;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      usage
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      usage
-      ;;
-  esac
+while getopts ":bcd:g:hi:uz:" opt; do
+ case $opt in
+  b) DEBUG=yes ;;
+  c) CDROM=yes
+     [ -n "$USB" ] && usage
+			  MEDIA=CDROM ;;
+  d) DEVICE=$OPTARG
+     if [ ! -e "$DEVICE" ]; then
+      echo "Device $DEVICE does not exist!"
+				  usage
+     fi
+			  [ -n "$ISO" ] && usage
+	   	[ -n "$ZIP" ] && usage ;;
+  g) GRPS=$OPTARG ;;
+  h) usage ;;
+  i) ISO=yes
+		   [ -n "$DEVICE" ] && usage
+	   	[ -n "$ZIP" ] && usage
+	    OUTDIR=$OPTARG
+     [ -z "$OPTARG" ] && OUTDIR=`pwd` ;;
+  u) USB=yes
+     [ -n "$CDROM" ] && usage
+			  MEDIA=USB ;;
+  z) ZIP=yes
+		   [ -n "$DEVICE" ] && usage
+	   	[ -n "$ISO" ] && usage
+	   	OUTDIR=$OPTARG
+     [ -z "$OPTARG" ] && OUTDIR=`pwd` ;;
+  :) echo "Option -$OPTARG requires an argument." >&2
+     usage ;;
+  \?) echo "Invalid option: -$OPTARG" >&2
+      usage ;;
+ esac
 done
 
 # check cmdline params
@@ -128,12 +105,13 @@ if [ -n "$GRPS" ]; then
 			continue
 		fi
 		if echo $GRPS_SYS | grep -q -w $i; then
-			if [ -e "$LINBODIR/pxelinux.cfg/$i" -a -e "$LINBODIR/linbofs.$i.gz" ]; then
+			if [ -e "$LINBODIR/pxelinux.cfg/$i" -a -e "$LINBODIR/start.conf.$i" ]; then
 				if [ -n "$GRPS_CHECKED" ]; then GRPS_CHECKED="$GRPS_CHECKED $i"; else	GRPS_CHECKED="$i"; fi
 			fi
 		fi
 	done
 fi
+
 [ -z "$GRPS_CHECKED" ] && GRPS_CHECKED=default
 
 LOGFILE=$LOGDIR/linbo/make-linbo-media.log
@@ -163,6 +141,7 @@ OUTFILE="$OUTDIR/linbo_${GRPS_CHECKED// /-}_${VERSION}"
 [ -n "$ZIP" ] && OUTFILE="${OUTFILE}.usb.zip"
 
 MNTPNT=/var/tmp/mnt.$$
+TMPDIR=/var/tmp/linbofs.$$
 CURDIR=`pwd`
 LINBOFS=linbofs.gz
 
@@ -192,8 +171,8 @@ menu color title                1;31;40    #90ffff00 #00000000
 	m=1
 	for i in $GRPS_CHECKED; do
 
-		append1=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | tail -1 | sed -e 's|linbofs.gz|/linbofs.gz|'`
- 	append2=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | head -1 | sed -e 's|linbofs.gz|/linbofs.gz|'`
+		append1=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | grep linbofs.gz | grep -vw debug | tail -1 | sed -e "s|linbofs.gz|/linbofs.$i.gz|"`
+ 	append2=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | grep linbofs.gz | grep -w debug | tail -1 | sed -e "s|linbofs.gz|/linbofs.$i.gz|"`
 
 		echo "LABEL menu$m
 MENU LABEL ^$m. LINBO: $i
@@ -227,6 +206,27 @@ MENU LABEL ^$(($m +2)). Neustart
 KERNEL $sysdir/`basename $REBOOTC32`" >> $outfile
 }
 
+create_linbofs() {
+ local RC=0
+ local g=""
+ # create temp dir for linbofs content
+ local curdir=`pwd`
+ mkdir -p /var/tmp/linbofs.$$
+ cd $TMPDIR
+ zcat $LINBODIR/$LINBOFS | cpio -i -d -H newc --no-absolute-filenames &> /dev/null || exit 1
+	for g in $GRPS_CHECKED; do
+  echo -n "Creating linbofs.gz for group $g ... "
+  if [ "$g" = "default" ]; then
+   cp $LINBODIR/start.conf .
+  else
+   cp $LINBODIR/start.conf.$g start.conf || cp $LINBODIR/start.conf .
+  fi
+  # pack linbofs.gz
+	 find . | cpio --quiet -o -H newc | gzip -9c > $MNTPNT/linbofs.$g.gz ; RC="$?" || exit 1
+  echo "Ok!"
+ done
+ cd $curdir
+}
 
 # writing files to stick/image
 writefiles() {
@@ -246,7 +246,7 @@ writefiles() {
 	cp $VMENUC32 $targetdir
 	cp $GPXEKRN $targetdir
 	cp $LINBODIR/linbo $MNTPNT
-	cp $LINBODIR/linbofs.gz $MNTPNT
+	create_linbofs
 	if [ -n "$ZIP" -a "$1" = "syslinux" ]; then
 		mkdir -p $MNTPNT/utils/linux
 		mkdir -p $MNTPNT/utils/win32
@@ -298,13 +298,8 @@ mkdir -p $MNTPNT
 make_usb() {
 
 	if [ -n "$ZIP" ]; then
-
-		echo -n "Writing files to temp dir ..."
 		writefiles syslinux
-		echo "Ok!"
-
 		create_zip
-
 	fi
 
 	if [ -n "$DEVICE" ]; then
@@ -353,9 +348,7 @@ make_usb() {
 # cdrom stuff
 make_cd() {
 
- echo -n "Writing files to temp dir ..."
 	writefiles isolinux
-	echo "Ok!"
 
 	MKISOFS=`which mkisofs`
 	if [ -z "$MKISOFS" ]; then
@@ -364,16 +357,14 @@ make_cd() {
 		exit 1
 	fi
 
-	echo -n "Creating iso image ... "
+	echo "Creating iso image ... "
 	cd $MNTPNT
 	$MKISOFS -r -no-emul-boot -boot-load-size 4 -boot-info-table \
 					-b isolinux/isolinux.bin -c isolinux/boot.cat \
 					-m .svn -J -R -l -o $OUTFILE ./ ; RC=$?
 	cd $CURDIR
 
-	if [ "$RC" = "0" ]; then
-		echo "Ok!"
-	else
+	if [ "$RC" != "0" ]; then
 		echo "Failed!"
 		rm -f $OUTFILE
 		rm -rf $MNTPNT
@@ -391,9 +382,7 @@ make_cd() {
 		echo "Writing to cdrom ... "
 		$WODIM -s dev=$DEVICE blank=fast $OUTFILE ; RC=$?
 
-		if [ "$RC" = "0" ]; then
-			echo "Ok!"
-		else
+		if [ "$RC" != "0" ]; then
 			echo "Failed!"
 			rm -rf $MNTPNT
 			exit 1
@@ -415,6 +404,7 @@ if [ -n "$CDROM" ]; then
 fi
 
 [ -d "$MNTPNT" ] && rm -rf $MNTPNT
+[ -d "$TMPDIR" ] && rm -rf $TMPDIR
 
 echo "### Finished on `date` ###" | tee -a $LOGFILE
 

@@ -150,12 +150,31 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
    fi
   fi
 
- 	# change owner of logdir to nobody
- 	[ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
- 	chown nobody $LINBOLOGDIR
+  # change owner of logdir to nobody
+  [ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
+  chown nobody $LINBOLOGDIR
 
- 	# update linbofs.gz
- 	$LINBOUPDATE
+  # create dropbear ssh keys
+  if [ ! -s "$SYSCONFDIR/linbo/ssh_host_rsa_key" ]; then
+   echo -e "$SYSCONFDIR/linbo/ssh_host_rsa_key\n\n\n" | ssh-keygen -t rsa
+   /usr/lib/dropbear/dropbearconvert openssh dropbear $SYSCONFDIR/linbo/ssh_host_rsa_key $SYSCONFDIR/linbo/dropbear_rsa_host_key
+  fi
+  if [ ! -s "$SYSCONFDIR/linbo/ssh_host_dsa_key" ]; then
+   echo -e "$SYSCONFDIR/linbo/ssh_host_dsa_key\n\n\n" | ssh-keygen -t dsa
+   /usr/lib/dropbear/dropbearconvert openssh dropbear $SYSCONFDIR/linbo/ssh_host_dsa_key $SYSCONFDIR/linbo/dropbear_dss_host_key
+  fi
+
+  # kill obsolete btdownloadheadless processes from old versions
+  if ps ax | grep -v grep | grep -q btdownloadheadless; then
+   /etc/init.d/linbo-bittorrent stop
+   oldpids="$(ps ax | grep -v grep | grep btdownloadheadless | awk '{ print $1 }')"
+   echo "Sending obsolete btdownloadheadless processes the TERM signal."
+   kill $oldpids
+   /etc/init.d/linbo-bittorrent start
+  fi
+
+  # update linbofs.gz
+  $LINBOUPDATE
 
  ;;
 

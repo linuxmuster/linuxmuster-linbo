@@ -10,6 +10,7 @@ RESET="]R"
 CLEAR="c"
 
 CMDLINE="$(cat /proc/cmdline)"
+REMOTE_TAG="### LINBO REMOTE ###"
 
 # echo "$CLEAR$RESET"
 
@@ -33,3 +34,4 @@ esac
 DISPLAY=""
 case "$(fbset -i 2>/dev/null)" in *640\ 480\ 4*) DISPLAY="-display VGA16:0";; esac
 exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
+

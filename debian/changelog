@@ -1,3 +1,69 @@
+linuxmuster-linbo (1.99.15-0) unstable; urgency=low
+
+  * package, linbo-bittorrent.init:
+    - fixed wrong way to determine value for TIMEOUT.
+    - torrent processes now started as in a screen process with linbo-torrenthelper.sh (see below).
+    - added status parameter.
+    - removed sleep between torrent starts.
+  * server side scripting:
+    - added new script linbo-torrenthelper.sh as a wrapper for btdownloadcurses.
+    - linbo-remote.sh: starting remote commands in a screen session.
+    - rsync-post.sh, rsync-pre.sh: fixed torrent service restart.
+    - make-linbo-media.sh: fixed broken group support (closes #183).
+  * linbofs:
+    - kernel: new version 2.6.32.4.
+    - linbo_cmd.sh:
+      o debug msg redirected to /tmp/linbo.log.
+      o download_if_newer(): optimized torrent handling.
+      o download_torrent(): removed port from ctorrent options.
+      o mk_cloop(): torrent files are created independant of downloadtype.
+      o many fixes due to torrent download.
+      o syncl(): sources at least new image.postsync script.
+      o download_if_newer(), download(): implemented download of per image postsync script.
+      o syncl(): skipping local sync if cachdev is equal to rootdev, so it is possible to boot
+        images directly from cache.
+      o mk_cloop(): creating status file on os partition after cloop image creation.
+    - init.sh: downloads torrent-client.conf and multicast.list independant from download type.
+    - menu.lst: added vga=788 to linbo append parameters, according to default pxelinux.cfg.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jan 2010 10:07:24 +0100
+
+linuxmuster-linbo (1.99.14-0) unstable; urgency=low
+
+  * package:
+    - added dropbear (>=0.52) to build and package depends, ssh and etherwake to package depends.
+    - postinst: ssh client keys are created if not yet there in /etc/linuxmuster/linbo.
+    - added new config file debian/ssh_config which is installed to /etc/linuxmuster-linbo.
+    - moved config files pxelinux.cfg, ssh_config and start.conf, which are installed to
+      /etc/linuxmuster/linbo, to new etc folder.
+    - new links:
+      o linbo-ssh.sh -> /usr/sbin/linbo-ssh.
+      o linbo-scp.sh -> /usr/sbin/linbo-ssp.
+      o linbo-remote.sh -> /usr/sbin/linbo-remote.
+  * linbofs:
+    - kernel: new version 2.6.31.6.
+    - added dropbear 0.52 ssh server.
+    - added ssh keys.
+    - changed to blue version of wallpaper.
+    - linbo_cmd.sh:
+      o syncl(): ssh client keys are copied to a linux client installation if folder /etc/dropbear
+        is found (see below).
+    - init.sh: resets auto values in start.conf if remote control mode is detected.
+    - linbo_wrapper.sh: new wrapper to easily control linbo_cmd on the linbo client
+      console, used as backend for linbo-remote script. 
+  * server side scripting:
+    - update-linbofs.sh: added ssh key creation. Keys are placed in linbofs under /etc/dropbear
+      (dropbear format, used by LINBO's dropbear) and /etc/ssh (for the openssh server on linux clients).
+    - passwordless login to linbo client is realized by using /etc/linuxmuster-linbo/ssh_config:
+      # ssh -F /etc/linuxmuster-linbo/ssh_config <hostname>
+      Only logins with server's root ssh key are allowed. StrictHostKeyChecking is disabled to avoid
+      interaction using batch mode. ~/.ssh-linbo/known_hosts is used.
+    - linbo-ssh.sh: script to ssh connect linbo clients.
+    - linbo-scp.sh: wrapper to copy files with rsync per ssh from and to linbo-clients.
+    - linbo-remote.sh: ssh frontend end script for linbo_wrapper on the client.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Dec 2009 13:51:28 +0100
+
 linuxmuster-linbo (1.99.13-0) unstable; urgency=low
 
   * linbofs:

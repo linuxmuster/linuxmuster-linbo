@@ -2,6 +2,10 @@
 # linbo_cmd - Backend worker script for LINBO
 # (C) Klaus Knopper 2007
 # License: GPL V2
+#
+# paedML/openML modifications by Thomas Schmitt
+# last change: 14.12.2009
+#
 
 CLOOP_BLOCKSIZE="131072"
 RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
@@ -19,11 +23,15 @@ rm -f "$TMP"
 # echo "»linbo_cmd«" "»$@«"
 ps w | grep linbo_cmd | grep -v grep >"$TMP"
 if [ $(cat "$TMP" | wc -l) -gt 1 ]; then
- echo "Possible Bug detected: linbo_cmd already running." >&2
- cat "$TMP" >&2
+# echo "Possible Bug detected: linbo_cmd already running." >&2
+ echo "Possible Bug detected: linbo_cmd already running." >> /tmp/linbo.log
+ #cat "$TMP" >&2
+ cat "$TMP" >> /tmp/linbo.log
 fi
 rm -f "$TMP"
 # EOF Debugging
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 printargs(){
  local arg
@@ -362,7 +370,8 @@ mountcache(){
    #export PASSWD="$RSYNC_PASSWORD"
    #mount $2 -t cifs -o username=linbo,nolock "$1" /cache 2>/dev/null
    # temporary workaround for password
-   PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
+   [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
+   [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
    mount $2 -t cifs -o user=linbo,pass="$PASSWD",nolock "$1" /cache 2>/dev/null
    RC="$?"
    if [ "$RC" != "0" ]; then
@@ -405,17 +414,17 @@ mountcache(){
  return "$RC"
 }
 
-# Changed: All partitions start on cylider boundaries.
+# Changed: All partitions start on cylinder boundaries.
 # partition dev1 size1 id1 bootable1 filesystem dev2 ...
 # When "$NOFORMAT" is set, format is skipped, otherwise all
 # partitions with known fstypes are formatted.
 partition(){
  echo -n "partition " ;  printargs "$@"
- local WAIT=10
+ local WAIT=5
  # check for running torrents and kill them if any
  if ps w | grep ctorrent | grep -v grep &>/dev/null; then
   echo "Killing torrents ..."
-  killall ctorrent
+  killall -9 ctorrent
   sleep "$WAIT"
   ps w | grep ctorrent | grep -v grep &>/dev/null && sleep "$WAIT"
  fi
@@ -439,6 +448,8 @@ partition(){
  local dummy=""
  local relax=""
  local pcount=0
+ local fstype=""
+ local bootable=""
  read d cylinders relax <<.
 $(sfdisk -g "$disk")
 .
@@ -471,8 +482,12 @@ $(sfdisk -s "$disk")
    done
   fi
   # Insert table entry.
-  table="$table,$csize,$3${4:+,*}"
-  [ -n "$5" ] && formats="$formats $dev,$5"
+  bootable="$4"
+  [ "$bootable" = "-" ] && bootable=""
+  fstype="$5"
+  [ "$fstype" = "-" ] && fstype=""
+  table="$table,$csize,$3${bootable:+,*}"
+  [ -n "$fstype" ] && formats="$formats $dev,$fstype"
   shift 5
  done
  # tschmitt: This causes windows to recognize a new harddisk after each partitioning, which leeds
@@ -726,6 +741,12 @@ mk_cloop(){
    interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 | tee -a /tmp/image.log
    RC="$?"
    if [ "$RC" = "0" ]; then
+    # create status file
+    if mountpart "$2" /mnt -w ; then
+     echo "${3%.cloop}" > /mnt/.linbo
+     umount /mnt || umount -l /mnt
+    fi
+    # create info file
     imgsize="$(get_filesize $3)"
     # Adjust uncompressed image size with one additional cloop block
     size="$(($CLOOP_BLOCKSIZE / 1024 + $size))"
@@ -783,8 +804,8 @@ mk_cloop(){
    fi
   ;; 
  esac
- # create torrent files
- if [ "$RC" = "0" -a "$(downloadtype)" = "torrent" ]; then
+ # create torrent file
+ if [ "$RC" = "0" ]; then
   echo "Erstelle torrent Dateien ..." | tee -a /tmp/image.log
   touch "$3".complete
   local serverip="$(grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -1050,7 +1071,13 @@ patch_fstab(){
 syncl(){
  local RC=1
  local patchfile=""
+ local postsync=""
  local rootdev="$5"
+ # don't sync in that case
+ if [ "$1" = "$rootdev" ]; then
+  echo "Ueberspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
+  return 0
+ fi
  echo -n "syncl " ; printargs "$@"
  mountcache "$1" || return "$?"
  cd /cache
@@ -1061,6 +1088,7 @@ syncl(){
    restore "$image" "$5" $9 ; RC="$?"
    [ "$RC" = "0" ] || break
    patchfile="$image.reg"
+   postsync="$image.postsync"
   else
    echo "$image ist nicht vorhanden." >&2
    RC=1
@@ -1112,8 +1140,28 @@ syncl(){
      echo "$HOSTNAME" > /mnt/etc/hostname
     fi
    fi
+   # copy ssh keys
+   if [ -d /mnt/etc/dropbear ]; then
+    cp /etc/dropbear/* /mnt/etc/dropbear
+    if [ -s /mnt/root/.ssh/authorized_keys ]; then
+     local sshkey="$(cat /.ssh/authorized_keys)"
+     grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
+    else
+     mkdir -p /mnt/root/.ssh
+     cp /.ssh/authorized_keys /mnt/root/.ssh
+    fi
+    chmod 600 /mnt/root/.ssh/authorized_keys
+   fi
+   # patch dropbear config with port 2222 and disable password logins
+   if [ -s /mnt/etc/default/dropbear ]; then
+    sed -e 's|^NO_START=.*|NO_START=0|
+            s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
+            s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
+   fi
    # fstab
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+   # source postsync script
+   [ -s "/cache/$postsync" ] && . "/cache/$postsync"
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
   fi
@@ -1318,24 +1366,23 @@ download_torrent(){
  local ip="$(ip)"
  [ -z "$ip" -o "$ip" = "OFFLINE" ] && return "$RC"
  # default values
- local MINPORT=6881
  local MAX_INITIATE=40
  local MAX_UPLOAD_RATE=0
  local SLICE_SIZE=128
  local TIMEOUT=300
+ local pid=""
  [ -e /torrent-client.conf ] && . /torrent-client.conf
  [ -n "$DOWNLOAD_SLICE_SIZE" ] && SLICE_SIZE=$(($DOWNLOAD_SLICE_SIZE/1024))
- local pid="$(ps w | grep ctorrent | grep "$1.torrent" | grep -v grep | awk '{ print $1 }')"
+ local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
  [ -n "$pid" ] && kill "$pid"
- local pnr="$(ps w | grep -v grep | grep -c ctorrent)"
- local PORT=$(($MINPORT+$pnr))
- local OPTS="-e 10000 -I $ip -p $PORT -M $MAX_INITIATE -z $SLICE_SIZE"
+ local OPTS="-e 10000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
  echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
  if [ -e "$complete" ]; then
   ctorrent -f -d $OPTS "$torrent"
  else
+  rm -f "$image" "$torrent".bf
   torrent_watchdog "$image" "$TIMEOUT" &
   interruptible download_torrent_check "$image" "$OPTS"
  fi
@@ -1368,19 +1415,16 @@ download_if_newer(){
  localmode && return 0
  local DLTYPE="$3"
  [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
+ [ -z "$DLTYPE" ] && DLTYPE="rsync"
  local RC=0
  local DOWNLOAD_ALL=""
- local FTYPE=""
- local md5sum_before=""
- local md5sum_after=""
+ local IMAGE=""
+ case "$2" in *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) IMAGE="true" ;; esac
  if [ ! -s "$2" -o ! -s "$2".info ]; then # File not there, download all
   DOWNLOAD_ALL="true"
  else
   mv -f "$2".info "$2".info.old 2>/dev/null
   download "$1" "$2".info
-  # file list is obsolete
-  #download "$1" "$2".list >/dev/null 2>&1
-  download "$1" "$2".desc >/dev/null 2>&1
   if [ -s "$2".info ]; then
    local ts1="$(getinfo "$2".info.old timestamp)"
    local ts2="$(getinfo "$2".info timestamp)"
@@ -1399,62 +1443,77 @@ download_if_newer(){
    mv -f "$2".info.old "$2".info
   fi
  fi
- case "$2" in
-  *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) FTYPE="image" ;;
- esac
- # extra check for torrents
- if [ "$DLTYPE" = "torrent" -a -n "$FTYPE" ]; then
-  [ -e "$2".torrent ] && md5sum_before="$(md5sum "$2".torrent | awk '{ print $1 }')"
-  download "$1" "$2".torrent
-  md5sum_after="$(md5sum "$2".torrent | awk '{ print $1 }')"
-  if [ "$md5sum_after" != "$md5sum_before" ]; then
-   # remove old image if there is a new torrent file for it
-   rm -f "$2"
-   DOWNLOAD_ALL="true"
+ # check for complete flag
+ [ -z "$DOWNLOAD_ALL" -a -n "$IMAGE" -a ! -e "$2.complete" ] && DOWNLOAD_ALL="true"
+ # supplemental torrent check
+ if [ -n "$IMAGE" ]; then
+  # save local torrent file
+  [ -e "$2.torrent" -a -z "$DOWNLOAD_ALL" ] && mv "$2".torrent "$2".torrent.old
+  # download torrent file from server
+  download_all "$1" "$2".torrent ; RC="$?"
+  if [ "$RC" != "0" ]; then
+   echo "Download von $2.torrent fehlgeschlagen." >&2
+   return "$RC"
   fi
-  [ -z "$DOWNLOAD_ALL" ] && download_torrent "$2" ; RC="$?"
+  # check for updated torrent file
+  if [ -e "$2.torrent.old" ]; then
+   cmp "$2".torrent "$2".torrent.old || DOWNLOAD_ALL="true"
+   rm "$2".torrent.old
+  fi
+  # update regpatch and postsync script
+  rm -rf "$2".reg "$2".postsync
+  download_all "$1" "$2".reg "$2".postsync >/dev/null 2>&1
  fi
- # download images according to download type
+ # start torrent service for others if there is no image to download
+ [ "$DLTYPE" = "torrent" -a -n "$IMAGE" -a -z "$DOWNLOAD_ALL" ] && download_torrent "$2"
+ # download because newer file exists on server
  if [ -n "$DOWNLOAD_ALL" ]; then
-  if [ "$DLTYPE" = "torrent" -a -n "$FTYPE" ]; then
+  if [ -n "$IMAGE" ]; then
+   # remove complete flag
    rm -f "$2".complete
-   download_torrent "$2" ; RC="$?"
+   # download images according to downloadtype torrent or multicast
+   case "$DLTYPE" in
+    torrent)
+     # remove old image and torrents before download starts
+     rm -f "$2" "$2".torrent.bf
+     download_torrent "$2" ; RC="$?"
+     [ "$RC" = "0" ] ||  echo "Download von $2 per torrent fehlgeschlagen!" >&2
+    ;;
+    multicast)
+     if [ -s /multicast.list ]; then
+      local MPORT="$(get_multicast_port "$2")"
+      if [ -n "$MPORT" ]; then
+       download_multicast "$1" "$MPORT" "$2" ; RC="$?"
+      else
+       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download möglich." >&2
+       RC=1
+      fi
+     else
+      echo "Datei multicast.list nicht gefunden, kein Multicast-Download möglich." >&2
+      RC=1
+     fi
+     [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
+    ;;
+   esac
+   # download per rsync also as a fallback if other download types failed
+   if [ "$RC" != "0" -o "$DLTYPE" = "rsync" ]; then
+    [ "$RC" = "0" ] || echo "Versuche Download per rsync." >&2
+    download_all "$1" "$2" ; RC="$?"
+    [ "$RC" = "0" ] || echo "Download von $2 per rsync fehlgeschlagen!" >&2
+   fi
+   # download supplemental files and set complete flag if image download was successful
    if [ "$RC" = "0" ]; then
-    # file list is obsolete
-    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
-    download_all "$1" "$2".info "$2".desc "$2".reg ; RC="$?"
-   else
-    echo "Konnte $2 nicht herunterladen!"
-    RC=1
+    # reg und postsync were downloaded already above
+#    download_all "$1" "$2".info "$2".desc "$2".reg "$2".postsync >/dev/null 2>&1
+    download_all "$1" "$2".info "$2".desc >/dev/null 2>&1
+    touch "$2".complete
    fi
-  elif [ "$DLTYPE" = "multicast" -a -n "$FTYPE" ]; then
-   if [ -s /multicast.list ]; then
-    local MPORT="$(get_multicast_port "$2")"
-    if [ -n "$MPORT" ]; then
-     download_multicast "$1" "$MPORT" "$2"
-     RC="$?"
-    else
-     RC=1
-    fi
-   else
-    RC=1
-   fi
-   if [ "$RC" = "0" ]; then
-    # file list is obsolete
-    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
-    download_all "$1" "$2".info  "$2".desc "$2".reg ; RC="$?"
-   else
-    echo "Keine multicast.list gefunden, kein Multicast-Download möglich." >&2
-   fi
-  else
-    # file list is obsolete
-   #download_all "$1" "$2" "$2".info "$2".list "$2".desc "$2".reg
-   download_all "$1" "$2" "$2".info "$2".desc "$2".reg
-   RC="$?"
+  else # download other files than images
+   download_all "$1" "$2" "$2".info ; RC="$?"
+   [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
   fi
- else
+ else # download nothing, no newer file on server
   echo "Keine neuere Version vorhanden, überspringe $2."
-  RC=1
  fi
  return "$RC"
 }
@@ -1558,8 +1617,9 @@ syncr(){
   local i
   for i in "$3" "$4"; do
    [ -n "$i" ] && download_if_newer "$1" "$i"
-   localmode || rm -f "$i".reg 2>/dev/null
-   download "$1" "$i".reg >/dev/null 2>&1
+   # moved this to download_if_newer()
+#   localmode || rm -f "$i".reg "$i".postsync 2>/dev/null
+#   download "$1" "$i".reg "$i".postsync >/dev/null 2>&1
   done
   cd / ; sendlog
   #umount /cache
@@ -1844,12 +1904,14 @@ case "$cmd" in
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
  initcache) initcache "$@" ;;
+ mountcache) mountcache "$@" ;;
  readfile) readfile "$@" ;;
  ready) ready "$@" ;;
  register) register "$@" ;;
  sync) syncl "$@" && { cache="$1"; shift 3; start "$1" "$2" "$3" "$4" "$5" "$cache"; } ;;
  syncstart) syncr "$@" && { cache="$2"; shift 4; start "$1" "$2" "$3" "$4" "$5" "$cache"; } ;;
  syncr) syncr "$@" && { cache="$2"; shift 4; start "$1" "$2" "$3" "$4" "$5" "$cache"; } ;;
+ synconly) syncr "$@" ;;
  update) update "$@" ;;
  upload) upload "$@" ;;
  writefile) writefile "$@" ;;

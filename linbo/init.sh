@@ -35,6 +35,7 @@ CYAN="[1;36m"
 WHITE="[1;37m"
 
 CMDLINE=""
+REMOTE_TAG="### LINBO REMOTE ###"
 
 # Utilities
 
@@ -178,6 +179,8 @@ printcache(){
 
 # copytocache file - copies start.conf to local cache
 copytocache(){
+ # do not copy start.conf in remote control mode
+ grep "$REMOTE_TAG" /start.conf && return 0
  local cachedev="$(printcache)"
  case "$cachedev" in
   /dev/*) # local cache
@@ -312,6 +315,8 @@ downloadtype(){
 
 # handle autostart from cmdline
 set_autostart() {
+ # do set autostart in remote control mode
+ grep "$REMOTE_TAG" /start.conf && return 0
  # count [OS] entries
  local counts="$(grep -ci ^"\[OS\]" /start.conf)"
  # return if autostart value is greater than number of OS entries
@@ -372,11 +377,9 @@ network(){
    rsync -L "$server::linbo/$i" "start.conf" >/dev/null 2>&1 && break
   done
   # also look for other needed files
-  case "$(downloadtype)" in
-   torrent) dlfile="torrent-client.conf" ;;
-   multicast) dlfile="multicast.list" ;;
-  esac
-  [ -n "$dlfile" ] && rsync -L "$server::linbo/$dlfile" "$dlfile" >/dev/null 2>&1
+  for i in "torrent-client.conf" "multicast.list"; do
+   rsync -L "$server::linbo/$i" "/$i" >/dev/null 2>&1
+  done
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
@@ -466,4 +469,7 @@ else
  hwsetup >/dev/null 2>&1
  network >/dev/null 2>&1 &
 fi
+
+# start dropbear
+/sbin/dropbear -s -g -E -p 2222
 
