@@ -60,8 +60,7 @@ MSSYS_URL=$(LML_URL)
 # ntfs-3g
 NTFS3G_ARCHIVE=$(shell grep ntfs-3g- debian/md5sums.src | awk '{ print $$2 }')
 NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
-#NTFS3G_URL=http://www.ntfs-3g.org
-NTFS3G_URL=$(LML_URL)
+NTFS3G_URL=http://tuxera.com/opensource
 
 # ntfsprogs
 #NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
@@ -289,7 +288,7 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.4917.0.0 ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/ntfs-3g.secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.73.0.0 ); \
 	fi
 
 	# rsync
@@ -304,7 +303,7 @@ build-stamp: configure-stamp
 		( cd $(SSMTP_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
-	# syslinux (already built on etch)
+	# syslinux (already built on lenny)
 #	-@if [ ! -e $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn ]; then \
 #		echo "[1mBuilding syslinux...[0m" ; \
 #		( cd $(SYSLINUX_DIR)/gpxe/src && make bin/gpxe.lkrn ); \

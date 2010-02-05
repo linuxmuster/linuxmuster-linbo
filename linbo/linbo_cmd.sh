@@ -767,14 +767,13 @@ mk_cloop(){
       cleanup_fs /mnt
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
-      # rsync mit acl und xattr Optionen
-      local ROPTS="-HazAX"
-      #local ROPTS="-az"
-      [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rtz"
-      # tschmitt: logging
-      #rm -f "$TMP"
-      #interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --only-write-batch="$3" /mnt/ /cloop
-      #interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      # determine rsync opts due to fstype
+      local type="$(fstype "$2")"
+      case $type in
+       ntfs) ROPTS="-HazAX" ;;
+       vfat) ROPTS="-rtz" ;;
+       *) ROPTS="-az" ;;
+      esac
       interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
       RC="$?"
       umount /cloop

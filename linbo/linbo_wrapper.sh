@@ -437,7 +437,7 @@ while [ "$#" -gt "0" ]; do
 
   reboot) /sbin/reboot ;;
 
-  halt|poweroff) /sbin/poweroff ;;
+  halt|poweroff) /sbin/halt ;;
 
  esac
 

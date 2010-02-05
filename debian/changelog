@@ -1,3 +1,38 @@
+linuxmuster-linbo (1.99.16-0) unstable; urgency=low
+
+  * package
+    - linbo-multicast init script, added lsb header.
+  * linbofs
+    - rsync: new upstream version 3.0.7.
+    - linbo_cmd.sh:
+      o mk_cloop(): uses specific rsync options due to fstype (ntfs, vfat, other).
+    - linbo_wrapper: changed shutdown command from poweroff to halt.
+    - ntfs-3g: new upstream version 2010.1.16.
+  * kernel: new version 2.6.32.7.
+  * server side scripting
+    - syslinux: recompiled on lenny.
+    - make-linbo-media.sh:
+      o new option -n: no strict checking for linbo ssh server, allows password based
+        logins, needs -p for root pw, optional.
+      o new option -p <password>: sets local linbo admin password, is also used for
+        root ssh login if password logins are allowed with -n, optional.
+      o new option -r: remove server root's public ssh key.
+      o improved LINBO parameter grepping from group's pxe configfile.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 5 Feb 2010 13:16:23 +0100
+
+linuxmuster-linbo (1.99.15-2) unstable; urgency=low
+
+  * package, postinst: creating bittorrent init scripts if necessary.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 3 Feb 2010 13:25:56 +0100
+
+linuxmuster-linbo (1.99.15-1) unstable; urgency=low
+
+  * package, postinst: added one more "\n" to ssh key gen commands to avoid password query.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 1 Feb 2010 15:21:25 +0100
+
 linuxmuster-linbo (1.99.15-0) unstable; urgency=low
 
   * package, linbo-bittorrent.init:

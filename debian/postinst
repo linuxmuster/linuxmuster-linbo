@@ -101,16 +101,29 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
  		newaliases
  	fi
 
-  if [ -e /etc/default/bittorrent ]; then
-   # add bittorrent user if not present
-   if ! id bittorrent &> /dev/null; then
-    useradd -c "BitTorrent User" -d /var/lib/bittorrent -g nogroup -r bittorrent
-    dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent
-    dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent
-   fi
-   chown bittorrent:nogroup /var/lib/bittorrent -R
-   chown bittorrent:nogroup /var/log/bittorrent -R
-   # setting needed options in /etc/default/bittorrent
+  # add bittorrent user if not present
+  if ! id bittorrent &> /dev/null; then
+   useradd -c "BitTorrent User" -d /var/lib/bittorrent -g nogroup -r bittorrent
+   dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent
+   dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent
+  fi
+  chown bittorrent:nogroup /var/lib/bittorrent -R
+  chown bittorrent:nogroup /var/log/bittorrent -R
+
+  # provide a bittorrent default file if necessary
+  if [ ! -s /etc/default/bittorrent -a -s /usr/share/doc/bittorrent/examples/bittorrent.default ]; then
+   cp /usr/share/doc/bittorrent/examples/bittorrent.default /etc/default/bittorrent
+  fi
+
+  # provide a bittorrent init script if necessary
+  if [ ! -s /etc/init.d/bittorrent -a -s /usr/share/doc/bittorrent/examples/bittorrent.init ]; then
+   cp /usr/share/doc/bittorrent/examples/bittorrent.init /etc/init.d/bittorrent
+   chmod 755 /etc/init.d/bittorrent
+   update-rc.d bittorrent defaults
+  fi
+
+  # setting needed options in /etc/default/bittorrent
+  if [ -s /etc/default/bittorrent ]; then
    if ! grep -q ^REANNOUNCE_INTERVAL /etc/default/bittorrent; then
     echo "Adding REANNOUNCE_INTERVAL=15 to /etc/default/bittorrent."
     cp /etc/default/bittorrent /etc/default/bittorrent.dpkg-old && bt_backup=yes
@@ -148,7 +161,7 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
     echo "Creating /etc/logrotate.d/bittorrent."
     sed -e 's|/var/log/linuxmuster/linbo/|/var/log/bittorrent/|' /etc/logrotate.d/linuxmuster-linbo > /etc/logrotate.d/bittorrent
    fi
-  fi
+  fi # /etc/default/bittorrent
 
   # change owner of logdir to nobody
   [ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
@@ -156,11 +169,11 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 
   # create dropbear ssh keys
   if [ ! -s "$SYSCONFDIR/linbo/ssh_host_rsa_key" ]; then
-   echo -e "$SYSCONFDIR/linbo/ssh_host_rsa_key\n\n\n" | ssh-keygen -t rsa
+   echo -e "$SYSCONFDIR/linbo/ssh_host_rsa_key\n\n\n\n\n" | ssh-keygen -t rsa
    /usr/lib/dropbear/dropbearconvert openssh dropbear $SYSCONFDIR/linbo/ssh_host_rsa_key $SYSCONFDIR/linbo/dropbear_rsa_host_key
   fi
   if [ ! -s "$SYSCONFDIR/linbo/ssh_host_dsa_key" ]; then
-   echo -e "$SYSCONFDIR/linbo/ssh_host_dsa_key\n\n\n" | ssh-keygen -t dsa
+   echo -e "$SYSCONFDIR/linbo/ssh_host_dsa_key\n\n\n\n\n" | ssh-keygen -t dsa
    /usr/lib/dropbear/dropbearconvert openssh dropbear $SYSCONFDIR/linbo/ssh_host_dsa_key $SYSCONFDIR/linbo/dropbear_dss_host_key
   fi
 
