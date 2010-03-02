@@ -1,3 +1,11 @@
+linuxmuster-linbo (1.99.16-1) unstable; urgency=low
+
+  * linbofs
+    - grub4dos: added grub-install_virtio_blk_support.diff (based on the patch
+      provided by https://bugzilla.redhat.com/show_bug.cgi?id=479760).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 18 Feb 2010 11:10:54 +0100
+
 linuxmuster-linbo (1.99.16-0) unstable; urgency=low
 
   * package
