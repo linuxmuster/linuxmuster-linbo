@@ -1,3 +1,33 @@
+linuxmuster-linbo (1.99.17-2) unstable; urgency=low
+
+  * linbofs:
+    - updated kexec-tools to git version 5996651.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
+
+linuxmuster-linbo (1.99.17-1) unstable; urgency=low
+
+  * linbofs:
+    - syncl(): newdev.dll patch only if it was not yet patched.
+    - update(): handles custom menu.lst now only if online.
+    - restore(): using always file sync.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
+
+linuxmuster-linbo (1.99.17-0) unstable; urgency=low
+
+  * changed to Lenny build system.
+  * package:
+    - debian/rules:
+      o fixed ms-sys download.
+      o changed chntpw download address to http://pogostick.net/~pnh/ntpasswd/.
+  * kernel:
+    - added lsi logic and buslogic drivers, removed arica scsi driver.
+  * linbofs:
+    - syncl(): added newdev.dll patch.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
+
 linuxmuster-linbo (1.99.16-1) unstable; urgency=low
 
   * linbofs

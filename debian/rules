@@ -39,12 +39,14 @@ BB_URL=http://busybox.net/downloads
 # chntpw
 CHNTPW_ARCHIVE=$(shell grep chntpw- debian/md5sums.src | awk '{ print $$2 }')
 CHNTPW_DIR=src/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
-CHNTPW_URL=http://home.eunet.no/pnordahl/ntpasswd
+CHNTPW_URL=http://pogostick.net/~pnh/ntpasswd
 
 # kexec-tools
 KEXEC_ARCHIVE=$(shell grep kexec-tools- debian/md5sums.src | awk '{ print $$2 }')
-KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.bz2//')
-KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
+#KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.bz2//')
+KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.gz//')
+#KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
+KEXEC_URL=$(LML_URL)
 
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
@@ -143,7 +145,7 @@ configure-stamp:
 
 	# ms-sys
 	-@if [ ! -d $(MSSYS_DIR) ]; then \
-		( [ -e cache/$(MSSYS_ARCHIVE) ] || ( cd cache && wget $(MSSYS_URL)/$(MSSYS_ARCHIVE)?download ) ); \
+		( [ -e cache/$(MSSYS_ARCHIVE) ] || ( cd cache && wget $(MSSYS_URL)/$(MSSYS_ARCHIVE) ) ); \
 		( cd cache && grep $(MSSYS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(MSSYS_ARCHIVE)...[0m" ; \
 		tar xf cache/$(MSSYS_ARCHIVE) -C src; \
@@ -386,9 +388,10 @@ install: build
 	:> ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
+	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | grep -v devices | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | grep -v devices | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \

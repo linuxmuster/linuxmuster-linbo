@@ -979,19 +979,20 @@ restore(){
    if [ "$force" != "force" ]; then
     check_status "$2" "$1" || force="force"
    fi
-   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
-    echo "[Komplette Partition]..."
-    cp_cloop "$1" "$2" ; RC="$?"
-   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
-    echo "[Komplette Partition]..."
-    cp_cloop "$1" "$2" ; RC="$?"
-   else
+## for testing, sync always files
+##   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
+##    echo "[Komplette Partition]..."
+##    cp_cloop "$1" "$2" ; RC="$?"
+##   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
+##    echo "[Komplette Partition]..."
+##    cp_cloop "$1" "$2" ; RC="$?"
+##   else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then
       format "$2" "$fstype" || return 1
     fi
     sync_cloop "$1" "$2" ; RC="$?"
-   fi
+##   fi
    ;;
   *.[Rr][Ss][Yy]*)
    echo "[Datei-Sync]..."
@@ -1123,6 +1124,18 @@ syncl(){
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
      echo "Fertig."
+     # patch newdev.dll (xp/2000 only)
+     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+      local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
+      [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
+      # patch newdev.dll only if it has not yet patched
+      if [ -n "$newdevdll" -a ! -s "$newdevdll.linbo-orig" ]; then
+       echo "Patche $newdevdll ..."
+       [ -e "$newdevdll.linbo-orig" ] || cp "$newdevdll" "$newdevdll.linbo-orig"
+       grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
+      fi
+     fi
+     # write partition bootsector
      [ "$(fstype "$5")" = "vfat" ] && ms-sys -2 "$5"
     elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
      cp -f "$TMP" /mnt/linbo.reg
@@ -1664,18 +1677,21 @@ update(){
  #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
  if [ -b "$disk" -a -s "linbo" -a -s "linbofs.gz" ]; then
   echo "Update Master-Bootrecord von $disk."
-  # fetch pxe kernel
-  download "$server" "gpxe.krn"
   mkdir -p /cache/boot/grub
-  # tschmitt: provide custom local menu.lst
-  download "$server" "menu.lst.$group"
-  if [ -e "/cache/menu.lst.$group" ]; then
-   mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
-   # flag for downloaded custom menu.lst
-   touch /cache/.custom.menu.lst
-  else
-   rm -f /cache/.custom.menu.lst
-  fi
+  # only if online
+  if ! localmode; then
+   # fetch pxe kernel
+   download "$server" "gpxe.krn"
+   # tschmitt: provide custom local menu.lst
+   download "$server" "menu.lst.$group"
+   if [ -e "/cache/menu.lst.$group" ]; then
+    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
+    # flag for downloaded custom menu.lst
+    touch /cache/.custom.menu.lst
+   else
+    rm -f /cache/.custom.menu.lst
+   fi
+  fi # localmode
   mkgrub "$disk"
  fi
  RC="$?"
