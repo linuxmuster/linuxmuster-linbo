@@ -434,6 +434,12 @@ hwsetup(){
 
  export TERM_TYPE=pts
 
+ # activate wol
+ for i in `ifconfig | grep ^eth | cut -f1 -d" "`; do
+  echo "Activating wol on $i ..."
+  ethtool -s $i wol g
+ fi
+ 
  dmesg >> /tmp/linbo.log
  echo "## Hardware-Setup - End ##" >> /tmp/linbo.log
 

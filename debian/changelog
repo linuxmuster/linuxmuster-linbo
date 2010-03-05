@@ -1,3 +1,15 @@
+linuxmuster-linbo (1.99.17-3) unstable; urgency=low
+
+  * package:
+    - added ethtool to depends.
+    - initramfs.conf: added custom udev configuration in linbo/etc/udev.
+    - rules: removed using build system's udev configuration.
+  * linbofs:
+    - added ethtool.
+    - init.sh, hwsetup(): added wol activation.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 5 Mar 2010 11:49:54 +0100
+
 linuxmuster-linbo (1.99.17-2) unstable; urgency=low
 
   * linbofs:
