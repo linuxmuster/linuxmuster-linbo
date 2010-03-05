@@ -400,6 +400,11 @@ network(){
  isinteger "$autostart" && set_autostart
  # remove reboot flag
  rmlinboreboot
+ # activate wol
+ for i in `ifconfig | grep ^eth | cut -f1 -d" "`; do
+  echo "Activating wol on $i ..."
+  ethtool -s $i wol g
+ done
  echo > /tmp/linbo-network.done 
 }
 
@@ -433,12 +438,6 @@ hwsetup(){
  modprobe thermal >/dev/null 2>&1 || true
 
  export TERM_TYPE=pts
-
- # activate wol
- for i in `ifconfig | grep ^eth | cut -f1 -d" "`; do
-  echo "Activating wol on $i ..."
-  ethtool -s $i wol g
- fi
  
  dmesg >> /tmp/linbo.log
  echo "## Hardware-Setup - End ##" >> /tmp/linbo.log
