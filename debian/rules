@@ -266,7 +266,7 @@ build-stamp: configure-stamp
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && LDFLAGS=-static ./configure && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && ./bootstrap && LDFLAGS=-static ./configure && make && strip build/sbin/kexec ); \
 	fi
 
 	# ms-sys

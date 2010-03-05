@@ -2,15 +2,16 @@ linuxmuster-linbo (1.99.17-2) unstable; urgency=low
 
   * linbofs:
     - updated kexec-tools to git version 5996651.
+    - linbo_cmd, restore(): uses complete partition sync again for ntfs.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 4 Mar 2010 09:26:29 +0100
 
 linuxmuster-linbo (1.99.17-1) unstable; urgency=low
 
   * linbofs:
-    - syncl(): newdev.dll patch only if it was not yet patched.
-    - update(): handles custom menu.lst now only if online.
-    - restore(): using always file sync.
+    - linbo_cmd, syncl(): newdev.dll patch only if it was not yet patched.
+    - linbo_cmd, update(): handles custom menu.lst now only if online.
+    - linbo_cmd, restore(): using file sync for all fstypes.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
 

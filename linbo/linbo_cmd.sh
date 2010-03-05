@@ -979,20 +979,20 @@ restore(){
    if [ "$force" != "force" ]; then
     check_status "$2" "$1" || force="force"
    fi
-## for testing, sync always files
-##   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
-##    echo "[Komplette Partition]..."
-##    cp_cloop "$1" "$2" ; RC="$?"
+   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
+    echo "[Komplette Partition]..."
+    cp_cloop "$1" "$2" ; RC="$?"
+## for testing, sync also for vfat
 ##   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
 ##    echo "[Komplette Partition]..."
 ##    cp_cloop "$1" "$2" ; RC="$?"
-##   else
+   else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then
       format "$2" "$fstype" || return 1
     fi
     sync_cloop "$1" "$2" ; RC="$?"
-##   fi
+   fi
    ;;
   *.[Rr][Ss][Yy]*)
    echo "[Datei-Sync]..."
@@ -1203,14 +1203,7 @@ create(){
    mk_cloop partition "$5" "$2" "$3" ; RC="$?"
    ;;
   *.[Rr][Ss][Yy]*)
-   # tschmitt: for now we do not support rsync images of ntfs partitions
-   # experimental support for rsync images of ntfs partitions
-#   if [ "$type" = "ntfs" ]; then
-#    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
-#    RC=1
-#   else
     mk_cloop differential "$5" "$2" "$3" ; RC="$?"
-#   fi
    ;;
  esac
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2
