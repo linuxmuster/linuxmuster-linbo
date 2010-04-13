@@ -6,10 +6,8 @@
 #include "linboPushButton.hh"
 
 linbopushbutton::linbopushbutton( QWidget* parent,
-                                  const char* name,
-                                  bool modal,
-                                  Qt::WFlags fl) : QPushButton( parent,
-                                                                 name )                     
+                                  const char* name ) : QPushButton( parent,
+                                                                    name )                     
 {
   connect(this, SIGNAL(clicked()), this, SLOT(lclicked()));
 
@@ -18,6 +16,7 @@ linbopushbutton::linbopushbutton( QWidget* parent,
   myQDialog = 0;
   myLinboDialog = 0;
   neighbour = 0;
+
   // connect stdout and stderr to linbo console
   connect( myprocess, SIGNAL(readyReadStdout()),
            this, SLOT(readFromStdout()) );

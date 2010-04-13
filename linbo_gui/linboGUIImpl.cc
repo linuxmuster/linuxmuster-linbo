@@ -11,13 +11,11 @@
 #include <qtooltip.h>
 #include <qfile.h>
 #include <q3textstream.h>
-// #include <qicon.h>
 #include <qpixmap.h>
 #include <qimage.h>
 #include <qregexp.h>
 #include <stdlib.h>
 
-// #include "image_description.hh"
 #include "linboProgressImpl.hh"
 #include "linboMulticastBoxImpl.hh"
 #include "linboDialog.hh"
@@ -47,7 +45,7 @@ void read_bool( ifstream* input,
 }
 
 // Return true unless beginning of new section '[' is found.
-const bool read_pair(ifstream* input, QString& key, QString& value) {
+bool read_pair(ifstream* input, QString& key, QString& value) {
   char line[1024];
   if(input->peek() == '[') return false; // Next section found.
   input->getline(line,1024,'\n');
@@ -61,7 +59,7 @@ const bool read_pair(ifstream* input, QString& key, QString& value) {
   return true;
 }
 
-const bool toBool(const QString& value) {
+bool toBool(const QString& value) {
   if(value.startsWith("yes",false)) return true;
   if(value.startsWith("true",false)) return true;
   if(value.startsWith("enable",false)) return true;
@@ -110,7 +108,13 @@ void read_globals( ifstream* input, globals& g ) {
     else if(key.compare("group") == 0)  g.set_hostgroup(value);
     else if(key.compare("autopartition") == 0) g.set_autopartition(toBool(value));
     else if(key.compare("autoinitcache") == 0) g.set_autoinitcache(toBool(value));
-    else if(key.compare("usemulticast") == 0) g.set_usemulticast(toBool(value));
+    else if(key.compare("usemulticast") == 0) {
+      if( (unsigned int)value.toInt() == 0 ) 
+        g.set_downloadtype("rsync"); 
+      else
+        g.set_downloadtype("multicast"); 
+    }
+    else if(key.compare("downloadtype") == 0) g.set_downloadtype(value);
     else if(key.compare("autoformat") == 0) g.set_autoformat(toBool(value));
   }
 }
@@ -184,12 +188,16 @@ QStringList mkpartitioncommand_noformat(vector <diskpartition> &p) {
   return command;
 }
 
-
-QStringList mkcacheinitcommand(globals& config, vector<os_item> &os, bool multicast) {
+// type is 0 for rsync, 1 for multicast, 3 for bittorrent
+QStringList mkcacheinitcommand(globals& config, vector<os_item> &os, const QString& type) {
   QStringList command = LINBO_CMD("initcache");
   command.append(config.get_server());
   command.append(config.get_cache());
-  command.append(multicast?"multicast":"rsync");
+  if( ! type.isEmpty() )
+    command.append(type);
+  else
+    command.append("rsync");
+
   for(unsigned int i = 0; i < os.size(); i++) {
     command.append(os[i].get_baseimage());
     for(unsigned int j = 0; j < os[i].image_history.size(); j++) {
@@ -208,10 +216,7 @@ QStringList mklinboupdatecommand(globals& config) {
 
 
 
-linboGUIImpl::linboGUIImpl( QWidget* parent,
-                            const char* name,
-                            bool modal,
-                            Qt::WFlags fl )
+linboGUIImpl::linboGUIImpl()
 
 { 
  
@@ -220,9 +225,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   QImage tmpImage;
 
   Qt::WindowFlags flags;
-  flags = Qt::FramelessWindowHint;
-  // flags = Qt::CustomizeWindowHint;
+  flags = Qt::FramelessWindowHint | Qt::WindowStaysOnBottomHint;
   setWindowFlags( flags );
+  setAttribute( Qt::WA_AlwaysShowToolTips );
 
   QRect qRect(QApplication::desktop()->screenGeometry());
 
@@ -257,7 +262,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   // hide the main GUI
   this->hide();
 
-  linboMsgImpl *waiting = new linboMsgImpl(0);// this); //, "foo",0,Qt::WStyle_Customize | Qt::WStyle_NoBorder );
+  waiting = new linboMsgImpl( 0 );
   waiting->message->setText("LINBO 2.00<br>Netzwerk Check");
 
   QStringList waitCommand = LINBO_CMD("ready");
@@ -265,18 +270,14 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   waiting->setWindowFlags( flags );
   waiting->setCommand( waitCommand );
   waiting->move(qRect.width()/2-waiting->width()/2,
-             qRect.height()/2-waiting->height()/2 );
+                qRect.height()/2-waiting->height()/2 );
 
-
+    
   waiting->show();
   waiting->raise();
-  waiting->setActiveWindow();
   waiting->execute();
-
- 
+  waiting->setActiveWindow();
   
-  //  this->setActiveWindow();
-
   ifstream input;
   input.open( "start.conf", ios_base::in );
 
@@ -334,6 +335,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
 
   // since some tabs can be hidden, we have to maintain this counter
   int nextPosForTabInsert = 0;
+
  
   for( unsigned int i = 0; i < elements.size(); i++ ) {
     
@@ -353,7 +355,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     imaginglabel->setText( elements[i].get_name() );
     imagingView->addChild( imaginglabel, 15, (height+32) );
 
-
     if( i == 0 ) {
       height = 5;
     }
@@ -367,7 +368,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     QToolTip::add( syncbutton, QString("Startet " + elements[i].get_name() + " " +
                                        elements[i].image_history[n].get_version() +
                                        " synchronisiert") );
-    // tmpImage.loadFromData( syncstarticon22x22, sizeof( syncstarticon22x22 ), "PNG" );
+
     if( withicons )
       syncbutton->setIconSet( QIcon(":/icons/sync+start-22x22.png" ) );
 
@@ -392,10 +393,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     QToolTip::add( startbutton, QString("Startet " + elements[i].get_name() + " " +
                                         elements[i].image_history[n].get_version() +
                                         " unsynchronisiert") );
-    // tmpImage.loadFromData( starticon22x22, sizeof( starticon22x22 ), "PNG" );
+
     if( withicons )
       startbutton->setIconSet( QIcon(":/icons/start-22x22.png" ) );
-
 
     // build "start" command
     command = LINBO_CMD("start");
@@ -437,7 +437,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
       buildImageSelector->listBox->insertItem(elements[i].image_history[n].get_image());
 
     // special image
-
     buildImageSelector->listBox->setSelected(0,true);
     
     buildImageSelector->setTextBrowser( Console );
@@ -465,9 +464,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
 
     // add tooltip and icon
      QToolTip::add( createbutton, QString("Ein neues Image für " + elements[i].get_name() + " " +
-                                      elements[i].image_history[n].get_version() +
+                                          elements[i].image_history[n].get_version() +
                                           " erstellen") ); 
-    // tmpImage.loadFromData( imageicon22x22, sizeof( imageicon22x22 ), "PNG" );
+
     if( withicons )
       createbutton->setIconSet( QIcon( ":/icons/image-22x22.png" ) );
     
@@ -475,7 +474,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     // build "create" command
     command = LINBO_CMD("create");
     command.append(config.get_cache());
-    // Will be changed later!
+
     command.append(elements[i].image_history[n].get_image());
     command.append(elements[i].get_baseimage());
     command.append(elements[i].get_boot());
@@ -483,7 +482,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     command.append(elements[i].image_history[n].get_kernel());
     command.append(elements[i].image_history[n].get_initrd());
     buildImageSelector->setCommand( command );
-
 
     // assign button to button list
     p_buttons.push_back( createbutton );
@@ -500,13 +498,11 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     QToolTip::add( newbutton, QString("Installiert " + elements[i].get_name() + " " +
                                       elements[i].image_history[n].get_version() +
                                       " neu und startet es") );
-    // tmpImage.loadFromData( newstarticon22x22, sizeof( newstarticon22x22 ), "PNG" );
+
     if( withicons )
       newbutton->setIconSet( QIcon( ":/icons/new+start-22x22.png" ) );
    
 
-
-    
     // assign command
     command = mksyncrcommand(config, elements[i],elements[i].image_history[n]);
     newbutton->setCommand( command );
@@ -527,7 +523,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     // add tooltip and icon
     QToolTip::add( infobuttonstart, QString("Informationen zu " + elements[i].get_name() + " " +
                                        elements[i].image_history[n].get_version()) );
-    // tmpImage.loadFromData( informationicon22x22, sizeof( informationicon22x22 ), "PNG" );
+
     if( withicons )
       infobuttonstart->setIconSet( QIcon( ":/icons/information-22x22.png" ) );
 
@@ -547,7 +543,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     command.append( elements[i].get_baseimage() + QString(".desc") );
     command.append( QString("/tmp/") + elements[i].get_baseimage() + QString(".desc") );
     infoBrowser->setSaveCommand( command );
-    
+
     command = LINBO_CMD("upload");
     command.append( config.get_server() );
     command.append("linbo");
@@ -577,7 +573,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     QToolTip::add( uploadbutton, QString("Ein Image für " + elements[i].get_name() + " " +
                                        elements[i].image_history[n].get_version() + 
                                          " auf den Server hochladen" ) );
-    // tmpImage.loadFromData( uploadicon22x22, sizeof( uploadicon22x22 ), "PNG" );
 
     if( withicons )
       uploadbutton->setIconSet( QIcon( ":/icons/upload-22x22.png" ) );
@@ -639,7 +634,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     // check whether our per-OS tabs should be displayed or not
     // we save a lot of memory by not building these elements
     if ( !isHidden ) {
-
       QWidget* newtab = new QWidget( Tabs );
       Q3ScrollView* view = new Q3ScrollView( newtab );
 
@@ -676,10 +670,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
         QToolTip::add( isyncbutton, QString("Startet " + elements[i].get_name() + " " +
                                             elements[i].image_history[n].get_version() +
                                             " synchronisiert") );
-        // tmpImage.loadFromData( syncstarticon22x22, sizeof( syncstarticon22x22 ), "PNG" );
+
         if( withicons )
           isyncbutton->setIconSet( QIcon( ":/icons/sync+start-22x22.png" ) );
-
 
         command = mksyncstartcommand(config, elements[i],elements[i].image_history[n]);
         isyncbutton->setCommand( command );
@@ -713,11 +706,9 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
         QToolTip::add( irecreatebutton, QString("Installiert " + elements[i].get_name() + " " +
                                                 elements[i].image_history[n].get_version() +
                                                 " neu und startet es") );
-        // tmpImage.loadFromData( newstarticon22x22, sizeof( newstarticon22x22 ), "PNG" );
 
         if( withicons )
           irecreatebutton->setIconSet( QIcon( ":/icons/new+start-22x22.png" ) );
-
 
         irecreatebutton->setMainApp(this );
         // assign button to button list
@@ -749,7 +740,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
         command.append( elements[i].get_baseimage() + QString(".desc") );
         command.append( QString("/tmp/") + elements[i].get_baseimage() + QString(".desc") );
         iinfoBrowser->setSaveCommand( command );
-    
+
         command = LINBO_CMD("upload");
         command.append( config.get_server() );
         command.append("linbo");
@@ -764,12 +755,10 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
         // add tooltip and icon
         QToolTip::add( iinfobuttonstart, QString("Informationen zu " + elements[i].get_name() + " " +
                                                  elements[i].image_history[n].get_version()) );
-        // tmpImage.loadFromData( informationicon22x22, sizeof( informationicon22x22 ), "PNG" );
 
         if( withicons )
           iinfobuttonstart->setIconSet( QIcon( ":/icons/information-22x22.png" ) );
 
- 
         // assign button to button list
         p_buttons.push_back( iinfobuttonstart );
         buttons_config.push_back( 1 );
@@ -833,7 +822,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
 
   // add tooltip and icon
   QToolTip::add( consolebuttonimaging, QString("Öffnet das Konsolenfenster") );
-  // tmpImage.loadFromData( consoleicon22x22, sizeof( consoleicon22x22 ), "PNG" );
 
   if( withicons )
     consolebuttonimaging->setIconSet( QIcon( ":/icons/console-22x22.png" ) );
@@ -843,7 +831,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   buttons_config.push_back( 1 );
   imagingView->addChild( consolebuttonimaging, 150, 5 );
 
-
   linbopushbutton *multicastbuttonimaging = new linbopushbutton( imagingView->viewport() );
   multicastbuttonimaging->setGeometry( QRect( 250, 5, 130, 30 ) );
   multicastbuttonimaging->setText( QString("Cache aktualisieren") );
@@ -851,7 +838,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
 
   // add tooltip and icon
   QToolTip::add( multicastbuttonimaging, QString("Aktualisiert den lokalen Cache") );
-  // tmpImage.loadFromData( cacheicon22x22, sizeof( cacheicon22x22 ), "PNG" );
 
   if( withicons )
     multicastbuttonimaging->setIconSet( QIcon( ":/icons/cache-22x22.png" ) );
@@ -859,8 +845,10 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
   linboMulticastBoxImpl *multicastbox = new linboMulticastBoxImpl( multicastbuttonimaging ); 
   multicastbox->setMainApp(this );
   multicastbox->setTextBrowser( Console );
-  multicastbox->setRsyncCommand( mkcacheinitcommand( config, elements, false) );
-  multicastbox->setMulticastCommand( mkcacheinitcommand( config, elements, true ) );
+
+  multicastbox->setRsyncCommand( mkcacheinitcommand( config, elements, QString("rsync")) );
+  multicastbox->setMulticastCommand( mkcacheinitcommand( config, elements, QString("multicast")) );
+  multicastbox->setBittorrentCommand( mkcacheinitcommand( config, elements, QString("torrent")) );
 
   multicastbuttonimaging->setProgress( false );
   multicastbuttonimaging->setMainApp(this );
@@ -876,7 +864,7 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
     autoinitcachebutton->setTextBrowser( Console );
     autoinitcachebutton->setMainApp(this );
     autoinitcachebutton->setProgress( true );
-    autoinitcachebutton->setCommand( mkcacheinitcommand( config, elements, config.get_usemulticast() ) );
+    autoinitcachebutton->setCommand( mkcacheinitcommand( config, elements, config.get_downloadtype() ) );
     autoinitcache = autoinitcachebutton;
     autoinitcachebutton->hide();
   }
@@ -896,7 +884,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
 
   // add tooltip and icon
   QToolTip::add( partitionbutton, QString("Partitioniert die Festplatte neu") );
-  // tmpImage.loadFromData( partitionicon22x22, sizeof( partitionicon22x22 ), "PNG" );
 
   if( withicons )
     partitionbutton->setIconSet( QIcon( ":/icons/partition-22x22.png" ) );
@@ -946,7 +933,6 @@ linboGUIImpl::linboGUIImpl( QWidget* parent,
 
   // add tooltip and icon
   QToolTip::add( registerbutton, QString("Öffnet den Registrierungsdialog zur Aufnahme neuer Rechner") );
-  // tmpImage.loadFromData( registericon22x22, sizeof( registericon22x22 ), "PNG" );
 
   if( withicons )
     registerbutton->setIconSet( QIcon(  ":/icons/register-22x22.png") );

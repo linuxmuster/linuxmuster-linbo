@@ -29,7 +29,7 @@ private:
   Q3TextBrowser* Console;
   Q3Process *myprocess;
   QTimer *timer;
-  QDialog* myQDialog;
+  QDialog* myQDialog,*myParent;
   linboDialog* myLinboDialog;
   QWidget *myMainApp;
   // QDialog *myMainApp;
@@ -39,9 +39,7 @@ private:
 
 public:
   linbopushbutton( QWidget* parent = 0,
-                   const char* name = 0,
-                   bool modal = FALSE,
-                   Qt::WFlags fl = 0 );
+                   const char* name = 0 );
 
   ~linbopushbutton();
 

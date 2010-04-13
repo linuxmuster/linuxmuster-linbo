@@ -24,7 +24,7 @@ class linboInfoBrowserImpl : public QWidget, public Ui::linboInfoBrowser, public
 
 private:
   QString line;
-  QWidget *myMainApp;
+  QWidget *myMainApp,*myParent;
   linboGUIImpl *app;
   Q3Process* myProcess;
   QStringList myUploadCommand, myLoadCommand, mySaveCommand;

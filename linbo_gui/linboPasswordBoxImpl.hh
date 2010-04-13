@@ -16,7 +16,6 @@
 #include <q3textbrowser.h>
 #include <qtimer.h>
 #include "linboCounterImpl.hh"
-#include "linboGUIImpl.hh"
 
 using namespace Ui;
 class linboGUIImpl;
@@ -26,7 +25,7 @@ class linboPasswordBoxImpl : public QWidget, public Ui::linboPasswordBox, public
   Q_OBJECT
 
 private:
-  QWidget* myMainApp;
+  QWidget* myMainApp,*myParent;
   linboGUIImpl* app;
   QStringList myCommand;
   Q3Process* process;
@@ -42,7 +41,7 @@ public:
    ~linboPasswordBoxImpl();
 
   virtual void precmd();
-  void setMainApp( QWidget* newMainApp );
+  virtual void setMainApp( QWidget* newMainApp );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
 

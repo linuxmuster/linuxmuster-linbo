@@ -24,7 +24,7 @@ private:
   QString line;
   QStringList myCommand;
   Q3Process *process;
-  QWidget *myMainApp;
+  QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
   
 
@@ -44,7 +44,7 @@ public:
   void setTextBrowser( Q3TextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
-  void setMainApp( QWidget* newMainApp );
+  virtual void setMainApp( QWidget* newMainApp );
 
 
 };

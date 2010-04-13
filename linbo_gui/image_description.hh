@@ -9,19 +9,20 @@ using namespace std;
 
 class globals {
 private:
-  QString server, cache, hostgroup;
+  QString server, cache, hostgroup, downloadtype;
   unsigned int roottimeout;
-  bool autopartition, autoinitcache, usemulticast, autoformat;
+  bool autopartition, autoinitcache, autoformat;
+
 public:
   globals();
   ~globals();
   const QString& get_server() const;
   const QString& get_cache() const;
   const QString& get_hostgroup() const;
-  const unsigned int get_roottimeout() const;
+  const unsigned int& get_roottimeout() const;
   const bool& get_autopartition();
   const bool& get_autoinitcache();
-  const bool& get_usemulticast();
+  const QString& get_downloadtype();
   const bool& get_autoformat();
   void set_server( const QString& new_server );
   void set_cache( const QString& new_cache );
@@ -29,7 +30,7 @@ public:
   void set_roottimeout( const unsigned int& new_roottimeout );
   void set_autopartition( const bool& new_autopartition );
   void set_autoinitcache( const bool& new_autoinitcache );
-  void set_usemulticast( const bool& new_usemulticast );
+  void set_downloadtype( const QString& new_downloadtype );
   void set_autoformat( const bool& new_autoformat );
 };
 
@@ -45,7 +46,7 @@ public:
   const QString& get_dev() const;
   const QString& get_id() const;
   const QString& get_fstype() const;
-  const unsigned int get_size() const;
+  const unsigned int& get_size() const;
   const bool& get_bootable() const;
   void set_dev( const QString& new_dev );
   void set_id( const QString& new_id );
@@ -117,7 +118,7 @@ public:
   const QString& get_boot() const;
   const QString& get_root() const;
 
-  const unsigned int find_current_image() const;
+  unsigned int find_current_image() const;
   void add_history_entry( image_item& ie );
   vector< image_item > image_history; // One or more images
 };

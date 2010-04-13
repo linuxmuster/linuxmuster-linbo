@@ -15,6 +15,9 @@ linboPasswordBoxImpl::linboPasswordBoxImpl(  QDialog* parent ) : linboDialog()
   connect(passwordInput,SIGNAL(returnPressed()),this,SLOT(postcmd()));
 
   process=new Q3Process( this );
+  if(parent)
+    myParent = parent;
+
   myTimer = new QTimer(this);
   myCounter = new linboCounterImpl(this);
 
@@ -27,17 +30,15 @@ linboPasswordBoxImpl::linboPasswordBoxImpl(  QDialog* parent ) : linboDialog()
            this, SLOT(readFromStderr()) );
 
   Qt::WindowFlags flags;
-  // flags = Qt::FramelessWindowHint;
-  flags = Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
   setWindowFlags( flags );
 
   QRect qRect(QApplication::desktop()->screenGeometry());
-  int xpos=qRect.width()/2-this->width()/2;
-  int ypos=qRect.height()/2-this->height()/2;
+  // open in the upper left of our screen
+  int xpos=10;
+  int ypos=10;
   this->move(xpos,ypos);
   this->setFixedSize( this->width(), this->height() );
-  //this->sizeGripEnabled( false );
-
 }
 
 linboPasswordBoxImpl::~linboPasswordBoxImpl()

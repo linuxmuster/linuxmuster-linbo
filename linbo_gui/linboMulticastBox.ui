@@ -10,7 +10,7 @@
         <x>0</x>
         <y>0</y>
         <width>203</width>
-        <height>135</height>
+        <height>155</height>
       </rect>
     </property>
     <property name="windowTitle">
@@ -22,7 +22,7 @@
           <x>10</x>
           <y>10</y>
           <width>180</width>
-          <height>80</height>
+          <height>100</height>
         </rect>
       </property>
       <property name="title">
@@ -50,11 +50,24 @@
             <x>10</x>
             <y>40</y>
             <width>160</width>
-            <height>30</height>
+            <height>20</height>
           </rect>
         </property>
         <property name="text">
           <string>Update mit Multicast</string>
+        </property>
+      </widget>
+      <widget class="QRadioButton" name="torrentButton">
+        <property name="geometry">
+          <rect>
+            <x>10</x>
+            <y>60</y>
+            <width>165</width>
+            <height>20</height>
+          </rect>
+        </property>
+        <property name="text">
+          <string>Update mit Bittorrent</string>
         </property>
       </widget>
     </widget>
@@ -62,7 +75,7 @@
       <property name="geometry">
         <rect>
           <x>10</x>
-          <y>100</y>
+          <y>120</y>
           <width>61</width>
           <height>21</height>
         </rect>
@@ -78,7 +91,7 @@
       <property name="geometry">
         <rect>
           <x>130</x>
-          <y>100</y>
+          <y>120</y>
           <width>60</width>
           <height>21</height>
         </rect>

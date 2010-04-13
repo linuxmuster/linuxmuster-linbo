@@ -17,6 +17,9 @@ linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog
   Ui_linboImageSelector::setupUi((QDialog*)this);
   process = new Q3Process( this );
 
+  if( parent )
+    myParent = parent;
+
   connect( cancelButton, SIGNAL(pressed()), this, SLOT(close()) );
   connect( createButton, SIGNAL(pressed()), this, SLOT(postcmd()) );
   connect( createUploadButton, SIGNAL(pressed()), this, SLOT(postcmd2()) );
@@ -36,6 +39,17 @@ linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog
   myParent = parent;
   upload=false;
   neighbourDialog = 0;
+
+  Qt::WindowFlags flags;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  setWindowFlags( flags );
+
+  QRect qRect(QApplication::desktop()->screenGeometry());
+  // open in the center of our screen
+  int xpos=qRect.width()/2-this->width()/2;
+  int ypos=qRect.height()/2-this->height()/2;
+  this->move(xpos,ypos);
+  this->setFixedSize( this->width(), this->height() );
 }
 
 linboImageSelectorImpl::~linboImageSelectorImpl()

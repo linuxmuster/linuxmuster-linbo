@@ -10,9 +10,10 @@
 #include <qwidget.h>
 #include <qdialog.h>
 #include <q3textbrowser.h>
+#include <q3buttongroup.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
+#include "linboGUIImpl.hh"
 
 #include "linboDialog.hh"
 
@@ -24,10 +25,11 @@ class linboMulticastBoxImpl : public QWidget, public Ui::linboMulticastBox, publ
   Q_OBJECT
 
 private:
+  linboGUIImpl* app;
   QString line;
-  QStringList myCommand, myRsyncCommand, myMulticastCommand;
+  QStringList myCommand, myRsyncCommand, myMulticastCommand, myBittorrentCommand;
   Q3Process *process;
-  QWidget *myMainApp;
+  QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
   
 
@@ -49,9 +51,7 @@ public:
   virtual QStringList getCommand();
   virtual void setRsyncCommand(const QStringList& arglist);
   virtual void setMulticastCommand(const QStringList& arglist);
-
-  void setMainApp( QWidget* newMainApp );
-
-
+  virtual void setBittorrentCommand(const QStringList& arglist);
+  virtual void setMainApp( QWidget* newMainApp );
 };
 #endif

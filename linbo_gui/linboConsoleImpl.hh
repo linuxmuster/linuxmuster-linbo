@@ -8,22 +8,25 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3process.h>
+#include <QProcess>
 #include <qstring.h>
 #include <q3textbrowser.h>
-#include <q3textedit.h>
+#include <QTextBrowser>
+#include <qlineedit.h>
 
 #include "linboDialog.hh"
+
+using namespace Ui;
 
 class linboConsoleImpl : public QWidget, public Ui::linboConsole, public linboDialog
 {
   Q_OBJECT
   
 private:
-  Q3Process* process;
+  QProcess* mysh;
   QStringList myCommand;
   QString line;
-  QWidget *myMainApp;
+  QWidget *myMainApp, *myParent;
   Q3TextBrowser *Console;
 
 public:
@@ -34,15 +37,15 @@ public:
   void setTextBrowser( Q3TextBrowser* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
-  // not needed here
   virtual void setMainApp( QWidget* newMainApp );
-  void execute();
+
 
 public slots:
   virtual void postcmd();
   virtual void precmd();
   void readFromStderr();
   void readFromStdout();
- 
+  void showOutput();
+  void execute();
 };
 #endif

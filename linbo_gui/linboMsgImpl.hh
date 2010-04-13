@@ -21,6 +21,7 @@ class linboMsgImpl : public QWidget, public Ui::linboMsg, public linboDialog
 private:
   Q3Process* myProcess;
   QString line;
+  QWidget *myMainApp,*myParent;
 
 public:
   linboMsgImpl( QWidget* parent = 0 );
@@ -32,7 +33,7 @@ public:
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here
-  virtual void setMainApp( QWidget* newMainApp ) {};
+  virtual void setMainApp( QWidget* newMainApp );
   void execute();
 
 public slots:

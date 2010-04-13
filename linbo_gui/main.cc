@@ -162,10 +162,8 @@ int main( int argc, char* argv[] )
   int width = qt_screen->deviceWidth();
   int height = qt_screen->deviceHeight();
 
-  bgimg.smoothScale( width, height );
-
   if ( wsServer ) {
-    wsServer->setBackground( QBrush( bgimg ) );
+    wsServer->setBackground( QBrush( bgimg.scaled( width, height, Qt::IgnoreAspectRatio ) ) );
     wsServer->refresh();
   }
 

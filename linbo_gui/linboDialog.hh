@@ -13,7 +13,7 @@ public:
   virtual void postcmd() = 0;
   virtual void setCommand(const QStringList& ) = 0;
   virtual QStringList getCommand() = 0;
-  virtual void setMainApp( QWidget* newMainApp ) = 0;
+  virtual void setMainApp( QWidget* ) = 0;
 };
 
 #endif
