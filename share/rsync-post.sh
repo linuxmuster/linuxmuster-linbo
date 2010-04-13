@@ -38,19 +38,23 @@ if [ -s "$BACKUP" ]; then
    echo "Image file ${FILE##*/} detected. Restarting multicast service if enabled." >&2
    /etc/init.d/linbo-multicast restart >&2
   fi
-  # if it was a torrent file restart bittorrent service for this file
-  if [ "$EXT" = ".torrent" ]; then
-   timage="$(btshowmetainfo "$LINBODIR/${FILE##*/}" | grep ^"file name" | awk '{ print $3 }')"
-   echo "Torrent file for $timage detected. Restarting bittorrent service." >&2
-   /etc/init.d/linbo-bittorrent restart >&2
-   /etc/init.d/bittorrent restart >&2
-  fi
  else
  # If upload failed, move old file back from backup.
   echo "Upload of ${FILE##*/} failed." >&2
   mv -fv "$BACKUP" "$FILE"
   echo "Recovered ${FILE##*/} from backup." >&2
  fi
+fi
+
+# restart torrent service
+if [ "$EXT" = ".torrent" ]; then
+ timage="$(btshowmetainfo "$LINBODIR/${FILE##*/}" | grep ^"file name" | awk '{ print $3 }')"
+ echo "Torrent file for $timage detected. Restarting bittorrent service." >&2
+ # sync time for image and torrent files otherwise bittorrent gets confused
+ # if uploaded torrent file time is in future
+ touch "${timage}*"
+ /etc/init.d/linbo-bittorrent restart >&2
+ /etc/init.d/bittorrent restart >&2
 fi
 
 # add new host file to workstation data

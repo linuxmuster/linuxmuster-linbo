@@ -1,0 +1,201 @@
+Original patch from Debian:
+http://patch-tracking.debian.net/patch/series/view/chntpw/0.99.5-0+nmu1/01_port_to_gcrypt.patch
+
+Written by Paul Wise.
+
+Ported to Fedora build by Richard W.M. Jones.
+
+Also compiles the program as 64 bit.  I see no reason why the '-m32'
+flag was supplied.  Building on 64 bit produces a working program
+as far as I can tell.
+
+diff -ur chntpw-080526.orig/chntpw.c chntpw-080526.gcrypt/chntpw.c
+--- chntpw-080526.orig/chntpw.c	2008-05-26 20:59:44.000000000 +0100
++++ chntpw-080526.gcrypt/chntpw.c	2009-06-09 12:39:58.037690367 +0100
+@@ -61,12 +61,19 @@
+ #include <sys/types.h>
+ #include <inttypes.h>
+ 
++#if defined(USEOPENSSL)
+ #include <openssl/des.h>
+ #include <openssl/md4.h>
+-#define uchar u_char
+ #define MD4Init MD4_Init
+ #define MD4Update MD4_Update
+ #define MD4Final MD4_Final
++#elif defined(USELIBGCRYPT)
++  #include <gcrypt.h>
++#else
++  #error No DES encryption and MD4 hashing library found
++#endif
++
++#define uchar u_char
+ 
+ #include "ntreg.h"
+ #include "sam.h"
+@@ -138,7 +145,9 @@
+ 	for (i=0;i<8;i++) {
+ 		key[i] = (key[i]<<1);
+ 	}
++#if defined(USEOPENSSL)
+ 	DES_set_odd_parity((des_cblock *)key);
++#endif
+ }
+ 
+ /*
+@@ -183,6 +192,7 @@
+ 
+ void E1(uchar *k, uchar *d, uchar *out)
+ {
++#if defined(USEOPENSSL)
+   des_key_schedule ks;
+   des_cblock deskey;
+ 
+@@ -193,6 +203,15 @@
+   des_set_key((des_cblock *)deskey,ks);
+ #endif /* __FreeBsd__ */
+   des_ecb_encrypt((des_cblock *)d,(des_cblock *)out, ks, DES_ENCRYPT);
++#elif defined(USELIBGCRYPT)
++  gcry_cipher_hd_t ks;
++  uchar deskey[8];
++  str_to_key(k,deskey);
++  gcry_cipher_open(&ks, GCRY_CIPHER_DES, GCRY_CIPHER_MODE_ECB, 0);
++  gcry_cipher_setkey(ks, deskey, 8);
++  gcry_cipher_encrypt(ks, out, 8, d, 8);
++  gcry_cipher_close(ks);
++#endif
+ }
+ 
+ 
+@@ -500,10 +519,18 @@
+    int dontchange = 0;
+    struct user_V *v;
+ 
++#ifdef USEOPENSSL
+    des_key_schedule ks1, ks2;
+    des_cblock deskey1, deskey2;
+ 
+    MD4_CTX context;
++#elif defined(USELIBGCRYPT)
++   gcry_cipher_hd_t ks1, ks2;
++   uchar deskey1[8], deskey2[8];
++
++   unsigned char *p;
++   gcry_md_hd_t context;
++#endif
+    unsigned char digest[16];
+    unsigned short acb;
+ 
+@@ -617,6 +644,7 @@
+      hexprnt("Crypted LM pw: ",(unsigned char *)(vp+lmpw_offs),16);
+    }
+ 
++#if defined(USEOPENSSL)
+    /* Get the two decrpt keys. */
+    sid_to_key1(rid,(unsigned char *)deskey1);
+    des_set_key((des_cblock *)deskey1,ks1);
+@@ -634,6 +662,25 @@
+ 		   (des_cblock *)lanman, ks1, DES_DECRYPT);
+    des_ecb_encrypt((des_cblock *)(vp+lmpw_offs + 8),
+ 		   (des_cblock *)&lanman[8], ks2, DES_DECRYPT);
++#elif defined(USELIBGCRYPT)
++   /* Start the keys */
++   gcry_cipher_open(&ks1, GCRY_CIPHER_DES, GCRY_CIPHER_MODE_ECB, 0);
++   gcry_cipher_open(&ks2, GCRY_CIPHER_DES, GCRY_CIPHER_MODE_ECB, 0);
++
++   /* Get the two decrpt keys. */
++   sid_to_key1(rid,deskey1);
++   gcry_cipher_setkey(ks1, deskey1, 8);
++   sid_to_key2(rid,deskey2);
++   gcry_cipher_setkey(ks2, deskey2, 8);
++
++   /* Decrypt the NT md4 password hash as two 8 byte blocks. */
++   gcry_cipher_decrypt(ks1, md4, 8, vp+ntpw_offs, 8);
++   gcry_cipher_decrypt(ks2, &md4[8], 8, vp+ntpw_offs+8, 8);
++
++   /* Decrypt the lanman password hash as two 8 byte blocks. */
++   gcry_cipher_decrypt(ks1, lanman, 8, vp+lmpw_offs, 8);
++   gcry_cipher_decrypt(ks2, &lanman[8], 8, vp+lmpw_offs+8, 8);
++#endif
+       
+    if (gverbose) {
+      hexprnt("MD4 hash     : ",(unsigned char *)md4,16);
+@@ -689,9 +736,17 @@
+ 
+      /*   printf("Ucase Lanman: %s\n",newlanpw); */
+    
++#if defined(USEOPENSSL)
+      MD4Init (&context);
+      MD4Update (&context, newunipw, pl<<1);
+      MD4Final (digest, &context);
++#elif defined(USELIBGCRYPT)
++     gcry_md_open(&context, GCRY_MD_MD4, 0);
++     gcry_md_write(context, newunipw, pl<<1);
++     p = gcry_md_read(context, GCRY_MD_MD4);
++     if(p) memcpy(digest, p, gcry_md_get_algo_dlen(GCRY_MD_MD4));
++     gcry_md_close(context);
++#endif
+      
+      if (gverbose) hexprnt("\nNEW MD4 hash    : ",digest,16);
+      
+@@ -700,6 +755,7 @@
+      
+      if (gverbose) hexprnt("NEW LANMAN hash : ",(unsigned char *)lanman,16);
+      
++#if defined(USEOPENSSL)
+      /* Encrypt the NT md4 password hash as two 8 byte blocks. */
+      des_ecb_encrypt((des_cblock *)digest,
+ 		     (des_cblock *)despw, ks1, DES_ENCRYPT);
+@@ -710,6 +766,18 @@
+ 		     (des_cblock *)newlandes, ks1, DES_ENCRYPT);
+      des_ecb_encrypt((des_cblock *)(lanman+8),
+ 		     (des_cblock *)&newlandes[8], ks2, DES_ENCRYPT);
++#elif defined(USELIBGCRYPT)
++     /* Encrypt the NT md4 password hash as two 8 byte blocks. */
++     gcry_cipher_encrypt(ks1, despw, 8, digest, 8);
++     gcry_cipher_encrypt(ks2, &despw[8], 8, digest+8, 8);
++
++     gcry_cipher_encrypt(ks1, newlandes, 8, lanman, 8);
++     gcry_cipher_encrypt(ks2, &newlandes[8], 8, lanman+8, 8);
++
++     /* Close keys, not needed after this */
++     gcry_cipher_close(ks1);
++     gcry_cipher_close(ks2);
++#endif
+      
+      if (gverbose) {
+        hexprnt("NEW DES crypt   : ",(unsigned char *)despw,16);
+diff -ur chntpw-080526.orig/Makefile chntpw-080526.gcrypt/Makefile
+--- chntpw-080526.orig/Makefile	2008-05-26 20:59:44.000000000 +0100
++++ chntpw-080526.gcrypt/Makefile	2009-06-09 12:45:07.798728999 +0100
+@@ -1,28 +1,11 @@
+ #
+ # Makefile for the Offline NT Password Editor
+ #
+-#
+-# Change here to point to the needed OpenSSL libraries & .h files
+-# See INSTALL for more info.
+-#
+-
+-#SSLPATH=/usr/local/ssl
+-OSSLPATH=/usr
+-OSSLINC=$(OSSLPATH)/include
+ 
+ CC=gcc
++CFLAGS=-DUSELIBGCRYPT -g -I. $(shell libgcrypt-config --cflags) -Wall $(EXTRA_CFLAGS)
+ 
+-# Force 32 bit
+-CFLAGS= -DUSEOPENSSL -g -I. -I$(OSSLINC) -Wall -m32
+-OSSLLIB=$(OSSLPATH)/lib
+-
+-# 64 bit if default for compiler setup
+-#CFLAGS= -DUSEOPENSSL -g -I. -I$(OSSLINC) -Wall
+-#OSSLLIB=$(OSSLPATH)/lib64
+-
+-
+-# This is to link with whatever we have, SSL crypto lib we put in static
+-LIBS=-L$(OSSLLIB) $(OSSLLIB)/libcrypto.a
++LIBS=$(shell libgcrypt-config --libs)
+ 
+ all: chntpw chntpw.static cpnt reged reged.static
+ 

@@ -12,21 +12,27 @@
 # Description:       Starts a complete bittorrent download for LINBO images
 ### END INIT INFO
 
+# schmitt@lmz-bw.de
+# GPL v3
+# 18.01.2010
+
 #set -e
 
 action="$1"
 image="$2"
-force="$3"
+cmd="$3"
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="BitTorrent service for"
-NAME=btdownloadheadless
-DAEMON=/usr/bin/$NAME
-PIDDIR=/var/run/linbo-bittorrent
-SCRIPTNAME=/etc/init.d/linbo-bittorrent
+DAEMON=/usr/share/linuxmuster-linbo/linbo-torrenthelper.sh
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
+
+# read necessary functions and constants
+. /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+. /lib/lsb/init-functions
 
 # default values
 MINPORT=6881
@@ -52,12 +58,11 @@ MAX_SLICE_LENGTH=131072
 [ "$START_BITTORRENT" = "1" ] || exit 0
 . /etc/default/bittorrent || exit 1
 [ "$START_BTTRACK" = "1" ] || exit 0
-. /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
-. /lib/lsb/init-functions
 
-CLIENT_CONFIG="$LINBODIR/torrent-client.conf"
-all_images="/var/linbo/*.cloop /var/linbo/*.rsync"
+CLIENT_CONFIG="torrent-client.conf"
+all_images="*.cloop *.rsync"
+
+cd $LINBODIR
 
 # write client torrent config
 write_client_config(){
@@ -68,8 +73,8 @@ write_client_config(){
  echo "TIMEOUT=$TIMEOUT"
 }
 
-# compute nr of images and MAXPORT
-images_maxport(){
+# compute nr of images
+count_images(){
  local c=0
  local i=""
  for i in $all_images; do
@@ -83,7 +88,6 @@ images_maxport(){
   fi
   c=$(($c+1))
  done
- MAXPORT=$(($MINPORT+$c-1))
  # optional second parameter is an image file or "all"
  if [ -n "$image" -a "$image" != "all" ]; then
   if image_in_use "$image"; then
@@ -95,14 +99,16 @@ images_maxport(){
 }
 
 start(){
+
+ local NEWTORRENT=""
+ local RC=0
+ local c=0
+
  # read server ip
  [ -z "$LINBODEFAULTCONF" ] && LINBODEFAULTCONF="$LINBODIR/start.conf"
  serverip="$(grep ^Server "$LINBODEFAULTCONF" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
 
- # dirs under /var/run can go away on reboots
- mkdir -p "$PIDDIR"
-
- images_maxport
+ count_images
  write_client_config > "$CLIENT_CONFIG"
 
  if [ -z "$images_used" ]; then
@@ -114,24 +120,25 @@ start(){
  for i in $images_used; do
 
   #  create torrent file
-  [ ! -e "$i.torrent" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+  if [ ! -e "$i.torrent" -o "$cmd" = "force" ]; then
+   create_torrent "$i" "$serverip" "$PORT"
+   [ -e "$i.torrent" ] && NEWTORRENT=yes
+  fi
 
   # start torrent daemon for image only if torrent file is present
   [ -e "$i.torrent" ] || continue
 
   # start daemon stuff
-  log_daemon_msg "Starting $DESC" "$(basename "$i")"
-  PIDFILE="$PIDDIR/$(basename "$i").pid"
+  log_daemon_msg "Starting $DESC" "$i"
 
-  if [ -e "$PIDFILE" ]; then
+  if screen -list | grep -q "$i.torrent"; then
    echo
-   log_failure_msg "$PIDFILE detected. Skipped!"
+   log_failure_msg "Torrent for $i is already running. Skipped!"
    continue
   fi
 
   OPTIONS="$i.torrent \
            --minport $MINPORT \
-           --maxport $MAXPORT \
            --max_uploads $MAX_UPLOADS \
            --max_upload_rate $MAX_UPLOAD_RATE \
            --rerequest_interval $REREQUEST_INTERVAL \
@@ -149,21 +156,23 @@ start(){
            --max_slice_length $MAX_SLICE_LENGTH \
            --check_hashes 0 \
            --saveas $i"
-  if start-stop-daemon --start --quiet --background --make-pidfile --exec $DAEMON \
-                       --pidfile $PIDFILE -- $OPTIONS; then
-   log_end_msg 0
-  else
-   log_end_msg 1
-  fi
-  sleep 2
-  if ! ps --no-heading -p `cat $PIDFILE` &>/dev/null; then
+  screen -dmS "$i.torrent" $DAEMON $OPTIONS
+  #sleep 2
+  if ! screen -list | grep -q "$i.torrent"; then
+   echo -n " "
    log_failure_msg "failed!"
-   rm $PIDFILE
+  else
+   echo -n "."
+   [ "$RC" = "0" ] && echo
   fi
  done
+
+ # restart bittorrent service if a new torrent file was created
+ [ -n "$NEWTORRENT" ] && /etc/init.d/bittorrent restart
 }
 
 stop(){
+
  # optional second parameter is an image file or "all"
  if [ -n "$image" -a "$image" != "all" ]; then
   if [ -e "$image" ]; then
@@ -174,45 +183,56 @@ stop(){
   fi
  fi
  local i=""
- local ci=""
  local pid=""
  for i in $all_images; do
-  ci="$(basename $i)"
-  PIDFILE="$PIDDIR/$ci.pid"
-  [ -e "$PIDFILE" ] || continue
-  if ps --no-heading -p `cat $PIDFILE` &>/dev/null; then
-    log_daemon_msg "Stopping $DESC" "$ci"
-    start-stop-daemon --stop --pidfile $PIDFILE ; RC="$?"
+  if screen -list | grep -q "$i.torrent"; then
+    log_daemon_msg "Stopping $DESC" "$i"
+    pid="$(screen -list | grep "$i.torrent" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    kill $pid ; RC="$?"
     log_end_msg "$RC"
   fi
-  [ -e "$PIDFILE" ] && rm "$PIDFILE"
  done
  if [ -z "$omit_killall" ]; then
-  if ps ax | grep $NAME | grep -v grep &> /dev/null; then
-   log_daemon_msg "Sending all remaining $NAME processes the TERM signal."
-   killall $NAME ; RC="$?"
+  local pids="$(screen -list | grep torrent | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+  if [ -n "$pids" ]; then
+   log_daemon_msg "Sending all remaining linbo-bittorrent processes the TERM signal."
+   kill $pids ; RC="$?"
    log_end_msg "$RC"
   fi
-  rm -f $PIDDIR/*.pid
  fi
 }
 
+status(){
+   local line=""
+   local pid=""
+   local screen=""
+   local status=""
+   local c=0
+   local d=""
+   screen -wipe | grep .[cr][ls][oy][no][cp].torrent | while read line; do
+    let c+=1
+    pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    screen="$(echo $line | awk '{ print $1 }')"
+    screen="${screen#*.}"
+    status="$(echo $line | awk '{ print $2 }')"
+    d=""
+    [ $c -lt 100 ] && d=" "
+    [ $c -lt 10 ] && d="  "
+    echo -e "$d$c\t$pid\t$screen\t$status"
+   done
+}
+
 case "$action" in
- start)
-	 start
-	 ;;
- stop)
-	 stop
-	 ;;
+ start) start ;;
+ stop) stop ;;
  restart)
 	 stop
-  sleep 2
-	 start
-	 ;;
+  #sleep 2
+	 start ;;
+ status) status ;;
  *)
-	 echo "Usage: $0 {start|stop|restart} [<imagefile>|all] [force]" >&2
-	 exit 1
-	 ;;
+	 echo "Usage: $0 {status} | {start|stop|restart} [<imagefile>|all] [force]" >&2
+	 exit 1 ;;
 esac
 
 exit 0

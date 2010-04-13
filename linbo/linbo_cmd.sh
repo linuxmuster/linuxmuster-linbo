@@ -2,6 +2,10 @@
 # linbo_cmd - Backend worker script for LINBO
 # (C) Klaus Knopper 2007
 # License: GPL V2
+#
+# paedML/openML modifications by Thomas Schmitt
+# last change: 14.12.2009
+#
 
 CLOOP_BLOCKSIZE="131072"
 RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
@@ -19,11 +23,15 @@ rm -f "$TMP"
 # echo "»linbo_cmd«" "»$@«"
 ps w | grep linbo_cmd | grep -v grep >"$TMP"
 if [ $(cat "$TMP" | wc -l) -gt 1 ]; then
- echo "Possible Bug detected: linbo_cmd already running." >&2
- cat "$TMP" >&2
+# echo "Possible Bug detected: linbo_cmd already running." >&2
+ echo "Possible Bug detected: linbo_cmd already running." >> /tmp/linbo.log
+ #cat "$TMP" >&2
+ cat "$TMP" >> /tmp/linbo.log
 fi
 rm -f "$TMP"
 # EOF Debugging
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 printargs(){
  local arg
@@ -362,7 +370,8 @@ mountcache(){
    #export PASSWD="$RSYNC_PASSWORD"
    #mount $2 -t cifs -o username=linbo,nolock "$1" /cache 2>/dev/null
    # temporary workaround for password
-   PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
+   [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
+   [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
    mount $2 -t cifs -o user=linbo,pass="$PASSWD",nolock "$1" /cache 2>/dev/null
    RC="$?"
    if [ "$RC" != "0" ]; then
@@ -405,17 +414,17 @@ mountcache(){
  return "$RC"
 }
 
-# Changed: All partitions start on cylider boundaries.
+# Changed: All partitions start on cylinder boundaries.
 # partition dev1 size1 id1 bootable1 filesystem dev2 ...
 # When "$NOFORMAT" is set, format is skipped, otherwise all
 # partitions with known fstypes are formatted.
 partition(){
  echo -n "partition " ;  printargs "$@"
- local WAIT=10
+ local WAIT=5
  # check for running torrents and kill them if any
  if ps w | grep ctorrent | grep -v grep &>/dev/null; then
   echo "Killing torrents ..."
-  killall ctorrent
+  killall -9 ctorrent
   sleep "$WAIT"
   ps w | grep ctorrent | grep -v grep &>/dev/null && sleep "$WAIT"
  fi
@@ -439,6 +448,8 @@ partition(){
  local dummy=""
  local relax=""
  local pcount=0
+ local fstype=""
+ local bootable=""
  read d cylinders relax <<.
 $(sfdisk -g "$disk")
 .
@@ -471,8 +482,12 @@ $(sfdisk -s "$disk")
    done
   fi
   # Insert table entry.
-  table="$table,$csize,$3${4:+,*}"
-  [ -n "$5" ] && formats="$formats $dev,$5"
+  bootable="$4"
+  [ "$bootable" = "-" ] && bootable=""
+  fstype="$5"
+  [ "$fstype" = "-" ] && fstype=""
+  table="$table,$csize,$3${bootable:+,*}"
+  [ -n "$fstype" ] && formats="$formats $dev,$fstype"
   shift 5
  done
  # tschmitt: This causes windows to recognize a new harddisk after each partitioning, which leeds
@@ -491,46 +506,27 @@ EOT
  fi
 }
 
-# mkgrubmenu partition [kernel initrd server append]
-# Creates/updates menu.lst and device.map with given partition/disk
-# installs grub in mbr of disk
-# /cache is already mounted when this is called.
-mkgrubmenu(){
+# mkgrub disk
+mkgrub(){
+ local disk="$1"
  local grubdir="/cache/boot/grub"
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
- local menu="$grubdir/menu.lst"
- local grubdisk="hd0"
- local disk="${1%%[1-9]*}"
- local grubpart="${1##*[hsv]d[a-z]}"
- grubpart="$((grubpart - 1))"
- case "$disk" in
-  *[hsv]da) grubdisk=hd0 ;;
-  *[hsv]db) grubdisk=hd1 ;;
-  *[hsv]dc) grubdisk=hd2 ;;
-  *[hsv]dd) grubdisk=hd3 ;;
- esac
- local root="root ($grubdisk,$grubpart)"
- echo "($grubdisk) $disk" > /cache/boot/grub/device.map
- case "$(cat $menu 2>/dev/null)" in
-  *$root*) true ;; # Entry for this partition is already present
-  *)
-    if [ -n "$2" ]; then
-     echo "default saved"
-     echo "timeout 0"
-     echo ""
-     echo "title LINBO ($1)"
-     echo "$root"
-     echo "kernel /$2 server=$4 cache=$1 $5"
-     echo "initrd /$3"
-    else
-     echo ""
-     echo "title WINDOWS ($1)"
-     echo "$root"
-     echo "chainloader +1"
-     echo "savedefault 0"
-    fi >>"$menu"
-    ;;
- esac
+ if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
+  local append=""
+  local i
+  for i in $(cat /proc/cmdline); do
+   case "$i" in
+    BOOT_IMAGE=*|server=*|cache=*) true ;;
+    *) append="$append $i" ;;
+   esac
+  done
+  sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+ fi
+ if [ ! -e /tmp/.mkgrub.done -a -b "$disk" ]; then
+  echo "(hd0) $disk" > /cache/boot/grub/device.map 
+  grub-install --root-directory=/cache "$disk"
+  touch /tmp/.mkgrub.done
+ fi
 }
 
 # tschmitt: mkgrldr bootpart bootfile
@@ -554,27 +550,6 @@ mkgrldr(){
  cp /usr/lib/grub/grldr /mnt
 }
 
-# compute grub menu.lst entry number: grubnr boot
-grubnr(){
- [ -s /cache/boot/grub/menu.lst ] || return 1
- [ -z "$1" ] && return 1
- [ -e "$1" ] || return 1
- local partnr="$(echo $1 | sed -e 's|/dev/[a-z]*||')"
- [ $partnr -lt 1 ] && return 1
- partnr="$((partnr - 1))"
- local grubpart="(hd0,$partnr)"
- local nr=0
- local line=""
- grep root /cache/boot/grub/menu.lst | grep -v ^# | grep "(hd" | while read line; do
-  if echo "$line" | grep -q	"$grubpart"; then
-   echo "$nr"
-   return 0
-  fi
-  nr="$((nr + 1))"
- done
- return 1
-}
-
 # start boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
@@ -590,13 +565,11 @@ start(){
   APPEND="$5"
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
-   # create menu.lst if no custom menu.lst was downloaded
-   [ -e /cache/.custom.menu.lst ] || mkgrubmenu "$1"
-   grub-install --root-directory=/cache $disk
+   mkgrub "$disk"
   fi
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
-    # tschmitt: use builtin grub.exe or badgrub.exe in any case
+    # tschmitt: use builtin grub.exe in any case
     KERNEL="/usr/lib/$3"
     [ -e "$KERNEL" ] || KERNEL="/usr/lib/grub.exe"
     # provide an APPEND line if no one is given
@@ -606,18 +579,8 @@ start(){
      # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
      WINDOWS="yes"
      LOADED="true"
-     # tschmitt: needed for local boot here
-     if [ -e /cache/boot/grub ] && cache_writable; then
-      # compute nr of grub menu.lst entry
-      local nr="$(grubnr $1)"
-      if isinteger "$nr"; then
-       echo "Grub-Startnr. $nr ermittelt."
-      else
-       echo "Konnte Grub-Startnr. nicht ermitteln. Setze auf 0."
-       nr=0
-      fi
-      grub-set-default --root-directory=/cache $nr
-     fi
+     dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1
+     cp /mnt/.linbo.reboot /mnt/.grub.reboot
      ;;
    *)
     if [ -n "$2" ]; then
@@ -626,10 +589,11 @@ start(){
     ;;
   esac
   # provide a menu.lst for grldr on win2k/xp
-  if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-   mkgrldr "$1" "/ntldr"
-  elif [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
+  if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
    mkgrldr "$1" "/bootmgr"
+   APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
+  elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+   mkgrldr "$1" "/ntldr"
   elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
    # tschmitt: patch autoexec.bat (win98),
    if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
@@ -639,7 +603,7 @@ start(){
    # provide a menu.lst for grldr on win98
    mkgrldr "$1" "/io.sys"
    # change bootloader for win98 systems
-   APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/')"
+   APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
   fi
  else
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
@@ -648,6 +612,8 @@ start(){
   #umount /cache 2>/dev/null
   return 1
  fi
+ # kill torrents if any
+ ps w | grep ctorrent | grep -v grep &> /dev/null && killall -9 ctorrent
 
  # No more timer interrupts
  [ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
@@ -659,8 +625,6 @@ start(){
  fi
 
  umount /mnt 2>/dev/null
- # kill torrents if any
- ps w | grep ctorrent | grep -v grep && { killall ctorrent; sleep 3; }
  sendlog
  umount /cache || umount -l /cache 2>/dev/null
 
@@ -777,6 +741,12 @@ mk_cloop(){
    interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 | tee -a /tmp/image.log
    RC="$?"
    if [ "$RC" = "0" ]; then
+    # create status file
+    if mountpart "$2" /mnt -w ; then
+     echo "${3%.cloop}" > /mnt/.linbo
+     umount /mnt || umount -l /mnt
+    fi
+    # create info file
     imgsize="$(get_filesize $3)"
     # Adjust uncompressed image size with one additional cloop block
     size="$(($CLOOP_BLOCKSIZE / 1024 + $size))"
@@ -797,14 +767,13 @@ mk_cloop(){
       cleanup_fs /mnt
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       mkexclude
-      # rsync mit acl und xattr Optionen
-      local ROPTS="-HazAX"
-      #local ROPTS="-az"
-      [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rtz"
-      # tschmitt: logging
-      #rm -f "$TMP"
-      #interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --only-write-batch="$3" /mnt/ /cloop
-      #interruptible rsync "$ROPTS" --fake-super --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --partial --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
+      # determine rsync opts due to fstype
+      local type="$(fstype "$2")"
+      case $type in
+       ntfs) ROPTS="-HazAX" ;;
+       vfat) ROPTS="-rtz" ;;
+       *) ROPTS="-az" ;;
+      esac
       interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
       RC="$?"
       umount /cloop
@@ -834,8 +803,8 @@ mk_cloop(){
    fi
   ;; 
  esac
- # create torrent files
- if [ "$RC" = "0" -a "$(downloadtype)" = "torrent" ]; then
+ # create torrent file
+ if [ "$RC" = "0" ]; then
   echo "Erstelle torrent Dateien ..." | tee -a /tmp/image.log
   touch "$3".complete
   local serverip="$(grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -1013,9 +982,10 @@ restore(){
    if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
-   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
-    echo "[Komplette Partition]..."
-    cp_cloop "$1" "$2" ; RC="$?"
+## for testing, sync also for vfat
+##   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
+##    echo "[Komplette Partition]..."
+##    cp_cloop "$1" "$2" ; RC="$?"
    else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then
@@ -1101,7 +1071,13 @@ patch_fstab(){
 syncl(){
  local RC=1
  local patchfile=""
+ local postsync=""
  local rootdev="$5"
+ # don't sync in that case
+ if [ "$1" = "$rootdev" ]; then
+  echo "Ueberspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
+  return 0
+ fi
  echo -n "syncl " ; printargs "$@"
  mountcache "$1" || return "$?"
  cd /cache
@@ -1112,6 +1088,7 @@ syncl(){
    restore "$image" "$5" $9 ; RC="$?"
    [ "$RC" = "0" ] || break
    patchfile="$image.reg"
+   postsync="$image.postsync"
   else
    echo "$image ist nicht vorhanden." >&2
    RC=1
@@ -1147,6 +1124,18 @@ syncl(){
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
      echo "Fertig."
+     # patch newdev.dll (xp/2000 only)
+     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+      local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
+      [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
+      # patch newdev.dll only if it has not yet patched
+      if [ -n "$newdevdll" -a ! -s "$newdevdll.linbo-orig" ]; then
+       echo "Patche $newdevdll ..."
+       [ -e "$newdevdll.linbo-orig" ] || cp "$newdevdll" "$newdevdll.linbo-orig"
+       grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
+      fi
+     fi
+     # write partition bootsector
      [ "$(fstype "$5")" = "vfat" ] && ms-sys -2 "$5"
     elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
      cp -f "$TMP" /mnt/linbo.reg
@@ -1163,8 +1152,28 @@ syncl(){
      echo "$HOSTNAME" > /mnt/etc/hostname
     fi
    fi
+   # copy ssh keys
+   if [ -d /mnt/etc/dropbear ]; then
+    cp /etc/dropbear/* /mnt/etc/dropbear
+    if [ -s /mnt/root/.ssh/authorized_keys ]; then
+     local sshkey="$(cat /.ssh/authorized_keys)"
+     grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
+    else
+     mkdir -p /mnt/root/.ssh
+     cp /.ssh/authorized_keys /mnt/root/.ssh
+    fi
+    chmod 600 /mnt/root/.ssh/authorized_keys
+   fi
+   # patch dropbear config with port 2222 and disable password logins
+   if [ -s /mnt/etc/default/dropbear ]; then
+    sed -e 's|^NO_START=.*|NO_START=0|
+            s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
+            s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
+   fi
    # fstab
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+   # source postsync script
+   [ -s "/cache/$postsync" ] && . "/cache/$postsync"
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
   fi
@@ -1194,14 +1203,7 @@ create(){
    mk_cloop partition "$5" "$2" "$3" ; RC="$?"
    ;;
   *.[Rr][Ss][Yy]*)
-   # tschmitt: for now we do not support rsync images of ntfs partitions
-   # experimental support for rsync images of ntfs partitions
-#   if [ "$type" = "ntfs" ]; then
-#    echo 'Differentielle Images von NTFS-Partitionen werden derzeit nicht unterstützt!' | tee -a /tmp/image.log
-#    RC=1
-#   else
     mk_cloop differential "$5" "$2" "$3" ; RC="$?"
-#   fi
    ;;
  esac
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2
@@ -1369,24 +1371,23 @@ download_torrent(){
  local ip="$(ip)"
  [ -z "$ip" -o "$ip" = "OFFLINE" ] && return "$RC"
  # default values
- local MINPORT=6881
  local MAX_INITIATE=40
  local MAX_UPLOAD_RATE=0
  local SLICE_SIZE=128
  local TIMEOUT=300
+ local pid=""
  [ -e /torrent-client.conf ] && . /torrent-client.conf
  [ -n "$DOWNLOAD_SLICE_SIZE" ] && SLICE_SIZE=$(($DOWNLOAD_SLICE_SIZE/1024))
- local pid="$(ps w | grep ctorrent | grep "$1.torrent" | grep -v grep | awk '{ print $1 }')"
+ local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
  [ -n "$pid" ] && kill "$pid"
- local pnr="$(ps w | grep -v grep | grep -c ctorrent)"
- local PORT=$(($MINPORT+$pnr))
- local OPTS="-e 10000 -I $ip -p $PORT -M $MAX_INITIATE -z $SLICE_SIZE"
+ local OPTS="-e 10000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
  echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
  if [ -e "$complete" ]; then
   ctorrent -f -d $OPTS "$torrent"
  else
+  rm -f "$image" "$torrent".bf
   torrent_watchdog "$image" "$TIMEOUT" &
   interruptible download_torrent_check "$image" "$OPTS"
  fi
@@ -1413,23 +1414,22 @@ download_all(){
 }
 
 # Download info files, compare timestamps
-# download_if_newer server file
+# download_if_newer server file downloadtype
 download_if_newer(){
  # do not execute in localmode
  localmode && return 0
+ local DLTYPE="$3"
+ [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
+ [ -z "$DLTYPE" ] && DLTYPE="rsync"
  local RC=0
  local DOWNLOAD_ALL=""
- local FTYPE=""
- local md5sum_before=""
- local md5sum_after=""
+ local IMAGE=""
+ case "$2" in *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) IMAGE="true" ;; esac
  if [ ! -s "$2" -o ! -s "$2".info ]; then # File not there, download all
   DOWNLOAD_ALL="true"
  else
   mv -f "$2".info "$2".info.old 2>/dev/null
   download "$1" "$2".info
-  # file list is obsolete
-  #download "$1" "$2".list >/dev/null 2>&1
-  download "$1" "$2".desc >/dev/null 2>&1
   if [ -s "$2".info ]; then
    local ts1="$(getinfo "$2".info.old timestamp)"
    local ts2="$(getinfo "$2".info timestamp)"
@@ -1448,62 +1448,77 @@ download_if_newer(){
    mv -f "$2".info.old "$2".info
   fi
  fi
- case "$2" in
-  *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) FTYPE="image" ;;
- esac
- # extra check for torrents
- if [ "$(downloadtype)" = "torrent" -a -n "$FTYPE" ]; then
-  [ -e "$2".torrent ] && md5sum_before="$(md5sum "$2".torrent | awk '{ print $1 }')"
-  download "$1" "$2".torrent
-  md5sum_after="$(md5sum "$2".torrent | awk '{ print $1 }')"
-  if [ "$md5sum_after" != "$md5sum_before" ]; then
-   # remove old image if there is a new torrent file for it
-   rm -f "$2"
-   DOWNLOAD_ALL="true"
+ # check for complete flag
+ [ -z "$DOWNLOAD_ALL" -a -n "$IMAGE" -a ! -e "$2.complete" ] && DOWNLOAD_ALL="true"
+ # supplemental torrent check
+ if [ -n "$IMAGE" ]; then
+  # save local torrent file
+  [ -e "$2.torrent" -a -z "$DOWNLOAD_ALL" ] && mv "$2".torrent "$2".torrent.old
+  # download torrent file from server
+  download_all "$1" "$2".torrent ; RC="$?"
+  if [ "$RC" != "0" ]; then
+   echo "Download von $2.torrent fehlgeschlagen." >&2
+   return "$RC"
   fi
-  [ -z "$DOWNLOAD_ALL" ] && download_torrent "$2" ; RC="$?"
+  # check for updated torrent file
+  if [ -e "$2.torrent.old" ]; then
+   cmp "$2".torrent "$2".torrent.old || DOWNLOAD_ALL="true"
+   rm "$2".torrent.old
+  fi
+  # update regpatch and postsync script
+  rm -rf "$2".reg "$2".postsync
+  download_all "$1" "$2".reg "$2".postsync >/dev/null 2>&1
  fi
- # download images according to download type
+ # start torrent service for others if there is no image to download
+ [ "$DLTYPE" = "torrent" -a -n "$IMAGE" -a -z "$DOWNLOAD_ALL" ] && download_torrent "$2"
+ # download because newer file exists on server
  if [ -n "$DOWNLOAD_ALL" ]; then
-  if [ "$(downloadtype)" = "torrent" -a -n "$FTYPE" ]; then
+  if [ -n "$IMAGE" ]; then
+   # remove complete flag
    rm -f "$2".complete
-   download_torrent "$2" ; RC="$?"
+   # download images according to downloadtype torrent or multicast
+   case "$DLTYPE" in
+    torrent)
+     # remove old image and torrents before download starts
+     rm -f "$2" "$2".torrent.bf
+     download_torrent "$2" ; RC="$?"
+     [ "$RC" = "0" ] ||  echo "Download von $2 per torrent fehlgeschlagen!" >&2
+    ;;
+    multicast)
+     if [ -s /multicast.list ]; then
+      local MPORT="$(get_multicast_port "$2")"
+      if [ -n "$MPORT" ]; then
+       download_multicast "$1" "$MPORT" "$2" ; RC="$?"
+      else
+       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download möglich." >&2
+       RC=1
+      fi
+     else
+      echo "Datei multicast.list nicht gefunden, kein Multicast-Download möglich." >&2
+      RC=1
+     fi
+     [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
+    ;;
+   esac
+   # download per rsync also as a fallback if other download types failed
+   if [ "$RC" != "0" -o "$DLTYPE" = "rsync" ]; then
+    [ "$RC" = "0" ] || echo "Versuche Download per rsync." >&2
+    download_all "$1" "$2" ; RC="$?"
+    [ "$RC" = "0" ] || echo "Download von $2 per rsync fehlgeschlagen!" >&2
+   fi
+   # download supplemental files and set complete flag if image download was successful
    if [ "$RC" = "0" ]; then
-    # file list is obsolete
-    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
-    download_all "$1" "$2".info "$2".desc "$2".reg ; RC="$?"
-   else
-    echo "Konnte $2 nicht herunterladen!"
-    RC=1
+    # reg und postsync were downloaded already above
+#    download_all "$1" "$2".info "$2".desc "$2".reg "$2".postsync >/dev/null 2>&1
+    download_all "$1" "$2".info "$2".desc >/dev/null 2>&1
+    touch "$2".complete
    fi
-  elif [ "$(downloadtype)" = "multicast" -a -n "$FTYPE" ]; then
-   if [ -s /multicast.list ]; then
-    local MPORT="$(get_multicast_port "$2")"
-    if [ -n "$MPORT" ]; then
-     download_multicast "$1" "$MPORT" "$2"
-     RC="$?"
-    else
-     RC=1
-    fi
-   else
-    RC=1
-   fi
-   if [ "$RC" = "0" ]; then
-    # file list is obsolete
-    #download_all "$1" "$2".info "$2".list "$2".desc "$2".reg ; RC="$?"
-    download_all "$1" "$2".info  "$2".desc "$2".reg ; RC="$?"
-   else
-    echo "Keine multicast.list gefunden, kein Multicast-Download möglich." >&2
-   fi
-  else
-    # file list is obsolete
-   #download_all "$1" "$2" "$2".info "$2".list "$2".desc "$2".reg
-   download_all "$1" "$2" "$2".info "$2".desc "$2".reg
-   RC="$?"
+  else # download other files than images
+   download_all "$1" "$2" "$2".info ; RC="$?"
+   [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
   fi
- else
+ else # download nothing, no newer file on server
   echo "Keine neuere Version vorhanden, überspringe $2."
-  RC=1
  fi
  return "$RC"
 }
@@ -1607,8 +1622,9 @@ syncr(){
   local i
   for i in "$3" "$4"; do
    [ -n "$i" ] && download_if_newer "$1" "$i"
-   localmode || rm -f "$i".reg 2>/dev/null
-   download "$1" "$i".reg >/dev/null 2>&1
+   # moved this to download_if_newer()
+#   localmode || rm -f "$i".reg "$i".postsync 2>/dev/null
+#   download "$1" "$i".reg "$i".postsync >/dev/null 2>&1
   done
   cd / ; sendlog
   #umount /cache
@@ -1617,6 +1633,65 @@ syncr(){
  fi
  shift 
  syncl "$@"
+}
+
+# update server cachedev 
+update(){
+ echo -n "update " ;  printargs "$@"
+ local RC=0
+ local group="$(hostgroup)"
+ local server="$1"
+ local cachedev="$2"
+ local disk="${cachedev%%[1-9]*}"
+ mountcache "$cachedev" ; RC="$?" || return "$?"
+ cd /cache
+ echo "Suche nach LINBO-Updates auf $1."
+ #download_if_newer "$server" grub.exe
+ local linbo_ts1="$(getinfo linbo.info timestamp)"
+ local linbo_fs1="$(get_filesize linbo)"
+ download_if_newer "$server" linbo
+ local linbo_ts2="$(getinfo linbo.info timestamp)"
+ local linbo_fs2="$(get_filesize linbo)"
+ local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
+ local linbofs_fs1="$(get_filesize linbofs.gz)"
+ # tschmitt: download group specific linbofs
+# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
+# if [ -e "linbofs.$group.gz" ]; then
+#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
+#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
+# else
+  download_if_newer "$server" linbofs.gz
+# fi
+ local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
+ local linbofs_fs2="$(get_filesize linbofs.gz)"
+ # tschmitt: update grub on every synced start not only if newer linbo is available
+ # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
+ #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
+ #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
+ if [ -b "$disk" -a -s "linbo" -a -s "linbofs.gz" ]; then
+  echo "Update Master-Bootrecord von $disk."
+  mkdir -p /cache/boot/grub
+  # only if online
+  if ! localmode; then
+   # fetch pxe kernel
+   download "$server" "gpxe.krn"
+   # tschmitt: provide custom local menu.lst
+   download "$server" "menu.lst.$group"
+   if [ -e "/cache/menu.lst.$group" ]; then
+    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
+    # flag for downloaded custom menu.lst
+    touch /cache/.custom.menu.lst
+   else
+    rm -f /cache/.custom.menu.lst
+   fi
+  fi # localmode
+  mkgrub "$disk"
+ fi
+ RC="$?"
+ cd / ; sendlog
+ #umount /cache
+ [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+ return "$RC"
 }
 
 # initcache server cachedev downloadtype images...
@@ -1664,78 +1739,11 @@ initcache(){
  # update cache files
  for i in "$@"; do
   if [ -n "$i" ]; then
-   download_if_newer "$server" "$i"
+   download_if_newer "$server" "$i" "$download_type"
   fi
  done
  cd / ; sendlog
  update "$server" "$cachedev"
-}
-
-# update server cachedev
-update(){
- echo -n "update " ;  printargs "$@"
- local RC=0
-# local group="$(hostgroup)"
- local server="$1"
- local cachedev="$2"
- local disk="${cachedev%%[1-9]*}"
- mountcache "$cachedev" ; RC="$?" || return "$?"
- cd /cache
- echo "Suche nach LINBO-Updates auf $1."
- download_if_newer "$server" grub.exe
- local linbo_ts1="$(getinfo linbo.info timestamp)"
- local linbo_fs1="$(get_filesize linbo)"
- download_if_newer "$server" linbo
- local linbo_ts2="$(getinfo linbo.info timestamp)"
- local linbo_fs2="$(get_filesize linbo)"
- local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
- local linbofs_fs1="$(get_filesize linbofs.gz)"
- # tschmitt: download group specific linbofs
-# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
-# if [ -e "linbofs.$group.gz" ]; then
-#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
-#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
-# else
-  download_if_newer "$server" linbofs.gz
-# fi
- local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
- local linbofs_fs2="$(get_filesize linbofs.gz)"
- # tschmitt: update grub on every synced start not only if newer linbo is available
- # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
- #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
- #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
- if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ]; then
-  echo "Update Master-Bootrecord von $disk."
-  local append=""
-  local vga="vga=791"
-  local i
-  for i in $(cat /proc/cmdline); do
-   case "$i" in
-    vga=*) vga="$i" ;; 
-    BOOT_IMAGE=*|server=*|cache=*) true ;;
-    *) append="$append $i" ;;
-   esac
-  done
-  mkdir -p /cache/boot/grub
-  # tschmitt: provide custom local menu.lst
-  download "$server" "menu.lst.$group"
-  if [ -e "/cache/menu.lst.$group" ]; then
-   mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
-   # flag for downloaded custom menu.lst
-   touch /cache/.custom.menu.lst
-  else
-   [ -e /cache/boot/grub/menu.lst ] && rm /cache/boot/grub/menu.lst
-   [ -e /cache/.custom.menu.lst ] && rm /cache/.custom.menu.lst
-   mkgrubmenu "$cachedev" "linbo" "linbofs.gz" "$server" "$vga $append"
-  fi
-  # tschmitt: grub is installed on every start
-  #grub-install --root-directory=/cache "$disk"
- fi
- RC="$?"
- cd / ; sendlog
- #umount /cache
- [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
- return "$RC"
 }
 
 ### Main ###
@@ -1904,12 +1912,14 @@ case "$cmd" in
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
  initcache) initcache "$@" ;;
+ mountcache) mountcache "$@" ;;
  readfile) readfile "$@" ;;
  ready) ready "$@" ;;
  register) register "$@" ;;
  sync) syncl "$@" && { cache="$1"; shift 3; start "$1" "$2" "$3" "$4" "$5" "$cache"; } ;;
  syncstart) syncr "$@" && { cache="$2"; shift 4; start "$1" "$2" "$3" "$4" "$5" "$cache"; } ;;
  syncr) syncr "$@" && { cache="$2"; shift 4; start "$1" "$2" "$3" "$4" "$5" "$cache"; } ;;
+ synconly) syncr "$@" ;;
  update) update "$@" ;;
  upload) upload "$@" ;;
  writefile) writefile "$@" ;;

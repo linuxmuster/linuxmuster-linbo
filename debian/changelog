@@ -1,3 +1,292 @@
+linuxmuster-linbo (1.99.17-4) unstable; urgency=low
+
+  * kernel:
+    - new version 2.6.33.
+    - changed to UTF-8 for default nls.
+    - removed some scsi drivers we never need on clients.
+  * linbofs:
+    - linbo_wrapper: changed halt command to /sbin/poweroff again.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 12 Mar 2010 16:18:41 +0100
+
+linuxmuster-linbo (1.99.17-3) unstable; urgency=low
+
+  * package:
+    - added ethtool to depends.
+    - initramfs.conf: added custom udev configuration in linbo/etc/udev.
+    - rules: removed using build system's udev configuration.
+  * linbofs:
+    - added ethtool.
+    - init.sh, hwsetup(): added wol activation.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 5 Mar 2010 11:49:54 +0100
+
+linuxmuster-linbo (1.99.17-2) unstable; urgency=low
+
+  * linbofs:
+    - updated kexec-tools to git version 5996651.
+    - linbo_cmd, restore(): uses complete partition sync again for ntfs.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 4 Mar 2010 09:26:29 +0100
+
+linuxmuster-linbo (1.99.17-1) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd, syncl(): newdev.dll patch only if it was not yet patched.
+    - linbo_cmd, update(): handles custom menu.lst now only if online.
+    - linbo_cmd, restore(): using file sync for all fstypes.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
+
+linuxmuster-linbo (1.99.17-0) unstable; urgency=low
+
+  * changed to Lenny build system.
+  * package:
+    - debian/rules:
+      o fixed ms-sys download.
+      o changed chntpw download address to http://pogostick.net/~pnh/ntpasswd/.
+  * kernel:
+    - added lsi logic and buslogic drivers, removed arica scsi driver.
+  * linbofs:
+    - syncl(): added newdev.dll patch.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 2 Mar 2010 21:35:32 +0100
+
+linuxmuster-linbo (1.99.16-1) unstable; urgency=low
+
+  * linbofs
+    - grub4dos: added grub-install_virtio_blk_support.diff (based on the patch
+      provided by https://bugzilla.redhat.com/show_bug.cgi?id=479760).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 18 Feb 2010 11:10:54 +0100
+
+linuxmuster-linbo (1.99.16-0) unstable; urgency=low
+
+  * package
+    - linbo-multicast init script, added lsb header.
+  * linbofs
+    - rsync: new upstream version 3.0.7.
+    - linbo_cmd.sh:
+      o mk_cloop(): uses specific rsync options due to fstype (ntfs, vfat, other).
+    - linbo_wrapper: changed shutdown command from poweroff to halt.
+    - ntfs-3g: new upstream version 2010.1.16.
+  * kernel: new version 2.6.32.7.
+  * server side scripting
+    - syslinux: recompiled on lenny.
+    - make-linbo-media.sh:
+      o new option -n: no strict checking for linbo ssh server, allows password based
+        logins, needs -p for root pw, optional.
+      o new option -p <password>: sets local linbo admin password, is also used for
+        root ssh login if password logins are allowed with -n, optional.
+      o new option -r: remove server root's public ssh key.
+      o improved LINBO parameter grepping from group's pxe configfile.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 5 Feb 2010 13:16:23 +0100
+
+linuxmuster-linbo (1.99.15-2) unstable; urgency=low
+
+  * package, postinst: creating bittorrent init scripts if necessary.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 3 Feb 2010 13:25:56 +0100
+
+linuxmuster-linbo (1.99.15-1) unstable; urgency=low
+
+  * package, postinst: added one more "\n" to ssh key gen commands to avoid password query.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 1 Feb 2010 15:21:25 +0100
+
+linuxmuster-linbo (1.99.15-0) unstable; urgency=low
+
+  * package, linbo-bittorrent.init:
+    - fixed wrong way to determine value for TIMEOUT.
+    - torrent processes now started as in a screen process with linbo-torrenthelper.sh (see below).
+    - added status parameter.
+    - removed sleep between torrent starts.
+  * server side scripting:
+    - added new script linbo-torrenthelper.sh as a wrapper for btdownloadcurses.
+    - linbo-remote.sh: starting remote commands in a screen session.
+    - rsync-post.sh, rsync-pre.sh: fixed torrent service restart.
+    - make-linbo-media.sh: fixed broken group support (closes #183).
+  * linbofs:
+    - kernel: new version 2.6.32.4.
+    - linbo_cmd.sh:
+      o debug msg redirected to /tmp/linbo.log.
+      o download_if_newer(): optimized torrent handling.
+      o download_torrent(): removed port from ctorrent options.
+      o mk_cloop(): torrent files are created independant of downloadtype.
+      o many fixes due to torrent download.
+      o syncl(): sources at least new image.postsync script.
+      o download_if_newer(), download(): implemented download of per image postsync script.
+      o syncl(): skipping local sync if cachdev is equal to rootdev, so it is possible to boot
+        images directly from cache.
+      o mk_cloop(): creating status file on os partition after cloop image creation.
+    - init.sh: downloads torrent-client.conf and multicast.list independant from download type.
+    - menu.lst: added vga=788 to linbo append parameters, according to default pxelinux.cfg.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 25 Jan 2010 10:07:24 +0100
+
+linuxmuster-linbo (1.99.14-0) unstable; urgency=low
+
+  * package:
+    - added dropbear (>=0.52) to build and package depends, ssh and etherwake to package depends.
+    - postinst: ssh client keys are created if not yet there in /etc/linuxmuster/linbo.
+    - added new config file debian/ssh_config which is installed to /etc/linuxmuster-linbo.
+    - moved config files pxelinux.cfg, ssh_config and start.conf, which are installed to
+      /etc/linuxmuster/linbo, to new etc folder.
+    - new links:
+      o linbo-ssh.sh -> /usr/sbin/linbo-ssh.
+      o linbo-scp.sh -> /usr/sbin/linbo-ssp.
+      o linbo-remote.sh -> /usr/sbin/linbo-remote.
+  * linbofs:
+    - kernel: new version 2.6.31.6.
+    - added dropbear 0.52 ssh server.
+    - added ssh keys.
+    - changed to blue version of wallpaper.
+    - linbo_cmd.sh:
+      o syncl(): ssh client keys are copied to a linux client installation if folder /etc/dropbear
+        is found (see below).
+    - init.sh: resets auto values in start.conf if remote control mode is detected.
+    - linbo_wrapper.sh: new wrapper to easily control linbo_cmd on the linbo client
+      console, used as backend for linbo-remote script. 
+  * server side scripting:
+    - update-linbofs.sh: added ssh key creation. Keys are placed in linbofs under /etc/dropbear
+      (dropbear format, used by LINBO's dropbear) and /etc/ssh (for the openssh server on linux clients).
+    - passwordless login to linbo client is realized by using /etc/linuxmuster-linbo/ssh_config:
+      # ssh -F /etc/linuxmuster-linbo/ssh_config <hostname>
+      Only logins with server's root ssh key are allowed. StrictHostKeyChecking is disabled to avoid
+      interaction using batch mode. ~/.ssh-linbo/known_hosts is used.
+    - linbo-ssh.sh: script to ssh connect linbo clients.
+    - linbo-scp.sh: wrapper to copy files with rsync per ssh from and to linbo-clients.
+    - linbo-remote.sh: ssh frontend end script for linbo_wrapper on the client.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 2 Dec 2009 13:51:28 +0100
+
+linuxmuster-linbo (1.99.13-0) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd.sh, start(): moved killing ctorrent processes to earlier position in start process.
+    - init.sh:
+      o handling new parameter autostart=<int>
+        autostart=0 suppresses autostart generally in start.conf,
+        autostart=<nr> sets autostart for OS number nr in start.conf.
+  * server side scripting:
+    - rsync-post.sh: sync time for image and torrent files otherwise bittorrent gets confused
+      if uploaded torrent file time is in future.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 21 Nov 2009 12:01:54 +0100
+
+linuxmuster-linbo (1.99.12-1) unstable; urgency=low
+
+  * recompiled grub.exe.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 5 Nov 2009 19:16:22 +0100
+
+linuxmuster-linbo (1.99.12-0) unstable; urgency=low
+
+  * package:
+    - some modifications to build on Ubuntu 9.10.
+    - rules:
+      o compiling grub4dos with gcc-4.1.
+      o installing grub.exe to /var/linbo.
+    - control, build dependencies:
+      o changed version for udev to 147 (Karmic).
+      o added gcc-4.3 and g++-4-3.
+    - links:
+      o added vesamenu.c32 link to	/var/linbo.
+    - updated default pxelinux.cfg configuration file with new boot
+      method for reboot workaround clients.
+  * server side scripting:
+    - updated Windows 7 registry patch example according to Samba 3.4.x.
+    - update-linbofs.sh:
+      o some code cleanup.
+      o set_pxeconfig(): sets default boot method for reboot workaround in
+        new provided pxe group config if necessary.
+    - removed menu.lst.without-pxe from examples.
+  * linbofs:
+    - kernel:
+      o new version 2.6.31.5.
+      o activated inotify support (required by udev 147).
+      o deactivated SYSFS_DEPRECATED option.
+    - grub4dos: new version 0.4.4-2009-10-16.
+    - chntpw:
+      o added patches from fedora 12 source package.
+    - patch_registry.sh:
+      o using smaller reged instead of chtnpw.
+      o several fixes due to controlset patching.
+    - removed badgrub.exe.
+    - linbo_cmd.sh:
+      o update(): removed grub.exe download to cache.
+    - menu.lst: added --ignore options to find command, removed local pxe boot option.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 4 Nov 2009 18:59:09 +0100
+
+linuxmuster-linbo (1.99.11-0) unstable; urgency=low
+
+  * package:
+    - removed stale symlink to obsolete /usr/sbin/repack-cloop.
+    - added Windows 7 registry patch example file.
+  * linbofs:
+    - linbo_cmd.sh:
+      o start(): fixed APPEND variable for Windows 7's bootmgr.
+    - patch_registry.sh:
+      o fixed matching cases in key paths.
+      o more fixes according to Windows 7 registry.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Oct 2009 19:38:43 +0200
+
+linuxmuster-linbo (1.99.10-0) unstable; urgency=low
+
+  * package:
+    - linbo-bittorrent.default: setting MAX_UPLOADS to 4.
+    - linbo-bittorrent.init:
+      o restart bittorrent service if a new torrent file was created.
+      o improved error handling in start().
+  * server side scripting:
+    - rsync-post.sh: changed order of torrent services restart.
+    - helperfunctions.sh: fixed missing -H option for grep.
+  * kernel:
+    - new version 2.6.31.
+    - cloop: new version 2.631-1.
+  * linbofs:
+    - update(): fixed condition for mbr update.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 1 Oct 2009 11:34:29 +0200
+
+linuxmuster-linbo (1.99.9-0) unstable; urgency=low
+
+  * package:
+    - added symlink from /usr/lib/linuxmuster-linbo/gpxe.krn to	/var/linbo/gpxe.krn.
+    - added menu.lst example files.
+  * linbo_gui:
+    - new upstream revision 357:
+      o new start.conf option DownloadType.
+      o console enhancements.
+  * linbofs:
+    - added a grub menu.lst to use for local boot with reboot workaround.
+    - linbo_cmd:
+      o fixed: custom group specific menu.lst was not downloaded.
+      o update(): download also pxe kernel gpxe.krn. Local booted client are now
+        able to pxe boot also.
+      o update(), start(), mkgrub(): reworked creation of local cached menu.lst.
+      o removed mkgrubmenu() grubnr().
+      o some code cleanup.
+      Notice: For using the reboot workaround the client bios has only to be changed from
+      pxe to local boot. All the other things will manage LINBO.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 21 Sep 2009 11:38:13 +0200
+
+linuxmuster-linbo (1.99.8-0) unstable; urgency=low
+
+  * kernel: new version 2.6.30.6
+  * linbo_gui:
+    - imported new qt4 based sources
+    - modified build environment according to qt4
+  * linbofs:
+    - kexec-tools: new version 2.0.1
+    - ntfs-3g: new version 2009.4.4AR.17
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 15 Sep 2009 11:35:47 +0200
+
 linuxmuster-linbo (1.99.7-0) unstable; urgency=low
 
   * linbofs:

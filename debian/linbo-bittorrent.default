@@ -15,7 +15,7 @@ WIMPORTDATA=/etc/linuxmuster/workstations
 MINPORT=6881
 
 # only allow num uploads at once per image (default 4)
-MAX_UPLOADS=20
+MAX_UPLOADS=4
 
 # maximum rate to upload at in kilobytes per image,
 # 0 means no limit (default 0)

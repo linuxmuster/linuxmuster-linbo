@@ -6,13 +6,12 @@
 #
 # GPL V3
 #
-# last change: 20.03.2009
+# last change: 20.01.2010
 #
 
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
-
 
 # usage info
 usage(){
@@ -24,93 +23,84 @@ usage(){
 	echo " -h                      show this help"
 	echo " -b                      create debug menu entries"
 	echo " -c                      create cdrom media, has to be used with -d or -i"
-	echo " -d <device>             writes directly to device (optional), cann be used with -c or -u"
-	echo " -g <group1,group2,...>  list of hostgroups to build for (optional, default: default)"
+	echo " -d <device>             writes directly to device (optional), can be used"
+	echo "                         with -c or -u"
+	echo " -g <group1,group2,...>  list of hostgroups to build for, optional,"
+	echo "                         if -g is not given, default group is used."
 	echo " -i <output dir>         creates cdrom iso in output dir"
+ echo " -n                      no strict checking for linbo ssh server, allows"
+ echo "                         password based logins, needs -p for root pw, optional"
+ echo " -p <password>           sets local linbo admin password, is also used for"
+ echo "                         root ssh login if password logins are allowed, optional"
+ echo " -r                      remove server root's public ssh key"
 	echo " -u                      create usb media, has to be used with -d or -z"
-	echo " -z <output dir>         creates zip archive with usb boot media files in output dir"
- echo
- echo "<output dir> is optional. Not given current directory is used."
+	echo " -z <output dir>         creates zip archive with usb boot media files in"
+	echo "                         output dir"
 	echo
 	echo " Examples:"
 	echo
 	echo " `basename $0` -c -i /home/administrators/administrator"
-	echo "               writes a cdrom iso image for default group to administrator's home"
+	echo "    writes a cdrom iso image for default group to administrator's home"
 	echo
 	echo " `basename $0` -c -i /var/linbo -g room123"
-	echo "               writes a cdrom iso image for computer group room123 to /var/linbo"
+	echo "    writes a cdrom iso image for computer group room123 to /var/linbo"
 	echo
 	echo " `basename $0` -c -d /dev/cdrom"
-	echo "               burns a cdrom directly to device /dev/cdrom"
+	echo "    burns a cdrom directly to device /dev/cdrom"
 	echo
 	echo " `basename $0` -u -g room123,default -d /dev/sdc"
-	echo "               writes a bootable usb media to /dev/sdc for groups room123 and default"
+	echo "    writes a bootable usb media to /dev/sdc for groups room123 and default"
 	echo
 	echo " `basename $0` -u -z /home/teachers/zell"
-	echo "               writes a zip archive with usb boot media files for default group to teacher zell's home"
+	echo "    writes a zip archive with usb boot media files for default group to"
+	echo "    teacher zell's home"
 	exit 1
 }
 
 
 # process cmdline
-while getopts ":bcd:g:hiuz" opt; do
-  case $opt in
-    b)
-      DEBUG=yes
-      ;;
-    c)
-      CDROM=yes
-      [ -n "$USB" ] && usage
-			   MEDIA=CDROM
-      ;;
-    u)
-      USB=yes
-      [ -n "$CDROM" ] && usage
-			   MEDIA=USB
-      ;;
-    d)
-      DEVICE=$OPTARG
-      if [ ! -e "$DEVICE" ]; then
-        echo "Device $DEVICE does not exist!"
-				    usage
-      fi
-			   [ -n "$ISO" ] && usage
-	   		[ -n "$ZIP" ] && usage
-			;;
-    i)
-      ISO=yes
-		   	[ -n "$DEVICE" ] && usage
-	   		[ -n "$ZIP" ] && usage
-	     OUTDIR=$OPTARG
-      [ -z "$OPTARG" ] && OUTDIR=`pwd`
-      ;;
-    z)
-      ZIP=yes
-		   	[ -n "$DEVICE" ] && usage
-	   		[ -n "$ISO" ] && usage
-	   		OUTDIR=$OPTARG
-      [ -z "$OPTARG" ] && OUTDIR=`pwd`
-      ;;
-    g)
-      GRPS=$OPTARG
-      ;;
-    h)
-      usage
-			;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      usage
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      usage
-      ;;
-  esac
+while getopts ":bcd:g:hi:np:ruz:" opt; do
+ case $opt in
+  b) DEBUG=yes ;;
+  c) CDROM=yes
+     [ -n "$USB" ] && usage
+			  MEDIA=CDROM ;;
+  d) DEVICE=$OPTARG
+     if [ ! -e "$DEVICE" ]; then
+      echo "Device $DEVICE does not exist!"
+				  usage
+     fi
+			  [ -n "$ISO" ] && usage
+	   	[ -n "$ZIP" ] && usage ;;
+  g) GRPS=$OPTARG ;;
+  h) usage ;;
+  i) ISO=yes
+		   [ -n "$DEVICE" ] && usage
+	   	[ -n "$ZIP" ] && usage
+	    OUTDIR=$OPTARG
+     [ -z "$OPTARG" ] && OUTDIR=`pwd` ;;
+  n) NOSTRICT=yes ;;
+  p) PASSWORD=$OPTARG ;;
+  r) REMKEY=yes ;;
+  u) USB=yes
+     [ -n "$CDROM" ] && usage
+			  MEDIA=USB ;;
+  z) ZIP=yes
+		   [ -n "$DEVICE" ] && usage
+	   	[ -n "$ISO" ] && usage
+	   	OUTDIR=$OPTARG
+     [ -z "$OPTARG" ] && OUTDIR=`pwd` ;;
+  :) echo "Option -$OPTARG requires an argument." >&2
+     usage ;;
+  \?) echo "Invalid option: -$OPTARG" >&2
+      usage ;;
+ esac
 done
 
 # check cmdline params
 [ -z "$CDROM" -a -z "$USB" ] && usage
 [ -z "$DEVICE" -a -z "$ISO" -a -z "$ZIP" ] && usage
+[ -n "$NOSTRICT" -a -z "$PASSWORD" ] && usage
 if [ -n "$ZIP" -o -n "$ISO" ]; then
 	if [ ! -d "$OUTDIR" ]; then
 		echo "$OUTDIR does not exist!"
@@ -128,12 +118,13 @@ if [ -n "$GRPS" ]; then
 			continue
 		fi
 		if echo $GRPS_SYS | grep -q -w $i; then
-			if [ -e "$LINBODIR/pxelinux.cfg/$i" -a -e "$LINBODIR/linbofs.$i.gz" ]; then
+			if [ -e "$LINBODIR/pxelinux.cfg/$i" -a -e "$LINBODIR/start.conf.$i" ]; then
 				if [ -n "$GRPS_CHECKED" ]; then GRPS_CHECKED="$GRPS_CHECKED $i"; else	GRPS_CHECKED="$i"; fi
 			fi
 		fi
 	done
 fi
+
 [ -z "$GRPS_CHECKED" ] && GRPS_CHECKED=default
 
 LOGFILE=$LOGDIR/linbo/make-linbo-media.log
@@ -163,8 +154,46 @@ OUTFILE="$OUTDIR/linbo_${GRPS_CHECKED// /-}_${VERSION}"
 [ -n "$ZIP" ] && OUTFILE="${OUTFILE}.usb.zip"
 
 MNTPNT=/var/tmp/mnt.$$
+TMPDIR=/var/tmp/linbofs.$$
 CURDIR=`pwd`
 LINBOFS=linbofs.gz
+
+# determine linbo append params from group's pxe configfile
+get_append_line() {
+ append_linbo=""
+ append_debug=""
+ local params=""
+ local line=""
+ local opt=""
+ local val=""
+ local j=""
+ local found=false
+ local cfg=$LINBODIR/pxelinux.cfg/$i
+ if [ -e "$cfg" ]; then
+  while read line; do
+   opt="$(echo $line | tr A-Z a-z | awk '{ print $1 }')"
+   val="$(echo $line | tr A-Z a-z | awk '{ print $2 }')"
+   [ "$opt" = "kernel" -a "$val" = "linbo" ] && found=true
+   if [ "$found" = "true" -a "$opt" = "append" ]; then
+    for j in $line; do
+     case $j in
+      [Aa][Pp][Pp][Ee][Nn][Dd]|[Ii][Nn][Ii][Tt][Rr][Dd]*|[Qq][Uu][Ii][Ee][Tt]|[Dd][Ee][Bb][Uu][Gg]) ;;
+      *) if [ -z "$params" ]; then params="$j"; else params="$params $j"; fi ;;
+     esac
+    done
+    break
+   fi
+  done <$cfg
+ fi
+ [ "$found" = "false" ] && echo "Warning: KERNEL linbo not found in pxe config for group $i, using default values."
+ if [ -z "$params" ]; then
+  params="vga=788"
+  [ "$found" = "true" ] && echo "Warning: No LINBO parameters found in pxe config for group $i, using default values."
+ fi
+ append_linbo="APPEND initrd=/$i/linbofs.gz $params quiet"
+ append_debug="APPEND initrd=/$i/linbofs.gz $params debug"
+ echo "LINBO parameters for $i: $params"
+}
 
 # write sys/isolinux config file
 writecfg() {
@@ -174,10 +203,8 @@ writecfg() {
 	else
 		local sysdir=/$2
 	fi
-	local append1
-	local append2
 	local RC=1
-  echo "DEFAULT $sysdir/vesamenu.c32
+ echo "DEFAULT $sysdir/vesamenu.c32
 KBDMAP $sysdir/german.kbd
 PROMPT 0
 TIMEOUT 300
@@ -192,20 +219,19 @@ menu color title                1;31;40    #90ffff00 #00000000
 	m=1
 	for i in $GRPS_CHECKED; do
 
-		append1=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | tail -1 | sed -e 's|linbofs.gz|/linbofs.gz|'`
- 	append2=`grep ^APPEND $LINBODIR/pxelinux.cfg/$i | head -1 | sed -e 's|linbofs.gz|/linbofs.gz|'`
+  get_append_line
 
 		echo "LABEL menu$m
 MENU LABEL ^$m. LINBO: $i
 KERNEL /linbo
-$append1
+$append_linbo
 " >> $outfile
 
 		if [ -n "$DEBUG" ]; then
 			echo "LABEL menu$(($m +1))
 MENU LABEL ^$(($m +1)). LINBO: $i (debug)
 KERNEL /linbo
-$append2
+$append_debug
 " >> $outfile
 			m=$(($m +1))
 		fi
@@ -227,6 +253,49 @@ MENU LABEL ^$(($m +2)). Neustart
 KERNEL $sysdir/`basename $REBOOTC32`" >> $outfile
 }
 
+create_linbofs() {
+ local RC=0
+ local g=""
+ # create temp dir for linbofs content
+ local curdir=`pwd`
+ mkdir -p /var/tmp/linbofs.$$
+ cd $TMPDIR
+ zcat $LINBODIR/$LINBOFS | cpio -i -d -H newc --no-absolute-filenames &> /dev/null || exit 1
+ # change passwords
+ if [ -n "$PASSWORD" ]; then
+  # root password
+  echo "/bin/echo root:$PASSWORD | /usr/sbin/chpasswd" > passwd.sh
+  chroot $TMPDIR /bin/sh /passwd.sh
+  rm passwd.sh
+ 	# md5sum of linbo password
+ 	local linbo_md5passwd=`echo -n $PASSWORD | md5sum | awk '{ print $1 }'`
+  echo -n "$linbo_md5passwd" > etc/linbo_passwd
+ 	echo "Local password for LINBO admin changed"
+ fi
+ # change dropbear options
+ if [ "$NOSTRICT" = "yes" ]; then
+  echo "Allowing password based ssh logins."
+  sed -e 's|^/sbin/dropbear .*|/sbin/dropbear -E -p 2222|' -i init.sh
+ fi
+ # remove server root's public ssh key
+ if [ "$REMKEY" = "yes" ]; then
+  echo "Removing authorized_keys."
+  rm -f .ssh/authorized_keys
+ fi
+	for g in $GRPS_CHECKED; do
+  echo -n "Creating linbofs.gz for group $g ... "
+  if [ "$g" = "default" ]; then
+   cp $LINBODIR/start.conf .
+  else
+   cp $LINBODIR/start.conf.$g start.conf || cp $LINBODIR/start.conf .
+  fi
+  # pack linbofs.gz
+  mkdir -p $MNTPNT/$g
+	 find . | cpio --quiet -o -H newc | gzip -9c > $MNTPNT/$g/linbofs.gz ; RC="$?" || exit 1
+  echo "Ok!"
+ done
+ cd $curdir
+}
 
 # writing files to stick/image
 writefiles() {
@@ -246,7 +315,7 @@ writefiles() {
 	cp $VMENUC32 $targetdir
 	cp $GPXEKRN $targetdir
 	cp $LINBODIR/linbo $MNTPNT
-	cp $LINBODIR/linbofs.gz $MNTPNT
+	create_linbofs
 	if [ -n "$ZIP" -a "$1" = "syslinux" ]; then
 		mkdir -p $MNTPNT/utils/linux
 		mkdir -p $MNTPNT/utils/win32
@@ -298,13 +367,8 @@ mkdir -p $MNTPNT
 make_usb() {
 
 	if [ -n "$ZIP" ]; then
-
-		echo -n "Writing files to temp dir ..."
 		writefiles syslinux
-		echo "Ok!"
-
 		create_zip
-
 	fi
 
 	if [ -n "$DEVICE" ]; then
@@ -353,9 +417,7 @@ make_usb() {
 # cdrom stuff
 make_cd() {
 
- echo -n "Writing files to temp dir ..."
 	writefiles isolinux
-	echo "Ok!"
 
 	MKISOFS=`which mkisofs`
 	if [ -z "$MKISOFS" ]; then
@@ -364,16 +426,14 @@ make_cd() {
 		exit 1
 	fi
 
-	echo -n "Creating iso image ... "
+	echo "Creating iso image ... "
 	cd $MNTPNT
 	$MKISOFS -r -no-emul-boot -boot-load-size 4 -boot-info-table \
 					-b isolinux/isolinux.bin -c isolinux/boot.cat \
 					-m .svn -J -R -l -o $OUTFILE ./ ; RC=$?
 	cd $CURDIR
 
-	if [ "$RC" = "0" ]; then
-		echo "Ok!"
-	else
+	if [ "$RC" != "0" ]; then
 		echo "Failed!"
 		rm -f $OUTFILE
 		rm -rf $MNTPNT
@@ -391,9 +451,7 @@ make_cd() {
 		echo "Writing to cdrom ... "
 		$WODIM -s dev=$DEVICE blank=fast $OUTFILE ; RC=$?
 
-		if [ "$RC" = "0" ]; then
-			echo "Ok!"
-		else
+		if [ "$RC" != "0" ]; then
 			echo "Failed!"
 			rm -rf $MNTPNT
 			exit 1
@@ -415,6 +473,7 @@ if [ -n "$CDROM" ]; then
 fi
 
 [ -d "$MNTPNT" ] && rm -rf $MNTPNT
+[ -d "$TMPDIR" ] && rm -rf $TMPDIR
 
 echo "### Finished on `date` ###" | tee -a $LOGFILE
 

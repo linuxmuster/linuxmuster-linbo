@@ -1,19 +1,16 @@
 #include "linboInputBoxImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboGUIImpl.hh"
-#include <qprogressbar.h>
+#include <q3progressbar.h>
 #include <qapplication.h>
+#include <QtGui>
 #include "linboPushButton.hh"
 #include "linboYesNoImpl.hh"
 
-linboInputBoxImpl::linboInputBoxImpl(  QWidget* parent,
-                                       const char* name,
-                                       bool modal,
-                                       WFlags fl ) : linboInputBox( parent,
-                                                                    name ), 
-                                                     linboDialog()
+linboInputBoxImpl::linboInputBoxImpl(  QWidget* parent ) : linboDialog()
 {
-  process = new QProcess( this );
+  Ui_linboInputBox::setupUi((QDialog*)this);
+  process = new Q3Process( this );
 
   // nothing to do
   connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
@@ -30,7 +27,7 @@ linboInputBoxImpl::~linboInputBoxImpl()
 {
 } 
 
-void linboInputBoxImpl::setTextBrowser( QTextBrowser* newBrowser )
+void linboInputBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
 {
   Console = newBrowser;
 }
@@ -65,7 +62,7 @@ void linboInputBoxImpl::postcmd() {
         
         if( dynamic_cast<linboYesNoImpl*>( neighbour->getQDialog() ) ) {
           // we know now, the neighbour is an button with a yesno-box
-          static_cast<linboYesNoImpl*>(neighbour->getQDialog())->question->setText("Image " + input->text() + " hochladen?");
+          static_cast<linboYesNoImpl*>((QWidget*)neighbour->getQDialog())->question->setText("Image " + input->text() + " hochladen?");
         }
       }
     }
@@ -88,7 +85,7 @@ void linboInputBoxImpl::postcmd() {
 
     if( app ) {
       // do something
-      linboProgressImpl *progwindow = new linboProgressImpl(0,"Arbeite...",0, Qt::WStyle_Tool );
+      linboProgressImpl *progwindow = new linboProgressImpl(0);//,"Arbeite...",0, Qt::WStyle_Tool );
       progwindow->setProcess( process );
       connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
       progwindow->show();

@@ -35,8 +35,18 @@ CYAN="[1;36m"
 WHITE="[1;37m"
 
 CMDLINE=""
+REMOTE_TAG="### LINBO REMOTE ###"
 
 # Utilities
+
+# test if variable is an integer
+isinteger () {
+ [ $# -eq 1 ] || return 1
+ case $1 in
+ *[!0-9]*|"") return 1;;
+           *) return 0;;
+ esac
+}
 
 # DMA
 enable_dma(){
@@ -156,19 +166,27 @@ Cache = $cache" -i "$1"
  fi
 }
 
+# print cache partition
+printcache(){
+ local cachedev=""
+ if [ -n "$cache" ]; then
+  cachedev="$cache"
+ else
+  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ fi
+ [ -b "$cachedev" ] && echo "$cachedev"
+}
+
 # copytocache file - copies start.conf to local cache
 copytocache(){
- local cachepart
- if [ -b "$cache" ]; then
-  cachepart="$cache"
- else
-  cachepart="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
- fi
- case "$cachepart" in
+ # do not copy start.conf in remote control mode
+ grep "$REMOTE_TAG" /start.conf && return 0
+ local cachedev="$(printcache)"
+ case "$cachedev" in
   /dev/*) # local cache
-   mount "$cachepart" /cache || return 1
+   mount "$cachedev" /cache || return 1
    cp -a /start.conf /cache
-   [ "$cachepart" = "$cache" ] && modify_cache /cache/start.conf
+   [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
   *)
@@ -259,6 +277,28 @@ $(route -n)
  return 1
 }
 
+# check if reboot is set in start.conf
+isreboot(){
+ if [ -s /start.conf ]; then
+  grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
+ fi
+ return 1
+}
+
+# remove linbo reboot flag
+rmlinboreboot(){
+ isreboot || return 0
+ local device="" properties="" cachedev="$(printcache)"
+ sfdisk -l | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
+  [ "$cachedev" = "$device" ] && continue
+  if mount "$device" /mnt; then
+   [ -e /mnt/.linbo.reboot ] && rm -f /mnt/.linbo.reboot
+   [ -e /mnt/.grub.reboot ] && rm -f /mnt/.grub.reboot
+   umount /mnt
+  fi
+ done
+}
+
 # get DownloadType from start.conf
 downloadtype(){
  local RET=""
@@ -271,6 +311,40 @@ downloadtype(){
   fi
  fi
  echo "$RET"
+}
+
+# handle autostart from cmdline
+set_autostart() {
+ # do set autostart in remote control mode
+ grep "$REMOTE_TAG" /start.conf && return 0
+ # count [OS] entries
+ local counts="$(grep -ci ^"\[OS\]" /start.conf)"
+ # return if autostart value is greater than number of OS entries
+ [ $autostart -gt $counts -o $autostart -lt 0 ] && return
+ # return if autostart shall be suppressed generally
+ if [ "$autostart" = "0" ]; then
+  # set all autostart parameters to no
+  sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
+  return
+ fi
+ # autostart OS at start.conf position given by autostart parameter
+ local c=0
+ local found=0
+ local line=""
+ while read -r line; do
+  if echo "$line" | grep -qi ^"\[OS\]"; then
+   let c=+1
+   [ "$autostart" = "$c" ] && found=1
+  fi
+  # suppress autostart for other OS entries
+  echo "$line" | grep -qi ^autostart || echo "$line" >> /start.conf.new
+  # write autostart line for specific OS
+  if [ "$found" = "1" ]; then
+   echo "Autostart = yes" >> /start.conf.new
+   found=0
+  fi
+ done </start.conf
+ mv /start.conf.new /start.conf
 }
 
 network(){
@@ -303,11 +377,9 @@ network(){
    rsync -L "$server::linbo/$i" "start.conf" >/dev/null 2>&1 && break
   done
   # also look for other needed files
-  case "$(downloadtype)" in
-   torrent) dlfile="torrent-client.conf" ;;
-   multicast) dlfile="multicast.list" ;;
-  esac
-  [ -n "$dlfile" ] && rsync -L "$server::linbo/$dlfile" "$dlfile" >/dev/null 2>&1
+  for i in "torrent-client.conf" "multicast.list"; do
+   rsync -L "$server::linbo/$i" "/$i" >/dev/null 2>&1
+  done
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
@@ -324,6 +396,15 @@ network(){
  [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # set autostart if given on cmdline
+ isinteger "$autostart" && set_autostart
+ # remove reboot flag
+ rmlinboreboot
+ # activate wol
+ for i in `ifconfig | grep ^eth | cut -f1 -d" "`; do
+  echo "Activating wol on $i ..."
+  ethtool -s $i wol g
+ done
  echo > /tmp/linbo-network.done 
 }
 
@@ -357,7 +438,7 @@ hwsetup(){
  modprobe thermal >/dev/null 2>&1 || true
 
  export TERM_TYPE=pts
-
+ 
  dmesg >> /tmp/linbo.log
  echo "## Hardware-Setup - End ##" >> /tmp/linbo.log
 
@@ -393,4 +474,7 @@ else
  hwsetup >/dev/null 2>&1
  network >/dev/null 2>&1 &
 fi
+
+# start dropbear
+/sbin/dropbear -s -g -E -p 2222
 
