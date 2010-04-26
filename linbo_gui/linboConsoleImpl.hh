@@ -45,6 +45,8 @@ public slots:
   virtual void precmd();
   void readFromStderr();
   void readFromStdout();
+  void processFinished( int retval,
+			QProcess::ExitStatus status);
   void showOutput();
   void execute();
 };

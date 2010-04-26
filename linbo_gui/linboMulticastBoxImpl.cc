@@ -4,7 +4,7 @@
 #include <qapplication.h>
 #include <qradiobutton.h>
 #include "linboPushButton.hh"
-#include <q3process.h>
+
 #include <QtGui>
 #include <iostream>
 
@@ -12,7 +12,7 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboMulticastBox::setupUi((QDialog*)this);  
   
-  process = new Q3Process( this );
+  process = new QProcess( this );
 
   if( parent )
     myParent = parent;
@@ -21,12 +21,19 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
   connect(okButton,SIGNAL(pressed()),this,SLOT(postcmd()));
   connect(cancelButton,SIGNAL(clicked()),this,SLOT(close()));
 
-  // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
+  progwindow = new linboProgressImpl(0);
 
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+	   this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
+  // connect stdout and stderr to linbo console
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
+
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
@@ -65,25 +72,30 @@ void linboMulticastBoxImpl::postcmd() {
   this->hide();
   
   app = static_cast<linboGUIImpl*>( myMainApp );
-  process->clearArguments();
+  arguments.clear();
   
   if ( this->rsyncButton->isChecked() )
-    process->setArguments( myRsyncCommand );
+    arguments =  myRsyncCommand;
+
   if ( this->multicastButton->isChecked() )
-    process->setArguments( myMulticastCommand );
+    arguments =  myMulticastCommand;
+
   if ( this->torrentButton->isChecked() )
-    process->setArguments( myBittorrentCommand );
+    arguments = myBittorrentCommand;
   
+  if ( this->checkFormat->isChecked() ) {
+    arguments[1] = QString("initcache_format");
+  }
+
+
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
-    connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+    // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
 
     progwindow->setTextBrowser( Console );
     progwindow->setProcess( process );
     progwindow->show();
     progwindow->raise();
-    progwindow->progressBar->setTotalSteps( 100 );
 
     progwindow->setActiveWindow();
     progwindow->setUpdatesEnabled( true );
@@ -91,24 +103,28 @@ void linboMulticastBoxImpl::postcmd() {
       
     app->disableButtons();
 
-    process->start();
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
 
-    while( process->isRunning() ) {
+    Console->setColor( QColor( QString("red") ) );
+    Console->append( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
+    Console->setColor( QColor( QString("black") ) );
+
+    progwindow->startTimer();
+    process->start( command, processargs );
+
+    process->waitForStarted();
+
+    while( process->state() == QProcess::Running ) {
       for( int i = 0; i <= 100; i++ ) {
         usleep(10000);
-        progwindow->progressBar->setProgress(i,100);
+        progwindow->progressBar->setValue(i);
         progwindow->update();
           
         qApp->processEvents();
       } 
-        
-      if( ! process->isRunning() ) {
-        progwindow->close();
-      }
     }
   }
-  app->restoreButtonsState();
-  
   this->close();
 }
 
@@ -131,7 +147,7 @@ void linboMulticastBoxImpl::setBittorrentCommand(const QStringList& arglist)
 void linboMulticastBoxImpl::setCommand(const QStringList& arglist)
 {
   // no sense setting this here
-  myCommand = arglist;
+  arguments = arglist;
 }
 
 QStringList linboMulticastBoxImpl::getCommand()
@@ -142,20 +158,47 @@ QStringList linboMulticastBoxImpl::getCommand()
 
 void linboMulticastBoxImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  Console->append( process->readAllStandardOutput() );
 }
 
 void linboMulticastBoxImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  Console->setColor( QColor( QString("red") ) );
+  Console->append( process->readAllStandardError() );
+  Console->setColor( QColor( QString("black") ) );
+}
+
+void linboMulticastBoxImpl::processFinished( int retval,
+					     QProcess::ExitStatus status) {
+
+  Console->setColor( QColor( QString("red") ) );
+  Console->append( QString("Command executed with exit value ") + QString::number( retval ) );
+
+  if( status == 0)
+    Console->append( QString("Exit status: ") + QString("The process exited normally.") );
+  else
+    Console->append( QString("Exit status: ") + QString("The process crashed.") );
+
+  if( status == 1 ) {
+    int errorstatus = process->error();
+    switch ( errorstatus ) {
+      case 0: Console->append( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
+      case 1: Console->append( QString("The process crashed some time after starting successfully.") ); break;
+      case 2: Console->append( QString("The last waitFor...() function timed out.") ); break;
+      case 3: Console->append( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
+      case 4: Console->append( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
+      case 5: Console->append( QString("An unknown error occurred.") ); break;
+    }
+
+  }
+
+  Console->setColor( QColor( QString("black") ) );
+			   
+
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
+
 }

@@ -1,3 +1,54 @@
+linuxmuster-linbo (1.99.21-0) unstable; urgency=low
+
+  * merged knopper.net revision 392.
+  * updated pxe boot logo.
+  * added button icons debian.png, default.png, winxp.png and ubuntu.png.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Apr 2010 19:05:49 +0100
+
+linuxmuster-linbo (1.99.20-0) unstable; urgency=low
+
+  * merged knopper.net revision 388.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 26 Apr 2010 12:17:49 +0100
+
+linuxmuster-linbo (1.99.19-1) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd, syncl():
+      o removed break for not exisiting image.
+      o minor fix concerning to newdev.dll-Patch.
+      o added /lib/terminfo/x/xterm.
+  * linbo_gui: merged knopper.net revision 378.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 23 Apr 2010 12:09:03 +0100
+
+linuxmuster-linbo (1.99.19-0) unstable; urgency=low
+
+  * linbo_gui: merged knopper.net revision 377.
+  * kernel: added acenic, e100 and tigon firmware.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Apr 2010 08:36:47 +0100
+
+linuxmuster-linbo (1.99.18-1) unstable; urgency=low
+
+  * postinst: suppress passphrase entry in postinst.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 14 Apr 2010 11:54:09 +0100
+
+linuxmuster-linbo (1.99.18-0) unstable; urgency=low
+
+  * kernel:
+    - new version 2.6.33.2.
+  * linbo_gui:
+    - merge knopper.net revision 376.
+  * linbofs:
+    - linbo_cmd.sh, syncl(): fixed setting of wlan hostname. 
+    - init.sh, copytocache(): saving hostname to /cache/hostname for offline
+      use, moved from linbo_cmd.sh, syncl().
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 14 Mar 2010 11:54:09 +0100
+
 linuxmuster-linbo (1.99.17-4) unstable; urgency=low
 
   * kernel:

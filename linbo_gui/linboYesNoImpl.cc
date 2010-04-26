@@ -1,5 +1,4 @@
 #include "linboYesNoImpl.hh"
-#include "linboProgressImpl.hh"
 #include <QtGui>
 #include <q3progressbar.h>
 #include <qapplication.h>
@@ -8,7 +7,9 @@ linboYesNoImpl::linboYesNoImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboYesNo::setupUi((QDialog*)this);
 
-  process = new Q3Process( this );
+  process = new QProcess( this );
+
+  progwindow = new linboProgressImpl(0);
 
   if( parent )
     myParent = parent;
@@ -16,11 +17,17 @@ linboYesNoImpl::linboYesNoImpl(  QWidget* parent ) : linboDialog()
   connect(YesButton,SIGNAL(clicked()),this,SLOT(postcmd()));
   connect(NoButton,SIGNAL(clicked()),this,SLOT(close())); 
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
+
+
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
@@ -44,46 +51,47 @@ void linboYesNoImpl::precmd() {
  
 void linboYesNoImpl::postcmd() {
   this->hide();    
-  linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
+  app = static_cast<linboGUIImpl*>( myMainApp );
 
   if( app ) {
-    linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
-    connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->setProcess( process );
 
     progwindow->show();
     progwindow->raise();
-    progwindow->progressBar->setTotalSteps( 100 );
+
     
     progwindow->setActiveWindow();
     progwindow->setUpdatesEnabled( TRUE );
     progwindow->setEnabled( true );
 
-    process->clearArguments();
-    process->setArguments( myCommand );
-
     // myMainApp->setEnabled( false );
     app->disableButtons();
-    process->start();
 
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
+
+    Console->setColor( QColor( QString("red") ) );
+    Console->append( QString("Executing ") + command + processargs.join(" ") );
+    Console->setColor( QColor( QString("black") ) );
+
+
+    progwindow->startTimer();
+
+    process->start( command, processargs );
+
+    process->waitForStarted();
      
-    while( process->isRunning() ) {
+    while( process->state() == QProcess::Running ) {
       for( int i = 0; i <= 100; i++ ) {
         usleep(10000);
-        progwindow->progressBar->setProgress(i,100);
+        progwindow->progressBar->setValue(i);
         progwindow->update();
         
         qApp->processEvents();
-      } 
-      
-      if( ! process->isRunning() ) {
-        progwindow->close();
-      }
+      }     
     }
-    app->restoreButtonsState();
   }
-  // myMainApp->setEnabled( true );
-
+  myMainApp->setEnabled( true );
   this->close();
 }
 
@@ -98,30 +106,54 @@ void linboYesNoImpl::setMainApp( QWidget* newMainApp ) {
 
 void linboYesNoImpl:: setCommand(const QStringList& arglist)
 {
-  myCommand = QStringList(arglist); // Create local copy
+  arguments = arglist; // Create local copy
+}
+
+QStringList linboYesNoImpl::getCommand() {
+  return arguments;
 }
 
 void linboYesNoImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  Console->append( process->readAllStandardOutput() );
 }
-
-QStringList linboYesNoImpl::getCommand() {
-  return myCommand;
-}
-
 
 void linboYesNoImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  Console->setColor( QColor( QString("red") ) );
+  Console->append( process->readAllStandardError() );
+  Console->setColor( QColor( QString("black") ) );
+}
+
+void linboYesNoImpl::processFinished( int retval,
+				      QProcess::ExitStatus status) {
+  Console->setColor( QColor( QString("red") ) );
+  Console->append( QString("Command executed with exit value ") + QString::number( retval ) );
+
+  if( status == 0)
+    Console->append( QString("Exit status: ") + QString("The process exited normally.") );
+  else
+    Console->append( QString("Exit status: ") + QString("The process crashed.") );
+
+  if( status == 1 ) {
+    int errorstatus = process->error();
+    switch ( errorstatus ) {
+      case 0: Console->append( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
+      case 1: Console->append( QString("The process crashed some time after starting successfully.") ); break;
+      case 2: Console->append( QString("The last waitFor...() function timed out.") ); break;
+      case 3: Console->append( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
+      case 4: Console->append( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
+      case 5: Console->append( QString("An unknown error occurred.") ); break;
+    }
+
+  }
+  Console->setColor( QColor( QString("black") ) );
+			   
+
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
+
 }

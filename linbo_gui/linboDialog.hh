@@ -3,6 +3,7 @@
 
 #include <qstringlist.h>
 #include <qwidget.h>
+#include <QProcess>
 
 class linboDialog {
 public:
@@ -14,6 +15,9 @@ public:
   virtual void setCommand(const QStringList& ) = 0;
   virtual QStringList getCommand() = 0;
   virtual void setMainApp( QWidget* ) = 0;
+  virtual void readFromStdout() = 0;
+  virtual void readFromStderr() = 0;
+  virtual void processFinished( int, QProcess::ExitStatus) = 0;
 };
 
 #endif

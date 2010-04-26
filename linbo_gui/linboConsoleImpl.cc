@@ -101,3 +101,8 @@ void linboConsoleImpl::readFromStderr()
   // nothing to do
 }
 
+void linboConsoleImpl::processFinished( int retval,
+					QProcess::ExitStatus status) {
+  // nothing to do
+  static_cast<linboGUIImpl*>(myMainApp)->restoreButtonsState();
+}

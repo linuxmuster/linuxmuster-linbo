@@ -39,8 +39,11 @@ public:
   void setTextBrowser( Q3TextBrowser* newBrowser );
 
 public slots:
-void readFromStderr();
-void readFromStdout();
+  void readFromStderr();
+  void readFromStdout();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 };
 #endif

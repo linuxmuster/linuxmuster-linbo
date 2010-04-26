@@ -1,3 +1,23 @@
+/* builds the class representing the LINBO configuration 
+
+Copyright (C) 2007 Klaus Knopper <knopper@knopper.net>
+Copyright (C) 2008 Martin Oehler <oehler@knopper.net>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+*/
+
 #ifndef IMAGE_DESCRIPTION_HH
 #define IMAGE_DESCRIPTION_HH
 
@@ -58,11 +78,13 @@ public:
 class image_item {
 private:
   QString version,
-	  description,
-	  image,
-	  kernel,
-	  initrd,
-	  append;
+    description,
+    image,
+    kernel,
+    initrd,
+    append,
+    defaultaction;
+  int autostarttimeout;
   bool syncbutton, startbutton, newbutton, autostart,
     hidden; // show OS tab or not
 
@@ -79,6 +101,8 @@ public:
   void set_startbutton( const bool& new_startbutton);
   void set_newbutton  ( const bool& new_newbutton );
   void set_autostart  ( const bool& new_autostart );
+  void set_autostarttimeout ( const int& new_autostarttimeout );
+  void set_defaultaction  ( const QString& new_defaultaction );
   void set_hidden  ( const bool& new_hidden );
 
   const QString& get_version() const;
@@ -91,6 +115,8 @@ public:
   const bool& get_startbutton() const;
   const bool& get_newbutton() const;
   const bool& get_autostart() const;
+  const int& get_autostarttimeout() const;
+  const QString& get_defaultaction() const;
   const bool& get_hidden() const;
 };
 
@@ -98,7 +124,7 @@ class os_item {
 private:
   QString name, // OS Name
 	  baseimage, // Base Image
-	  logopath, // Thumbnail for Image
+	  iconname, // Thumbnail for Image
 	  boot, // Boot partition
 	  root; // Root partition
 
@@ -108,13 +134,13 @@ public:
 
   void set_name( const QString& new_name );
   void set_baseimage( const QString& new_baseimage );
-  void set_logopath( const QString& new_logopath );
+  void set_iconname( const QString& new_iconname );
   void set_boot( const QString& new_boot );
   void set_root( const QString& new_root );
 
   const QString& get_name() const;
   const QString& get_baseimage() const;
-  const QString& get_logopath() const;
+  const QString& get_iconname() const;
   const QString& get_boot() const;
   const QString& get_root() const;
 

@@ -11,8 +11,9 @@
 #include <q3textbrowser.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
-
+#include <QProcess>
+#include "linboGUIImpl.hh"
+#include "linboProgressImpl.hh"
 #include "linboDialog.hh"
 
 
@@ -22,10 +23,12 @@ class linboImageUploadImpl : public QWidget, public Ui::linboImageUpload, public
 
 private:
   QString line;
-  QStringList myCommand;
-  Q3Process *process;
+  QStringList arguments;
+  QProcess *process;
+  linboGUIImpl* app;
   QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
+  linboProgressImpl *progwindow;
   
 
 public slots:
@@ -33,8 +36,8 @@ public slots:
   void readFromStderr();
   virtual void precmd();
   virtual void postcmd();
-
-
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
 
 public:
   linboImageUploadImpl( QWidget* parent = 0);

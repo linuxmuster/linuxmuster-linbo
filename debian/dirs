@@ -2,6 +2,7 @@
 /etc/init.d
 /etc/linuxmuster/linbo
 /var/linbo
+/var/linbo/icons
 /var/linbo/pxelinux.cfg
 /var/log/linuxmuster/linbo
 /usr/lib/linuxmuster-linbo

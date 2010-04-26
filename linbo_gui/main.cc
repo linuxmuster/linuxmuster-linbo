@@ -158,7 +158,7 @@ int main( int argc, char* argv[] )
 
   QWSServer* wsServer = QWSServer::instance();
 
-  QImage bgimg( "/usr/lib/linbo_wallpaper.png", "PNG" );
+  QImage bgimg( "/icons/linbo_wallpaper.png", "PNG" );
   int width = qt_screen->deviceWidth();
   int height = qt_screen->deviceHeight();
 
@@ -171,6 +171,9 @@ int main( int argc, char* argv[] )
   linboGUIImpl* myGUI = new linboGUIImpl; 
 
   myGUI->show();
+  // this paints a transparent main widget 
+  myGUI->setStyleSheet( "QDialog#linboGUI{ background: transparent }");
+  
   QTimer::singleShot( 100, myGUI, SLOT(executeAutostart()) );  
 
   return myapp.exec();

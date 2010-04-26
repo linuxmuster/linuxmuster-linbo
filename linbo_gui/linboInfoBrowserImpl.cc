@@ -7,34 +7,39 @@ linboInfoBrowserImpl::linboInfoBrowserImpl(QWidget* parent ) : linboDialog()
 {
    Ui_linboInfoBrowser::setupUi((QDialog*)this);
 
-   myProcess = new Q3Process( this );
+   process = new QProcess( this );
    
    if( parent)
      myParent = parent;
 
    connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
 
-   connect( myProcess, SIGNAL(readyReadStdout()),
-            this, SLOT(readFromStdout()) );
+   // connect SLOT for finished process
+   connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+	    this, SLOT(processFinished(int, QProcess::ExitStatus)) );
 
-   connect( myProcess, SIGNAL(readyReadStderr()),
-            this, SLOT(readFromStderr()) );  
+   // connect stdout and stderr to linbo console
+   connect( process, SIGNAL(readyReadStandardOutput()),
+	    this, SLOT(readFromStdout()) );
+   
+   connect( process, SIGNAL(readyReadStandardError()),
+	    this, SLOT(readFromStderr()) );
+   
+   Qt::WindowFlags flags;
+   flags = Qt::Dialog | Qt::WindowStaysOnTopHint ;
+   setWindowFlags( flags );
 
-  Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint ;
-  setWindowFlags( flags );
-
-  QRect qRect(QApplication::desktop()->screenGeometry());
-  // open in the center of our screen
-  int xpos=qRect.width()/2-this->width()/2;
-  int ypos=qRect.height()/2-this->height()/2;
-  this->move(xpos,ypos);
-  this->setFixedSize( this->width(), this->height() );
+   QRect qRect(QApplication::desktop()->screenGeometry());
+   // open in the center of our screen
+   int xpos=qRect.width()/2-this->width()/2;
+   int ypos=qRect.height()/2-this->height()/2;
+   this->move(xpos,ypos);
+   this->setFixedSize( this->width(), this->height() );
 }
 
 linboInfoBrowserImpl::~linboInfoBrowserImpl()
 {
-  delete myProcess;
+  delete process;
 } 
 
 void linboInfoBrowserImpl::setTextBrowser( Q3TextBrowser* newBrowser )
@@ -65,12 +70,12 @@ void linboInfoBrowserImpl::precmd() {
       // connect( this->saveButton, SIGNAL(clicked()), this, SLOT(close()));
     }
 
-    myProcess->clearArguments();
-    myProcess->setArguments( myLoadCommand );
+    arguments.clear();
+    arguments = myLoadCommand;
 
 #ifdef DEBUG
     Console->append(QString("linboInfoBrowserImpl: myLoadCommand"));
-    QStringList list = myProcess->arguments();
+    QStringList list = arguments;
     QStringList::Iterator it = list.begin();
     while( it != list.end() ) {
       Console->append( *it );
@@ -79,12 +84,13 @@ void linboInfoBrowserImpl::precmd() {
     Console->append(QString("*****"));
 #endif
 
-    if( myProcess->start() ) {
-      while( myProcess->isRunning() ) {
-        usleep( 1000 );
-      }
-    } else {
-      Console->append("myLoadCommand didn't start");
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
+
+    process->start( command, processargs );
+
+    while( process->state() == QProcess::Running ) {
+      usleep( 1000 );
     }
 
     file = new QFile( filepath );
@@ -116,12 +122,12 @@ void linboInfoBrowserImpl::postcmd() {
         file->flush();
         file->close();
 
-        myProcess->clearArguments();
-        myProcess->setArguments( mySaveCommand ); 
+	arguments.clear();
+        arguments = mySaveCommand; 
 
 #ifdef DEBUG
         Console->append(QString("linboInfoBrowserImpl: mySaveCommand"));
-        QStringList list = myProcess->arguments();
+        QStringList list = arguments;
         QStringList::Iterator it = list.begin();
       
         while( it != list.end() ) {
@@ -130,21 +136,21 @@ void linboInfoBrowserImpl::postcmd() {
         }
         Console->append(QString("*****"));
 #endif
+	QStringList processargs( arguments );
+	QString command = processargs.takeFirst();
 
-        if( myProcess->start() ) {
-          while( myProcess->isRunning() ) {
-            usleep( 1000 );
-          }
-        } else {
-          Console->append("mySaveCommand didn't start");
-        }
+	process->start( command, processargs );
+
+	while( process->state() == QProcess::Running ) {
+	  usleep( 1000 );
+	}
       
-        myProcess->clearArguments();
-        myProcess->setArguments( myUploadCommand );
+	arguments.clear();
+        arguments = myUploadCommand;
 
 #ifdef DEBUG
         Console->append(QString("linboInfoBrowserImpl: myUploadCommand"));
-        list = myProcess->arguments();
+        list = arguments;
         it = list.begin();
       
         while( it != list.end() ) {
@@ -153,14 +159,15 @@ void linboInfoBrowserImpl::postcmd() {
         }
         Console->append(QString("*****"));
 #endif
+	processargs.clear();
+	processargs = arguments;
+	command = processargs.takeFirst();
 
-        if( myProcess->start() ) {
-          while( myProcess->isRunning() ) {
-            usleep( 1000 );
-          }
-        } else {
-          Console->append("myUploadCommand didn't start");
-        }
+	process->start( command, processargs );
+
+	while( process->state() == QProcess::Running ) {
+	  usleep( 1000 );
+	}
 
 
       }
@@ -188,7 +195,7 @@ void linboInfoBrowserImpl::setSaveCommand( const QStringList& newSaveCommand ) {
 
 QStringList linboInfoBrowserImpl::getCommand() {
   // not needed here
-  return myUploadCommand;
+  return arguments;
 }
 
 void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
@@ -197,21 +204,41 @@ void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
 
 void linboInfoBrowserImpl::readFromStdout()
 {
-  while( myProcess->canReadLineStdout() )
-    {
-      line = myProcess->readLineStdout();
-      Console->append( line );
-    } 
+  Console->append( process->readAllStandardOutput() );
 }
 
 void linboInfoBrowserImpl::readFromStderr()
 {
-  while( myProcess->canReadLineStderr() )
-    {
-      line = myProcess->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  Console->setColor( QColor( QString("red") ) );
+  Console->append( process->readAllStandardError() );
+  Console->setColor( QColor( QString("black") ) );
+}
 
+void linboInfoBrowserImpl::processFinished( int retval,
+					     QProcess::ExitStatus status) {
+
+  Console->setColor( QColor( QString("red") ) );
+  Console->append( QString("Command executed with exit value ") + QString::number( retval ) );
+
+  if( status == 0)
+    Console->append( QString("Exit status: ") + QString("The process exited normally.") );
+  else
+    Console->append( QString("Exit status: ") + QString("The process crashed.") );
+
+  if( status == 1 ) {
+    int errorstatus = process->error();
+    switch ( errorstatus ) {
+      case 0: Console->append( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
+      case 1: Console->append( QString("The process crashed some time after starting successfully.") ); break;
+      case 2: Console->append( QString("The last waitFor...() function timed out.") ); break;
+      case 3: Console->append( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
+      case 4: Console->append( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
+      case 5: Console->append( QString("An unknown error occurred.") ); break;
+    }
+
+  }
+  Console->setColor( QColor( QString("black") ) );
+			   
+
+  app->restoreButtonsState();
 }

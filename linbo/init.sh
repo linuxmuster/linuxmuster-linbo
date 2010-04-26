@@ -14,7 +14,8 @@ trap "" 1 2 11 15
 RESET="]R"
 # ANSI COLORS
 # Erase to end of line
-CRE="[K"
+CRE="
+[K"
 # Clear and reset Screen
 CLEAR="c"
 # Normal color
@@ -186,6 +187,8 @@ copytocache(){
   /dev/*) # local cache
    mount "$cachedev" /cache || return 1
    cp -a /start.conf /cache
+   # save hostname for offline use
+   hostname > /cache/hostname
    [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
@@ -244,7 +247,13 @@ get_hostname(){
  if [ -n "$1" ] && grep -q ^nameserver /etc/resolv.conf; then
   while read key value relax; do
    case "$key" in
-    Name:) NAME="${value%%.*}" ; break ;;
+    Name:)
+     if [ "$1" = "$value" ]; then
+      NAME="`echo ip-$value | sed 's/\./-/g'`"
+     else
+      NAME="${value%%.*}"
+     fi
+     break ;;
    esac
   done <<.
 $(nslookup "$1" 2>/dev/null)
@@ -359,7 +368,9 @@ network(){
    dev="${i##*/}"
    case "$dev" in lo*|br*) continue;; esac
    ifconfig "$dev" up >/dev/null 2>&1
-   udhcpc -n -i "$dev" >/dev/null 2>&1
+   # udhcpc -n -i "$dev" >/dev/null 2>&1
+   # 5 Retries should be enough (Erik)
+   udhcpc -n -i "$dev" -t 5 >/dev/null 2>&1
   done
  fi
  # Network is up now, fetch a new start.conf
@@ -380,6 +391,8 @@ network(){
   for i in "torrent-client.conf" "multicast.list"; do
    rsync -L "$server::linbo/$i" "/$i" >/dev/null 2>&1
   done
+  # and (optional) the GUI icons
+  rsync -L "$server::linbo/icons/*" /icons >/dev/null 2>&1
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
@@ -405,6 +418,8 @@ network(){
   echo "Activating wol on $i ..."
   ethtool -s $i wol g
  done
+ # sets flag if no default route
+ route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  echo > /tmp/linbo-network.done 
 }
 

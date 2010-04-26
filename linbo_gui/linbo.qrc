@@ -10,5 +10,10 @@
  <file>icons/upload-22x22.png</file>
  <file>icons/image-22x22.png</file>
  <file>icons/partition-22x22.png</file>
+ <file>icons/computer-64x64.png</file>
+ <file>icons/drive-harddisk-64x64.png</file>
+ <file>icons/system-reboot-32x32.png</file>
+ <file>icons/system-shutdown-32x32.png</file>
+ <file>icons/default.png</file>
 </qresource>
 </RCC>

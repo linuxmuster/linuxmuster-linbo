@@ -1,3 +1,23 @@
+/* builds the class representing the LINBO configuration 
+
+Copyright (C) 2007 Klaus Knopper <knopper@knopper.net>
+Copyright (C) 2008 Martin Oehler <oehler@knopper.net>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+*/
+
 #include "image_description.hh"
 
 globals::globals():roottimeout(120) {
@@ -26,7 +46,6 @@ void globals::set_downloadtype( const QString& new_downloadtype ) { downloadtype
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
 
 
-
 diskpartition::diskpartition() {}
 diskpartition::~diskpartition() {}
 const QString& diskpartition::get_dev() const { return dev; }
@@ -40,7 +59,7 @@ void diskpartition::set_fstype( const QString& new_fstype ) { fstype = new_fstyp
 void diskpartition::set_size( const unsigned int& new_size ) { size = new_size; }
 void diskpartition::set_bootable( const bool& new_bootable ) { bootable = new_bootable; }
 
-image_item::image_item() { autostart = false; hidden = false; }
+image_item::image_item() { autostart = false; autostarttimeout = 0; hidden = false; defaultaction = QString("sync"); }
 image_item::~image_item() {}
 const QString& image_item::get_version() const { return version; }
 const QString& image_item::get_description() const { return description; }
@@ -52,6 +71,8 @@ const bool& image_item::get_syncbutton() const { return syncbutton; }
 const bool& image_item::get_startbutton() const { return startbutton; }
 const bool& image_item::get_newbutton() const { return newbutton; }
 const bool& image_item::get_autostart() const { return autostart; }
+const int& image_item::get_autostarttimeout() const { return autostarttimeout; }
+const QString& image_item::get_defaultaction() const { return defaultaction; }
 const bool& image_item::get_hidden() const { return hidden; }
 
 void image_item::set_version( const QString& new_version ) { version = new_version; }
@@ -64,23 +85,28 @@ void image_item::set_syncbutton( const bool& new_syncbutton ) { syncbutton = new
 void image_item::set_startbutton( const bool& new_startbutton ) { startbutton = new_startbutton; }
 void image_item::set_newbutton( const bool& new_newbutton ) { newbutton = new_newbutton; }
 void image_item::set_autostart( const bool& new_autostart ) { autostart = new_autostart; }
+void image_item::set_autostarttimeout( const int& new_autostarttimeout ) { autostarttimeout = new_autostarttimeout; }
+void image_item::set_defaultaction( const QString& new_defaultaction ) { defaultaction = new_defaultaction; }
 void image_item::set_hidden( const bool& new_hidden ) { hidden = new_hidden; }
 
-os_item::os_item() { image_history.clear(); }
+os_item::os_item() { 
+  image_history.clear();
+  iconname = QString("defaulticon.png");
+}
 os_item::~os_item() { /* nothing to do */ }
 
 const QString& os_item::get_name() const { return name; }
 const QString& os_item::get_baseimage() const { return baseimage; }
 const QString& os_item::get_boot() const { return boot; }
 const QString& os_item::get_root() const { return root; }
-const QString& os_item::get_logopath() const { return logopath; }
+const QString& os_item::get_iconname() const { return iconname; }
 
 
 void os_item::set_name( const QString& new_name ) { name = new_name; }
 void os_item::set_baseimage( const QString& new_baseimage ) { baseimage = new_baseimage; }
 void os_item::set_boot( const QString& new_boot ) { boot = new_boot; }
 void os_item::set_root( const QString& new_root ) { root = new_root; }
-void os_item::set_logopath( const QString& new_logopath ) { logopath = new_logopath; }
+void os_item::set_iconname( const QString& new_iconname ) { iconname = new_iconname; }
 void os_item::add_history_entry( image_item& ie ) { image_history.push_back( ie ); }
 
 

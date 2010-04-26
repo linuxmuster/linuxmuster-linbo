@@ -12,6 +12,7 @@
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
 #include "ui_linboGUI.h"
+#include <QProcess>
 #include <qstringlist.h>
 #include <q3textbrowser.h>
 #include <qtimer.h>
@@ -27,8 +28,8 @@ class linboPasswordBoxImpl : public QWidget, public Ui::linboPasswordBox, public
 private:
   QWidget* myMainApp,*myParent;
   linboGUIImpl* app;
-  QStringList myCommand;
-  Q3Process* process;
+  QStringList myCommand, arguments;
+  QProcess* process;
   QString line;
   Q3TextBrowser *Console;
   linboCounterImpl* myCounter;
@@ -53,6 +54,9 @@ public slots:
   void readFromStdout();
   void readFromStderr();
   void processTimeout();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 
 };

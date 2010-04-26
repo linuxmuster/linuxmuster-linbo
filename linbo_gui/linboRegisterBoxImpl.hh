@@ -2,17 +2,20 @@
 #define LINBOREGISTERBOXIMPL_HH
 
 #include "ui_linboRegisterBox.h"
+#include "linboGUIImpl.hh"
 #include <qobject.h>
 #include <qlabel.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3process.h>
+#include <QProcess>
 #include <qstring.h>
 #include <q3textedit.h>
 #include <Qt3Support/Q3TextBrowser>
-
+#include "linboProgressImpl.hh"
 #include "linboDialog.hh"
+
+class linboGUIImpl;
 
 class linboRegisterBoxImpl : public QWidget, public Ui::linboRegisterBox, public linboDialog
 {
@@ -20,8 +23,10 @@ class linboRegisterBoxImpl : public QWidget, public Ui::linboRegisterBox, public
 
   
 private:
-  Q3Process* process;
+  QProcess* process;
   QStringList myCommand;
+  linboProgressImpl *progwindow;
+  linboGUIImpl *app;
   QString line;
   QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
@@ -42,6 +47,10 @@ public slots:
   virtual void precmd();
   void readFromStderr();
   void readFromStdout();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status );
+
+
 
 };
 #endif

@@ -1,10 +1,11 @@
+
 #ifndef LINBOPUSHBUTTON_HH
 #define LINBOPUSHBUTTON_HH
 
 #include <qpushbutton.h>
 #include <qstring.h>
 #include <qwidget.h>
-#include <q3process.h>
+#include <qprocess.h>
 #include <q3textbrowser.h>
 #include <qstringlist.h>
 #include <qtimer.h>
@@ -26,8 +27,9 @@ class linbopushbutton : public QPushButton
 
 private:
   QString myCommand, line;
+  QStringList arguments;
   Q3TextBrowser* Console;
-  Q3Process *myprocess;
+  QProcess *process;
   QTimer *timer;
   QDialog* myQDialog,*myParent;
   linboDialog* myLinboDialog;
@@ -36,6 +38,7 @@ private:
   linboGUIImpl* app;
   bool progress;
   linbopushbutton* neighbour;
+  linboProgressImpl *progwindow;
 
 public:
   linbopushbutton( QWidget* parent = 0,
@@ -66,6 +69,9 @@ public slots:
 private slots:
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 };
 

@@ -13,12 +13,12 @@
 #include <q3buttongroup.h>
 #include <qstringlist.h>
 #include <qstring.h>
+#include <QProcess>
 #include "linboGUIImpl.hh"
 
 #include "linboDialog.hh"
 
 using namespace Ui;
-class linboGUIImpl;
 
 class linboMulticastBoxImpl : public QWidget, public Ui::linboMulticastBox, public linboDialog
 {
@@ -27,15 +27,18 @@ class linboMulticastBoxImpl : public QWidget, public Ui::linboMulticastBox, publ
 private:
   linboGUIImpl* app;
   QString line;
-  QStringList myCommand, myRsyncCommand, myMulticastCommand, myBittorrentCommand;
-  Q3Process *process;
+  linboProgressImpl *progwindow;
+  QStringList arguments, myCommand, myRsyncCommand, myMulticastCommand, myBittorrentCommand;
+  QProcess *process;
   QWidget *myMainApp,*myParent;
   Q3TextBrowser *Console;
   
 
 public slots:
-  void readFromStdout();
+  void processFinished( int retval,
+			QProcess::ExitStatus status);
   void readFromStderr();
+  void readFromStdout();
   virtual void precmd();
   virtual void postcmd();
 

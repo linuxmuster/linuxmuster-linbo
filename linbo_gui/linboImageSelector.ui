@@ -1,23 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
+<ui version="4.0" >
  <class>linboImageSelector</class>
- <widget class="QDialog" name="linboImageSelector">
-  <property name="geometry">
+ <widget class="QDialog" name="linboImageSelector" >
+  <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
     <width>384</width>
-    <height>471</height>
+    <height>451</height>
    </rect>
   </property>
-  <property name="windowTitle">
+  <property name="windowTitle" >
    <string>Image erstellen</string>
   </property>
-  <property name="whatsThis">
+  <property name="whatsThis" >
    <string/>
   </property>
-  <widget class="QLabel" name="textLabel2">
-   <property name="geometry">
+  <widget class="QLabel" name="textLabel2" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>0</y>
@@ -25,20 +24,20 @@
      <height>80</height>
     </rect>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Vorhandenes Image neu erstellen oder [Neues Image] zur Erstellung einer neuen Image-Datei auswählen.
 
 Auswahl:</string>
    </property>
-   <property name="alignment">
+   <property name="alignment" >
     <set>Qt::AlignVCenter</set>
    </property>
-   <property name="wordWrap">
+   <property name="wordWrap" >
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="Q3ButtonGroup" name="imageButtons">
-   <property name="geometry">
+  <widget class="Q3ButtonGroup" name="imageButtons" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>160</y>
@@ -46,11 +45,11 @@ Auswahl:</string>
      <height>70</height>
     </rect>
    </property>
-   <property name="title">
+   <property name="title" >
     <string>Image-Typ für neue Image-Datei:</string>
    </property>
-   <widget class="QRadioButton" name="baseRadioButton">
-    <property name="geometry">
+   <widget class="QRadioButton" name="baseRadioButton" >
+    <property name="geometry" >
      <rect>
       <x>10</x>
       <y>20</y>
@@ -58,15 +57,15 @@ Auswahl:</string>
       <height>20</height>
      </rect>
     </property>
-    <property name="text">
+    <property name="text" >
      <string>Neues Basisimage</string>
     </property>
-    <property name="checked">
+    <property name="checked" >
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QRadioButton" name="incrRadioButton">
-    <property name="geometry">
+   <widget class="QRadioButton" name="incrRadioButton" >
+    <property name="geometry" >
      <rect>
       <x>10</x>
       <y>40</y>
@@ -74,106 +73,106 @@ Auswahl:</string>
       <height>21</height>
      </rect>
     </property>
-    <property name="text">
+    <property name="text" >
      <string>Differentielles Image</string>
     </property>
    </widget>
   </widget>
-  <widget class="QLabel" name="textLabel2_2">
-   <property name="geometry">
+  <widget class="QLabel" name="textLabel2_2" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
-     <y>240</y>
+     <y>230</y>
      <width>360</width>
      <height>30</height>
     </rect>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Dateiname für neue Imagedatei eingeben:</string>
    </property>
-   <property name="wordWrap">
+   <property name="wordWrap" >
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="specialName">
-   <property name="geometry">
+  <widget class="QLineEdit" name="specialName" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
-     <y>270</y>
+     <y>260</y>
      <width>360</width>
      <height>30</height>
     </rect>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Neu</string>
    </property>
   </widget>
-  <widget class="QLabel" name="descriptionLabel">
-   <property name="geometry">
+  <widget class="QLabel" name="descriptionLabel" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
-     <y>310</y>
+     <y>290</y>
      <width>360</width>
      <height>30</height>
     </rect>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Informationen zum Image:</string>
    </property>
-   <property name="wordWrap">
+   <property name="wordWrap" >
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="createButton">
-   <property name="geometry">
+  <widget class="QPushButton" name="createButton" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>420</y>
      <width>90</width>
-     <height>40</height>
+     <height>21</height>
     </rect>
    </property>
-   <property name="toolTip">
-    <string>Erstellt das ausgewählte Image&lt;br&gt;im lokalen Cache</string>
+   <property name="toolTip" >
+    <string>Erstellt das ausgewählte Image&lt;br>im lokalen Cache</string>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Erstellen</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="createUploadButton">
-   <property name="geometry">
+  <widget class="QPushButton" name="createUploadButton" >
+   <property name="geometry" >
     <rect>
      <x>110</x>
      <y>420</y>
      <width>160</width>
-     <height>40</height>
+     <height>21</height>
     </rect>
    </property>
-   <property name="toolTip">
-    <string>Erstellt das ausgewählte Image im lokalen Cache und lädt es &lt;br&gt; anschliessend auf den Server hoch</string>
+   <property name="toolTip" >
+    <string>Erstellt das ausgewählte Image im lokalen Cache und lädt es &lt;br> anschliessend auf den Server hoch</string>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Erstellen+Hochladen</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cancelButton">
-   <property name="geometry">
+  <widget class="QPushButton" name="cancelButton" >
+   <property name="geometry" >
     <rect>
      <x>280</x>
      <y>420</y>
      <width>90</width>
-     <height>40</height>
+     <height>21</height>
     </rect>
    </property>
-   <property name="toolTip">
+   <property name="toolTip" >
     <string>Abbrechen ohne Imageerstellung</string>
    </property>
-   <property name="text">
+   <property name="text" >
     <string>Abbruch</string>
    </property>
   </widget>
-  <widget class="Q3ListBox" name="listBox">
-   <property name="geometry">
+  <widget class="Q3ListBox" name="listBox" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>80</y>
@@ -181,44 +180,58 @@ Auswahl:</string>
      <height>72</height>
     </rect>
    </property>
-   <property name="vScrollBarMode">
+   <property name="vScrollBarMode" >
     <enum>Q3ScrollView::Auto</enum>
    </property>
-   <property name="hScrollBarMode">
+   <property name="hScrollBarMode" >
     <enum>Q3ScrollView::Auto</enum>
    </property>
    <item>
-    <property name="text">
+    <property name="text" >
      <string>New Item</string>
     </property>
    </item>
   </widget>
-  <widget class="QTextEdit" name="infoEditor">
-   <property name="geometry">
+  <widget class="QTextEdit" name="infoEditor" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
-     <y>340</y>
+     <y>320</y>
      <width>361</width>
      <height>71</height>
     </rect>
    </property>
   </widget>
+  <widget class="QCheckBox" name="checkReboot" >
+   <property name="geometry" >
+    <rect>
+     <x>10</x>
+     <y>400</y>
+     <width>67</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Reboot</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkShutdown" >
+   <property name="geometry" >
+    <rect>
+     <x>70</x>
+     <y>400</y>
+     <width>81</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Shutdown</string>
+   </property>
+  </widget>
  </widget>
- <layoutdefault spacing="6" margin="11"/>
+ <layoutdefault spacing="6" margin="11" />
  <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
  <customwidgets>
-  <customwidget>
-   <class>Q3GroupBox</class>
-   <extends>QGroupBox</extends>
-   <header>Qt3Support/Q3GroupBox</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Q3Frame</class>
-   <extends>QFrame</extends>
-   <header>Qt3Support/Q3Frame</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>Q3ButtonGroup</class>
    <extends>Q3GroupBox</extends>

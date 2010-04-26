@@ -7,7 +7,7 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3process.h>
+#include <QProcess>
 #include <qstring.h>
 
 #include "linboDialog.hh"
@@ -19,7 +19,8 @@ class linboMsgImpl : public QWidget, public Ui::linboMsg, public linboDialog
 
   
 private:
-  Q3Process* myProcess;
+  QProcess* process;
+  QStringList arguments;
   QString line;
   QWidget *myMainApp,*myParent;
 
@@ -37,8 +38,11 @@ public:
   void execute();
 
 public slots:
-void readFromStderr();
-void readFromStdout();
+  void readFromStderr();
+  void readFromStdout();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 };
 #endif

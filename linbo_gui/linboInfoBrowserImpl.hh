@@ -12,7 +12,7 @@
 #include <q3textbrowser.h>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
+#include <QProcess>
 #include <qfile.h>
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
@@ -26,8 +26,8 @@ private:
   QString line;
   QWidget *myMainApp,*myParent;
   linboGUIImpl *app;
-  Q3Process* myProcess;
-  QStringList myUploadCommand, myLoadCommand, mySaveCommand;
+  QProcess* process;
+  QStringList myUploadCommand, myLoadCommand, mySaveCommand, arguments;
   QString filepath;
   QFile *file;
   Q3TextBrowser *Console;
@@ -36,6 +36,9 @@ private:
 public slots:
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
   virtual void precmd();
   virtual void postcmd();
 

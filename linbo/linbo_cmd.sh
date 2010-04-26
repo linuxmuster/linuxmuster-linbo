@@ -1,10 +1,10 @@
 #!/bin/sh
 # linbo_cmd - Backend worker script for LINBO
-# (C) Klaus Knopper 2007
+# (C) Klaus Knopper 2007-2010
 # License: GPL V2
 #
 # paedML/openML modifications by Thomas Schmitt
-# last change: 14.12.2009
+# last change: 26.04.2010
 #
 
 CLOOP_BLOCKSIZE="131072"
@@ -313,6 +313,7 @@ mountpart(){
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
   vfat)
+   OPTS="$OPTS,umask=000,shortname=winnt,utf8"
    mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
   *)
@@ -350,6 +351,8 @@ mountcache(){
  local RC=1
  [ -n "$1" ] || return 1
  export CACHE_PARTITION="$1"
+ # Avoid duplicate mount, this should never happen, of course.
+ grep -q "^$1 " /proc/mounts && { umount /cache; sleep 1; }
  case "$1" in
   *:*) # NFS
    local server="${1%%:*}"
@@ -513,6 +516,7 @@ mkgrub(){
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
  if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
   local append=""
+  local vga="vga=785"
   local i
   for i in $(cat /proc/cmdline); do
    case "$i" in
@@ -863,7 +867,9 @@ cp_cloop(){
    return 1
   fi
   # Userspace program MAY be faster than kernel module (no kernel lock necessary)
-  interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
+  # Forking an additional dd makes use of a second CPU and speeds up writing
+  ( interruptible extract_compressed_fs /cache/"$1" - | dd of="$2" bs=1M ) 2>&1 | tee -a /tmp/image.log
+  #interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
   # interruptible dd if=/dev/cloop of="$2" bs=1024k
   RC="$?"
  else
@@ -1089,10 +1095,6 @@ syncl(){
    [ "$RC" = "0" ] || break
    patchfile="$image.reg"
    postsync="$image.postsync"
-  else
-   echo "$image ist nicht vorhanden." >&2
-   RC=1
-   break
   fi
  done
  if [ "$RC" = "0" ]; then
@@ -1101,15 +1103,18 @@ syncl(){
    # hostname
    local HOSTNAME
    if localmode; then
-    if [ -s /cache/hostname -a -e /tmp/.offline ]; then
-     # add -w to hostname for wlan clients if client is really offline
-     HOSTNAME="$(cat /cache/hostname)-w"
+    if [ -s /cache/hostname ]; then
+     if [ -e /tmp/.offline ]; then
+      # add -w to hostname for wlan clients if client is really offline
+      HOSTNAME="$(cat /cache/hostname)-w"
+     else
+      HOSTNAME="$(cat /cache/hostname)"
+     fi
     else
-     HOSTNAME="$(cat /cache/hostname)"
+     HOSTNAME="$(hostname)"
     fi
    else
     HOSTNAME="$(hostname)"
-    echo $HOSTNAME > /cache/hostname
    fi
    if [ -r "$patchfile" ]; then
     echo "Patche System mit $patchfile"
@@ -1131,7 +1136,7 @@ syncl(){
       # patch newdev.dll only if it has not yet patched
       if [ -n "$newdevdll" -a ! -s "$newdevdll.linbo-orig" ]; then
        echo "Patche $newdevdll ..."
-       [ -e "$newdevdll.linbo-orig" ] || cp "$newdevdll" "$newdevdll.linbo-orig"
+       cp "$newdevdll" "$newdevdll.linbo-orig"
        grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
       fi
      fi
@@ -1711,6 +1716,13 @@ initcache(){
   echo "Cache $cachedev ist nicht lokal, und muss daher nicht aktualisiert werden."
   return 1
  fi
+ if [ -n "$FORCE_FORMAT" ]; then
+  local cachefs="$(fstype_startconf "$cachedev")"
+  if [ -n "$cachefs" ]; then
+   echo "Formatiere Cache-Partition $cachedev..."
+   format "$cachedev" "$cachefs"
+  fi
+ fi
  mountcache "$cachedev" || return "$?"
  cd /cache
  shift; shift; shift
@@ -1838,7 +1850,7 @@ register(){
  echo "$info" >"$client.new"
  echo "Uploade $client.new auf $1..."
  export RSYNC_PASSWORD="$3"
- interruptible rsync --progress -Ha --partial "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
+ interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
  cd /
  sendlog
  return "$RC"
@@ -1897,6 +1909,15 @@ size(){
  return 0
 }
 
+version(){
+ local versionfile="/etc/linbo-version"
+ if [ -s "$versionfile" ]; then
+  cat "$versionfile"
+ else
+  echo "LINBO 2.00"
+ fi
+}
+
 # Main
 
 case "$cmd" in
@@ -1912,6 +1933,7 @@ case "$cmd" in
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
  initcache) initcache "$@" ;;
+ initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
  mountcache) mountcache "$@" ;;
  readfile) readfile "$@" ;;
  ready) ready "$@" ;;
@@ -1922,6 +1944,7 @@ case "$cmd" in
  synconly) syncr "$@" ;;
  update) update "$@" ;;
  upload) upload "$@" ;;
+ version) version ;;
  writefile) writefile "$@" ;;
  *) help "$cmd" "$@" ;;
 esac

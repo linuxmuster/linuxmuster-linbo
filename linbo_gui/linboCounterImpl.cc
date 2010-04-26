@@ -67,3 +67,8 @@ void linboCounterImpl::setCommand(const QStringList& arglist)
   // nothing to do
   myCommand = arglist;
 }
+
+void linboCounterImpl::processFinished( int retval,
+                                             QProcess::ExitStatus status) {
+  // nothing to do
+}
