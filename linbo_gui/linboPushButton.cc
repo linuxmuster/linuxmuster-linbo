@@ -52,7 +52,7 @@ void linbopushbutton::setCommand(const QStringList& arglist )
   arguments = arglist;
 }
 
-void linbopushbutton::setTextBrowser( Q3TextBrowser* newBrowser )
+void linbopushbutton::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -119,7 +119,7 @@ void linbopushbutton::lclicked()
       app->disableButtons();
 
       //     Console->setColor( QColor( QString("red") ) );
-      // Console->append( QString("Executing ") + arguments.join(" ") );
+      // Console->insert( QString("Executing ") + arguments.join(" ") );
       // Console->setColor( QColor( QString("black") ) );
 
       QStringList processargs( arguments );
@@ -127,7 +127,7 @@ void linbopushbutton::lclicked()
 
       Console->setColor( QColor( QString("red") ) );
       Console->append( QString("Executing ") + command  + processargs.join(" ") );
-      Console->setColor( QColor( QString("black") ) );
+      Console->setColor( QColor( QString("white") ) );
 
       progwindow->startTimer();
       process->start( command, processargs );
@@ -175,14 +175,14 @@ linbopushbutton* linbopushbutton::getNeighbour() {
 
 void linbopushbutton::readFromStdout()
 {
-   Console->append( process->readAllStandardOutput() );
+   Console->insert( process->readAllStandardOutput() );
 }
 
 void linbopushbutton::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linbopushbutton::processFinished( int retval,
@@ -208,7 +208,7 @@ void linbopushbutton::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

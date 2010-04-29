@@ -10,7 +10,7 @@
 #include <qdialog.h>
 #include <QProcess>
 #include <qstring.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <QTextBrowser>
 #include <qlineedit.h>
 
@@ -27,14 +27,14 @@ private:
   QStringList myCommand;
   QString line;
   QWidget *myMainApp, *myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
 
 public:
   linboConsoleImpl( QWidget* parent = 0 );
 
   ~linboConsoleImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setMainApp( QWidget* newMainApp );

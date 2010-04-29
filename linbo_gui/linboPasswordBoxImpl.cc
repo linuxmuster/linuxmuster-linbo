@@ -82,7 +82,7 @@ void linboPasswordBoxImpl::postcmd() {
     while( !process->waitForFinished(10000) ) {
     };
       
-    // Console->append( QString("Test linboPasswordBoxImpl exitCode() == ") + QString::number( process->exitCode() ) );
+    // Console->insert( QString("Test linboPasswordBoxImpl exitCode() == ") + QString::number( process->exitCode() ) );
 
     if ( process->exitCode() == 0 ) {
       if( app ) {
@@ -171,17 +171,17 @@ void linboPasswordBoxImpl::setMainApp( QWidget* newMainApp ) {
 
 void linboPasswordBoxImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboPasswordBoxImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
-void linboPasswordBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboPasswordBoxImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -224,7 +224,7 @@ void linboPasswordBoxImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 
   // app->restoreButtonsState();
 }

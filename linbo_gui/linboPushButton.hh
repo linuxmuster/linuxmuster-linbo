@@ -6,7 +6,7 @@
 #include <qstring.h>
 #include <qwidget.h>
 #include <qprocess.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qtimer.h>
 #include <qdialog.h>
@@ -28,7 +28,7 @@ class linbopushbutton : public QPushButton
 private:
   QString myCommand, line;
   QStringList arguments;
-  Q3TextBrowser* Console;
+  QTextEdit* Console;
   QProcess *process;
   QTimer *timer;
   QDialog* myQDialog,*myParent;
@@ -46,7 +46,7 @@ public:
 
   ~linbopushbutton();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   // void setMainApp( QDialog* newMainApp );
   void setMainApp( QWidget* newMainApp );
   void setLinboDialog( linboDialog* newDialog );

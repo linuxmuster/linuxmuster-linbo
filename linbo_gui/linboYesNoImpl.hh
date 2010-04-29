@@ -10,7 +10,7 @@
 #include <qwidget.h>
 #include <qdialog.h>
 #include <qpushbutton.h>
-#include <q3textbrowser.h>
+#include <Q3TextEdit>
 #include <qstringlist.h>
 #include <QProcess>
 #include <iostream>
@@ -30,7 +30,7 @@ private:
   QStringList myCommand, arguments;
   QProcess *process;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   linboGUIImpl* app;
   linboProgressImpl *progwindow;
 
@@ -51,7 +51,7 @@ public:
    ~linboYesNoImpl();
 
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   QStringList getCommand();
   void setCommand(const QStringList& arglist);
   void setMainApp( QWidget* newMainApp );

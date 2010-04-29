@@ -8,7 +8,7 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
 #include <QProcess>
@@ -27,7 +27,7 @@ private:
   QProcess *process;
   linboGUIImpl* app;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   linboProgressImpl *progwindow;
   
 
@@ -44,7 +44,7 @@ public:
 
   ~linboImageUploadImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setMainApp( QWidget* newMainApp );

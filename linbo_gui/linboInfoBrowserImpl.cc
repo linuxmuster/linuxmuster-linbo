@@ -42,7 +42,7 @@ linboInfoBrowserImpl::~linboInfoBrowserImpl()
   delete process;
 } 
 
-void linboInfoBrowserImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboInfoBrowserImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -204,14 +204,14 @@ void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
 
 void linboInfoBrowserImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboInfoBrowserImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboInfoBrowserImpl::processFinished( int retval,
@@ -237,7 +237,7 @@ void linboInfoBrowserImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

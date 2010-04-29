@@ -160,7 +160,7 @@ bailout(){
  sync; sync; sleep 1
  umount /mnt >/dev/null 2>&1 || umount -l /mnt >/dev/null 2>&1
  sendlog
- #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
+ umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
  umount /cloop >/dev/null 2>&1 || umount -l /cloop >/dev/null 2>&1
  rmmod cloop >/dev/null 2>&1
  rm -f "$TMP" /tmp/rsync.exclude
@@ -292,8 +292,10 @@ mountpart(){
  local RC=0
  local type=""
  local i=0
- local OPTS=""
- if [ "$3" = "-r" ]; then OPTS="ro"; else OPTS="rw"; fi
+ # "noatime" is required for later remount, otherwise kernel will default to "relatime",
+ # which busybox mount does not know
+ local OPTS="noatime"
+ if [ "$3" = "-r" ]; then OPTS="$OPTS,ro"; else OPTS="$OPTS,rw"; fi
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
@@ -351,8 +353,16 @@ mountcache(){
  local RC=1
  [ -n "$1" ] || return 1
  export CACHE_PARTITION="$1"
- # Avoid duplicate mount, this should never happen, of course.
- grep -q "^$1 " /proc/mounts && { umount /cache; sleep 1; }
+ # Avoid duplicate mounts by just preparing read/write mode
+ if grep -q "^$1 " /proc/mounts; then
+  local RW
+  grep -q "^$1 .*rw.*" /proc/mounts && RW="true" || RW=""
+  case "$2" in
+   -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache; RC=0 ;; 
+   *) [ -n "$RW" ] || mount -o remount,rw /cache; RC="$?" ;; 
+  esac
+  return "$RC"
+ fi
  case "$1" in
   *:*) # NFS
    local server="${1%%:*}"
@@ -389,12 +399,13 @@ mountcache(){
   /dev/*) # local cache
    # Check if cache partition exists
    if grep -q "${1##*/}" /proc/partitions; then
-    if cat /proc/mounts | grep -q /cache; then
-     echo "Cache ist bereits gemountet."
-     RC=0
-    else
+#    if cat /proc/mounts | grep -q /cache; then
+#     echo "Cache ist bereits gemountet."
+#     RC=0
+#    else
+     echo "Mounte Cachepartition $1 ..."
      mountpart "$1" /cache $2 ; RC="$?"
-    fi
+#    fi
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
      local cachefs="$(fstype_startconf "$1")"
@@ -417,21 +428,25 @@ mountcache(){
  return "$RC"
 }
 
+killalltorrents(){
+ local WAIT=5
+ # check for running torrents and kill them if any
+ if [ -n "`ps w | grep ctorrent | grep -v grep`" ]; then
+  echo "Killing torrents ..."
+  killall -9 ctorrent 2>/dev/null
+  sleep "$WAIT"
+  [ -n "`ps w | grep ctorrent | grep -v grep`" ] && sleep "$WAIT"
+ fi
+}
+
 # Changed: All partitions start on cylinder boundaries.
 # partition dev1 size1 id1 bootable1 filesystem dev2 ...
 # When "$NOFORMAT" is set, format is skipped, otherwise all
 # partitions with known fstypes are formatted.
 partition(){
  echo -n "partition " ;  printargs "$@"
- local WAIT=5
- # check for running torrents and kill them if any
- if ps w | grep ctorrent | grep -v grep &>/dev/null; then
-  echo "Killing torrents ..."
-  killall -9 ctorrent
-  sleep "$WAIT"
-  ps w | grep ctorrent | grep -v grep &>/dev/null && sleep "$WAIT"
- fi
  # umount /cache if mounted
+ killalltorrents
  if cat /proc/mounts | grep -q /cache; then
   cd /
   if ! umount /cache &>/dev/null; then
@@ -613,12 +628,11 @@ start(){
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
   umount /mnt 2>/dev/null
   sendlog
-  #umount /cache 2>/dev/null
+  mountcache "$6" -r
   return 1
  fi
  # kill torrents if any
- ps w | grep ctorrent | grep -v grep &> /dev/null && killall -9 ctorrent
-
+ killalltorrents
  # No more timer interrupts
  [ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
  [ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
@@ -627,11 +641,9 @@ start(){
   kexec -l $INITRD --append="$APPEND" $KERNEL && LOADED="true"
   sleep 3
  fi
-
  umount /mnt 2>/dev/null
  sendlog
  umount /cache || umount -l /cache 2>/dev/null
-
  if [ -n "$LOADED" ]; then
   # Workaround for missing speedstep-capability of Windows
   local i=""
@@ -1183,8 +1195,8 @@ syncl(){
    umount /mnt || umount -l /mnt
   fi
  fi
- cd / ; sendlog
- #umount /cache
+ sendlog
+ cd / ; mountcache "$1" -r
  return "$RC"
 }
 
@@ -1196,7 +1208,7 @@ create(){
  if ! cache_writable; then
   echo "Cache-Partition ist nicht schreibbar, Abbruch." >&2 | tee -a /tmp/image.log
   sendlog
-  #umount /cache
+  mountcache "$1" -r
   return 1
  fi
  cd /cache
@@ -1212,8 +1224,8 @@ create(){
    ;;
  esac
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2
- cd / ; sendlog
- #umount /cache
+ sendlog
+ cd / ; mountcache "$1" -r
  return "$RC"
 }
 
@@ -1610,8 +1622,9 @@ upload(){
  else
   echo "Upload von $FILES nach $1 ist fehlgeschlagen." | tee -a /tmp/linbo.log
  fi
- cd / ; sendlog 
- #umount /cache
+ sendlog 
+ cd / ; mountcache "$4" -r
+ [ "$RC" = "0" ] && echo "Upload von $FILES nach $1 erfolgreich." || echo "Upload von $FILES nach $1 ist fehlgeschlagen." >&2
  return "$RC"
 }
 
@@ -1627,12 +1640,9 @@ syncr(){
   local i
   for i in "$3" "$4"; do
    [ -n "$i" ] && download_if_newer "$1" "$i"
-   # moved this to download_if_newer()
-#   localmode || rm -f "$i".reg "$i".postsync 2>/dev/null
-#   download "$1" "$i".reg "$i".postsync >/dev/null 2>&1
   done
-  cd / ; sendlog
-  #umount /cache
+  sendlog
+  cd / ; mountcache "$2" -r
   # Also update LINBO, while we are here.
   update "$1" "$2"
  fi
@@ -1754,7 +1764,8 @@ initcache(){
    download_if_newer "$server" "$i" "$download_type"
   fi
  done
- cd / ; sendlog
+ sendlog
+ cd / ; mountcache "$cachedev" -r
  update "$server" "$cachedev"
 }
 
@@ -1799,7 +1810,7 @@ writefile(){
   RC=1
  fi
  #sendlog
- #umount /cache
+ mountcache "$1" -r
  return "$RC"
 }
 
@@ -1863,26 +1874,25 @@ ip(){
 }
 
 clientname(){
+ local clientname="$(hostname)"
  if localmode; then
   local cachedev="$(grep ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  if [ -n "$cachedev" ]; then
-   if mountcache $cachedev; then
+  if [ -b "$cachedev" ]; then
+   if mountcache $cachedev -r &> /dev/null; then
     if [ -s /cache/hostname ]; then
-     cat /cache/hostname
-     #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
-     return 0
+     clientname="$(cat /cache/hostname)"
     fi
-    #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
    fi
   fi
-  echo `hostname`
- else
-  echo `hostname`
  fi
+ echo "$clientname"
 }
 
 mac(){
- ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep HWaddr | awk '{print $5}'
+ local iface="$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')"
+ local mac="$(ifconfig "$iface" | grep HWaddr | awk '{print $5}')"
+ [ -z "$mac" ] && mac="OFFLINE"
+ echo "$mac"
 }
 
 cpu(){
@@ -1914,7 +1924,7 @@ version(){
  if [ -s "$versionfile" ]; then
   cat "$versionfile"
  else
-  echo "LINBO 2.00"
+  echo "LINBO 2.x"
  fi
 }
 

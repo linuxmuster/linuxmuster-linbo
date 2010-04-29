@@ -58,7 +58,7 @@ linboImageSelectorImpl::~linboImageSelectorImpl()
 {
 } 
 
-void linboImageSelectorImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboImageSelectorImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -249,7 +249,7 @@ void linboImageSelectorImpl::postcmd() {
 
     Console->setColor( QColor( QString("red") ) );
     Console->append( QString("Executing ") + command + processargs.join(" ") );
-    Console->setColor( QColor( QString("black") ) );
+    Console->setColor( QColor( QString("white") ) );
 
 
     progwindow->startTimer();
@@ -356,14 +356,14 @@ void linboImageSelectorImpl::writeInfo() {
 
 void linboImageSelectorImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboImageSelectorImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboImageSelectorImpl::processFinished( int retval,
@@ -389,7 +389,7 @@ void linboImageSelectorImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

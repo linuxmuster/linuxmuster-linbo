@@ -22,24 +22,24 @@ TMPDIR=/var/tmp
 
 # usage info
 usage(){
-	echo
-	echo "Usage: `basename $0` <options>"
-	echo
-	echo "Options:"
-	echo
-	echo " -h                 Show this help."
+ echo
+ echo "Usage: `basename $0` <options>"
+ echo
+ echo "Options:"
+ echo
+ echo " -h                 Show this help."
  echo " -b <sec>           Wait <sec> second(s) between the sending of wake-on-lan"
  echo "                    magic packets."
  echo "                    to the client(s). Implies -w to be set also."
  echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands to be transfered to"
  echo "                    the client(s)."
-	echo " -g <group>         All members of this hostgroup will be processed."
-	echo " -i <ip|hostname>   Only the client with this ip or hostname will be processed."
+ echo " -g <group>         All members of this hostgroup will be processed."
+ echo " -i <ip|hostname>   Only the client with this ip or hostname will be processed."
  echo " -l                 List current linbo-remote screens."
  echo " -w <sec>           Send wake-on-lan magic packets to the client(s) and wait"
  echo "                    <sec> seconds before executing the commands to be sure the"
  echo "                    clients have booted."
-	echo
+ echo
  echo "Important: Options -g and -i exclude each other mutually."
  echo
  echo "Supported commands for -c option are:"
@@ -70,23 +70,23 @@ usage(){
 
 # list linbo-remote screens
 list(){
-   local line=""
-   local pid=""
-   local screen=""
-   local status=""
-   local c=0
-   local d=""
-   screen -wipe | grep .linbo-remote | while read line; do
-    let c+=1
-    pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-    screen="$(echo $line | awk '{ print $1 }')"
-    screen="${screen#*.}"
-    status="$(echo $line | awk '{ print $2 }')"
-    d=""
-    [ $c -lt 100 ] && d=" "
-    [ $c -lt 10 ] && d="  "
-    echo -e "$d$c\t$pid\t$screen\t$status"
-   done
+ local line=""
+ local pid=""
+ local screen=""
+ local status=""
+ local c=0
+ local d=""
+ screen -wipe | grep .linbo-remote | while read line; do
+  let c+=1
+  pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+  screen="$(echo $line | awk '{ print $1 }')"
+  screen="${screen#*.}"
+  status="$(echo $line | awk '{ print $2 }')"
+  d=""
+  [ $c -lt 100 ] && d=" "
+  [ $c -lt 10 ] && d="  "
+  echo -e "$d$c\t$pid\t$screen\t$status"
+ done
 }
 
 # process cmdline

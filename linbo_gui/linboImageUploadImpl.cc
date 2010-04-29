@@ -46,7 +46,7 @@ linboImageUploadImpl::~linboImageUploadImpl()
 {
 } 
 
-void linboImageUploadImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboImageUploadImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -89,7 +89,7 @@ void linboImageUploadImpl::postcmd() {
 
     Console->setColor( QColor( QString("red") ) );
     Console->append( QString("Executing ") + command + processargs.join(" ") );
-    Console->setColor( QColor( QString("black") ) );
+    Console->setColor( QColor( QString("white") ) );
 
     progwindow->startTimer();
     process->start( command, processargs );
@@ -127,14 +127,14 @@ QStringList linboImageUploadImpl::getCommand()
 
 void linboImageUploadImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboImageUploadImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboImageUploadImpl::processFinished( int retval,
@@ -159,7 +159,7 @@ void linboImageUploadImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
    app->restoreButtonsState();

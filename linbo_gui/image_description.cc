@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 globals::globals():roottimeout(120) {
   autopartition = 0;
   autoinitcache = 0;
+  invertbackgroundfont = 0;
   downloadtype = "rsync";
   autoformat = 0;
 }
@@ -34,6 +35,7 @@ const QString& globals::get_hostgroup() const { return hostgroup; }
 const unsigned int& globals::get_roottimeout() const { return roottimeout; }
 const bool& globals::get_autopartition() { return autopartition; };
 const bool& globals::get_autoinitcache() { return autoinitcache; };
+const bool& globals::get_invertbackgroundfont() { return invertbackgroundfont; };
 const QString& globals::get_downloadtype() { return downloadtype; };
 const bool& globals::get_autoformat() { return autoformat; };
 void globals::set_server( const QString& new_server ) { server = new_server; }
@@ -42,6 +44,7 @@ void globals::set_hostgroup( const QString& new_hostgroup ) { hostgroup = new_ho
 void globals::set_roottimeout( const unsigned int& new_roottimeout ) { roottimeout = new_roottimeout; }
 void globals::set_autopartition( const bool& new_autopartition ) { autopartition = new_autopartition; };
 void globals::set_autoinitcache( const bool& new_autoinitcache ) { autoinitcache = new_autoinitcache; };
+void globals::set_invertbackgroundfont( const bool& new_invertbackgroundfont ) { invertbackgroundfont = new_invertbackgroundfont; };
 void globals::set_downloadtype( const QString& new_downloadtype ) { downloadtype = new_downloadtype; };
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
 

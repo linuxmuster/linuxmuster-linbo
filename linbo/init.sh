@@ -130,29 +130,36 @@ init_setup(){
  done
 }
 
-# trycopyfromdevice device filename
+# trycopyfromdevice device filenames
 trycopyfromdevice(){
  local RC=1
- local device=""
- case "$1" in /dev/*) device="$1" ;; *) device="/dev/$1" ;; esac
- if [ -b "$device" ] && mount -r "$device" /cache >/dev/null 2>&1; then
-  if [ -e /cache/"$2" ]; then
-   rm -f "$2"
-   cp -f /cache/"$2" "$2" >/dev/null 2>&1
-   RC="$?"
-  fi
-  umount /cache
+ local device="$1"
+ local i=""
+ local files="$2"
+ if ! cat /proc/mounts | grep -q "$device /cache"; then
+  mount -r "$device" /cache >/dev/null 2>&1 || return 1
  fi
+ for i in $files; do
+  if [ -e /cache/"$i" -a -s /cache/linbo ]; then
+   RC=0
+   cp -af /cache/"$i" . >/dev/null 2>&1
+  fi
+ done
+ umount /cache || umount -l /cache
  return "$RC"
 }
 
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
  local major="" minor="" blocks="" device="" relax=""
- [ -b "$cache" ] && trycopyfromdevice "$cache" "$1" && return 0
- while read major minor blocks device relax; do
-   [ -n "$device" ] && trycopyfromdevice "$device" "$1" && return 0
- done < /proc/partitions
+ if [ -b "$cache" ]; then
+  trycopyfromdevice "$cache" "$1" && return 0
+ fi
+ cat /proc/partitions | grep -v ^major | while read major minor blocks device relax; do
+  if [ -b "/dev/$device" ]; then
+   trycopyfromdevice "/dev/$device" "$1" && return 0
+  fi
+ done
  return 1
 }
 
@@ -162,7 +169,7 @@ modify_cache(){
  if grep -qi ^cache "$1"; then
   sed -e "s|^[Cc][Aa][Cc][Hh][Ee].*|Cache = $cache|g" -i "$1"
  else
-		sed -e "/^\[LINBO\]/a\
+  sed -e "/^\[LINBO\]/a\
 Cache = $cache" -i "$1"
  fi
 }
@@ -185,8 +192,12 @@ copytocache(){
  local cachedev="$(printcache)"
  case "$cachedev" in
   /dev/*) # local cache
-   mount "$cachedev" /cache || return 1
+   if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
+    mount "$cachedev" /cache || return 1
+   fi
    cp -a /start.conf /cache
+   mkdir -p /cache/icons
+   rsync /icons/* /cache/icons
    # save hostname for offline use
    hostname > /cache/hostname
    [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
@@ -392,13 +403,15 @@ network(){
    rsync -L "$server::linbo/$i" "/$i" >/dev/null 2>&1
   done
   # and (optional) the GUI icons
-  rsync -L "$server::linbo/icons/*" /icons >/dev/null 2>&1
+  for i in linbo_wallpaper.png `grep -i ^iconname /start.conf | awk -F\= '{ print $2 }'`; do
+   rsync -L "$server::linbo/icons/$i" /icons >/dev/null 2>&1
+  done
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
  if [ ! -s start.conf ]; then
-  # No new version / no network available, look for a cached copy.
-  copyfromcache start.conf
+  # No new version / no network available, look for cached copies of start.conf and icons folder.
+  copyfromcache "start.conf icons"
  else
   # flag for network connection
   echo > /tmp/network.ok

@@ -51,7 +51,7 @@ linboMulticastBoxImpl::~linboMulticastBoxImpl()
 {
 } 
 
-void linboMulticastBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboMulticastBoxImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -108,7 +108,7 @@ void linboMulticastBoxImpl::postcmd() {
 
     Console->setColor( QColor( QString("red") ) );
     Console->append( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
-    Console->setColor( QColor( QString("black") ) );
+    Console->setColor( QColor( QString("white") ) );
 
     progwindow->startTimer();
     process->start( command, processargs );
@@ -158,14 +158,14 @@ QStringList linboMulticastBoxImpl::getCommand()
 
 void linboMulticastBoxImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboMulticastBoxImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboMulticastBoxImpl::processFinished( int retval,
@@ -192,7 +192,7 @@ void linboMulticastBoxImpl::processFinished( int retval,
 
   }
 
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

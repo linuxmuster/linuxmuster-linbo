@@ -10,7 +10,7 @@
 #include <qdialog.h>
 #include <QProcess>
 #include <qstring.h>
-#include <q3textedit.h>
+#include <QTextEdit>
 #include <Qt3Support/Q3TextBrowser>
 #include "linboProgressImpl.hh"
 #include "linboDialog.hh"
@@ -29,13 +29,13 @@ private:
   linboGUIImpl *app;
   QString line;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
 
 public:
   linboRegisterBoxImpl( QWidget* parent = 0 );
    ~linboRegisterBoxImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here

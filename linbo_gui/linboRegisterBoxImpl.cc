@@ -44,7 +44,7 @@ linboRegisterBoxImpl::~linboRegisterBoxImpl()
 {
 } 
 
-void linboRegisterBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboRegisterBoxImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -127,14 +127,14 @@ QStringList linboRegisterBoxImpl::getCommand()
 
 void linboRegisterBoxImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboRegisterBoxImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboRegisterBoxImpl::processFinished( int retval,
@@ -160,7 +160,7 @@ void linboRegisterBoxImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

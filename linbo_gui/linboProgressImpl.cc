@@ -52,7 +52,7 @@ void linboProgressImpl::killLinboCmd() {
   QTimer::singleShot( 10000, myProcess, SLOT( close() ) );
 }
 
-void linboProgressImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboProgressImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }

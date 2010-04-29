@@ -10,7 +10,7 @@
 #include <QProcess>
 #include <QTimer>
 #include <qpushbutton.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 
 class linboProgressImpl : public QWidget, public Ui::linboProgress
 {
@@ -18,7 +18,7 @@ class linboProgressImpl : public QWidget, public Ui::linboProgress
 
 private:
   QProcess *myProcess;
-  Q3TextBrowser* Console;
+  QTextEdit* Console;
   QWidget *myParent;
   QTimer* myTimer;
   int time, minutes,seconds;
@@ -30,7 +30,7 @@ public:
   ~linboProgressImpl();
 
   void setProcess( QProcess* newProcess );
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
 
 public slots:
   void killLinboCmd();

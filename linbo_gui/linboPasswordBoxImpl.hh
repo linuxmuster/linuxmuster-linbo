@@ -14,7 +14,7 @@
 #include "ui_linboGUI.h"
 #include <QProcess>
 #include <qstringlist.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qtimer.h>
 #include "linboCounterImpl.hh"
 
@@ -31,7 +31,7 @@ private:
   QStringList myCommand, arguments;
   QProcess* process;
   QString line;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   linboCounterImpl* myCounter;
   QTimer* myTimer;
   int currentTimeout;
@@ -46,7 +46,7 @@ public:
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
 
 
 public slots:

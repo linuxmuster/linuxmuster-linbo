@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include <QBrush>
 #include <qregexp.h>
 #include <stdlib.h>
+#include <q3stylesheet.h>
 
 #include "linboProgressImpl.hh"
 #include "linboMulticastBoxImpl.hh"
@@ -133,6 +134,7 @@ void read_globals( ifstream* input, globals& g ) {
     else if(key.compare("group") == 0)  g.set_hostgroup(value);
     else if(key.compare("autopartition") == 0) g.set_autopartition(toBool(value));
     else if(key.compare("autoinitcache") == 0) g.set_autoinitcache(toBool(value));
+    else if(key.compare("invertbackgroundfont") == 0) g.set_invertbackgroundfont(toBool(value));
     else if(key.compare("usemulticast") == 0) {
       if( (unsigned int)value.toInt() == 0 ) 
         g.set_downloadtype("rsync"); 
@@ -260,6 +262,10 @@ linboGUIImpl::linboGUIImpl()
  
   QImage tmpImage;
 
+  // our early default
+  fonttemplate = tr("<font color='black'>%1</font>");
+  Console->setColor( QColor( QString("white") ) );
+
   Qt::WindowFlags flags;
   flags = Qt::FramelessWindowHint | Qt::WindowStaysOnBottomHint;
   setWindowFlags( flags );
@@ -269,8 +275,6 @@ linboGUIImpl::linboGUIImpl()
 
   this->move(qRect.width()/2-this->width()/2,
              qRect.height()/2-this->height()/2 );
-
-  //  this->setStyleSheet("background: transparent");
 
   // reset root - we're an user now
   root = false;
@@ -298,9 +302,11 @@ linboGUIImpl::linboGUIImpl()
   // set and scale up our icons
   rebootButton->setIconSet(   QIcon(":/icons/system-reboot-32x32.png" ) );
   rebootButton->setIconSize(QSize(32,32));
+  QToolTip::add( rebootButton, QString("Startet den Rechner neu.") );
 
   shutdownButton->setIconSet( QIcon(":/icons/system-shutdown-32x32.png" ) );
   shutdownButton->setIconSize(QSize(32,32));
+  QToolTip::add( shutdownButton, QString("Schaltet den Rechner aus.") );
 
   hdlogowidget->setPixmap( QPixmap(":/icons/drive-harddisk-64x64.png" ) );
   // hdlogowidget->setIconSize(QSize(64,64));
@@ -337,11 +343,14 @@ linboGUIImpl::linboGUIImpl()
     wsServer->refresh();
   }
 
+  // check whether we need to invert the color of some of our labels because of a
+  // dark background picture
+
   ifstream input;
   input.open( "start.conf", ios_base::in );
 
   QString tmp_qstring;
-  Console->setMaxLogLines (1000);
+  // Console->setMaxLogLines (1000);
 
   while( !input.eof() ) {
 
@@ -1219,6 +1228,12 @@ linboGUIImpl::linboGUIImpl()
   // we don't want to see this on the LINBO Console
   outputvisible = false;
 
+  // set text color
+  if( config.get_invertbackgroundfont() ) 
+     fonttemplate = tr("<font color='white'>%1</font>");
+  else
+    fonttemplate = tr("<font color='black'>%1</font>");
+
   //  client ip
 
   command = LINBO_CMD("ip");
@@ -1226,7 +1241,8 @@ linboGUIImpl::linboGUIImpl()
   process->start( command.join(" ") );
   while( !process->waitForFinished(10000) ) {
   }
-  clientIPLabel->setText( QString("Client IP: ") + process->readAllStandardOutput() ); 
+
+  clientIPLabel->setText( fonttemplate.arg( QString("Client IP: ") + process->readAllStandardOutput() ) ); 
 
   //  server ip
  
@@ -1239,7 +1255,7 @@ linboGUIImpl::linboGUIImpl()
   process->start( command.join(" ") );
   while( !process->waitForFinished(10000) ) {
   }
-  macLabel->setText( QString("MAC: ") + process->readAllStandardOutput() ); 
+  macLabel->setText( fonttemplate.arg( QString("MAC: ") + process->readAllStandardOutput() ) ); 
   
   // Server and Version
 // hostname and hostgroup 
@@ -1260,8 +1276,10 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
  
-  nameLabel->setText( QString("Host: ") + process->readAllStandardOutput() );
-  groupLabel->setText( QString("Gruppe: ") + config.get_hostgroup() );
+
+
+  nameLabel->setText( fonttemplate.arg( QString("Host: ") + process->readAllStandardOutput() ) );
+  groupLabel->setText( fonttemplate.arg( QString("Gruppe: ") + config.get_hostgroup() ) );
   
   // our clock displaying the system time
   myTimer = new QTimer(this);
@@ -1275,7 +1293,7 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
 
-  cpuLabel->setText( QString("CPU: ") + process->readAllStandardOutput() ); 
+  cpuLabel->setText( fonttemplate.arg( QString("CPU: ") + process->readAllStandardOutput() ) ); 
 
   // Memory
   command = LINBO_CMD("memory");
@@ -1283,7 +1301,7 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
 
-  memLabel->setText( QString("RAM: ") + process->readAllStandardOutput() ); 
+  memLabel->setText( fonttemplate.arg( QString("RAM: ") + process->readAllStandardOutput() ) ); 
 
   // Cache Size
   command = LINBO_CMD("size");
@@ -1291,7 +1309,7 @@ linboGUIImpl::linboGUIImpl()
   process->start( command.join(" ") );
   while( !process->waitForFinished(10000) ) {
   }
-  cacheLabel->setText( QString("Cache: ") + process->readAllStandardOutput() );
+  cacheLabel->setText( fonttemplate.arg( QString("Cache: ") + process->readAllStandardOutput() ) );
 
   // Harddisk Size
   QRegExp *removePartition = new QRegExp("[0-9]{1,2}");
@@ -1305,7 +1323,7 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
 
-  hdLabel->setText( QString("HD: ") + process->readAllStandardOutput() );
+  hdLabel->setText( fonttemplate.arg( QString("HD: ") + process->readAllStandardOutput() ) );
 
   // enable console output again
   outputvisible = true;
@@ -1318,7 +1336,8 @@ linboGUIImpl::linboGUIImpl()
 
 
 void linboGUIImpl::processTimeout() {
-  timeLabel->setText( QTime::currentTime().toString() );
+  
+  timeLabel->setText( fonttemplate.arg( QTime::currentTime().toString() ) );
 }
 
 
@@ -1357,7 +1376,8 @@ void linboGUIImpl::readFromStdout()
   // log( linestdout );
 
   if( outputvisible ) {
-    Console->append( process->readAllStandardOutput() );
+    Console->setColor( QColor( QString("white") ) );
+    Console->insert( process->readAllStandardOutput() );
   } 
 }
 
@@ -1369,9 +1389,8 @@ void linboGUIImpl::readFromStderr()
   if( outputvisible ) {
 
     Console->setColor( QColor( QString("red") ) );
-    Console->append( process->readAllStandardError() );
-    Console->setColor( QColor( QString("black") ) );
-
+    Console->insert( process->readAllStandardError() );
+    Console->setColor( QColor( QString("white") ) );
   }
 
 }
@@ -1457,6 +1476,7 @@ void linboGUIImpl::autostartTimeoutSlot() {
       autostart->lclicked();
       this->resetButtons();
       myCounter->close();
+      myCounter->hide();
     }
   }
 

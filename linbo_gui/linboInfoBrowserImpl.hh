@@ -9,7 +9,7 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
 #include <QProcess>
@@ -30,7 +30,7 @@ private:
   QStringList myUploadCommand, myLoadCommand, mySaveCommand, arguments;
   QString filepath;
   QFile *file;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   
 
 public slots:
@@ -49,7 +49,7 @@ public:
 
   ~linboInfoBrowserImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   void setMainApp( QWidget* newMainApp );
 
   void setCommand(const QStringList& );

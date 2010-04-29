@@ -10,7 +10,7 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
 #include <QProcess>
@@ -32,7 +32,7 @@ private:
   QFile *file;
   QWidget *myMainApp,*myParent;
   linboProgressImpl *progwindow;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   bool upload;
   linboGUIImpl* app;
   linboDialog* neighbourDialog;
@@ -52,7 +52,7 @@ public:
 
   ~linboImageSelectorImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   void setLoadCommand(const QStringList& arglist);
   void setSaveCommand(const QStringList& arglist);

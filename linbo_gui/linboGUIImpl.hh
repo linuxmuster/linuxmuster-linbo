@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include <qstring.h>
 #include <QProcess>
 #include <QTimer>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qdatetime.h>
 #include <qtimer.h>
 #include <vector>
@@ -70,7 +70,7 @@ private:
   QTimer* myAutostartTimer;
   linboMsgImpl *waiting;
   QString linestdout, linestderr;
-  QString logfilepath;
+  QString logfilepath, fonttemplate;
   bool root, withicons, outputvisible;
   QProcess* process;
   QDialog* myQPasswordBox;

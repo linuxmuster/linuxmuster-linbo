@@ -72,7 +72,7 @@ void linboYesNoImpl::postcmd() {
 
     Console->setColor( QColor( QString("red") ) );
     Console->append( QString("Executing ") + command + processargs.join(" ") );
-    Console->setColor( QColor( QString("black") ) );
+    Console->setColor( QColor( QString("white") ) );
 
 
     progwindow->startTimer();
@@ -95,7 +95,7 @@ void linboYesNoImpl::postcmd() {
   this->close();
 }
 
-void linboYesNoImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboYesNoImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -115,14 +115,14 @@ QStringList linboYesNoImpl::getCommand() {
 
 void linboYesNoImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboYesNoImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboYesNoImpl::processFinished( int retval,
@@ -147,7 +147,7 @@ void linboYesNoImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

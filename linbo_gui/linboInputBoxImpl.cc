@@ -44,7 +44,7 @@ linboInputBoxImpl::~linboInputBoxImpl()
 {
 } 
 
-void linboInputBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboInputBoxImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }
@@ -147,14 +147,14 @@ QStringList linboInputBoxImpl::getCommand()
 
 void linboInputBoxImpl::readFromStdout()
 {
-  Console->append( process->readAllStandardOutput() );
+  Console->insert( process->readAllStandardOutput() );
 }
 
 void linboInputBoxImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
-  Console->append( process->readAllStandardError() );
-  Console->setColor( QColor( QString("black") ) );
+  Console->insert( process->readAllStandardError() );
+  Console->setColor( QColor( QString("white") ) );
 }
 
 void linboInputBoxImpl::processFinished( int retval,
@@ -180,7 +180,7 @@ void linboInputBoxImpl::processFinished( int retval,
     }
 
   }
-  Console->setColor( QColor( QString("black") ) );
+  Console->setColor( QColor( QString("white") ) );
 			   
 
   app->restoreButtonsState();

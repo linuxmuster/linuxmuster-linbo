@@ -60,7 +60,7 @@ void linboConsoleImpl::execute() {
     of the bash child process */
 }
 
-void linboConsoleImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboConsoleImpl::setTextBrowser( QTextEdit* newBrowser )
 {
   Console = newBrowser;
 }

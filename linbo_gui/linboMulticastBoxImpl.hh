@@ -9,7 +9,7 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <q3buttongroup.h>
 #include <qstringlist.h>
 #include <qstring.h>
@@ -31,7 +31,7 @@ private:
   QStringList arguments, myCommand, myRsyncCommand, myMulticastCommand, myBittorrentCommand;
   QProcess *process;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   
 
 public slots:
@@ -49,7 +49,7 @@ public:
 
   ~linboMulticastBoxImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setRsyncCommand(const QStringList& arglist);

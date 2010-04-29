@@ -8,6 +8,7 @@
 #include <qapplication.h>
 #include "linboGUIImpl.hh"
 #include <QtGui>
+#include <QPalette>
 #include <QBrush> 
 #include <QScreen>
 #include <QLocale>
@@ -173,6 +174,15 @@ int main( int argc, char* argv[] )
   myGUI->show();
   // this paints a transparent main widget 
   myGUI->setStyleSheet( "QDialog#linboGUI{ background: transparent }");
+
+
+  /*  myGUI->Console->viewport()->setAutoFillBackground(true);
+  myGUI->Console->setTextColor( QColor("white") );
+
+  QPalette palette; */
+  // a grey transparent background
+    // myGUI->Console->setStyleSheet("QTextEdit#Console{ background: transparent }");
+
   
   QTimer::singleShot( 100, myGUI, SLOT(executeAutostart()) );  
 
