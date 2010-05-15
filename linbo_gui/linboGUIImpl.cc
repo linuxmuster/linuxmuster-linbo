@@ -49,6 +49,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "linboRegisterBoxImpl.hh"
 #include "linboConsoleImpl.hh"
 #include <QtGui>
+#include <QTextCursor>
 #include <qwindowsystem_qws.h>
 #include <QWSServer>
 
@@ -264,6 +265,8 @@ linboGUIImpl::linboGUIImpl()
 
   // our early default
   fonttemplate = tr("<font color='black'>%1</font>");
+
+  // Console->setTextFormat( Qt::RichText  );
   Console->setColor( QColor( QString("white") ) );
 
   Qt::WindowFlags flags;
@@ -396,14 +399,17 @@ linboGUIImpl::linboGUIImpl()
   QStringList command;
 
   startView->setHScrollBarMode(Q3ScrollView::AlwaysOff);
+  startView->setVScrollBarMode(Q3ScrollView::Auto);
   startView->setGeometry( QRect( 10, 10, 600, 180 ) );
   startView->viewport()->setBackgroundColor( "white" );
 
   imagingView->setHScrollBarMode(Q3ScrollView::AlwaysOff);
+  imagingView->setVScrollBarMode(Q3ScrollView::Auto);
   imagingView->setGeometry( QRect( 10, 10, 410, 180 ) );
   imagingView->viewport()->setBackgroundColor( "white" );
 
   partitionView->setHScrollBarMode(Q3ScrollView::AlwaysOff);
+  partitionView->setVScrollBarMode(Q3ScrollView::Auto);
   partitionView->setGeometry( QRect( 420, 10, 180, 180 ) );
   partitionView->viewport()->setBackgroundColor( "white" );
 
@@ -453,7 +459,6 @@ linboGUIImpl::linboGUIImpl()
 
     if( withicons ) {
       if( elements[i].get_iconname() == "defaulticon.png" ) {
-	// TODO: choose another default icon - something that looks like the LINBO-Logo
 	defaultbutton->setIconSet( QIcon(":/icons/default.png" ) );
       } else {
 	defaultbutton->setIconSet( QIcon(  QString("/icons/") + elements[i].get_iconname() ) );
@@ -469,6 +474,8 @@ linboGUIImpl::linboGUIImpl()
                                        " synchronisiert") );
 
       defaultactionlabel->setPixmap( QPixmap(":/icons/sync+start-22x22.png" ) );
+      defaultbutton->setEnabled( elements[i].image_history[n].get_syncbutton() );
+
     } 
     if( elements[i].image_history[n].get_defaultaction() == "new" ) {
       // assign command
@@ -478,6 +485,7 @@ linboGUIImpl::linboGUIImpl()
 					" neu und startet es") );
 
       defaultactionlabel->setPixmap( QPixmap(":/icons/new+start-22x22.png" ) );
+      defaultbutton->setEnabled( elements[i].image_history[n].get_newbutton() );
     }
     if( elements[i].image_history[n].get_defaultaction() == "start" ) {
       // assign command
@@ -495,6 +503,7 @@ linboGUIImpl::linboGUIImpl()
 					  " unsynchronisiert") );
 
       defaultactionlabel->setPixmap( QPixmap(":/icons/start-22x22.png" ) );
+      defaultbutton->setEnabled( elements[i].image_history[n].get_startbutton() );
     }
     
     defaultbutton->setTextBrowser( Console );
@@ -778,11 +787,16 @@ linboGUIImpl::linboGUIImpl()
     createbutton->setNeighbour( uploadbutton );
     uploadbutton->setNeighbour( createbutton );
 
-    startView->resizeContents( 600, height);  
+
+
     // only for an odd element
     if( i % 2 == 1 ) {
       height += 69;
     }
+
+    // the height of 69 is one complete element row, 5 is our start height
+    startView->resizeContents( 600, ( (int)((i+2)/2) * 69 + 5 ) );  
+
     imagingHeight += 32;
 
     int height2 = 5;
@@ -802,6 +816,7 @@ linboGUIImpl::linboGUIImpl()
       Q3ScrollView* view = new Q3ScrollView( newtab );
 
       view->setHScrollBarMode(Q3ScrollView::AlwaysOff);
+      view->setVScrollBarMode(Q3ScrollView::Auto);
       view->viewport()->setBackgroundColor( "white" );
       view->setGeometry( QRect( 10, 10, 600, 180 ) );
 
@@ -995,21 +1010,29 @@ linboGUIImpl::linboGUIImpl()
 
         if( elements[i].image_history[n].get_autostart() &&
             !autostart ) {
-          Console->append( QString("Autostart selected for OS Nr. ")
+	  
+	  Console->setColor( QColor( QString("white") ) );
+          Console->insert( QString("Autostart selected for OS Nr. ")
                                    + QString::number(i) 
                                    + QString(", Image History Nr. ") 
-                                   + QString::number( n ) );
+         			   + QString::number( n ));
 
+	  Console->insert(QString(QChar::LineSeparator));
+	  Console->moveCursor(QTextCursor::End);
+	  Console->ensureCursorVisible();
+	  
 
 	  autostart = idefaultbutton;
 	  autostarttimeout = elements[i].image_history[n].get_autostarttimeout();
         }
 
 
-        view->resizeContents( 600, height2);
+
 	if( n % 2 == 1 ) {
 	  height2 += 69;
 	}
+	// the height of 69 is one complete element row
+	view->resizeContents( 600, ( (int)((n+2)/2) * 69 + 5 ) );  
       }
       Tabs->insertTab( newtab, elements[i].get_name(), (nextPosForTabInsert+1) );
       nextPosForTabInsert++;
@@ -1022,11 +1045,16 @@ linboGUIImpl::linboGUIImpl()
         if( elements[i].image_history[n].get_autostart() &&
             !autostart ) {
 
+	  Console->setColor( QColor( QString("white") ) );
           Console->append( QString("Autostart selected for OS Nr. ") 
                                    + QString::number(i) 
                                    + QString(", Image History Nr. ") 
-                                   + QString::number( n ) );
+			           + QString::number( n ) );
 
+	  Console->insert(QString(QChar::LineSeparator));
+
+	  Console->moveCursor(QTextCursor::End);
+	  Console->ensureCursorVisible(); 
     
           autostart = defaultbutton; 
 	  autostarttimeout = elements[i].image_history[n].get_autostarttimeout();
@@ -1035,15 +1063,18 @@ linboGUIImpl::linboGUIImpl()
     }
 
   }  
-  imagingView->resizeContents( 410, height);
 
-  // the first elemtn of a view does have display problems so we add a dummy
+  imagingView->resizeContents( 410, imagingHeight );
+
+  // the first element of a view does have display problems so we add a dummy
   QLabel *partitionlabel = new QLabel( partitionView->viewport() );
   partitionlabel->setGeometry( QRect( 5, 5, 165, 30 ) );
   partitionlabel->setText("");
   partitionView->addChild( partitionlabel, 5,5 );
 
   linbopushbutton *consolebuttonimaging = new linbopushbutton( partitionView->viewport() );
+  // left-align graphics and text
+  consolebuttonimaging->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   consolebuttonimaging->setGeometry( QRect( 15, 27, 130, 30 ) );
   consolebuttonimaging->setText( QString("Console") );
   consolebuttonimaging->setTextBrowser( Console );
@@ -1069,6 +1100,8 @@ linboGUIImpl::linboGUIImpl()
   partitionView->addChild( consolebuttonimaging, 15, 27 );
   
   linbopushbutton *multicastbuttonimaging = new linbopushbutton( partitionView->viewport() );
+  // left-align graphics and text
+  multicastbuttonimaging->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   multicastbuttonimaging->setGeometry( QRect( 15, 59, 130, 30 ) );
   multicastbuttonimaging->setText( QString("Cache aktualisieren") );
   multicastbuttonimaging->setTextBrowser( Console );
@@ -1113,6 +1146,8 @@ linboGUIImpl::linboGUIImpl()
 
   // Partition button - Imaging tab
   linbopushbutton *partitionbutton = new linbopushbutton( partitionView->viewport() );
+  // left-align graphics and text
+  partitionbutton->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   partitionbutton->setGeometry( QRect( 15, 91, 130, 30 ) );
   partitionbutton->setText( QString("Partitionieren") );
   partitionbutton->setTextBrowser( Console );
@@ -1162,6 +1197,8 @@ linboGUIImpl::linboGUIImpl()
 
   // RegisterBox button - Imaging tab
   linbopushbutton *registerbutton = new linbopushbutton( partitionView->viewport() );
+  // left-align graphics and text
+  registerbutton->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   registerbutton->setGeometry( QRect( 15, 123, 130, 30 ) );
   registerbutton->setText( QString("Registrieren") );
   registerbutton->setTextBrowser( Console );
@@ -1346,7 +1383,10 @@ void linboGUIImpl::shutdown() {
   command.clear();
   command = QStringList("busybox");
   command.append("poweroff");
-  Console->append( QString("shutdown entered") );
+  Console->insert( QString("shutdown entered") );
+  Console->insert(QString(QChar::LineSeparator));
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
   process->start( command.join(" ") );
 }
 
@@ -1355,7 +1395,10 @@ void linboGUIImpl::reboot() {
   command.clear();
   command = QStringList("busybox");
   command.append("reboot");
-  Console->append( QString("reboot entered") );
+  Console->insert( QString("reboot entered") );
+  Console->insert(QString(QChar::LineSeparator));
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
   process->start( command.join(" ") );
 }
 
@@ -1378,6 +1421,8 @@ void linboGUIImpl::readFromStdout()
   if( outputvisible ) {
     Console->setColor( QColor( QString("white") ) );
     Console->insert( process->readAllStandardOutput() );
+    Console->moveCursor(QTextCursor::End);
+    Console->ensureCursorVisible(); 
   } 
 }
 
@@ -1391,6 +1436,8 @@ void linboGUIImpl::readFromStderr()
     Console->setColor( QColor( QString("red") ) );
     Console->insert( process->readAllStandardError() );
     Console->setColor( QColor( QString("white") ) );
+    Console->moveCursor(QTextCursor::End);
+    Console->ensureCursorVisible(); 
   }
 
 }
@@ -1471,12 +1518,12 @@ void linboGUIImpl::autostartTimeoutSlot() {
     if( autostarttimeout > 0 ) {
       autostarttimeout--;
       myCounter->counter->display( autostarttimeout );
-    }
-    else {
+    } else {
+      myCounter->hide();
+      myCounter->close();
+      myAutostartTimer->stop();
       autostart->lclicked();
       this->resetButtons();
-      myCounter->close();
-      myCounter->hide();
     }
   }
 

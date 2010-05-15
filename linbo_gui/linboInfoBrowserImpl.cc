@@ -74,14 +74,14 @@ void linboInfoBrowserImpl::precmd() {
     arguments = myLoadCommand;
 
 #ifdef DEBUG
-    Console->append(QString("linboInfoBrowserImpl: myLoadCommand"));
+    Console->insert(QString("linboInfoBrowserImpl: myLoadCommand"));
     QStringList list = arguments;
     QStringList::Iterator it = list.begin();
     while( it != list.end() ) {
-      Console->append( *it );
+      Console->insert( *it );
       ++it;
     }
-    Console->append(QString("*****"));
+    Console->insert(QString("*****"));
 #endif
 
     QStringList processargs( arguments );
@@ -96,7 +96,12 @@ void linboInfoBrowserImpl::precmd() {
     file = new QFile( filepath );
     // read content
     if( !file->open( QIODevice::ReadOnly ) ) {
-      Console->append("Keine passende Beschreibung im Cache.");
+      Console->setColor( QColor( QString("red") ) );
+      Console->insert("Keine passende Beschreibung im Cache.");
+      Console->insert(QString(QChar::LineSeparator));
+      Console->moveCursor(QTextCursor::End);
+      Console->ensureCursorVisible(); 
+      Console->setColor( QColor( QString("white") ) );
     } 
     else {
       Q3TextStream ts( file );
@@ -114,7 +119,12 @@ void linboInfoBrowserImpl::postcmd() {
     if ( app->isRoot() ) {
 
       if ( !file->open( QIODevice::WriteOnly ) ) {
-        Console->append("Fehler beim Speichern der Beschreibung.");
+	Console->setColor( QColor( QString("red") ) );
+        Console->insert("Fehler beim Speichern der Beschreibung.");
+	Console->insert(QString(QChar::LineSeparator));
+	Console->moveCursor(QTextCursor::End);
+	Console->ensureCursorVisible(); 
+	Console->setColor( QColor( QString("white") ) );
       } 
       else {
         Q3TextStream ts( file );
@@ -126,15 +136,15 @@ void linboInfoBrowserImpl::postcmd() {
         arguments = mySaveCommand; 
 
 #ifdef DEBUG
-        Console->append(QString("linboInfoBrowserImpl: mySaveCommand"));
+        Console->insert(QString("linboInfoBrowserImpl: mySaveCommand"));
         QStringList list = arguments;
         QStringList::Iterator it = list.begin();
       
         while( it != list.end() ) {
-          Console->append( *it );
+          Console->insert( *it );
           ++it;
         }
-        Console->append(QString("*****"));
+        Console->insert(QString("*****"));
 #endif
 	QStringList processargs( arguments );
 	QString command = processargs.takeFirst();
@@ -149,15 +159,15 @@ void linboInfoBrowserImpl::postcmd() {
         arguments = myUploadCommand;
 
 #ifdef DEBUG
-        Console->append(QString("linboInfoBrowserImpl: myUploadCommand"));
+        Console->insert(QString("linboInfoBrowserImpl: myUploadCommand"));
         list = arguments;
         it = list.begin();
       
         while( it != list.end() ) {
-          Console->append( *it );
+          Console->insert( *it );
           ++it;
         }
-        Console->append(QString("*****"));
+        Console->insert(QString("*****"));
 #endif
 	processargs.clear();
 	processargs = arguments;
@@ -204,13 +214,18 @@ void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
 
 void linboInfoBrowserImpl::readFromStdout()
 {
+  Console->setColor( QColor( QString("white") ) );
   Console->insert( process->readAllStandardOutput() );
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
 }
 
 void linboInfoBrowserImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
   Console->insert( process->readAllStandardError() );
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
   Console->setColor( QColor( QString("white") ) );
 }
 
@@ -218,25 +233,28 @@ void linboInfoBrowserImpl::processFinished( int retval,
 					     QProcess::ExitStatus status) {
 
   Console->setColor( QColor( QString("red") ) );
-  Console->append( QString("Command executed with exit value ") + QString::number( retval ) );
+  Console->insert( QString("Command executed with exit value ") + QString::number( retval ) );
 
   if( status == 0)
-    Console->append( QString("Exit status: ") + QString("The process exited normally.") );
+    Console->insert( QString("Exit status: ") + QString("The process exited normally.") );
   else
-    Console->append( QString("Exit status: ") + QString("The process crashed.") );
+    Console->insert( QString("Exit status: ") + QString("The process crashed.") );
 
   if( status == 1 ) {
     int errorstatus = process->error();
     switch ( errorstatus ) {
-      case 0: Console->append( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
-      case 1: Console->append( QString("The process crashed some time after starting successfully.") ); break;
-      case 2: Console->append( QString("The last waitFor...() function timed out.") ); break;
-      case 3: Console->append( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
-      case 4: Console->append( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
-      case 5: Console->append( QString("An unknown error occurred.") ); break;
+      case 0: Console->insert( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
+      case 1: Console->insert( QString("The process crashed some time after starting successfully.") ); break;
+      case 2: Console->insert( QString("The last waitFor...() function timed out.") ); break;
+      case 3: Console->insert( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
+      case 4: Console->insert( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
+      case 5: Console->insert( QString("An unknown error occurred.") ); break;
     }
 
   }
+  Console->insert(QString(QChar::LineSeparator));
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
   Console->setColor( QColor( QString("white") ) );
 			   
 

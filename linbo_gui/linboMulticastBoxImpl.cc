@@ -107,7 +107,10 @@ void linboMulticastBoxImpl::postcmd() {
     QString command = processargs.takeFirst();
 
     Console->setColor( QColor( QString("red") ) );
-    Console->append( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
+    Console->insert( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
+    Console->insert(QString(QChar::LineSeparator));
+    Console->moveCursor(QTextCursor::End);
+    Console->ensureCursorVisible(); 
     Console->setColor( QColor( QString("white") ) );
 
     progwindow->startTimer();
@@ -158,13 +161,18 @@ QStringList linboMulticastBoxImpl::getCommand()
 
 void linboMulticastBoxImpl::readFromStdout()
 {
+  Console->setColor( QColor( QString("white") ) );
   Console->insert( process->readAllStandardOutput() );
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
 }
 
 void linboMulticastBoxImpl::readFromStderr()
 {
   Console->setColor( QColor( QString("red") ) );
   Console->insert( process->readAllStandardError() );
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible(); 
   Console->setColor( QColor( QString("white") ) );
 }
 
@@ -172,28 +180,29 @@ void linboMulticastBoxImpl::processFinished( int retval,
 					     QProcess::ExitStatus status) {
 
   Console->setColor( QColor( QString("red") ) );
-  Console->append( QString("Command executed with exit value ") + QString::number( retval ) );
+  Console->insert( QString("Command executed with exit value ") + QString::number( retval ) );
 
   if( status == 0)
-    Console->append( QString("Exit status: ") + QString("The process exited normally.") );
+    Console->insert( QString("Exit status: ") + QString("The process exited normally.") );
   else
-    Console->append( QString("Exit status: ") + QString("The process crashed.") );
+    Console->insert( QString("Exit status: ") + QString("The process crashed.") );
 
   if( status == 1 ) {
     int errorstatus = process->error();
     switch ( errorstatus ) {
-      case 0: Console->append( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
-      case 1: Console->append( QString("The process crashed some time after starting successfully.") ); break;
-      case 2: Console->append( QString("The last waitFor...() function timed out.") ); break;
-      case 3: Console->append( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
-      case 4: Console->append( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
-      case 5: Console->append( QString("An unknown error occurred.") ); break;
+      case 0: Console->insert( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
+      case 1: Console->insert( QString("The process crashed some time after starting successfully.") ); break;
+      case 2: Console->insert( QString("The last waitFor...() function timed out.") ); break;
+      case 3: Console->insert( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
+      case 4: Console->insert( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
+      case 5: Console->insert( QString("An unknown error occurred.") ); break;
     }
 
   }
-
+  Console->insert(QString(QChar::LineSeparator));
+  Console->moveCursor(QTextCursor::End);
+  Console->ensureCursorVisible();
   Console->setColor( QColor( QString("white") ) );
-			   
 
   app->restoreButtonsState();
 
