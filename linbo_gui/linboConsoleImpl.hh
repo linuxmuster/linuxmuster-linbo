@@ -15,6 +15,7 @@
 #include <qlineedit.h>
 
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
 using namespace Ui;
 
@@ -28,13 +29,16 @@ private:
   QString line;
   QWidget *myMainApp, *myParent;
   QTextEdit *Console;
+  linboLogConsole* logConsole;
 
 public:
   linboConsoleImpl( QWidget* parent = 0 );
 
   ~linboConsoleImpl();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setMainApp( QWidget* newMainApp );

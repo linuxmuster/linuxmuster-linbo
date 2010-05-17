@@ -17,9 +17,11 @@
 #include <QTextEdit>
 #include <qtimer.h>
 #include "linboCounterImpl.hh"
+#include "linboLogConsole.hh"
 
 using namespace Ui;
 class linboGUIImpl;
+class linboLogConsole;
 
 class linboPasswordBoxImpl : public QWidget, public Ui::linboPasswordBox, public linboDialog
 {
@@ -35,6 +37,7 @@ private:
   linboCounterImpl* myCounter;
   QTimer* myTimer;
   int currentTimeout;
+  linboLogConsole *logConsole;
 
 public:
   linboPasswordBoxImpl( QDialog* parent = 0 );
@@ -46,7 +49,9 @@ public:
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
 
 
 public slots:

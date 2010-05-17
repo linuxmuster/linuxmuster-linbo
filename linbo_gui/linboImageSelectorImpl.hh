@@ -17,6 +17,7 @@
 #include <QFile>
 
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
 class linboGuiImpl;
 
@@ -36,6 +37,7 @@ private:
   bool upload;
   linboGUIImpl* app;
   linboDialog* neighbourDialog;
+  linboLogConsole* logConsole;
 
 public slots:
   void readFromStdout();
@@ -52,7 +54,9 @@ public:
 
   ~linboImageSelectorImpl();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   void setLoadCommand(const QStringList& arglist);
   void setSaveCommand(const QStringList& arglist);

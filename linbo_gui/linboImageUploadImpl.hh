@@ -15,7 +15,7 @@
 #include "linboGUIImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboDialog.hh"
-
+#include "linboLogConsole.hh"
 
 class linboImageUploadImpl : public QWidget, public Ui::linboImageUpload, public linboDialog
 {
@@ -29,6 +29,7 @@ private:
   QWidget *myMainApp,*myParent;
   QTextEdit *Console;
   linboProgressImpl *progwindow;
+  linboLogConsole* logConsole;
   
 
 public slots:
@@ -44,7 +45,9 @@ public:
 
   ~linboImageUploadImpl();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setMainApp( QWidget* newMainApp );

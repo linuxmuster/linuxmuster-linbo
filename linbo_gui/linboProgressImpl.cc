@@ -15,7 +15,7 @@ linboProgressImpl::linboProgressImpl(  QWidget* parent )
   connect( cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
   connect( myTimer, SIGNAL(timeout()), this, SLOT(processTimer()) );
 
-
+  logConsole = new linboLogConsole(0);
 
   if( parent )
     myParent = parent;
@@ -52,9 +52,13 @@ void linboProgressImpl::killLinboCmd() {
   QTimer::singleShot( 10000, myProcess, SLOT( close() ) );
 }
 
-void linboProgressImpl::setTextBrowser( QTextEdit* newBrowser )
+void linboProgressImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					const QString& new_consolefontcolorstderr,
+					QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboProgressImpl::startTimer() {

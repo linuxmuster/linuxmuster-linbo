@@ -29,9 +29,9 @@ using namespace std;
 
 class globals {
 private:
-  QString server, cache, hostgroup, downloadtype;
+  QString server, cache, hostgroup, downloadtype, backgroundfontcolor, consolefontcolorstdout, consolefontcolorstderr;
   unsigned int roottimeout;
-  bool autopartition, autoinitcache, autoformat, invertbackgroundfont;
+  bool autopartition, autoinitcache, autoformat;
 
 public:
   globals();
@@ -42,7 +42,9 @@ public:
   const unsigned int& get_roottimeout() const;
   const bool& get_autopartition();
   const bool& get_autoinitcache();
-  const bool& get_invertbackgroundfont();
+  const QString& get_backgroundfontcolor();
+  const QString& get_consolefontcolorstdout();
+  const QString& get_consolefontcolorstderr();
   const QString& get_downloadtype();
   const bool& get_autoformat();
   void set_server( const QString& new_server );
@@ -51,7 +53,9 @@ public:
   void set_roottimeout( const unsigned int& new_roottimeout );
   void set_autopartition( const bool& new_autopartition );
   void set_autoinitcache( const bool& new_autoinitcache );
-  void set_invertbackgroundfont( const bool& new_invertbackgroundfont );
+  void set_backgroundfontcolor( const QString& new_backgroundfontcolor );
+  void set_consolefontcolorstdout( const QString& new_consolefontcolorstdout );
+  void set_consolefontcolorstderr( const QString& new_consolefontcolorstderr );
   void set_downloadtype( const QString& new_downloadtype );
   void set_autoformat( const bool& new_autoformat );
 };

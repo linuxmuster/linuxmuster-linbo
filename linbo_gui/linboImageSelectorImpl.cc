@@ -17,6 +17,8 @@ linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog
 
   progwindow = new linboProgressImpl(0);
 
+  logConsole = new linboLogConsole(0);
+
   if( parent )
     myParent = parent;
 
@@ -58,9 +60,13 @@ linboImageSelectorImpl::~linboImageSelectorImpl()
 {
 } 
 
-void linboImageSelectorImpl::setTextBrowser( QTextEdit* newBrowser )
+void linboImageSelectorImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					     const QString& new_consolefontcolorstderr,
+					     QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboImageSelectorImpl::setMainApp( QWidget* newMainApp ) {
@@ -94,14 +100,14 @@ void linboImageSelectorImpl::selectionWatcher() {
       arguments = myLoadCommand;
       
 #ifdef DEBUG
-      Console->insert(QString("linboInfoBrowserImpl: myLoadCommand"));
+      logConsole->writeStdErr(QString("linboInfoBrowserImpl: myLoadCommand"));
       QStringList list = arguments();
       QStringList::Iterator it = list.begin();
       while( it != list.end() ) {
 	Console->insert( *it );
 	++it;
       }
-      Console->insert(QString("*****"));
+      logConsole->writeStdErr(QString("*****"));
 #endif
       
       QStringList processargs( arguments );
@@ -110,13 +116,8 @@ void linboImageSelectorImpl::selectionWatcher() {
       progwindow->startTimer();
       process->start( command, processargs );
       
-      Console->setColor( QColor( QString("red") ) );
-      Console->insert( QString("Executing ") + command + processargs.join(" ") );
-      Console->insert(QString(QChar::LineSeparator));  
-      Console->moveCursor(QTextCursor::End);
-      Console->ensureCursorVisible(); 
-      Console->setColor( QColor( QString("white") ) );
 
+      logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
       
       // important: give process time to start up
       process->waitForStarted();
@@ -134,12 +135,7 @@ void linboImageSelectorImpl::selectionWatcher() {
       file = new QFile( myLoadCommand[4] );
       // read content
       if( !file->open( QIODevice::ReadOnly ) ) {
-	Console->setColor( QColor( QString("red") ) );
-	Console->insert("Keine passende Beschreibung im Cache.");
-	Console->insert(QString(QChar::LineSeparator));
-	Console->moveCursor(QTextCursor::End);
-	Console->ensureCursorVisible(); 
-	Console->setColor( QColor( QString("white") ) );
+	logConsole->writeStdErr( QString("Keine passende Beschreibung im Cache.") );
       } 
       else {
 	Q3TextStream ts( file );
@@ -256,14 +252,8 @@ void linboImageSelectorImpl::postcmd() {
     QStringList processargs( arguments );
     QString command = processargs.takeFirst();
 
-    Console->setColor( QColor( QString("red") ) );
-    Console->insert( QString("Executing ") + command + processargs.join(" ") );
-    Console->insert(QString(QChar::LineSeparator));
-    Console->moveCursor(QTextCursor::End);
-    Console->ensureCursorVisible(); 
-    Console->setColor( QColor( QString("white") ) );
-
-
+    logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
+    
     progwindow->startTimer();
     process->start( command, processargs );
 
@@ -288,20 +278,10 @@ void linboImageSelectorImpl::postcmd() {
       neighbourDialog->postcmd();
     }
     else {
-      Console->setColor( QColor( QString("red") ) );
-      Console->insert( QString("Eintrag nicht gefunden") );
-      Console->insert(QString(QChar::LineSeparator));
-      Console->moveCursor(QTextCursor::End);
-      Console->ensureCursorVisible(); 
-      Console->setColor( QColor( QString("white") ) );
+      logConsole->writeStdErr( QString("Eintrag nicht gefunden") );
     }
   } else {
-    Console->setColor( QColor( QString("red") ) );
-    Console->insert( QString("Upload nicht ausgewählt") );
-    Console->insert(QString(QChar::LineSeparator));
-    Console->moveCursor(QTextCursor::End);
-    Console->ensureCursorVisible(); 
-    Console->setColor( QColor( QString("white") ) );
+    logConsole->writeStdErr( QString("Upload nicht ausgewählt") );
   }
   upload = false;
 
@@ -310,8 +290,6 @@ void linboImageSelectorImpl::postcmd() {
   } else if ( this->checkReboot->isChecked() ) {
     system("busybox reboot");
   }
-
-
   this->close(); 
 }
 
@@ -333,13 +311,7 @@ QStringList linboImageSelectorImpl::getCommand()
 void linboImageSelectorImpl::writeInfo() {
   file = new QFile( mySaveCommand[4] );
   if ( !file->open( QIODevice::WriteOnly ) ) {
-    Console->setColor( QColor( QString("red") ) );
-    Console->insert("Fehler beim Speichern der Beschreibung.");
-    Console->insert(QString(QChar::LineSeparator));  
-    Console->moveCursor(QTextCursor::End);
-    Console->ensureCursorVisible(); 
-    Console->setColor( QColor( QString("white") ) );
-
+    logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
   } else {
     Q3TextStream ts( file );
     ts << info;
@@ -349,16 +321,6 @@ void linboImageSelectorImpl::writeInfo() {
 
   arguments.clear();
   arguments = mySaveCommand;
-
-#ifdef DEBUG
-  Console->insert(QString("Save Command="));
-  QStringList list = process->arguments();
-  QStringList::Iterator it = list.begin();
-  while( it != list.end() ) {
-    Console->insert( *it );
-    ++it;
-  }
-#endif
 
   QStringList processargs( arguments );
   QString command = processargs.takeFirst();
@@ -384,52 +346,18 @@ void linboImageSelectorImpl::writeInfo() {
 
 void linboImageSelectorImpl::readFromStdout()
 {
-  Console->setColor( QColor( QString("white") ) );
-  Console->insert( process->readAllStandardOutput() );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboImageSelectorImpl::readFromStderr()
 {
-  Console->setColor( QColor( QString("red") ) );
-  Console->insert( process->readAllStandardError() );
-  Console->setColor( QColor( QString("white") ) );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
-
+  logConsole->writeStdErr( process->readAllStandardError() );
 }
 
 void linboImageSelectorImpl::processFinished( int retval,
 					      QProcess::ExitStatus status) {
 
-  Console->setColor( QColor( QString("red") ) );
-  Console->insert( QString("Command executed with exit value ") + QString::number( retval ) );
-
-  if( status == 0)
-    Console->insert( QString("Exit status: ") + QString("The process exited normally.") );
-  else
-    Console->insert( QString("Exit status: ") + QString("The process crashed.") );
-
-  if( status == 1 ) {
-    int errorstatus = process->error();
-    switch ( errorstatus ) {
-      case 0: Console->insert( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
-      case 1: Console->insert( QString("The process crashed some time after starting successfully.") ); break;
-      case 2: Console->insert( QString("The last waitFor...() function timed out.") ); break;
-      case 3: Console->insert( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
-      case 4: Console->insert( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
-      case 5: Console->insert( QString("An unknown error occurred.") ); break;
-    }
-
-  }
-
-  Console->insert(QString(QChar::LineSeparator));  
-
-  Console->setColor( QColor( QString("white") ) );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
-			   
+  logConsole->writeResult( retval, status, process->error() );
 
   app->restoreButtonsState();
 

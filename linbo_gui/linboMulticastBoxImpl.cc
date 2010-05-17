@@ -23,6 +23,8 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
 
   progwindow = new linboProgressImpl(0);
 
+  logConsole = new linboLogConsole(0);
+
   // connect SLOT for finished process
   connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
 	   this, SLOT(processFinished(int, QProcess::ExitStatus)) );
@@ -51,9 +53,13 @@ linboMulticastBoxImpl::~linboMulticastBoxImpl()
 {
 } 
 
-void linboMulticastBoxImpl::setTextBrowser( QTextEdit* newBrowser )
+void linboMulticastBoxImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					    const QString& new_consolefontcolorstderr,
+					    QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboMulticastBoxImpl::setMainApp( QWidget* newMainApp ) {
@@ -92,7 +98,6 @@ void linboMulticastBoxImpl::postcmd() {
     // do something
     // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
 
-    progwindow->setTextBrowser( Console );
     progwindow->setProcess( process );
     progwindow->show();
     progwindow->raise();
@@ -106,12 +111,7 @@ void linboMulticastBoxImpl::postcmd() {
     QStringList processargs( arguments );
     QString command = processargs.takeFirst();
 
-    Console->setColor( QColor( QString("red") ) );
-    Console->insert( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
-    Console->insert(QString(QChar::LineSeparator));
-    Console->moveCursor(QTextCursor::End);
-    Console->ensureCursorVisible(); 
-    Console->setColor( QColor( QString("white") ) );
+    logConsole->writeStdErr( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
 
     progwindow->startTimer();
     process->start( command, processargs );
@@ -161,48 +161,18 @@ QStringList linboMulticastBoxImpl::getCommand()
 
 void linboMulticastBoxImpl::readFromStdout()
 {
-  Console->setColor( QColor( QString("white") ) );
-  Console->insert( process->readAllStandardOutput() );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboMulticastBoxImpl::readFromStderr()
 {
-  Console->setColor( QColor( QString("red") ) );
-  Console->insert( process->readAllStandardError() );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
-  Console->setColor( QColor( QString("white") ) );
+  logConsole->writeStdErr( process->readAllStandardError() );
 }
 
 void linboMulticastBoxImpl::processFinished( int retval,
 					     QProcess::ExitStatus status) {
 
-  Console->setColor( QColor( QString("red") ) );
-  Console->insert( QString("Command executed with exit value ") + QString::number( retval ) );
-
-  if( status == 0)
-    Console->insert( QString("Exit status: ") + QString("The process exited normally.") );
-  else
-    Console->insert( QString("Exit status: ") + QString("The process crashed.") );
-
-  if( status == 1 ) {
-    int errorstatus = process->error();
-    switch ( errorstatus ) {
-      case 0: Console->insert( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
-      case 1: Console->insert( QString("The process crashed some time after starting successfully.") ); break;
-      case 2: Console->insert( QString("The last waitFor...() function timed out.") ); break;
-      case 3: Console->insert( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
-      case 4: Console->insert( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
-      case 5: Console->insert( QString("An unknown error occurred.") ); break;
-    }
-
-  }
-  Console->insert(QString(QChar::LineSeparator));
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible();
-  Console->setColor( QColor( QString("white") ) );
+  logConsole->writeResult( retval, status, process->error() );
 
   app->restoreButtonsState();
 

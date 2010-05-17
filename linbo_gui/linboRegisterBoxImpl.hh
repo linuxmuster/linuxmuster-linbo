@@ -14,6 +14,7 @@
 #include <Qt3Support/Q3TextBrowser>
 #include "linboProgressImpl.hh"
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
 class linboGUIImpl;
 
@@ -30,12 +31,15 @@ private:
   QString line;
   QWidget *myMainApp,*myParent;
   QTextEdit *Console;
+  linboLogConsole *logConsole;
 
 public:
   linboRegisterBoxImpl( QWidget* parent = 0 );
    ~linboRegisterBoxImpl();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here

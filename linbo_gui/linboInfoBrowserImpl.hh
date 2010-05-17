@@ -16,7 +16,7 @@
 #include <qfile.h>
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
-
+#include "linboLogConsole.hh"
 
 class linboInfoBrowserImpl : public QWidget, public Ui::linboInfoBrowser, public linboDialog
 {
@@ -31,6 +31,7 @@ private:
   QString filepath;
   QFile *file;
   QTextEdit *Console;
+  linboLogConsole* logConsole;
   
 
 public slots:
@@ -49,7 +50,10 @@ public:
 
   ~linboInfoBrowserImpl();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
+
   void setMainApp( QWidget* newMainApp );
 
   void setCommand(const QStringList& );

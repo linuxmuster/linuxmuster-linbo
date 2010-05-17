@@ -18,8 +18,10 @@
 #include "linboInputBoxImpl.hh"
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
+#include "linboLogConsole.hh"
 
 class linboGUIImpl;
+class linboLogConsole;
 
 class linbopushbutton : public QPushButton
 {
@@ -39,6 +41,7 @@ private:
   bool progress;
   linbopushbutton* neighbour;
   linboProgressImpl *progwindow;
+  linboLogConsole *logConsole;
 
 public:
   linbopushbutton( QWidget* parent = 0,
@@ -46,7 +49,10 @@ public:
 
   ~linbopushbutton();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
+
   // void setMainApp( QDialog* newMainApp );
   void setMainApp( QWidget* newMainApp );
   void setLinboDialog( linboDialog* newDialog );

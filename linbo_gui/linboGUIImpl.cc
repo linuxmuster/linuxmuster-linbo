@@ -135,7 +135,9 @@ void read_globals( ifstream* input, globals& g ) {
     else if(key.compare("group") == 0)  g.set_hostgroup(value);
     else if(key.compare("autopartition") == 0) g.set_autopartition(toBool(value));
     else if(key.compare("autoinitcache") == 0) g.set_autoinitcache(toBool(value));
-    else if(key.compare("invertbackgroundfont") == 0) g.set_invertbackgroundfont(toBool(value));
+    else if(key.compare("backgroundfontcolor") == 0) g.set_backgroundfontcolor(value);
+    else if(key.compare("consolefontcolorstdout") == 0) g.set_consolefontcolorstdout(value);
+    else if(key.compare("consolefontcolorstderr") == 0) g.set_consolefontcolorstderr(value);
     else if(key.compare("usemulticast") == 0) {
       if( (unsigned int)value.toInt() == 0 ) 
         g.set_downloadtype("rsync"); 
@@ -266,8 +268,7 @@ linboGUIImpl::linboGUIImpl()
   // our early default
   fonttemplate = tr("<font color='black'>%1</font>");
 
-  // Console->setTextFormat( Qt::RichText  );
-  Console->setColor( QColor( QString("white") ) );
+  logConsole = new linboLogConsole(0);
 
   Qt::WindowFlags flags;
   flags = Qt::FramelessWindowHint | Qt::WindowStaysOnBottomHint;
@@ -353,7 +354,6 @@ linboGUIImpl::linboGUIImpl()
   input.open( "start.conf", ios_base::in );
 
   QString tmp_qstring;
-  // Console->setMaxLogLines (1000);
 
   while( !input.eof() ) {
 
@@ -392,6 +392,11 @@ linboGUIImpl::linboGUIImpl()
     }
   }
   input.close();
+
+  // we can set this now since our globals have been read
+  logConsole->setLinboLogConsole( config.get_consolefontcolorstdout(),
+				  config.get_consolefontcolorstderr(),
+				  Console );
 
   int height = 5;
   int imagingHeight = 5;
@@ -506,7 +511,10 @@ linboGUIImpl::linboGUIImpl()
       defaultbutton->setEnabled( elements[i].image_history[n].get_startbutton() );
     }
     
-    defaultbutton->setTextBrowser( Console );
+    defaultbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				   config.get_consolefontcolorstderr(),
+				   Console );
+
     defaultbutton->setMainApp( (QDialog*)this );
     defaultbutton->setCommand( command );
     defaultbutton->setMainApp( this );
@@ -519,7 +527,9 @@ linboGUIImpl::linboGUIImpl()
     linbopushbutton *syncbutton = new linbopushbutton( startView->viewport() );
     syncbutton->setGeometry( QRect( (90 + horizontalOffset), (height + innerVerticalOffset), 32, 32 ) );
     // syncbutton->setText( QString("Sync+Start") );
-    syncbutton->setTextBrowser( Console );
+    syncbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				config.get_consolefontcolorstderr(),
+				Console );
 
     // add tooltip and icon
     QToolTip::add( syncbutton, QString("Startet " + elements[i].get_name() + " " +
@@ -546,7 +556,9 @@ linboGUIImpl::linboGUIImpl()
     linbopushbutton *startbutton = new linbopushbutton( startView->viewport() );
     startbutton->setGeometry( QRect( (124 + horizontalOffset), (height  + innerVerticalOffset), 32, 32 ) );
     // startbutton->setText( QString("Start") );
-    startbutton->setTextBrowser( Console );
+    startbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				 config.get_consolefontcolorstderr(),
+				 Console );
          
     // add tooltip and icon
     QToolTip::add( startbutton, QString("Startet " + elements[i].get_name() + " " +
@@ -580,7 +592,9 @@ linboGUIImpl::linboGUIImpl()
     linbopushbutton *createbutton = new linbopushbutton( imagingView->viewport() ); 
     createbutton->setGeometry( QRect( 150, imagingHeight, 120, 30 ) );
     createbutton->setText( QString("Image erstellen") );
-    createbutton->setTextBrowser( Console );
+    createbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				  config.get_consolefontcolorstderr(),
+				  Console );
 
     linboImageSelectorImpl *buildImageSelector = new linboImageSelectorImpl( createbutton );
     // clear list
@@ -598,7 +612,9 @@ linboGUIImpl::linboGUIImpl()
     buildImageSelector->listBox->insertItem( QString("[Neuer Dateiname]") );
 
    
-    buildImageSelector->setTextBrowser( Console );
+    buildImageSelector->setTextBrowser( config.get_consolefontcolorstdout(),
+					config.get_consolefontcolorstderr(),
+					Console );
     buildImageSelector->setCache( config.get_cache() );
     buildImageSelector->setBaseImage( elements[i].get_baseimage()  );
     buildImageSelector->setMainApp( this ); 
@@ -657,7 +673,9 @@ linboGUIImpl::linboGUIImpl()
     linbopushbutton *newbutton = new linbopushbutton( startView->viewport() );
     newbutton->setGeometry( QRect( (158 + horizontalOffset), (height + innerVerticalOffset), 32, 32 ) );
     // newbutton->setText( QString("Neu+Start") );
-    newbutton->setTextBrowser( Console );
+    newbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+			       config.get_consolefontcolorstderr(),
+			       Console );
 
     // add tooltip and icon
     QToolTip::add( newbutton, QString("Installiert " + elements[i].get_name() + " " +
@@ -685,7 +703,9 @@ linboGUIImpl::linboGUIImpl()
     infobuttonstart->setGeometry( QRect( (192 + horizontalOffset), (height + innerVerticalOffset), 32, 32 ) );
     // infobuttonstart->setText( QString("Info") );
     infobuttonstart->setEnabled( true );
-    infobuttonstart->setTextBrowser( Console );    
+    infobuttonstart->setTextBrowser( config.get_consolefontcolorstdout(),
+				     config.get_consolefontcolorstderr(),
+				     Console );    
 
     // add tooltip and icon
     QToolTip::add( infobuttonstart, QString("Informationen zu " + elements[i].get_name() + " " +
@@ -697,7 +717,9 @@ linboGUIImpl::linboGUIImpl()
     }
 
     linboInfoBrowserImpl *infoBrowser = new linboInfoBrowserImpl( infobuttonstart );
-    infoBrowser->setTextBrowser( Console );
+    infoBrowser->setTextBrowser( config.get_consolefontcolorstdout(),
+				 config.get_consolefontcolorstderr(),
+				 Console );    
     infoBrowser->setMainApp( this );
     infoBrowser->setFilePath( QString("/tmp/") + elements[i].get_baseimage() + QString(".desc") );
 
@@ -736,7 +758,9 @@ linboGUIImpl::linboGUIImpl()
     uploadbutton->setGeometry( QRect( 270, imagingHeight, 120, 30 ) );
     uploadbutton->setText( QString("Image hochladen") );
     uploadbutton->setEnabled( true );
-    uploadbutton->setTextBrowser( Console );
+    uploadbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				  config.get_consolefontcolorstderr(),
+				  Console );
 
     // add tooltip and icon
     QToolTip::add( uploadbutton, QString("Ein Image für " + elements[i].get_name() + " " +
@@ -747,7 +771,9 @@ linboGUIImpl::linboGUIImpl()
       uploadbutton->setIconSet( QIcon( ":/icons/upload-22x22.png" ) );
 
     linboImageUploadImpl *imageUpload = new linboImageUploadImpl( uploadbutton);
-    imageUpload->setTextBrowser( Console );
+    imageUpload->setTextBrowser( config.get_consolefontcolorstdout(),
+				 config.get_consolefontcolorstderr(),
+				 Console );
     imageUpload->setMainApp( this );
 
     // clear list
@@ -903,7 +929,9 @@ linboGUIImpl::linboGUIImpl()
 	}
 	
 	idefaultbutton->setCommand( command );
-	idefaultbutton->setTextBrowser( Console );
+	idefaultbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+					config.get_consolefontcolorstderr(),
+					Console );
 	idefaultbutton->setMainApp( (QDialog*)this );
 	p_buttons.push_back( idefaultbutton );
         buttons_config.push_back( 1 );
@@ -911,7 +939,9 @@ linboGUIImpl::linboGUIImpl()
         linbopushbutton *isyncbutton = new linbopushbutton( view->viewport() );
         isyncbutton->setGeometry( QRect( (90 + iHorizontalOffset), (height2 + innerVerticalOffset), 32, 32 ) );
         // isyncbutton->setText( QString("Sync+Start") );
-        isyncbutton->setTextBrowser( Console );    
+        isyncbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				     config.get_consolefontcolorstderr(),
+				     Console );    
         isyncbutton->setEnabled( true );
 
         // add tooltip and icon
@@ -936,7 +966,9 @@ linboGUIImpl::linboGUIImpl()
         linbopushbutton *irecreatebutton = new linbopushbutton( view->viewport() );
         irecreatebutton->setGeometry( QRect( (124 + iHorizontalOffset), (height2 + innerVerticalOffset), 32, 32 ) );
         // irecreatebutton->setText( QString("Neu+Start") );
-        irecreatebutton->setTextBrowser( Console );
+        irecreatebutton->setTextBrowser( config.get_consolefontcolorstdout(),
+					 config.get_consolefontcolorstderr(),
+					 Console );
       
         command = mksyncrcommand(config, elements[i],elements[i].image_history[n]);
         irecreatebutton->setCommand( command );
@@ -962,10 +994,14 @@ linboGUIImpl::linboGUIImpl()
         iinfobuttonstart->setGeometry( QRect( (158 + iHorizontalOffset), (height2 + innerVerticalOffset), 32, 32 ) );
 	// iinfobuttonstart->setText( QString("Info") );
         iinfobuttonstart->setEnabled( true );
-        iinfobuttonstart->setTextBrowser( Console );    
+        iinfobuttonstart->setTextBrowser( config.get_consolefontcolorstdout(),
+					  config.get_consolefontcolorstderr(),
+					  Console );    
 
         linboInfoBrowserImpl *iinfoBrowser = new linboInfoBrowserImpl( iinfobuttonstart );
-        iinfoBrowser->setTextBrowser( Console );
+        iinfoBrowser->setTextBrowser(  config.get_consolefontcolorstdout(),
+				       config.get_consolefontcolorstderr(),
+				       Console );
         iinfoBrowser->setMainApp(this);
         iinfoBrowser->setFilePath( QString("/tmp/") + elements[i].get_baseimage() + QString(".desc") );
         iinfobuttonstart->setProgress( false );
@@ -1011,16 +1047,11 @@ linboGUIImpl::linboGUIImpl()
         if( elements[i].image_history[n].get_autostart() &&
             !autostart ) {
 	  
-	  Console->setColor( QColor( QString("white") ) );
-          Console->insert( QString("Autostart selected for OS Nr. ")
+
+          logConsole->writeStdOut( QString("Autostart selected for OS Nr. ")
                                    + QString::number(i) 
                                    + QString(", Image History Nr. ") 
          			   + QString::number( n ));
-
-	  Console->insert(QString(QChar::LineSeparator));
-	  Console->moveCursor(QTextCursor::End);
-	  Console->ensureCursorVisible();
-	  
 
 	  autostart = idefaultbutton;
 	  autostarttimeout = elements[i].image_history[n].get_autostarttimeout();
@@ -1045,17 +1076,11 @@ linboGUIImpl::linboGUIImpl()
         if( elements[i].image_history[n].get_autostart() &&
             !autostart ) {
 
-	  Console->setColor( QColor( QString("white") ) );
-          Console->append( QString("Autostart selected for OS Nr. ") 
+          logConsole->writeStdOut( QString("Autostart selected for OS Nr. ") 
                                    + QString::number(i) 
                                    + QString(", Image History Nr. ") 
 			           + QString::number( n ) );
 
-	  Console->insert(QString(QChar::LineSeparator));
-
-	  Console->moveCursor(QTextCursor::End);
-	  Console->ensureCursorVisible(); 
-    
           autostart = defaultbutton; 
 	  autostarttimeout = elements[i].image_history[n].get_autostarttimeout();
         }
@@ -1077,11 +1102,15 @@ linboGUIImpl::linboGUIImpl()
   consolebuttonimaging->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   consolebuttonimaging->setGeometry( QRect( 15, 27, 130, 30 ) );
   consolebuttonimaging->setText( QString("Console") );
-  consolebuttonimaging->setTextBrowser( Console );
+  consolebuttonimaging->setTextBrowser( config.get_consolefontcolorstdout(),
+					config.get_consolefontcolorstderr(),
+					Console );
 
   linboConsoleImpl *linboconsole = new linboConsoleImpl( consolebuttonimaging );
   linboconsole->setMainApp(this );
-  linboconsole->setTextBrowser( Console );
+  linboconsole->setTextBrowser( config.get_consolefontcolorstdout(),
+				config.get_consolefontcolorstderr(),
+				Console ); 
 
   consolebuttonimaging->setProgress( false );
   consolebuttonimaging->setMainApp(this );
@@ -1104,7 +1133,9 @@ linboGUIImpl::linboGUIImpl()
   multicastbuttonimaging->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   multicastbuttonimaging->setGeometry( QRect( 15, 59, 130, 30 ) );
   multicastbuttonimaging->setText( QString("Cache aktualisieren") );
-  multicastbuttonimaging->setTextBrowser( Console );
+  multicastbuttonimaging->setTextBrowser( config.get_consolefontcolorstdout(),
+					  config.get_consolefontcolorstderr(),
+					  Console );
 
   // add tooltip and icon
   QToolTip::add( multicastbuttonimaging, QString("Aktualisiert den lokalen Cache") );
@@ -1114,7 +1145,9 @@ linboGUIImpl::linboGUIImpl()
 
   linboMulticastBoxImpl *multicastbox = new linboMulticastBoxImpl( multicastbuttonimaging ); 
   multicastbox->setMainApp(this );
-  multicastbox->setTextBrowser( Console );
+  multicastbox->setTextBrowser( config.get_consolefontcolorstdout(),
+				config.get_consolefontcolorstderr(),
+				Console );
 
   multicastbox->setRsyncCommand( mkcacheinitcommand( config, elements, QString("rsync")) );
   multicastbox->setMulticastCommand( mkcacheinitcommand( config, elements, QString("multicast")) );
@@ -1131,7 +1164,9 @@ linboGUIImpl::linboGUIImpl()
   linbopushbutton *autoinitcachebutton = new linbopushbutton(0); 
   // this invisible button is needed für autoinitcache
   if( config.get_autoinitcache() ) {
-    autoinitcachebutton->setTextBrowser( Console );
+    autoinitcachebutton->setTextBrowser( config.get_consolefontcolorstdout(),
+					 config.get_consolefontcolorstderr(),
+					 Console );
     autoinitcachebutton->setMainApp(this );
     autoinitcachebutton->setProgress( true );
     autoinitcachebutton->setCommand( mkcacheinitcommand( config, elements, config.get_downloadtype() ) );
@@ -1150,7 +1185,9 @@ linboGUIImpl::linboGUIImpl()
   partitionbutton->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   partitionbutton->setGeometry( QRect( 15, 91, 130, 30 ) );
   partitionbutton->setText( QString("Partitionieren") );
-  partitionbutton->setTextBrowser( Console );
+  partitionbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				   config.get_consolefontcolorstderr(),
+				   Console );
   partitionbutton->setMainApp(this );
   partitionbutton->setEnabled( true );
 
@@ -1162,7 +1199,9 @@ linboGUIImpl::linboGUIImpl()
 
   linboYesNoImpl *yesNoPartition = new linboYesNoImpl( partitionbutton);
   yesNoPartition->question->setText("Alle Daten auf der Festplatte löschen?");
-  yesNoPartition->setTextBrowser( Console );
+  yesNoPartition->setTextBrowser( config.get_consolefontcolorstdout(),
+				  config.get_consolefontcolorstderr(),
+				  Console );
   yesNoPartition->setMainApp(this );
   yesNoPartition->setCommand(mkpartitioncommand(partitions));
 
@@ -1170,7 +1209,9 @@ linboGUIImpl::linboGUIImpl()
   linbopushbutton *autopartitionbutton = new linbopushbutton();
   // this invisible button is needed für autopartition
   if( config.get_autopartition() ) {
-    autopartitionbutton->setTextBrowser( Console );
+    autopartitionbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+					 config.get_consolefontcolorstderr(),
+					 Console );
     autopartitionbutton->setMainApp(this );
     autopartitionbutton->setProgress( true );
     // here we set whether a partition should be automatically formatted after
@@ -1201,7 +1242,9 @@ linboGUIImpl::linboGUIImpl()
   registerbutton->setStyleSheet("QPushButton{text-align : left; padding-left: 5px;}");
   registerbutton->setGeometry( QRect( 15, 123, 130, 30 ) );
   registerbutton->setText( QString("Registrieren") );
-  registerbutton->setTextBrowser( Console );
+  registerbutton->setTextBrowser( config.get_consolefontcolorstdout(),
+				  config.get_consolefontcolorstderr(),
+				  Console );
   registerbutton->setMainApp(this );
   registerbutton->setEnabled( true );
 
@@ -1213,7 +1256,9 @@ linboGUIImpl::linboGUIImpl()
 
   
   linboRegisterBoxImpl *registerBox = new linboRegisterBoxImpl( registerbutton );
-  registerBox->setTextBrowser( Console );
+  registerBox->setTextBrowser( config.get_consolefontcolorstdout(),
+			       config.get_consolefontcolorstderr(),
+			       Console );
   registerBox->setMainApp(this );
 
   command = LINBO_CMD("register");
@@ -1246,7 +1291,9 @@ linboGUIImpl::linboGUIImpl()
   myLPasswordBox = new linboPasswordBoxImpl( this );
   myQPasswordBox = (QDialog*)(myLPasswordBox);
   myLPasswordBox->setMainApp(this );
-  myLPasswordBox->setTextBrowser( Console );
+  myLPasswordBox->setTextBrowser( config.get_consolefontcolorstdout(),
+				  config.get_consolefontcolorstderr(),
+				  Console );
 
 
   // Code for detecting tab changes
@@ -1265,21 +1312,17 @@ linboGUIImpl::linboGUIImpl()
   // we don't want to see this on the LINBO Console
   outputvisible = false;
 
-  // set text color
-  if( config.get_invertbackgroundfont() ) 
-     fonttemplate = tr("<font color='white'>%1</font>");
-  else
-    fonttemplate = tr("<font color='black'>%1</font>");
+  // set backgroundtext color
+  fonttemplate = tr("<font color='%1'>%2</font>");
 
   //  client ip
-
   command = LINBO_CMD("ip");
   // myprocess->setArguments( command );
   process->start( command.join(" ") );
   while( !process->waitForFinished(10000) ) {
   }
 
-  clientIPLabel->setText( fonttemplate.arg( QString("Client IP: ") + process->readAllStandardOutput() ) ); 
+  clientIPLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("Client IP: ") + process->readAllStandardOutput() ) ); 
 
   //  server ip
  
@@ -1292,7 +1335,7 @@ linboGUIImpl::linboGUIImpl()
   process->start( command.join(" ") );
   while( !process->waitForFinished(10000) ) {
   }
-  macLabel->setText( fonttemplate.arg( QString("MAC: ") + process->readAllStandardOutput() ) ); 
+  macLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("MAC: ") + process->readAllStandardOutput() ) ); 
   
   // Server and Version
 // hostname and hostgroup 
@@ -1315,8 +1358,8 @@ linboGUIImpl::linboGUIImpl()
  
 
 
-  nameLabel->setText( fonttemplate.arg( QString("Host: ") + process->readAllStandardOutput() ) );
-  groupLabel->setText( fonttemplate.arg( QString("Gruppe: ") + config.get_hostgroup() ) );
+  nameLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("Host: ") + process->readAllStandardOutput() ) );
+  groupLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("Gruppe: ") + config.get_hostgroup() ) );
   
   // our clock displaying the system time
   myTimer = new QTimer(this);
@@ -1330,7 +1373,7 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
 
-  cpuLabel->setText( fonttemplate.arg( QString("CPU: ") + process->readAllStandardOutput() ) ); 
+  cpuLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("CPU: ") + process->readAllStandardOutput() ) ); 
 
   // Memory
   command = LINBO_CMD("memory");
@@ -1338,7 +1381,7 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
 
-  memLabel->setText( fonttemplate.arg( QString("RAM: ") + process->readAllStandardOutput() ) ); 
+  memLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("RAM: ") + process->readAllStandardOutput() ) ); 
 
   // Cache Size
   command = LINBO_CMD("size");
@@ -1346,7 +1389,7 @@ linboGUIImpl::linboGUIImpl()
   process->start( command.join(" ") );
   while( !process->waitForFinished(10000) ) {
   }
-  cacheLabel->setText( fonttemplate.arg( QString("Cache: ") + process->readAllStandardOutput() ) );
+  cacheLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("Cache: ") + process->readAllStandardOutput() ) );
 
   // Harddisk Size
   QRegExp *removePartition = new QRegExp("[0-9]{1,2}");
@@ -1360,7 +1403,7 @@ linboGUIImpl::linboGUIImpl()
   while( !process->waitForFinished(10000) ) {
   }
 
-  hdLabel->setText( fonttemplate.arg( QString("HD: ") + process->readAllStandardOutput() ) );
+  hdLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QString("HD: ") + process->readAllStandardOutput() ) );
 
   // enable console output again
   outputvisible = true;
@@ -1374,7 +1417,7 @@ linboGUIImpl::linboGUIImpl()
 
 void linboGUIImpl::processTimeout() {
   
-  timeLabel->setText( fonttemplate.arg( QTime::currentTime().toString() ) );
+  timeLabel->setText( fonttemplate.arg( config.get_backgroundfontcolor(), QTime::currentTime().toString() ) );
 }
 
 
@@ -1383,10 +1426,7 @@ void linboGUIImpl::shutdown() {
   command.clear();
   command = QStringList("busybox");
   command.append("poweroff");
-  Console->insert( QString("shutdown entered") );
-  Console->insert(QString(QChar::LineSeparator));
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
+  logConsole->writeStdOut( QString("shutdown entered") );
   process->start( command.join(" ") );
 }
 
@@ -1395,10 +1435,7 @@ void linboGUIImpl::reboot() {
   command.clear();
   command = QStringList("busybox");
   command.append("reboot");
-  Console->insert( QString("reboot entered") );
-  Console->insert(QString(QChar::LineSeparator));
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
+  logConsole->writeStdOut( QString("reboot entered") );
   process->start( command.join(" ") );
 }
 
@@ -1419,10 +1456,7 @@ void linboGUIImpl::readFromStdout()
   // log( linestdout );
 
   if( outputvisible ) {
-    Console->setColor( QColor( QString("white") ) );
-    Console->insert( process->readAllStandardOutput() );
-    Console->moveCursor(QTextCursor::End);
-    Console->ensureCursorVisible(); 
+    logConsole->writeStdOut( process->readAllStandardOutput() );
   } 
 }
 
@@ -1433,11 +1467,7 @@ void linboGUIImpl::readFromStderr()
   
   if( outputvisible ) {
 
-    Console->setColor( QColor( QString("red") ) );
-    Console->insert( process->readAllStandardError() );
-    Console->setColor( QColor( QString("white") ) );
-    Console->moveCursor(QTextCursor::End);
-    Console->ensureCursorVisible(); 
+    logConsole->writeStdErr( process->readAllStandardError() );
   }
 
 }

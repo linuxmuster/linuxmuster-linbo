@@ -8,7 +8,9 @@ linboInfoBrowserImpl::linboInfoBrowserImpl(QWidget* parent ) : linboDialog()
    Ui_linboInfoBrowser::setupUi((QDialog*)this);
 
    process = new QProcess( this );
-   
+
+   logConsole = new linboLogConsole(0);
+
    if( parent)
      myParent = parent;
 
@@ -42,9 +44,13 @@ linboInfoBrowserImpl::~linboInfoBrowserImpl()
   delete process;
 } 
 
-void linboInfoBrowserImpl::setTextBrowser( QTextEdit* newBrowser )
+void linboInfoBrowserImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					   const QString& new_consolefontcolorstderr,
+					   QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboInfoBrowserImpl::setMainApp( QWidget* newMainApp ) {
@@ -73,17 +79,6 @@ void linboInfoBrowserImpl::precmd() {
     arguments.clear();
     arguments = myLoadCommand;
 
-#ifdef DEBUG
-    Console->insert(QString("linboInfoBrowserImpl: myLoadCommand"));
-    QStringList list = arguments;
-    QStringList::Iterator it = list.begin();
-    while( it != list.end() ) {
-      Console->insert( *it );
-      ++it;
-    }
-    Console->insert(QString("*****"));
-#endif
-
     QStringList processargs( arguments );
     QString command = processargs.takeFirst();
 
@@ -96,12 +91,7 @@ void linboInfoBrowserImpl::precmd() {
     file = new QFile( filepath );
     // read content
     if( !file->open( QIODevice::ReadOnly ) ) {
-      Console->setColor( QColor( QString("red") ) );
-      Console->insert("Keine passende Beschreibung im Cache.");
-      Console->insert(QString(QChar::LineSeparator));
-      Console->moveCursor(QTextCursor::End);
-      Console->ensureCursorVisible(); 
-      Console->setColor( QColor( QString("white") ) );
+      logConsole->writeStdErr( QString("Keine passende Beschreibung im Cache.") );
     } 
     else {
       Q3TextStream ts( file );
@@ -119,12 +109,7 @@ void linboInfoBrowserImpl::postcmd() {
     if ( app->isRoot() ) {
 
       if ( !file->open( QIODevice::WriteOnly ) ) {
-	Console->setColor( QColor( QString("red") ) );
-        Console->insert("Fehler beim Speichern der Beschreibung.");
-	Console->insert(QString(QChar::LineSeparator));
-	Console->moveCursor(QTextCursor::End);
-	Console->ensureCursorVisible(); 
-	Console->setColor( QColor( QString("white") ) );
+	logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
       } 
       else {
         Q3TextStream ts( file );
@@ -135,17 +120,6 @@ void linboInfoBrowserImpl::postcmd() {
 	arguments.clear();
         arguments = mySaveCommand; 
 
-#ifdef DEBUG
-        Console->insert(QString("linboInfoBrowserImpl: mySaveCommand"));
-        QStringList list = arguments;
-        QStringList::Iterator it = list.begin();
-      
-        while( it != list.end() ) {
-          Console->insert( *it );
-          ++it;
-        }
-        Console->insert(QString("*****"));
-#endif
 	QStringList processargs( arguments );
 	QString command = processargs.takeFirst();
 
@@ -158,17 +132,6 @@ void linboInfoBrowserImpl::postcmd() {
 	arguments.clear();
         arguments = myUploadCommand;
 
-#ifdef DEBUG
-        Console->insert(QString("linboInfoBrowserImpl: myUploadCommand"));
-        list = arguments;
-        it = list.begin();
-      
-        while( it != list.end() ) {
-          Console->insert( *it );
-          ++it;
-        }
-        Console->insert(QString("*****"));
-#endif
 	processargs.clear();
 	processargs = arguments;
 	command = processargs.takeFirst();
@@ -214,49 +177,18 @@ void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
 
 void linboInfoBrowserImpl::readFromStdout()
 {
-  Console->setColor( QColor( QString("white") ) );
-  Console->insert( process->readAllStandardOutput() );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboInfoBrowserImpl::readFromStderr()
 {
-  Console->setColor( QColor( QString("red") ) );
-  Console->insert( process->readAllStandardError() );
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
-  Console->setColor( QColor( QString("white") ) );
+  logConsole->writeStdErr( process->readAllStandardError() );
 }
 
 void linboInfoBrowserImpl::processFinished( int retval,
 					     QProcess::ExitStatus status) {
 
-  Console->setColor( QColor( QString("red") ) );
-  Console->insert( QString("Command executed with exit value ") + QString::number( retval ) );
-
-  if( status == 0)
-    Console->insert( QString("Exit status: ") + QString("The process exited normally.") );
-  else
-    Console->insert( QString("Exit status: ") + QString("The process crashed.") );
-
-  if( status == 1 ) {
-    int errorstatus = process->error();
-    switch ( errorstatus ) {
-      case 0: Console->insert( QString("The process failed to start. Either the invoked program is missing, or you may have insufficient permissions to invoke the program.") ); break;
-      case 1: Console->insert( QString("The process crashed some time after starting successfully.") ); break;
-      case 2: Console->insert( QString("The last waitFor...() function timed out.") ); break;
-      case 3: Console->insert( QString("An error occurred when attempting to write to the process. For example, the process may not be running, or it may have closed its input channel.") ); break;
-      case 4: Console->insert( QString("An error occurred when attempting to read from the process. For example, the process may not be running.") ); break;
-      case 5: Console->insert( QString("An unknown error occurred.") ); break;
-    }
-
-  }
-  Console->insert(QString(QChar::LineSeparator));
-  Console->moveCursor(QTextCursor::End);
-  Console->ensureCursorVisible(); 
-  Console->setColor( QColor( QString("white") ) );
-			   
+  logConsole->writeResult( retval, status, process->error() );
 
   app->restoreButtonsState();
 }

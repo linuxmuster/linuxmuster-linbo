@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "linboMsgImpl.hh"
 #include "linboCounterImpl.hh"
 #include "linboPasswordBoxImpl.hh"
+#include "linboLogConsole.hh"
 // #include "linboProgressImpl.hh"
 
 using namespace std;
@@ -77,6 +78,7 @@ private:
   linboPasswordBoxImpl* myLPasswordBox;
   linbopushbutton *autostart, *autopartition, *autoinitcache;
   int preTab, autostarttimeout;
+  linboLogConsole* logConsole;
   
   vector<int> buttons_config;
   vector<bool> buttons_config_save;

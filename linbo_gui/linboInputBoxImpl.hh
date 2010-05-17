@@ -16,6 +16,7 @@
 #include "linboGUIImpl.hh"
 #include "linboProgressImpl.hh"
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
 class linboInputBoxImpl : public QWidget, public Ui::linboInputBox, public linboDialog
 {
@@ -30,6 +31,7 @@ private:
   linboGUIImpl* app;
   QWidget *myMainApp,*myParent;
   QTextEdit *Console;
+  linboLogConsole *logConsole;
 
 public slots:
   void readFromStdout();
@@ -45,7 +47,9 @@ public:
   linboInputBoxImpl( QWidget* parent = 0);
   ~linboInputBoxImpl();
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   void setMainApp( QWidget* newMainApp );

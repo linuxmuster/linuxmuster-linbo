@@ -1,8 +1,16 @@
+linuxmuster-linbo (1.99.24-0) unstable; urgency=low
+
+  * merged knopper.net revision 401.
+  * new upstream kernel version 2.6.33.4.
+  * updated start.conf examples with new parameters.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  MOn, 17 May 2010 13:06:43 +0100
+
 linuxmuster-linbo (1.99.23-0) unstable; urgency=low
 
   * merged knopper.net revision 398.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 14 Apr 2010 09:09:09 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 14 May 2010 09:09:09 +0100
 
 linuxmuster-linbo (1.99.22-0) unstable; urgency=low
 

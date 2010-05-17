@@ -11,6 +11,9 @@
 #include <QTimer>
 #include <qpushbutton.h>
 #include <QTextEdit>
+#include "linboLogConsole.hh"
+
+class linboLogConsole;
 
 class linboProgressImpl : public QWidget, public Ui::linboProgress
 {
@@ -23,6 +26,7 @@ private:
   QTimer* myTimer;
   int time, minutes,seconds;
   QString minutestr,secondstr;
+  linboLogConsole *logConsole;
 
 public:
   linboProgressImpl( QWidget* parent = 0 );
@@ -30,7 +34,9 @@ public:
   ~linboProgressImpl();
 
   void setProcess( QProcess* newProcess );
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
 
 public slots:
   void killLinboCmd();

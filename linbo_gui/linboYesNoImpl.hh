@@ -18,8 +18,11 @@
 #include "linboProgressImpl.hh"
 
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
 class linboGUIImpl;
+class linboLogConsole;
+class linboProgressImpl;
 
 class linboYesNoImpl : public QWidget, public Ui::linboYesNo, public linboDialog
 {
@@ -33,6 +36,7 @@ private:
   QTextEdit *Console;
   linboGUIImpl* app;
   linboProgressImpl *progwindow;
+  linboLogConsole *logConsole;
 
 public slots:
   virtual void precmd();
@@ -51,7 +55,9 @@ public:
    ~linboYesNoImpl();
 
 
-  void setTextBrowser( QTextEdit* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   QStringList getCommand();
   void setCommand(const QStringList& arglist);
   void setMainApp( QWidget* newMainApp );
