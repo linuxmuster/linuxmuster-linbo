@@ -982,10 +982,10 @@ restore(){
    if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
-## for testing, sync also for vfat
-##   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
-##    echo "[Komplette Partition]..."
-##    cp_cloop "$1" "$2" ; RC="$?"
+## for testing, complete sync also for vfat
+   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
+    echo "[Komplette Partition]..."
+    cp_cloop "$1" "$2" ; RC="$?"
    else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then
@@ -1101,11 +1101,15 @@ syncl(){
    # hostname
    local HOSTNAME
    if localmode; then
-    if [ -s /cache/hostname -a -e /tmp/.offline ]; then
-     # add -w to hostname for wlan clients if client is really offline
-     HOSTNAME="$(cat /cache/hostname)-w"
+    if [ -s /cache/hostname ]; then
+     if [ -e /tmp/.offline ]; then
+      # add -w to hostname for wlan clients if client is really offline
+      HOSTNAME="$(cat /cache/hostname)-w"
+     else
+      HOSTNAME="$(cat /cache/hostname)"
+     fi
     else
-     HOSTNAME="$(cat /cache/hostname)"
+     HOSTNAME="$(hostname)"
     fi
    else
     HOSTNAME="$(hostname)"

@@ -14,7 +14,8 @@ trap "" 1 2 11 15
 RESET="]R"
 # ANSI COLORS
 # Erase to end of line
-CRE="[K"
+CRE="
+[K"
 # Clear and reset Screen
 CLEAR="c"
 # Normal color
@@ -354,12 +355,20 @@ network(){
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
   ifconfig ${netdevice:-eth0} $ipaddr $nm
  else
-  for i in /sys/class/net/*; do
-   [ -d "$i" ] || continue
+  # iterate over ethernet interfaces
+  for i in /sys/class/net/eth*; do
    dev="${i##*/}"
-   case "$dev" in lo*|br*) continue;; esac
    ifconfig "$dev" up >/dev/null 2>&1
-   udhcpc -n -i "$dev" >/dev/null 2>&1
+   # test for link
+   if ! ethtool "$dev" | grep -q "Link detected: yes"; then
+    # once again without the net
+    ifconfig "$dev" up >/dev/null 2>&1
+    ethtool "$dev" | grep -q "Link detected: yes" || continue
+   fi
+   # activate wol
+   ethtool -s "$dev" wol g >/dev/null 2>&1
+   # 5 Retries should be enough (Erik)
+   udhcpc -n -i "$dev" -t 5 >/dev/null 2>&1
   done
  fi
  # Network is up now, fetch a new start.conf
@@ -400,11 +409,8 @@ network(){
  isinteger "$autostart" && set_autostart
  # remove reboot flag
  rmlinboreboot
- # activate wol
- for i in `ifconfig | grep ^eth | cut -f1 -d" "`; do
-  echo "Activating wol on $i ..."
-  ethtool -s $i wol g
- done
+ # sets flag if no default route
+ route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  echo > /tmp/linbo-network.done 
 }
 

@@ -390,7 +390,7 @@ install: build
 	echo >> ../initramfs.conf ; \
 	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | grep -v devices | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \

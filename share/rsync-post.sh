@@ -50,9 +50,6 @@ fi
 if [ "$EXT" = ".torrent" ]; then
  timage="$(btshowmetainfo "$LINBODIR/${FILE##*/}" | grep ^"file name" | awk '{ print $3 }')"
  echo "Torrent file for $timage detected. Restarting bittorrent service." >&2
- # sync time for image and torrent files otherwise bittorrent gets confused
- # if uploaded torrent file time is in future
- touch "${timage}*"
  /etc/init.d/linbo-bittorrent restart >&2
  /etc/init.d/bittorrent restart >&2
 fi

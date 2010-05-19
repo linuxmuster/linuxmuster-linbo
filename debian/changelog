@@ -1,3 +1,34 @@
+linuxmuster-linbo (1.99.17-8) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd, restore(): uses complete partition sync again for vfat.
+    - init.sh, network(): added ethtool link test for interfaces.
+  * rsync-post.sh: removed image file touch.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 19 May 2010 19:44:26 +0200
+
+linuxmuster-linbo (1.99.17-7) unstable; urgency=low
+
+  * kernel: added acenic, e100 and tigon firmware.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 22 Apr 2010 08:57:34 +0100
+
+linuxmuster-linbo (1.99.17-6) unstable; urgency=low
+
+  * postinst: suppress passphrase entry in postinst.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 21 Apr 2010 16:39:16 +0100
+
+linuxmuster-linbo (1.99.17-5) unstable; urgency=low
+
+  * kernel:
+    - new version 2.6.33.2.
+  * linbofs:
+    - linbo_cmd.sh, syncl(): fixed offline hostname.
+    - init.sh, network(): fixed setting offline flag.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 15 Apr 2010 11:29:34 +0100
+
 linuxmuster-linbo (1.99.17-4) unstable; urgency=low
 
   * kernel:
