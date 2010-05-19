@@ -1,10 +1,20 @@
+linuxmuster-linbo (1.99.25-0) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd.sh, restore(): uses complete partition sync again for vfat (closes #226).
+    - init.sh, network(): added ethtool link test for interfaces.
+  * rsync-post.sh: removed image file touch.
+  * linbo_gui: changed console palette base lightness to 200.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 17 May 2010 18:02:29 +0100
+
 linuxmuster-linbo (1.99.24-0) unstable; urgency=low
 
   * merged knopper.net revision 401.
   * new upstream kernel version 2.6.33.4.
   * updated start.conf examples with new parameters.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  MOn, 17 May 2010 13:06:43 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 17 May 2010 13:06:43 +0100
 
 linuxmuster-linbo (1.99.23-0) unstable; urgency=low
 

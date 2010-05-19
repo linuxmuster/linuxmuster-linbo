@@ -1000,10 +1000,9 @@ restore(){
    if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
-## for testing, sync also for vfat
-##   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
-##    echo "[Komplette Partition]..."
-##    cp_cloop "$1" "$2" ; RC="$?"
+   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
+    echo "[Komplette Partition]..."
+    cp_cloop "$1" "$2" ; RC="$?"
    else
     echo "[Datei-Sync]..."
     if [ "$force" = "force" ]; then

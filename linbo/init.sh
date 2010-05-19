@@ -379,6 +379,8 @@ network(){
    dev="${i##*/}"
    case "$dev" in lo*|br*) continue;; esac
    ifconfig "$dev" up >/dev/null 2>&1
+   # test for link
+   [ "$(ethtool "$dev" | grep -i "link detected" | awk '{ print $3 }' | tr A-Z a-z)" = "no" ] && continue
    # udhcpc -n -i "$dev" >/dev/null 2>&1
    # 5 Retries should be enough (Erik)
    udhcpc -n -i "$dev" -t 5 >/dev/null 2>&1
