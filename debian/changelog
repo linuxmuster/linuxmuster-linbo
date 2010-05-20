@@ -3,10 +3,10 @@ linuxmuster-linbo (1.99.25-0) unstable; urgency=low
   * linbofs:
     - linbo_cmd.sh, restore(): uses complete partition sync again for vfat (closes #226).
     - init.sh, network(): added ethtool link test for interfaces.
-  * rsync-post.sh: removed image file touch.
+  * rsync-post.sh: removed "-t 5" option from udhcpc.
   * linbo_gui: changed console palette base lightness to 200.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 17 May 2010 18:02:29 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 20 May 2010 17:57:29 +0100
 
 linuxmuster-linbo (1.99.24-0) unstable; urgency=low
 
