@@ -359,16 +359,11 @@ network(){
   for i in /sys/class/net/eth*; do
    dev="${i##*/}"
    ifconfig "$dev" up >/dev/null 2>&1
-   # test for link
-   if ! ethtool "$dev" | grep -q "Link detected: yes"; then
-    # once again without the net
-    ifconfig "$dev" up >/dev/null 2>&1
-    ethtool "$dev" | grep -q "Link detected: yes" || continue
-   fi
    # activate wol
    ethtool -s "$dev" wol g >/dev/null 2>&1
    # 5 Retries should be enough (Erik)
-   udhcpc -n -i "$dev" -t 5 >/dev/null 2>&1
+#   udhcpc -n -i "$dev" -t 5 >/dev/null 2>&1
+   udhcpc -n -i "$dev" >/dev/null 2>&1
   done
  fi
  # Network is up now, fetch a new start.conf
