@@ -1,3 +1,16 @@
+linuxmuster-linbo (1.99.17-10) unstable; urgency=low
+
+  * kernel: new version 2.6.34.
+  * added cloop patch for kernel 2.6.34.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 5 Jul 2010 09:30:09 +0200
+
+linuxmuster-linbo (1.99.17-9) unstable; urgency=low
+
+  * kernel: new version 2.6.33.5.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 02 Jul 2010 07:56:14 +0200
+
 linuxmuster-linbo (1.99.17-8) unstable; urgency=low
 
   * linbofs:
