@@ -267,10 +267,10 @@ create_linbofs() {
   echo "/bin/echo root:$PASSWORD | /usr/sbin/chpasswd" > passwd.sh
   chroot $TMPDIR /bin/sh /passwd.sh
   rm passwd.sh
- 	# md5sum of linbo password
- 	local linbo_md5passwd=`echo -n $PASSWORD | md5sum | awk '{ print $1 }'`
+  # md5sum of linbo password
+  local linbo_md5passwd=`echo -n $PASSWORD | md5sum | awk '{ print $1 }'`
   echo -n "$linbo_md5passwd" > etc/linbo_passwd
- 	echo "Local password for LINBO admin changed"
+  echo "Local password for LINBO admin changed"
  fi
  # change dropbear options
  if [ "$NOSTRICT" = "yes" ]; then
@@ -282,7 +282,7 @@ create_linbofs() {
   echo "Removing authorized_keys."
   rm -f .ssh/authorized_keys
  fi
-	for g in $GRPS_CHECKED; do
+ for g in $GRPS_CHECKED; do
   echo -n "Creating linbofs.gz for group $g ... "
   if [ "$g" = "default" ]; then
    cp $LINBODIR/start.conf .
@@ -291,7 +291,7 @@ create_linbofs() {
   fi
   # pack linbofs.gz
   mkdir -p $MNTPNT/$g
-	 find . | cpio --quiet -o -H newc | gzip -9c > $MNTPNT/$g/linbofs.gz ; RC="$?" || exit 1
+  find . | cpio --quiet -o -H newc | gzip -9c > $MNTPNT/$g/linbofs.gz ; RC="$?" || exit 1
   echo "Ok!"
  done
  cd $curdir
@@ -299,46 +299,46 @@ create_linbofs() {
 
 # writing files to stick/image
 writefiles() {
-	if [ "$1" = "syslinux" ]; then
-		local targetdir=$MNTPNT/boot/$1
- 	mkdir -p $targetdir
-	else
-		local targetdir=$MNTPNT/$1
- 	mkdir -p $targetdir
+ if [ "$1" = "syslinux" ]; then
+  local targetdir=$MNTPNT/boot/$1
+  mkdir -p $targetdir
+ else
+  local targetdir=$MNTPNT/$1
+  mkdir -p $targetdir
   cp $ISOLINUXBIN $targetdir
-	fi
-	local targetcfg=$targetdir/$1.cfg
-	writecfg $targetcfg $1
-	cp $BACKGRND $targetdir/linbo.png
-	cp $GERMANKBD $targetdir
-	cp $REBOOTC32 $targetdir
-	cp $VMENUC32 $targetdir
-	cp $GPXEKRN $targetdir
-	cp $LINBODIR/linbo $MNTPNT
-	create_linbofs
-	if [ -n "$ZIP" -a "$1" = "syslinux" ]; then
-		mkdir -p $MNTPNT/utils/linux
-		mkdir -p $MNTPNT/utils/win32
-		cp $SYSLINUX $MNTPNT/utils/linux
-		cp $INSTALLMBR $MNTPNT/utils/linux
-		cp $SYSLINUXEXE $MNTPNT/utils/win32
-	fi
+ fi
+ local targetcfg=$targetdir/$1.cfg
+ writecfg $targetcfg $1
+ cp $BACKGRND $targetdir/linbo.png
+ cp $GERMANKBD $targetdir
+ cp $REBOOTC32 $targetdir
+ cp $VMENUC32 $targetdir
+ cp $GPXEKRN $targetdir
+ cp $LINBODIR/linbo $MNTPNT
+ create_linbofs
+ if [ -n "$ZIP" -a "$1" = "syslinux" ]; then
+  mkdir -p $MNTPNT/utils/linux
+  mkdir -p $MNTPNT/utils/win32
+  cp $SYSLINUX $MNTPNT/utils/linux
+  cp $INSTALLMBR $MNTPNT/utils/linux
+  cp $SYSLINUXEXE $MNTPNT/utils/win32
+ fi
 }
 
 
 # creating zip archive
 create_zip() {
-			echo -n "Creating zip file ... "
-			cd $MNTPNT
-			zip -rq9 $OUTFILE * ; RC=$?
-			cd $CURDIR
-			rm -rf $MNTPNT
-			if [ "$RC" = "0" ]; then
-				echo "Ok!"
-			else
-				echo "Failed!"
-				exit 1
-			fi
+ echo -n "Creating zip file ... "
+ cd $MNTPNT
+ zip -rq9 $OUTFILE * ; RC=$?
+ cd $CURDIR
+ rm -rf $MNTPNT
+ if [ "$RC" = "0" ]; then
+  echo "Ok!"
+ else
+  echo "Failed!"
+  exit 1
+ fi
 }
 
 
@@ -349,10 +349,10 @@ echo "### Started on `date` ###" | tee -a $LOGFILE
 echo "Media: $MEDIA" | tee -a $LOGFILE
 echo "Group(s): $GRPS_CHECKED" | tee -a $LOGFILE
 if [ -n "$DEVICE" ]; then
-	echo Device: $DEVICE | tee -a $LOGFILE
+ echo Device: $DEVICE | tee -a $LOGFILE
 else
-	echo "Output dir: $OUTDIR" | tee -a $LOGFILE
-	echo "File: `basename $OUTFILE`" | tee -a $LOGFILE
+ echo "Output dir: $OUTDIR" | tee -a $LOGFILE
+ echo "File: `basename $OUTFILE`" | tee -a $LOGFILE
 fi
 [ -n "$DEBUG" ] && echo "Debug: yes" | tee -a $LOGFILE
 echo "Temp dir: $MNTPNT" | tee -a $LOGFILE
@@ -365,111 +365,107 @@ mkdir -p $MNTPNT
 
 # usb stuff
 make_usb() {
+ if [ -n "$ZIP" ]; then
+  writefiles syslinux
+  create_zip
+ fi
 
-	if [ -n "$ZIP" ]; then
-		writefiles syslinux
-		create_zip
-	fi
+ if [ -n "$DEVICE" ]; then
+  PART=${DEVICE}1
 
-	if [ -n "$DEVICE" ]; then
+  echo -n "Writing bootloader to stick ... "
+  if $SYSLINUX $PART 2>> $LOGFILE 1>> $LOGFILE; then
+   echo "Ok!"
+  else
+   echo "Failed!"
+   rm -rf $MNTPNT
+   exit 1
+  fi
 
-		PART=${DEVICE}1
+  echo -n "Mounting stick ... "
+  if mount $PART $MNTPNT; then
+   echo "Ok!"
+  else
+   echo "Failed!"
+   rm -rf $MNTPNT
+   exit 1
+  fi
 
-		echo -n "Writing bootloader to stick ... "
-		if $SYSLINUX $PART 2>> $LOGFILE 1>> $LOGFILE; then
-			echo "Ok!"
-		else
-			echo "Failed!"
-			rm -rf $MNTPNT
-			exit 1
-		fi
+  echo -n "Writing files to stick ..."
+  writefiles syslinux
+  echo "Ok!"
 
-		echo -n "Mounting stick ... "
-		if mount $PART $MNTPNT; then
-			echo "Ok!"
-		else
-			echo "Failed!"
-			rm -rf $MNTPNT
-			exit 1
-		fi
+  echo -n "Unmounting stick ... "
+  umount $MNTPNT
+  rm -rf $MNTPNT
+  echo "Ok!"
 
-		echo -n "Writing files to stick ..."
-		writefiles syslinux
-		echo "Ok!"
+  echo -n "Writing MBR ... "
+  if install-mbr -p 1 $DEVICE 2>> $LOGFILE 1>> $LOGFILE; then
+   echo "Ok!"
+  else
+   echo "Failed!"
+   exit 1
+  fi
 
-		echo -n "Unmounting stick ... "
-		umount $MNTPNT
-		rm -rf $MNTPNT
-		echo "Ok!"
-
-		echo -n "Writing MBR ... "
-		if install-mbr -p 1 $DEVICE 2>> $LOGFILE 1>> $LOGFILE; then
-			echo "Ok!"
-		else
-			echo "Failed!"
-			exit 1
-		fi
-
-	fi
+ fi
 } # make_usb
 
 
 # cdrom stuff
 make_cd() {
+ writefiles isolinux
 
-	writefiles isolinux
+ MKISOFS=`which mkisofs`
+ if [ -z "$MKISOFS" ]; then
+  echo "mkisofs not found! Please install mkisofs!"
+  rm -rf $MNTPNT
+  exit 1
+ fi
 
-	MKISOFS=`which mkisofs`
-	if [ -z "$MKISOFS" ]; then
-		echo "mkisofs not found! Please install mkisofs!"
-		rm -rf $MNTPNT
-		exit 1
-	fi
+ echo "Creating iso image ... "
+ cd $MNTPNT
+ $MKISOFS -r -no-emul-boot -boot-load-size 4 -boot-info-table \
+          -b isolinux/isolinux.bin -c isolinux/boot.cat \
+          -m .svn -J -R -l -o $OUTFILE ./ ; RC=$?
+ cd $CURDIR
 
-	echo "Creating iso image ... "
-	cd $MNTPNT
-	$MKISOFS -r -no-emul-boot -boot-load-size 4 -boot-info-table \
-					-b isolinux/isolinux.bin -c isolinux/boot.cat \
-					-m .svn -J -R -l -o $OUTFILE ./ ; RC=$?
-	cd $CURDIR
+ if [ "$RC" != "0" ]; then
+  echo "Failed!"
+  rm -f $OUTFILE
+  rm -rf $MNTPNT
+  exit 1
+ fi
 
-	if [ "$RC" != "0" ]; then
-		echo "Failed!"
-		rm -f $OUTFILE
-		rm -rf $MNTPNT
-		exit 1
-	fi
+ if [ -n "$DEVICE" ]; then
+  WODIM=`which wodim`
+  if [ -z "$WODIM" ]; then
+   echo "wodim not found! Please install wodim!"
+   exit 1
+  fi
 
-	if [ -n "$DEVICE" ]; then
+  echo "Writing to cdrom ... "
+  $WODIM -s dev=$DEVICE blank=fast $OUTFILE ; RC=$?
 
-		WODIM=`which wodim`
-		if [ -z "$WODIM" ]; then
-			echo "wodim not found! Please install wodim!"
-			exit 1
-		fi
+  if [ "$RC" != "0" ]; then
+   echo "Failed!"
+   rm -rf $MNTPNT
+   exit 1
+  fi
 
-		echo "Writing to cdrom ... "
-		$WODIM -s dev=$DEVICE blank=fast $OUTFILE ; RC=$?
-
-		if [ "$RC" != "0" ]; then
-			echo "Failed!"
-			rm -rf $MNTPNT
-			exit 1
-		fi
-
-	fi
+ fi
 } # make_cd
 
 
 # create usb image
 if [ -n "$USB" ]; then
-	make_usb | tee -a $LOGFILE
+ make_usb | tee -a $LOGFILE
 fi
 
 
 # create cdrom media
 if [ -n "$CDROM" ]; then
-	make_cd | tee -a $LOGFILE
+ make_cd | tee -a $LOGFILE
 fi
 
 [ -d "$MNTPNT" ] && rm -rf $MNTPNT
