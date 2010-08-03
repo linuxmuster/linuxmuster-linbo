@@ -1,3 +1,16 @@
+linuxmuster-linbo (1.99.27-0) unstable; urgency=low
+
+  * kernel:
+    - new version 2.6.34.1.
+    - removed lcd backlight driver.
+   * linbofs:
+    - updated kexec-tools to 2.0.2.
+    - updated chntpw to 100627 and removed old patches.
+    - switched to self compiled grub again.
+    - init.sh, network(): new kernel parameters dhcpretry and mtu were evaluated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue,  3 Aug 2010 12:45:22 +0200
+
 linuxmuster-linbo (1.99.26-0) unstable; urgency=low
 
   * kernel:
