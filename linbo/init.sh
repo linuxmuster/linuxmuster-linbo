@@ -365,7 +365,7 @@ network(){
    [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
    udhcpc -n -i "$dev" $dhcpretry >/dev/null 2>&1
    # set mtu
-   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu
+   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu >/dev/null 2>&1
   done
  fi
  # Network is up now, fetch a new start.conf
