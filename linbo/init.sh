@@ -361,9 +361,11 @@ network(){
    ifconfig "$dev" up >/dev/null 2>&1
    # activate wol
    ethtool -s "$dev" wol g >/dev/null 2>&1
-   # 5 Retries should be enough (Erik)
-#   udhcpc -n -i "$dev" -t 5 >/dev/null 2>&1
-   udhcpc -n -i "$dev" >/dev/null 2>&1
+   # dhcp retries
+   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
+   udhcpc -n -i "$dev" $dhcpretry >/dev/null 2>&1
+   # set mtu
+   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu
   done
  fi
  # Network is up now, fetch a new start.conf

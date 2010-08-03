@@ -129,8 +129,6 @@ configure-stamp:
 		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CHNTPW_ARCHIVE)...[0m" ; \
 		( cd src && unzip ../cache/$(CHNTPW_ARCHIVE) ); \
-		echo "[1mPatching chntpw sources...[0m" ; \
-		( cd $(CHNTPW_DIR) && for i in ../../patches/chntpw/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CHNTPW_DIR) src/chntpw; \
 	fi
 
