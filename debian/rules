@@ -43,8 +43,8 @@ CHNTPW_URL=http://pogostick.net/~pnh/ntpasswd
 
 # kexec-tools
 KEXEC_ARCHIVE=$(shell grep kexec-tools- debian/md5sums.src | awk '{ print $$2 }')
-#KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.bz2//')
-KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.gz//')
+KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.bz2//')
+#KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.gz//')
 #KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
 KEXEC_URL=$(LML_URL)
 
@@ -52,7 +52,8 @@ KEXEC_URL=$(LML_URL)
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
 #GRUB4DOS_DIR=src/grub4dos-$(shell echo $(GRUB4DOS_ARCHIVE) | awk -F\- '{ print $$2 }')
 GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
-GRUB4DOS_URL=http://nufans.net/grub4dos
+#GRUB4DOS_URL=http://nufans.net/grub4dos
+GRUB4DOS_URL=$(LML_URL)
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
