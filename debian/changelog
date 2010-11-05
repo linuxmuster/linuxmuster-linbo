@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.99.17-12) unstable; urgency=low
+
+  * kernel:
+    - new version 2.6.35.8.
+    - updated cloop to 2.634.
+  * rsync-post.sh: convert mac to upper case for new hosts.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  5 Nov 2010 17:55:45 +0100
+
 linuxmuster-linbo (1.99.17-11) unstable; urgency=low
 
   * kernel:

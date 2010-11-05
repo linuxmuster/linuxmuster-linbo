@@ -57,11 +57,14 @@ fi
 # add new host file to workstation data
 if [ "$EXT" = ".new" ]; then
  ROW="$(cat $FILE)"
- if grep "$ROW" $WIMPORTDATA | grep -qv ^#; then
+ if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
   echo "Row already present in workstations data file. Skipped!" >&2
  else
   echo "Adding row to $WIMPORTDATA." >&2
-  cat $FILE >> $WIMPORTDATA
+  # convert mac to upper case
+  mac_old="$(echo $ROW | awk -F\; '{ print $4 }')"
+  mac_new="$(echo $mac_old | tr a-z A-Z)"
+  echo "$ROW" | sed -e "s|$mac_old|$mac_new|" >> $WIMPORTDATA
  fi
  rm $FILE
 fi
