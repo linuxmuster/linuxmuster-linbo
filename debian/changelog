@@ -1,3 +1,42 @@
+linuxmuster-linbo (1.99.30-0) unstable; urgency=low
+
+  * kernel: updated cloop to 2.634, kernel to 2.6.35.8.
+  * rsync-post.sh: convert mac to upper case for new hosts.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  5 Nov 2010 18:41:21 +0100
+
+linuxmuster-linbo (1.99.29-3) unstable; urgency=low
+
+   * kernel: going back to default grub.exe.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  10 Sep 2010 16:38:37 +0200
+
+linuxmuster-linbo (1.99.29-2) unstable; urgency=low
+
+   * kernel: modified framebuffer configuration, removed chip set specific drivers.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri,  10 Sep 2010 09:24:41 +0200
+
+linuxmuster-linbo (1.99.29-1) unstable; urgency=low
+
+   * linbofs: updated grub.exe to 0.4.5b-2010-08-12.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue,  7 Sep 2010 09:00:41 +0200
+
+linuxmuster-linbo (1.99.29-0) unstable; urgency=low
+
+   * kernel: new version 2.6.35.4.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue,  7 Sep 2010 08:05:56 +0200
+
+llinuxmuster-linbo (1.99.28-0) unstable; urgency=low
+
+   * kernel: added some framebuffer and agp drivers.
+   * linbofs:
+     - updated grub.exe to 0.4.5b-2010-07-25.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed,  4 Aug 2010 14:55:32 +0200
+
 linuxmuster-linbo (1.99.27-0) unstable; urgency=low
 
   * kernel:
