@@ -1,3 +1,10 @@
+linuxmuster-linbo (1.99.17-14) unstable; urgency=low
+
+  * kernel:
+    - activated usb input drivers.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  MOn, 15 Nov 2010 10:13:12 +0100
+
 linuxmuster-linbo (1.99.17-13) unstable; urgency=low
 
   * kernel:
