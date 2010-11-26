@@ -1,9 +1,18 @@
+linuxmuster-linbo (1.99.17-15) unstable; urgency=low
+
+  * kernel: back to 2.6.34.7.
+  * linbofs:
+    - updated ms-sys to 2.2.0.
+    - updated ntfs-3g to 2010.10.2.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 26 Nov 2010 10:14:34 +0100
+
 linuxmuster-linbo (1.99.17-14) unstable; urgency=low
 
   * kernel:
     - activated usb input drivers.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  MOn, 15 Nov 2010 10:13:12 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 15 Nov 2010 10:13:12 +0100
 
 linuxmuster-linbo (1.99.17-13) unstable; urgency=low
 

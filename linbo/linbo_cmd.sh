@@ -1140,12 +1140,13 @@ syncl(){
       fi
      fi
      # write partition bootsector
-     [ "$(fstype "$5")" = "vfat" ] && ms-sys -2 "$5"
+     # XP on fat
+     [ "$(fstype "$5")" = "vfat" ] && ms-sys -f -2 "$5"
     elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
      cp -f "$TMP" /mnt/linbo.reg
      unix2dos /mnt/linbo.reg
-     ms-sys -3 "$5"
-    fi
+     ms-sys -f -3 "$5"
+    fi # write partition bootsector
     rm -f "$TMP"
    fi
    # patching for linux systems

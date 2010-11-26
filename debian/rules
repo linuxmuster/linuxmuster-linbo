@@ -60,7 +60,7 @@ GRUB4DOS_URL=$(LML_URL)
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
-MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tgz//')
+MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
 MSSYS_URL=$(LML_URL)
 
 # ntfs-3g
