@@ -1,3 +1,11 @@
+linuxmuster-linbo (1.99.17-16) unstable; urgency=low
+
+  * linbofs:
+    - linbo_cmd, partition(): added support for multiple disks (closes #394).
+    - init, set_autostart(): fixed broken autostart parameter > 1 (closes #307).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 27 Nov 2010 13:05:29 +0100
+
 linuxmuster-linbo (1.99.17-15) unstable; urgency=low
 
   * kernel: back to 2.6.34.7.

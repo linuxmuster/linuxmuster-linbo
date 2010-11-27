@@ -320,8 +320,6 @@ set_autostart() {
  grep "$REMOTE_TAG" /start.conf && return 0
  # count [OS] entries
  local counts="$(grep -ci ^"\[OS\]" /start.conf)"
- # return if autostart value is greater than number of OS entries
- [ $autostart -gt $counts -o $autostart -lt 0 ] && return
  # return if autostart shall be suppressed generally
  if [ "$autostart" = "0" ]; then
   # set all autostart parameters to no
@@ -334,7 +332,7 @@ set_autostart() {
  local line=""
  while read -r line; do
   if echo "$line" | grep -qi ^"\[OS\]"; then
-   let c=+1
+   let c++
    [ "$autostart" = "$c" ] && found=1
   fi
   # suppress autostart for other OS entries
