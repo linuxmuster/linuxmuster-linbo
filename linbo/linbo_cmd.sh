@@ -445,8 +445,15 @@ killalltorrents(){
 # partitions with known fstypes are formatted.
 partition(){
  echo -n "partition " ;  printargs "$@"
+ local WAIT=5
+ # check for running torrents and kill them if any
+ if ps w | grep ctorrent | grep -v grep &>/dev/null; then
+  echo "Killing torrents ..."
+  killall -9 ctorrent
+  sleep "$WAIT"
+  ps w | grep ctorrent | grep -v grep &>/dev/null && sleep "$WAIT"
+ fi
  # umount /cache if mounted
- killalltorrents
  if cat /proc/mounts | grep -q /cache; then
   cd /
   if ! umount /cache &>/dev/null; then
@@ -458,24 +465,38 @@ partition(){
    fi
   fi
  fi
- local table=""
- local formats=""
- local disk="${1%%[1-9]*}"
- local cylinders=""
- local disksize=""
- local dummy=""
- local relax=""
- local pcount=0
- local fstype=""
- local bootable=""
- read d cylinders relax <<.
+
+ # grep all disks from start.conf
+ local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
+ # compute the last partition of each disk
+ local i=""
+ for i in $disks; do
+  local lastpartitions="$lastpartitions $(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -r | grep $i | head -1)"
+ done
+
+ while [ "$#" -ge "5" ]; do
+  # support multiple disks
+  local disk="${1%%[1-9]*}"
+  if echo "$disks" | grep -q "$disk"; then
+   disks="$(echo "$disks" | sed -e "s|$disk||")"
+   local table=""
+   local formats=""
+   local cylinders=""
+   local disksize=""
+   local dummy=""
+   local relax=""
+   local pcount=0
+   local fstype=""
+   local bootable=""
+   read d cylinders relax <<.
 $(sfdisk -g "$disk")
 .
- read disksize relax <<.
+   read disksize relax <<.
 $(sfdisk -s "$disk")
 .
- [ -n "$cylinders" -a "$cylinders" -gt 0 -a -n "$disksize" -a "$disksize" -gt 0 ] >/dev/null 2>&1 || { echo "Festplatten-Geometrie von $disk lässt sich nicht lesen, cylinders=$cylinders, disksize=$disksize, Abbruch." >&2; return 1; }
- while [ "$#" -ge "5" ]; do
+   [ -n "$cylinders" -a "$cylinders" -gt 0 -a -n "$disksize" -a "$disksize" -gt 0 ] >/dev/null 2>&1 || { echo "Festplatten-Geometrie von $disk lässt sich nicht lesen, cylinders=$cylinders, disksize=$disksize, Abbruch." >&2; return 1; }
+  fi
+  # compute partition table
   local dev="$1"
   [ -n "$dev" ] || continue
   local csize=""
@@ -507,21 +528,20 @@ $(sfdisk -s "$disk")
   table="$table,$csize,$3${bootable:+,*}"
   [ -n "$fstype" ] && formats="$formats $dev,$fstype"
   shift 5
- done
- # tschmitt: This causes windows to recognize a new harddisk after each partitioning, which leeds
- # further to a rather annoying "System settings changed, do you want to restart" dialog box,
- # therefore deactivated
- #dd if=/dev/zero of="$disk" bs=512 count=1
- sfdisk -D -f "$disk" 2>&1 <<EOT
+  # write partition table if last disk partition is reached
+  if echo "$lastpartitions" | grep -q "$dev"; then
+   sfdisk -D -f "$disk" 2>&1 <<EOT
 $table
 EOT
- if [ "$?" = "0" -a -z "$NOFORMAT" ]; then
-  sleep 2
-  local i=""
-  for i in $formats; do
-   format "${i%%,*}" "${i##*,}"
-  done
- fi
+   if [ "$?" = "0" -a -z "$NOFORMAT" ]; then
+    sleep 2
+    local i=""
+    for i in $formats; do
+     format "${i%%,*}" "${i##*,}"
+    done
+   fi # format
+  fi # lastpartitions
+ done
 }
 
 # mkgrub disk
