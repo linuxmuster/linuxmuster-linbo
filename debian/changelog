@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.99.35-0) unstable; urgency=low
+
+  * kernel:
+    - updated to 2.6.36.1.
+    - cloop updated to 2.636-1, added cloop-lock_kernel.patch.
+    - compiling usb hid drivers statically.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 07 Dec 2010 19:44:56 +0100
+
 linuxmuster-linbo (1.99.34-0) unstable; urgency=low
 
   * kernel:
@@ -65,7 +74,7 @@ linuxmuster-linbo (1.99.29-0) unstable; urgency=low
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue,  7 Sep 2010 08:05:56 +0200
 
-llinuxmuster-linbo (1.99.28-0) unstable; urgency=low
+linuxmuster-linbo (1.99.28-0) unstable; urgency=low
 
    * kernel: added some framebuffer and agp drivers.
    * linbofs:
