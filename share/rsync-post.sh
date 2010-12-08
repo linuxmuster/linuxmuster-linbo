@@ -30,6 +30,7 @@ if [ -s "$BACKUP" ]; then
  if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
   echo "Upload of ${FILE##*/} was successful." >&2
   DATE="$(date +'%Y-%m-%d-%H%M')" # YYYY-MM-DD-hhmm
+  BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}" # File Extension
   ARCHIVE="${FILE%%$EXT}-$DATE$EXT"
   mv -fv "$BACKUP" "$ARCHIVE"
   echo "Archive file ${ARCHIVE##*/} created." >&2

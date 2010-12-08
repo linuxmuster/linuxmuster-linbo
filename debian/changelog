@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.99.36-0) unstable; urgency=low
+
+  * kernel:
+    - compiling usb host drivers dynamically.
+  * server side scripting:
+    - rsync-post.sh: fixed renaming scheme of backup files (closes #280).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Dec 2010 18:20:17 +0100
+
 linuxmuster-linbo (1.99.35-0) unstable; urgency=low
 
   * kernel:
