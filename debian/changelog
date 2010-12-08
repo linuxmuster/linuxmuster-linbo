@@ -1,3 +1,15 @@
+linuxmuster-linbo (1.99.17-17) unstable; urgency=low
+
+  * kernel:
+    - updated to 2.6.36.1.
+    - cloop updated to 2.636-1, added cloop-lock_kernel.patch.
+    - compiling usb hid drivers statically.
+    - added VMware PVSCSI and VMXNET3 driver statically.
+  * server side scripting:
+    - rsync-post.sh: fixed renaming scheme of backup files (closes #280).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Dec 2010 07:14:56 +0100
+
 linuxmuster-linbo (1.99.17-16) unstable; urgency=low
 
   * linbofs:

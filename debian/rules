@@ -228,6 +228,8 @@ configure-stamp:
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
+		echo "[1mPatching cloop sources...[0m" ; \
+		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 	fi
 
 	# kernel
