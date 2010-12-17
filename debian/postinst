@@ -1,5 +1,6 @@
 #!/bin/bash
 # postinst script for linuxmuster
+# $Id$
 #
 # see: dh_installdeb(1)
 
@@ -66,32 +67,59 @@ case "$1" in
  fi
 
  # updating start.confs
- [ -d "$LINBODIR/backup" ] || mkdir -p $LINBODIR/backup
- for i in `find $LINBODIR -type f -name start.conf\*`; do
-  backed_up=no
-  if grep -q RemoteSyncEnabled $i; then
-   backup_file $i
-   backed_up=yes
-   sed -e 's/RemoteSyncEnabled/NewEnabled/g' -i $i
-  fi
-  if grep -q pxegrub $i; then
-   if [ "$backed_up" = "no" ]; then
-    backup_file $i
+ if ls $LINBODIR/start.conf.* &> /dev/null; then
+  mkdir -p $LINBODIR/backup
+  for i in $LINBODIR/start.conf.*; do
+   ext="$(echo $i | grep -o '\.[^.]*$')"
+   [ "$ext" = ".gz" ] && continue
+   backed_up=""
+   echo -n "Checking ${i/$LINBODIR\/}: "
+   # RemoteSyncEnabled -> NewEnabled
+   if grep -qi ^remotesyncenabled $i; then
+    cp $i $LINBODIR/backup
     backed_up=yes
+    echo -n "RemoteSyncEnabled -> NewEnabled ... "
+    sed -e 's/[Rr][Ee][Mm][Oo][Tt][Ee][Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd]/NewEnabled/g' -i $i
    fi
-   sed -e 's/pxegrub/grub.exe/g' -i $i
-  fi
-  if grep -q ^UseMulticast $i; then
-   [ "$backed_up" = "no" ] &&	backup_file $i
-   RET=`grep -i ^usemulticast $i | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
-   if [ "$RET" = "yes" ]; then
-    rstr="multicast"
-   else
-    rstr="rsync"
+   # pxegrub -> grub.exe
+   if grep -qi pxegrub $i; then
+    if [ -z "$backed_up" ]; then
+     cp $i $LINBODIR/backup
+     backed_up=yes
+    fi
+    echo -n "pxegrub -> grub.exe ... "
+    sed -e 's/[Pp][Xx][Ee][Gg][Rr][Uu][Bb]/grub.exe/g' -i $i
    fi
-   sed -e "s|^UseMulticast.*|DownloadType = $rstr # Image-Download per torrent\|multicast\|rsync\, default ist rsync|" -i $i
-  fi
- done
+   # UseMultiCast -> DownloadType (#403)
+   if grep -qi ^usemulticast $i; then
+    if [ -z "$backed_up" ]; then
+     cp $i $LINBODIR/backup
+     backed_up=yes
+    fi
+    RET=`grep -i ^usemulticast $i | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
+    echo -n "UseMultiCast -> DownloadType ... "
+    if [ "$RET" = "yes" ]; then
+     rstr="multicast"
+    else
+     rstr="rsync"
+    fi
+    sed -e "s|^[Uu][Ss][Ee][Mm][Uu][Ll][Tt][Ii][Cc][Aa][Ss][Tt].*|DownloadType = $rstr # Image-Download per torrent\|multicast\|rsync\, default ist rsync|" -i $i
+   fi
+   # adding DownloadType
+   if ! grep -qi ^downloadtype $i; then
+    if [ -z "$backed_up" ]; then
+     cp $i $LINBODIR/backup
+     backed_up=yes
+    fi
+    echo -n "Adding DownloadType ... "
+    sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
+DownloadType = rsync # Image-Download per torrent\|multicast\|rsync\, default ist rsync" -i $i
+   fi
+   echo "Ok!"
+   [ -n "$backed_up" ] && backup_flag=yes
+  done
+  [ -n "$backup_flag" ] && echo "Changed files were backed up to $LINBODIR/backup!"
+ fi # updating start.confs
 
  # check for linbo mail wrapper in /etc/aliases
  if ! grep -q ^linbo: /etc/aliases; then

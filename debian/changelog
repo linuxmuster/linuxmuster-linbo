@@ -1,3 +1,9 @@
+linuxmuster-linbo (1.99.37-0) unstable; urgency=low
+
+  * postinst: fixed conversion of UseMultiCast to DownloadType in start.confs (closes #403).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 17 Dec 2010 17:08:08 +0100
+
 linuxmuster-linbo (1.99.36-0) unstable; urgency=low
 
   * kernel:
