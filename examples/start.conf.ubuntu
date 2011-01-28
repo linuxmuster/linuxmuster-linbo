@@ -1,9 +1,9 @@
-# LINBO start.conf, Beispiel fuer Kubuntu
-# Kubuntu auf Partition 1
+# LINBO start.conf, Beispiel fuer Ubuntu
+# Ubuntu auf Partition 1
 # Cache auf Partition 2
 # Swap auf Partition 3
 # Daten auf Partition 4
-# Festplatte 40G (IDE)
+# Festplatte 40G
 
 [LINBO]                  # Start der globalen Konfiguration
 Cache = /dev/sda2        # lokale Cache Partition
@@ -18,7 +18,7 @@ DownloadType = torrent   # Image-Download per torrent|multicast|rsync, default i
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte)
 Size = 6291456           # Partitionsgroesse in kB (Bsp.: 6G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = ext3            # Dateisystem ext3
+FSType = ext4            # Dateisystem ext4
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Cachepartition
@@ -39,25 +39,21 @@ Bootable = no            # Bootable-Flag
 Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster IDE-Platte)
 Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 25G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = ext3            # Dateisystem ext3
+FSType = ext4            # Dateisystem ext4
 Bootable = no            # Bootable-Flag
 
 [OS]
-Name = Kubuntu                      # Name des Betriebssystems
+Name = Ubuntu                       # Name des Betriebssystems
 Version =                           # Version (optional)
-Description = Kubuntu 8.04 Hardy    # Beschreibung
-#Image =  hardy.rsync               # Dateiname des differentiellen Images (Erweiterung .rsync)
+Description = Ubuntu 10.04 Lucid    # Beschreibung
+#Image =  ubuntu.rsync              # Dateiname des differentiellen Images (Erweiterung .rsync)
 Image =                             # erst eintragen, wenn es erzeugt werden soll
-BaseImage = hardy.cloop             # Dateiname des Basisimages (Erweiterung .cloop)
+BaseImage = ubuntu.cloop            # Dateiname des Basisimages (Erweiterung .cloop)
 Boot = /dev/sda1                    # Partition, die Kernel & Initrd enthaelt
 Root = /dev/sda1                    # Rootpartition, in die das BS installiert ist
 Kernel = vmlinuz                    # Relativer Pfad zum Kernel
 Initrd = initrd.img                 # Relativer Pfad zur Initrd
 Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen
-#Append = ro splash root=/dev/sda1  # bei Hardy muss evtl. root=/dev/sda2 angehaengt werden, da bei manchen
-                                    # IDE-Kontrollern der Hardy-Kernel die neuen PATA-Treiber verwendet, die
-                                    # IDE-Platten mit /dev/sd* ansprechen
-                                    # ansonsten wird automatisch das verwendet, was unter "Root =" angegeben ist.
 StartEnabled = yes                  # "Start"-Button anzeigen
 SyncEnabled = yes                   # "Sync+Start"-Button anzeigen
 NewEnabled = yes                    # "Neu+Start"-Button anzeigen

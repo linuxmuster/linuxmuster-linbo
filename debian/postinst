@@ -1,5 +1,6 @@
 #!/bin/bash
 # postinst script for linuxmuster
+# $Id$
 #
 # see: dh_installdeb(1)
 

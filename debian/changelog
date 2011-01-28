@@ -1,3 +1,10 @@
+linuxmuster-linbo (1.99.17-20) unstable; urgency=low
+
+  * start.conf examples updated.
+  * added example for postsync (zweite_partition.postsync).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 28 Jan 2011 11:59:11 +0100
+
 linuxmuster-linbo (1.99.17-19) unstable; urgency=low
 
   * postinst: fixed conversion of UseMultiCast to DownloadType in start.confs (closes #403).
