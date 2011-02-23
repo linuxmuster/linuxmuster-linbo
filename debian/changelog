@@ -1,3 +1,9 @@
+linuxmuster-linbo (1.99.17-21) unstable; urgency=low
+
+  * linbo_cmd, mk_cloop(): fixed evaluation of image creation return code (closes #421).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Feb 2011 19:24:36 +0100
+
 linuxmuster-linbo (1.99.17-20) unstable; urgency=low
 
   * start.conf examples updated.
