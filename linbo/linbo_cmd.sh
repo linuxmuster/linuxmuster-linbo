@@ -305,13 +305,16 @@ mountpart(){
     ln -sf /dev/cloop0 /dev/cloop
     break
    else
+    [ "$i" = "5" ] && break
     echo "Cloop-Device ist noch nicht verfuegbar, versuche erneut..."
     sleep 2
    fi
   done
   if [ ! -b /dev/cloop0 ]; then
-   echo "Cloop-Device nicht gefunden! Breche ab!"
+   echo "Cloop-Device ist nicht bereit! Breche ab!"
    return 1
+  else
+   echo "...Ok! :-)"
   fi
  fi
  # wait for partition
