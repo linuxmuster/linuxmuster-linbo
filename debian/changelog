@@ -1,3 +1,20 @@
+linuxmuster-linbo (1.99.39-0) unstable; urgency=low
+
+  * linbo_cmd:
+    - control: changed dependency from back to atftpd.
+    - mk_cloop(): fixed evaluation of image creation return code and fstype (closes #421).
+    - mountpart(): fixed evaluation of fstype and added waiting loop for cloop device (closes #421).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 24 Feb 2011 10:46:11 +0100
+
+linuxmuster-linbo (1.99.38-0) unstable; urgency=low
+
+  * control: changed dependency from atftpd to tftpd-hpa.
+  * start.conf examples updated.
+  * added example for postsync (zweite_partition.postsync).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Feb 2011 09:40:22 +0100
+
 linuxmuster-linbo (1.99.37-0) unstable; urgency=low
 
   * postinst: fixed conversion of UseMultiCast to DownloadType in start.confs (closes #403).

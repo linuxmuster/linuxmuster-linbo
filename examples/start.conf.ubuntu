@@ -1,68 +1,61 @@
 # LINBO start.conf, Beispiel fuer Ubuntu
-# Ubuntu 10.04 auf Partition 1 (ext4)
+# Ubuntu auf Partition 1
 # Cache auf Partition 2
 # Swap auf Partition 3
 # Daten auf Partition 4
+# Festplatte 40G
 
-[LINBO]                        # Start der globalen Konfiguration
-Cache = /dev/sda2              # lokale Cache Partition
-Server = 10.16.1.1             # IP des TFTP-Servers, der Images vorhaelt
-RootTimeout = 600              # automatischer Rootlogout nach 600 Sek.
-AutoPartition = no             # keine automatische Partitionsreparatur beim LINBO-Start
-AutoFormat = no                # kein automatisches Formatieren aller Partitionen beim LINBO-Start
-AutoInitCache = no             # kein automatisches Befüllen des Caches beim LINBO-Start
-DownloadType = torrent         # Image-Download per torrent|multicast|rsync, default ist rsync
-# Schriftfarben (white, black, green, blue, red, yellow)
-BackgroundFontColor = white    # Bildschirmschriftfarbe (default: white)
-ConsoleFontColorStdout = white # Konsolenschriftfarbe (default: white)
-ConsoleFontColorStderr = red   # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
+[LINBO]                  # Start der globalen Konfiguration
+Cache = /dev/sda2        # lokale Cache Partition
+Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
+RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
+AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
+AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
+AutoInitCache = no       # kein automatisches Bef�llen des Caches beim LINBO-Start
+DownloadType = torrent   # Image-Download per torrent|multicast|rsync, default ist rsync
 
-[Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Ubuntu)
-Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Festplatte)
+[Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Kubuntu)
+Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte)
 Size = 6291456           # Partitionsgroesse in kB (Bsp.: 6G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext4            # Dateisystem ext4
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Cachepartition
-Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster Festplatte)
+Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster IDE-Platte)
 Size = 10485760          # Partitionsgroesse 8388608 kB (Bsp.: 10G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = reiserfs        # Dateisystem reiserfs (empf. für Cache)
+FSType = reiserfs        # Dateisystem reiserfs (empf. f�r Cache)
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Definition der Swap-Partition
-Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster Festplatte)
+Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster IDE-Platte)
 Size = 524288            # Partitionsgroesse in kB (Bsp.: 512M)
 Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = swap            # Dateisystem swap
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Datenpartition
-Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster Festplatte)
-Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte)
+Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster IDE-Platte)
+Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 25G)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext4            # Dateisystem ext4
 Bootable = no            # Bootable-Flag
 
 [OS]
-Name = Ubuntu                  # Name des Betriebssystems
-Version =                      # Version (optional)
-Description = Ubuntu 10.04 LTS # Beschreibung
-IconName = ubuntu.png          # Name des Startbuttonicons, max. 86x86 Pixel, muss unter /var/linbo/icons liegen
-#Image = ubuntu.rsync          # Dateiname des differentiellen Images (Erweiterung .rsync)
-Image =                        # erst eintragen, wenn es erzeugt werden soll
-BaseImage = ubuntu.cloop       # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1               # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda1               # Rootpartition, in die das BS installiert ist
-Kernel = vmlinuz               # Relativer Pfad zum Kernel
-Initrd = initrd.img            # Relativer Pfad zur Initrd
-Append = ro splash             # Kernel-Append-Parameter, ggf. anpassen
-StartEnabled = yes             # "Start"-Button anzeigen
-SyncEnabled = yes              # "Sync+Start"-Button anzeigen
-NewEnabled = yes               # "Neu+Start"-Button anzeigen
-Hidden = yes                   # verstecke OS-Reiter
-DefaultAction = sync           # Standardaktion für großen Startbutton (mögl. Werte sync, start, new, default: sync)
-Autostart = no                 # automatischer synchronisierter Start des Betriebssystems
-AutostartTimeout = 5           # Abbruch-Timeout in Sek. für Autostart
-
+Name = Ubuntu                       # Name des Betriebssystems
+Version =                           # Version (optional)
+Description = Ubuntu 10.04 Lucid    # Beschreibung
+#Image =  ubuntu.rsync              # Dateiname des differentiellen Images (Erweiterung .rsync)
+Image =                             # erst eintragen, wenn es erzeugt werden soll
+BaseImage = ubuntu.cloop            # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1                    # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1                    # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                    # Relativer Pfad zum Kernel
+Initrd = initrd.img                 # Relativer Pfad zur Initrd
+Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen
+StartEnabled = yes                  # "Start"-Button anzeigen
+SyncEnabled = yes                   # "Sync+Start"-Button anzeigen
+NewEnabled = yes                    # "Neu+Start"-Button anzeigen
+Hidden = yes                        # verstecke OS-Reiter
+Autostart = no                      # automatischer synchronisierter Start des Betriebssystems

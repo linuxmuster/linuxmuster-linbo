@@ -4,7 +4,7 @@
 # License: GPL V2
 #
 # paedML/openML modifications by Thomas Schmitt
-# last change: 26.04.2010
+# $Id$
 #
 
 CLOOP_BLOCKSIZE="131072"
@@ -298,24 +298,38 @@ mountpart(){
  if [ "$3" = "-r" ]; then OPTS="$OPTS,ro"; else OPTS="$OPTS,rw"; fi
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
-  [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
+  # wait for cloop0 to appear
+  for i in 1 2 3 4 5; do
+   if [ -b /dev/cloop0 ]; then
+    rm -f /dev/cloop
+    ln -sf /dev/cloop0 /dev/cloop
+    break
+   else
+    echo "Cloop-Device ist noch nicht verfuegbar, versuche erneut..."
+    sleep 2
+   fi
+  done
+  if [ ! -b /dev/cloop0 ]; then
+   echo "Cloop-Device nicht gefunden! Breche ab!"
+   return 1
+  fi
  fi
+ # wait for partition
  for i in 1 2 3 4 5; do
   type="$(fstype $1)"
   RC="$?"
   [ "$RC" = "0" ] && break
   [ "$i" = "5" ] && break
-  echo "Partition $1 ist noch nicht verfügbar, versuche erneut..."
+  echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
   sleep 2
  done
- [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+ [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
-  ntfs)
+  *ntfs*)
    OPTS="$OPTS,force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
-  vfat)
-   OPTS="$OPTS,umask=000,shortname=winnt,utf8"
+  *fat*)
    mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
   *)
@@ -774,8 +788,10 @@ mk_cloop(){
    fi
    echo "Starte Kompression von $2 -> $3 (ganze Partition, ${size}K)." | tee -a /tmp/image.log
    echo "create_compressed_fs -B $CLOOP_BLOCKSIZE -L 1 -t 2 -s ${size}K $2 $3" | tee -a /tmp/image.log
-   interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 | tee -a /tmp/image.log
+   (
+   interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3"
    RC="$?"
+   ) 2>&1 | tee -a /tmp/image.log
    if [ "$RC" = "0" ]; then
     # create status file
     if mountpart "$2" /mnt -w ; then
@@ -790,7 +806,8 @@ mk_cloop(){
     echo "Fertig." | tee -a /tmp/image.log
     ls -l "$3"
    else
-    echo "Das Komprimieren ist fehlgeschlagen." | tee -a /tmp/image.log
+    echo "Die Erstellung von $3 ist fehlgeschlagen. :(" | tee -a /tmp/image.log
+    rm -f "$3"
    fi
   ;;
   differential)
@@ -806,12 +823,11 @@ mk_cloop(){
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
       case $type in
-       ntfs) ROPTS="-HazAX" ;;
-       vfat) ROPTS="-rtz" ;;
+       *ntfs*) ROPTS="-HazAX" ;;
+       *vfat*) ROPTS="-rtz" ;;
        *) ROPTS="-az" ;;
       esac
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 >>/tmp/image.log
-      RC="$?"
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop ; RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
         imgsize="$(get_filesize $3)"
@@ -819,8 +835,8 @@ mk_cloop(){
         echo "Fertig." | tee -a /tmp/image.log
         ls -l "$3"
       else
-       echo "Das differentielle Imagen ist fehlgeschlagen, rsync Fehler-Code: $RC." | tee -a /tmp/image.log
-       sleep 5
+       echo "Die Erstellung von $3 ist fehlgeschlagen. :(" | tee -a /tmp/image.log
+       rm -f "$3"
       fi
      else
       RC="$?"
