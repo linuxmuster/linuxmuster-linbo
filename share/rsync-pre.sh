@@ -16,9 +16,9 @@ FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
 BACKUP="${FILE}.BAK"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 
-# Save filename for post-script and exit, if it is a new host data or torrent file
+# Save filename for post-script and exit, if it is a new host data file
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
-if [ "$EXT" = ".new" -o "$EXT" = ".torrent" ]; then
+if [ "$EXT" = ".new" ]; then
  [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
  echo "$FILE" > "$PIDFILE"
  exit 0

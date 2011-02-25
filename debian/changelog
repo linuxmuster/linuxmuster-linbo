@@ -1,8 +1,13 @@
 linuxmuster-linbo (1.99.17-21) unstable; urgency=low
 
-  * linbo_cmd, mk_cloop(): fixed evaluation of image creation return code (closes #421).
+  * linbo_cmd:
+    - mk_cloop(): fixed evaluation of image creation return code and fstype (closes #421).
+    - mountpart():
+      o fixed evaluation of fstype and added waiting loop for cloop device (closes #421).
+      o added noatime mount option.
+  * rsync-pre.sh: fixed backup of old torrent file if newer one was uploaded (closes #422).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Feb 2011 19:24:36 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 25 Feb 2011 08:40:02 +0100
 
 linuxmuster-linbo (1.99.17-20) unstable; urgency=low
 

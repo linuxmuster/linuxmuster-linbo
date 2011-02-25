@@ -292,27 +292,49 @@ mountpart(){
  local RC=0
  local type=""
  local i=0
- local OPTS=""
- if [ "$3" = "-r" ]; then OPTS="ro"; else OPTS="rw"; fi
+ local wmsg=0
+ # "noatime" is required for later remount, otherwise kernel will default to "relatime",
+ # which busybox mount does not know
+ local OPTS="noatime"
+ if [ "$3" = "-r" ]; then OPTS="$OPTS,ro"; else OPTS="$OPTS,rw"; fi
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
-  [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
+  # wait for cloop0 to appear
+  for i in 1 2 3 4 5; do
+   if [ -b /dev/cloop0 ]; then
+    rm -f /dev/cloop
+    ln -sf /dev/cloop0 /dev/cloop
+    break
+   else
+    [ "$i" = "5" ] && break
+    echo "Cloop-Device ist noch nicht verfuegbar, versuche erneut..."
+    wmsg=1
+    sleep 2
+   fi
+  done
+  if [ ! -b /dev/cloop0 ]; then
+   echo "Cloop-Device ist nicht bereit! Breche ab!"
+   return 1
+  else
+   [ "$wmsg" = "1" ] && echo "...Ok! :-)"
+  fi
  fi
+ # wait for partition
  for i in 1 2 3 4 5; do
   type="$(fstype $1)"
   RC="$?"
   [ "$RC" = "0" ] && break
   [ "$i" = "5" ] && break
-  echo "Partition $1 ist noch nicht verfügbar, versuche erneut..."
+  echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
   sleep 2
  done
- [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+ [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
-  ntfs)
+  *ntfs*)
    OPTS="$OPTS,force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
-  vfat)
+  *fat*)
    mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
   *)
@@ -713,7 +735,7 @@ cleanup_fs(){
 
 # mk_cloop type inputdev imagename baseimage [timestamp]
 mk_cloop(){
- echo "## $(date) : Starte Erstellung von $1." | tee -a /tmp/image.log
+ echo "## $(date) : Starte Erstellung von $3." | tee -a /tmp/image.log
  #echo -n "mk_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  # kill torrent process for this image
  local pid="$(ps w | grep ctorrent | grep "$3.torrent" | grep -v grep | awk '{ print $1 }')"
@@ -750,10 +772,7 @@ mk_cloop(){
    fi
    echo "Starte Kompression von $2 -> $3 (ganze Partition, ${size}K)." | tee -a /tmp/image.log
    echo "create_compressed_fs -B $CLOOP_BLOCKSIZE -L 1 -t 2 -s ${size}K $2 $3" | tee -a /tmp/image.log
-   (
-   interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3"
-   RC="$?"
-   ) 2>&1 | tee -a /tmp/image.log
+   interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 ; RC="$?"
    if [ "$RC" = "0" ]; then
     # create status file
     if mountpart "$2" /mnt -w ; then
@@ -769,7 +788,6 @@ mk_cloop(){
     ls -l "$3"
    else
     echo "Die Erstellung von $3 ist fehlgeschlagen. :(" | tee -a /tmp/image.log
-    rm -f "$3"
    fi
   ;;
   differential)
@@ -785,14 +803,11 @@ mk_cloop(){
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
       case $type in
-       ntfs) ROPTS="-HazAX" ;;
-       vfat) ROPTS="-rtz" ;;
+       *ntfs*) ROPTS="-HazAX" ;;
+       *vfat*) ROPTS="-rtz" ;;
        *) ROPTS="-az" ;;
       esac
-      (
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop
-      RC="$?"
-      ) 2>&1 >>/tmp/image.log
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
         imgsize="$(get_filesize $3)"
@@ -801,7 +816,6 @@ mk_cloop(){
         ls -l "$3"
       else
        echo "Die Erstellung von $3 ist fehlgeschlagen. :(" | tee -a /tmp/image.log
-       rm -f "$3"
       fi
      else
       RC="$?"
@@ -827,7 +841,7 @@ mk_cloop(){
   local serverip="$(grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
   ctorrent -t -u http://"$serverip":6969/announce -s "$3".torrent "$3" | tee -a /tmp/image.log
  fi
- echo "## $(date) : Beende Erstellung von $1." | tee -a /tmp/image.log
+ echo "## $(date) : Beende Erstellung von $3." | tee -a /tmp/image.log
  return "$RC"
 }
 
