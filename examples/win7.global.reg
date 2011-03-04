@@ -1,0 +1,46 @@
+Windows Registry Editor Version 5.00
+
+; notwendig, damit der Domaenenbeitritt klappt
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\LanmanWorkstation\Parameters]
+"DNSNameResolutionRequired"=dword:00000000
+"DomainCompatibilityMode"=dword:00000001
+
+; notwendig, damit der Domaenenbeitritt klappt
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
+"DisablePasswordChange"=dword:00000001
+"MaximumPasswordAge"=dword:000f4240
+"RefusePasswordChange"=dword:00000001
+"RequireSignOrSeal"=dword:00000001
+"RequireStrongKey"=dword:00000001
+
+; optional, deaktiviert den automatischen Neustart bei Bluescreen
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\CrashControl]
+"AutoReboot"=dword:00000000
+
+; optional, deaktiviert die automatische Umstellung von Sommer-/Winterzeit
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation\]
+"DynamicDaylightTimeDisabled"=dword:00000001
+
+; optional, unterdrueckt die "Neue Hardware gefunden"-Infobox
+[HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DeviceInstall\Settings]
+"SuppressNewHWUI"=dword:00000001
+
+; optional, deaktiviert die Systemwiederherstellung
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Nt\CurrentVersion\SystemRestore]
+"DisableSR"=dword:00000001
+
+; optional, deaktiviert die automatische Installation von Windowsupdates
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
+"AUOptions"=dword:00000002
+
+; optional, unterdrueckt die Anzeige des letzten Benutzernamens im Anmeldefenster
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\]
+"dontdisplaylastusername"=dword:00000001
+
+; optional, deaktiviert STRG+ALT+ENTF bei der Anmeldung
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon]
+"DisableCAD"=dword:00000001
+
+; optional, deaktiviert die automatische Windowsaktivierung
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\Activation]
+"Manual"=dword:00000001

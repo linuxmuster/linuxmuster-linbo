@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ActiveComputerName\]
+"ComputerName"="{$HostName$}"
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ComputerName\]
+"ComputerName"="{$HostName$}"
+
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Tcpip\Parameters\]
+"Hostname"="{$HostName$}"
+"NV Hostname"="{$HostName$}"
+
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\]
+"DefaultLogonDomain"="SCHULE"
+

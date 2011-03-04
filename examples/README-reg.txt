@@ -1,21 +1,27 @@
 Windows(tm) Registry-Patches fuer LINBO
 ---------------------------------------
 
-* In der Patch-Datei für Windows 2000/XP (win2k-xp.reg)
-  muss der Domaenenname angepasst werden.
-
-* Ggf. können Patch-Dateien mit eigenen Registry-Einträgen
-  ergänzt werden.
-
-* Für jedes Windows-Image muss eine Patch-Datei nach diesen Mustern
-  bereitgestellt werden:
+* Für jedes Windows-Image muss unter /var/linbo eine Patch-Datei nach diesen
+  Mustern bereitgestellt werden:
   <ImageName>.cloop.reg
   <ImageName>.rsync.reg
 
-* Die angepassten Patch-Dateien müssen unter /var/linbo abgelegt
-  werden, damit sie von LINBO gefunden werden.
+* In den Image-Patch-Dateien muss ggf. der Domaenenname angepasst werden
+  (winxp.reg, win7.image.reg).
 
+* Die Patch-Dateien können mit eigenen Registry-Einträgen ergänzt werden.
 
-18.12.2007
-Thomas Schmitt
-<schmitt@lmz-bw.de>
+* Besonderheiten bei Windows 7:
+  Es gibt drei Vorlagen für Registry-Patches:
+  o win7.image.reg: Registry-Patch für Hostname und Domaene, der dem Image
+    beigelegt wird (s.o.).
+  o win7.global.reg: Notwendige und optionale Registry-Einträge (siehe
+    Kommentare in der Datei), die jeweils vor Domaenenbeitritt und Image-
+    erstellung eingespielt werden müssen (Doppelklick auf die Datei).
+  o win7.storage.reg: Wird zum Zwecke der Imagevereinheitlichung bei unter-
+    schiedlicher Hardware vor der Erstellung des Images eingespielt. Der Patch
+    aktiviert beim Betriebssystemstart das Laden diverser Kontroller-Treiber.
+
+---
+$Id$
+
