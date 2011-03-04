@@ -331,7 +331,7 @@ mountpart(){
  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   *ntfs*)
-   OPTS="$OPTS,force,silent,umask=0,no_def_opts,allow_other,streams_interface=xattr"
+   OPTS="$OPTS,recover,remove_hiberfile,streams_interface=xattr"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
   *fat*)
@@ -343,12 +343,6 @@ mountpart(){
    ;;
  esac
  return "$RC"
-}
-
-# Return true if cache is NFS- or SAMBA-Share
-remote_cache(){
- case "$1" in *:*|*//*|*\\\\*) return 0 ;; esac
- return 1
 }
 
 # format dev fs
@@ -934,8 +928,10 @@ sync_cloop(){
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
  local ROPTS="-HaAX"
- #local ROPTS="-a"
- [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
+ case "$(fstype "$2")" in
+  vfat) ROPTS="-rt" ;;
+  *) ;;
+ esac
  if mountpart "$2" /mnt -w ; then
   case "$1" in
    *.[Rr][Ss][Yy]*)
