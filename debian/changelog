@@ -4,9 +4,10 @@ linuxmuster-linbo (1.99.17-22) unstable; urgency=low
   * linbo_cmd, mountpart(): updated ntfs-3g mount options and removed default values
     (now: recover,remove_hiberfile,streams_interface=xattr) (closes possibly #419).
   * component updates: ntfs-3g 2011.1.15.
-  * Added and updated Windows 7 example files.
+  * Added and updated Windows 7 start.conf and registry example files. Removed
+    Win2k and Win98 examples.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Mar 2011 19:30:09 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Mar 2011 20:39:29 +0100
 
 linuxmuster-linbo (1.99.17-21) unstable; urgency=low
 
