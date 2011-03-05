@@ -7,7 +7,7 @@ linuxmuster-linbo (1.99.17-22) unstable; urgency=low
   * Added and updated Windows 7 start.conf and registry example files. Removed
     Win2k and Win98 examples.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 4 Mar 2011 20:39:29 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 5 Mar 2011 10:00:38 +0100
 
 linuxmuster-linbo (1.99.17-21) unstable; urgency=low
 
