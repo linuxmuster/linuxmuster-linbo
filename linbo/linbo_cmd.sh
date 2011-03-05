@@ -345,6 +345,12 @@ mountpart(){
  return "$RC"
 }
 
+# Return true if cache is NFS- or SAMBA-Share
+remote_cache(){
+ case "$1" in *:*|*//*|*\\\\*) return 0 ;; esac
+ return 1
+}
+
 # format dev fs
 format(){
  echo -n "format " ;  printargs "$@"
