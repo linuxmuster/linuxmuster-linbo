@@ -5,7 +5,7 @@
 /var/linbo/icons
 /var/linbo/pxelinux.cfg
 /var/log/linuxmuster/linbo
-/usr/lib/linuxmuster-linbo
+/usr/lib/linuxmuster-linbo/syslinux
 /usr/sbin
 /usr/share/doc/linuxmuster-linbo/examples
 /usr/share/linuxmuster-linbo

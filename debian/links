@@ -1,8 +1,10 @@
 etc/linuxmuster/linbo/start.conf.default	var/linbo/start.conf
 etc/linuxmuster/linbo/pxelinux.cfg.default	var/linbo/pxelinux.cfg/default
-usr/lib/linuxmuster-linbo/pxelinux.0	var/linbo/pxelinux.0
-usr/lib/linuxmuster-linbo/gpxe.krn	var/linbo/gpxe.krn
-usr/lib/linuxmuster-linbo/vesamenu.c32	var/linbo/vesamenu.c32
+usr/lib/linuxmuster-linbo/syslinux/memdisk	var/linbo/memdisk
+usr/lib/linuxmuster-linbo/syslinux/pxelinux.0	var/linbo/pxelinux.0
+usr/lib/linuxmuster-linbo/syslinux/gpxelinux.0	var/linbo/gpxelinux.0
+usr/lib/linuxmuster-linbo/syslinux/gpxe.krn	var/linbo/gpxe.krn
+usr/lib/linuxmuster-linbo/syslinux/vesamenu.c32	var/linbo/vesamenu.c32
 usr/share/doc/linuxmuster-linbo/examples	var/linbo/examples
 usr/share/linuxmuster-linbo/update-linbofs.sh usr/sbin/update-linbofs
 usr/share/linuxmuster-linbo/make-linbo-media.sh usr/sbin/make-linbo-media

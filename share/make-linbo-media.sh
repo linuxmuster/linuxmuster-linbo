@@ -6,7 +6,7 @@
 #
 # GPL V3
 #
-# last change: 20.01.2010
+# $Id$
 #
 
 # read linuxmuster environment
@@ -128,7 +128,7 @@ fi
 [ -z "$GRPS_CHECKED" ] && GRPS_CHECKED=default
 
 LOGFILE=$LOGDIR/linbo/make-linbo-media.log
-BINDIR=/usr/lib/linuxmuster-linbo
+BINDIR=/usr/lib/linuxmuster-linbo/syslinux
 SHAREDIR=/usr/share/linuxmuster-linbo
 
 GERMANKBD=$BINDIR/german.kbd

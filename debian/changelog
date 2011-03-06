@@ -1,12 +1,36 @@
+linuxmuster-linbo (1.99.40-0) unstable; urgency=low
+
+  * rsync-post: fixed torrent services restart when new image is uploaded (closes #426).
+  * linbo_cmd:
+    - mountpart(): updated ntfs-3g mount options and removed default values
+      (now: recover,remove_hiberfile,streams_interface=xattr) (closes possibly #419).
+    - start(): do not umount cache partition if an image has to bootet from cache.
+  * linbo-bittorrent: starting torrent processes also for iso images.
+  * syslinux: 
+    - updated to 4.03,
+    - added syslinux64.exe, memdisk and gpelinux.0 to package,
+    - moved syslinux stuff to /usr/lib/linuxmuster-linbo/syslinux and adjusted
+      path in make-linbo-media.sh.
+  * updated example files due to Windows 7, removed examples for Win98/Win2k.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 6 Mar 2011 12:58:41 +0100
+
 linuxmuster-linbo (1.99.39-0) unstable; urgency=low
 
   * control: changed dependency back to atftpd.
   * linbo_cmd:
     - mk_cloop(): fixed evaluation of image creation return code and fstype (closes #421).
-    - mountpart(): fixed evaluation of fstype and added waiting loop for cloop device (closes #421).
-  * rsync-pre.sh: fixed backup of uploaded torrent file.
+    - mountpart():
+      o fixed evaluation of fstype and added waiting loop for cloop device (closes #421).
+      o added noatime mount option.
+  * rsync-pre.sh: fixed backup of old torrent file if newer one was uploaded (closes #422).
+  * component updates:
+    - Kernel 2.6.37.2.
+    - cloop 2.637-1
+    - ntfs-3g 2011.1.15.
+    - ms-sys-2.2.1.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 24 Feb 2011 12:14:11 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 25 Feb 2011 09:14:09 +0100
 
 linuxmuster-linbo (1.99.38-0) unstable; urgency=low
 

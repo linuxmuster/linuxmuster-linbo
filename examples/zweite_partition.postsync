@@ -4,7 +4,7 @@
 # Imagedatei steht, nach deren Synchronisation noch ein weiteres Image gesynct
 # werden soll. Bsp.: /var/linbo/winxp.cloop.postsync.
 #
-# $Id: zweite_partition.postsync 949 2011-01-28 11:06:53Z tschmitt $
+# $Id$
 #
 
 echo "##### POSTSYNC BEGIN #####"

@@ -14,7 +14,7 @@
 
 # schmitt@lmz-bw.de
 # GPL v3
-# 18.01.2010
+# $Id$
 
 #set -e
 
@@ -60,7 +60,7 @@ MAX_SLICE_LENGTH=131072
 [ "$START_BTTRACK" = "1" ] || exit 0
 
 CLIENT_CONFIG="torrent-client.conf"
-all_images="*.cloop *.rsync"
+all_images="*.cloop *.rsync *.iso"
 
 cd $LINBODIR
 

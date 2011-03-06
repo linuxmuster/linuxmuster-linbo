@@ -1,5 +1,5 @@
-# LINBO start.conf Beispiel fuer Windows 2000
-# Windows 2000 System auf Partition 1 (FAT32)
+# LINBO start.conf Beispiel fuer Windows XP
+# Windows XP System auf Partition 1 (FAT32)
 # Daten auf Partition 2
 # Cache Remote auf Server
 
@@ -13,8 +13,8 @@ AutoInitCache = no              # kein automatisches Befüllen des Caches beim LI
 DownloadType = multicast        # Image-Download per torrent|multicast|rsync, default ist rsync
 
 [Partition]                     # Start einer Partitionsdefinition, Windows XP
-Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster IDE-Platte)
-Size = 5192000                  # Partitionsgroesse in kB (Bsp.: 5G)
+Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
+Size = 5000000                  # Partitionsgroesse in kB (Bsp.: ca. 5G)
 Id = c                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = vfat                   # Dateisystem auf der Partition
 Bootable = no                   # Bootable-Flag
@@ -27,19 +27,17 @@ FSType = vfat                   # Dateisystem auf der Partition
 Bootable = no                   # Bootable-Flag
 
 [OS]                                 # Beginn einer Betriebssystemdefinition
-Name = Windows 2000                  # Name des Betriebssystems
+Name = Windows XP                    # Name des Betriebssystems
 Version =                            # Version (optional, frei waehlbar)
-Description = Windows 2000 SP4       # Beschreibung
-#Image = win2k.rsync                 # Dateiname des differentiellen Images (Erweiterung .rsync)
+Description = Windows XP SP1         # Beschreibung
+#Image = winxp.rsync                 # Dateiname des differentiellen Images (Erweiterung .rsync)
 Image =                              # erst eintragen, wenn es erzeugt werden soll
-BaseImage = win2k.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
+BaseImage = winxp.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
 Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
 Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
                                      # bei Windows ist Boot und Root immer dieselbe Partition
-Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows immer grub.exe
+Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows grub.exe
 Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
-                                     # Kernel-Parameter fuer Windows-Boot aus 1. Partition der 1. IDE-Festplatte
-                                     # bei SATA-Platten statt /dev/sda /dev/sda eintragen
 Append =                             # bleibt bei Windows leer
 StartEnabled = yes                   # "Start"-Button anzeigen
 SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
