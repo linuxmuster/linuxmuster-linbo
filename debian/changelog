@@ -9,11 +9,11 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
   * syslinux: 
     - updated to 4.03,
     - added syslinux64.exe, memdisk and gpelinux.0 to package,
-    - moved syslinux stuff to /usr/lib/linuxmuster-linbo/syslinux and adjusted
-      path in make-linbo-media.sh.
   * updated example files due to Windows 7, removed examples for Win98/Win2k.
+  * using now gpxelinux.0 instead of pxelinux.0 as pxebootfile.
+  * make-linbo-media.sh: added -t option for linbo boot timeout in seconds.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 6 Mar 2011 12:58:41 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 6 Mar 2011 15:03:07 +0100
 
 linuxmuster-linbo (1.99.39-0) unstable; urgency=low
 

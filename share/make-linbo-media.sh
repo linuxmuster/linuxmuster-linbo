@@ -15,80 +15,83 @@
 
 # usage info
 usage(){
-	echo
-	echo "Usage: `basename $0` <options>"
-	echo
-	echo "Options:"
-	echo
-	echo " -h                      show this help"
-	echo " -b                      create debug menu entries"
-	echo " -c                      create cdrom media, has to be used with -d or -i"
-	echo " -d <device>             writes directly to device (optional), can be used"
-	echo "                         with -c or -u"
-	echo " -g <group1,group2,...>  list of hostgroups to build for, optional,"
-	echo "                         if -g is not given, default group is used."
-	echo " -i <output dir>         creates cdrom iso in output dir"
+ echo
+ echo "Usage: `basename $0` <options>"
+ echo
+ echo "Options:"
+ echo
+ echo " -h                      show this help"
+ echo " -b                      create debug menu entries"
+ echo " -c                      create cdrom media, has to be used with -d or -i"
+ echo " -d <device>             writes directly to device (optional), can be used"
+ echo "                         with -c or -u"
+ echo " -g <group1,group2,...>  list of hostgroups to build for, optional,"
+ echo "                         if -g is not given, default group is used."
+ echo " -i <output dir>         creates cdrom iso in output dir"
  echo " -n                      no strict checking for linbo ssh server, allows"
  echo "                         password based logins, needs -p for root pw, optional"
  echo " -p <password>           sets local linbo admin password, is also used for"
  echo "                         root ssh login if password logins are allowed, optional"
  echo " -r                      remove server root's public ssh key"
-	echo " -u                      create usb media, has to be used with -d or -z"
-	echo " -z <output dir>         creates zip archive with usb boot media files in"
-	echo "                         output dir"
-	echo
-	echo " Examples:"
-	echo
-	echo " `basename $0` -c -i /home/administrators/administrator"
-	echo "    writes a cdrom iso image for default group to administrator's home"
-	echo
-	echo " `basename $0` -c -i /var/linbo -g room123"
-	echo "    writes a cdrom iso image for computer group room123 to /var/linbo"
-	echo
-	echo " `basename $0` -c -d /dev/cdrom"
-	echo "    burns a cdrom directly to device /dev/cdrom"
-	echo
-	echo " `basename $0` -u -g room123,default -d /dev/sdc"
-	echo "    writes a bootable usb media to /dev/sdc for groups room123 and default"
-	echo
-	echo " `basename $0` -u -z /home/teachers/zell"
-	echo "    writes a zip archive with usb boot media files for default group to"
-	echo "    teacher zell's home"
-	exit 1
+ echo " -u                      create usb media, has to be used with -d or -z"
+ echo " -t <30>                 menu timeout in seconds until linbo will boot"
+ echo "                         (0 disables timeout, default is 30)."
+ echo " -z <output dir>         creates zip archive with usb boot media files in"
+ echo "                         output dir"
+ echo
+ echo " Examples:"
+ echo
+ echo " `basename $0` -c -i /home/administrators/administrator"
+ echo "    writes a cdrom iso image for default group to administrator's home"
+ echo
+ echo " `basename $0` -c -i /var/linbo -g room123"
+ echo "    writes a cdrom iso image for computer group room123 to /var/linbo"
+ echo
+ echo " `basename $0` -c -d /dev/cdrom"
+ echo "    burns a cdrom directly to device /dev/cdrom"
+ echo
+ echo " `basename $0` -u -g room123,default -d /dev/sdc"
+ echo "    writes a bootable usb media to /dev/sdc for groups room123 and default"
+ echo
+ echo " `basename $0` -u -z /home/teachers/zell"
+ echo "    writes a zip archive with usb boot media files for default group to"
+ echo "    teacher zell's home"
+ exit 1
 }
 
 
 # process cmdline
-while getopts ":bcd:g:hi:np:ruz:" opt; do
+while getopts ":bcd:g:hi:np:rt:uz:" opt; do
  case $opt in
   b) DEBUG=yes ;;
   c) CDROM=yes
      [ -n "$USB" ] && usage
-			  MEDIA=CDROM ;;
+     MEDIA=CDROM ;;
   d) DEVICE=$OPTARG
      if [ ! -e "$DEVICE" ]; then
       echo "Device $DEVICE does not exist!"
-				  usage
+      usage
      fi
-			  [ -n "$ISO" ] && usage
-	   	[ -n "$ZIP" ] && usage ;;
+     [ -n "$ISO" ] && usage
+     [ -n "$ZIP" ] && usage ;;
   g) GRPS=$OPTARG ;;
   h) usage ;;
   i) ISO=yes
-		   [ -n "$DEVICE" ] && usage
-	   	[ -n "$ZIP" ] && usage
-	    OUTDIR=$OPTARG
+     [ -n "$DEVICE" ] && usage
+     [ -n "$ZIP" ] && usage
+     OUTDIR=$OPTARG
      [ -z "$OPTARG" ] && OUTDIR=`pwd` ;;
   n) NOSTRICT=yes ;;
   p) PASSWORD=$OPTARG ;;
   r) REMKEY=yes ;;
   u) USB=yes
      [ -n "$CDROM" ] && usage
-			  MEDIA=USB ;;
+     MEDIA=USB ;;
+  t) TIMEOUT=$OPTARG ;;
   z) ZIP=yes
-		   [ -n "$DEVICE" ] && usage
-	   	[ -n "$ISO" ] && usage
-	   	OUTDIR=$OPTARG
+     [ -n "$DEVICE" ] && usage
+     [ -n "$ISO" ] && usage
+     OUTDIR=$OPTARG
      [ -z "$OPTARG" ] && OUTDIR=`pwd` ;;
   :) echo "Option -$OPTARG requires an argument." >&2
      usage ;;
@@ -102,33 +105,45 @@ done
 [ -z "$DEVICE" -a -z "$ISO" -a -z "$ZIP" ] && usage
 [ -n "$NOSTRICT" -a -z "$PASSWORD" ] && usage
 if [ -n "$ZIP" -o -n "$ISO" ]; then
-	if [ ! -d "$OUTDIR" ]; then
-		echo "$OUTDIR does not exist!"
-		usage
-	fi
+ if [ ! -d "$OUTDIR" ]; then
+  echo "$OUTDIR does not exist!"
+  usage
+ fi
 fi
+
+# timeout
+[ -z "$TIMEOUT" ] && TIMEOUT=30
+[ "$TIMEOUT" = "0" ] || TIMEOUT="${TIMEOUT}0"
 
 # check groups
 if [ -n "$GRPS" ]; then
-	GRPS=" ${GRPS//,/ } "
-	GRPS_SYS=`grep -v ^# /etc/linuxmuster/workstations | awk -F\; '{ print $3 }' | sort -u`
-	for i in $GRPS; do
-		if [ "$i" = "default" ]; then
-			if [ -n "$GRPS_CHECKED" ]; then GRPS_CHECKED="$GRPS_CHECKED $i"; else	GRPS_CHECKED="$i"; fi
-			continue
-		fi
-		if echo $GRPS_SYS | grep -q -w $i; then
-			if [ -e "$LINBODIR/pxelinux.cfg/$i" -a -e "$LINBODIR/start.conf.$i" ]; then
-				if [ -n "$GRPS_CHECKED" ]; then GRPS_CHECKED="$GRPS_CHECKED $i"; else	GRPS_CHECKED="$i"; fi
-			fi
-		fi
-	done
+ GRPS=" ${GRPS//,/ } "
+ GRPS_SYS=`grep -v ^# /etc/linuxmuster/workstations | awk -F\; '{ print $3 }' | sort -u`
+ for i in $GRPS; do
+  if [ "$i" = "default" ]; then
+   if [ -n "$GRPS_CHECKED" ]; then
+    GRPS_CHECKED="$GRPS_CHECKED $i"
+   else
+    GRPS_CHECKED="$i"
+   fi
+   continue
+  fi
+  if echo $GRPS_SYS | grep -q -w $i; then
+   if [ -e "$LINBODIR/pxelinux.cfg/$i" -a -e "$LINBODIR/start.conf.$i" ]; then
+    if [ -n "$GRPS_CHECKED" ]; then
+     GRPS_CHECKED="$GRPS_CHECKED $i"
+    else
+     GRPS_CHECKED="$i"
+    fi
+   fi
+  fi
+ done
 fi
 
 [ -z "$GRPS_CHECKED" ] && GRPS_CHECKED=default
 
 LOGFILE=$LOGDIR/linbo/make-linbo-media.log
-BINDIR=/usr/lib/linuxmuster-linbo/syslinux
+BINDIR=/usr/lib/linuxmuster-linbo
 SHAREDIR=/usr/share/linuxmuster-linbo
 
 GERMANKBD=$BINDIR/german.kbd
@@ -141,11 +156,11 @@ GPXEKRN=$BINDIR/gpxe.krn
 INSTALLMBR=/sbin/install-mbr
 
 if [ -n "$USB" ]; then
-	SYSLINUXCFG=$SHAREDIR/syslinux.cfg
-  BACKGRND=$SHAREDIR/linbo-usb.png
+ SYSLINUXCFG=$SHAREDIR/syslinux.cfg
+ BACKGRND=$SHAREDIR/linbo-usb.png
 else
-	SYSLINUXCFG=$SHAREDIR/isolinux.cfg
-  BACKGRND=$SHAREDIR/linbo-cd.png
+ SYSLINUXCFG=$SHAREDIR/isolinux.cfg
+ BACKGRND=$SHAREDIR/linbo-cd.png
 fi
 VERSION=`grep ^Booting $LINBODIR/boot.msg | awk '{ print $3 }'`
 
@@ -197,17 +212,18 @@ get_append_line() {
 
 # write sys/isolinux config file
 writecfg() {
-	local outfile=$1
-	if [ "$2" = "syslinux" ]; then
-		local sysdir=/boot/$2
-	else
-		local sysdir=/$2
-	fi
-	local RC=1
+ local outfile=$1
+ if [ "$2" = "syslinux" ]; then
+  local sysdir=/boot/$2
+ else
+  local sysdir=/$2
+ fi
+ local RC=1
+
  echo "DEFAULT $sysdir/vesamenu.c32
 KBDMAP $sysdir/german.kbd
 PROMPT 0
-TIMEOUT 300
+TIMEOUT $TIMEOUT
 ONTIMEOUT menu1
 MENU AUTOBOOT Automatischer Start in # Sekunden...
 MENU BACKGROUND $sysdir/linbo.png
@@ -216,31 +232,29 @@ MENU TITLE LINBO $VERSION Startmenue
 menu color title                1;31;40    #90ffff00 #00000000
 " > $outfile
 
-	m=1
-	for i in $GRPS_CHECKED; do
-
+ m=1
+ for i in $GRPS_CHECKED; do
   get_append_line
-
-		echo "LABEL menu$m
+  echo "LABEL menu$m
 MENU LABEL ^$m. LINBO: $i
 KERNEL /linbo
 $append_linbo
 " >> $outfile
 
-		if [ -n "$DEBUG" ]; then
-			echo "LABEL menu$(($m +1))
+  if [ -n "$DEBUG" ]; then
+   echo "LABEL menu$(($m +1))
 MENU LABEL ^$(($m +1)). LINBO: $i (debug)
 KERNEL /linbo
 $append_debug
 " >> $outfile
-			m=$(($m +1))
-		fi
 
-		m=$(($m +1))
+   m=$(($m +1))
+  fi
 
-	done
+  m=$(($m +1))
+ done
 
-	echo "LABEL localboot
+ echo "LABEL localboot
 MENU LABEL ^$m. Von 1. Festplatte starten
 localboot 0x80
 
