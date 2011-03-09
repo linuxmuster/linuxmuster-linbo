@@ -4,7 +4,12 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
   * linbo_cmd:
     - mountpart(): updated ntfs-3g mount options and removed default values
       (now: recover,remove_hiberfile,streams_interface=xattr) (closes possibly #419).
-    - start(): do not umount cache partition if an image has to bootet from cache.
+    - start(): do not umount cache partition if an image has to be bootet from cache.
+    - cleanup_fs(): renamed to prepare_fs, added code to save windows 7 /boot/bcd
+      file computer group specific to /boot/bcd.<groupname>.
+    - syncl():
+      o minor code optimations,
+      o added code to restore windows 7 bcd group file as saved by prepare_fs().
   * linbo-bittorrent: starting torrent processes also for iso images.
   * syslinux: 
     - updated to 4.03,
@@ -13,7 +18,7 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
   * using now gpxelinux.0 instead of pxelinux.0 as pxebootfile.
   * make-linbo-media.sh: added -t option for linbo boot timeout in seconds.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 6 Mar 2011 15:03:07 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Mar 2011 11:44:00 +0100
 
 linuxmuster-linbo (1.99.39-0) unstable; urgency=low
 

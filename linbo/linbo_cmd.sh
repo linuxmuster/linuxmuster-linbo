@@ -741,19 +741,27 @@ ${RSYNC_EXCLUDE}
 EOT
 }
 
-# cleanup_fs directory
-# Removes all files from ${RSYNC_EXCLUDE}
-# in the root directory only.
-cleanup_fs(){
- ( 
+# prepare_fs directory
+# Removes all files from ${RSYNC_EXCLUDE} and saves win7 boot configuration in
+# the root directory of the os.
+prepare_fs(){
+ (
+  # remove excluded files
   local i=""
   cd "$1" || return 1
   for i in ${RSYNC_EXCLUDE}; do # Expand patterns
    if [ -e "$i" ]; then
-    echo "Lösche $i."
+    echo "Entferne $i."
     rm -rf "$i"
    fi
   done
+  # save win7 bcd
+  local bcd="$(ls [Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
+  local group="$(hostgroup)"
+  if [ -n "$bcd" -a -n "$group" ]; then
+   echo "Sichere BCD."
+   cp -f "$bcd" "$bcd"."$group"
+  fi
  )
 }
 
@@ -774,7 +782,7 @@ mk_cloop(){
   partition) # full partition dump
    if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
-    cleanup_fs /mnt
+    prepare_fs /mnt | tee -a /tmp/image.log
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
@@ -821,8 +829,8 @@ mk_cloop(){
     if test -s /cache/"$4" && modprobe cloop file=/cache/"$4"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
-      cleanup_fs /mnt
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
+      prepare_fs /mnt | tee -a /tmp/image.log
       mkexclude
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
@@ -1129,6 +1137,7 @@ syncl(){
  local patchfile=""
  local postsync=""
  local rootdev="$5"
+ local group="$(hostgroup)"
  # don't sync in that case
  if [ "$1" = "$rootdev" ]; then
   echo "Ueberspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
@@ -1166,38 +1175,53 @@ syncl(){
    else
     HOSTNAME="$(hostname)"
    fi
+   # do registry patching for windows systems
    if [ -r "$patchfile" ]; then
-    echo "Patche System mit $patchfile"
+    echo "Patche System mit $patchfile."
     rm -f "$TMP"
     sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
     dos2unix "$TMP"
-    # tschmitt: different registry patching for Win98, WinXP, Win7
+    # tschmitt: different patching for different windows 
+    # WinXP, Win7
     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
      # tschmitt: logging
      echo -n "Patche System mit $patchfile ... " >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
-     echo "Fertig."
-     # patch newdev.dll (xp/2000 only)
-     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-      local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
-      [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
-      # patch newdev.dll only if it has not yet patched
-      if [ -n "$newdevdll" -a ! -s "$newdevdll.linbo-orig" ]; then
-       echo "Patche $newdevdll ..."
-       cp "$newdevdll" "$newdevdll.linbo-orig"
-       grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
-      fi
-     fi
-     # write partition bootsector
-     [ "$(fstype "$5")" = "vfat" ] && ms-sys -2 "$5"
+    # Win98
     elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
      cp -f "$TMP" /mnt/linbo.reg
      unix2dos /mnt/linbo.reg
-     ms-sys -3 "$5"
     fi
     rm -f "$TMP"
+   fi
+   # patch newdev.dll for xp/2000 only (suppresses new hardware dialog)
+   if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+    local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
+    [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
+    # patch newdev.dll only if it has not yet patched
+    if [ -n "$newdevdll" -a ! -s "$newdevdll.linbo-orig" ]; then
+     echo "Patche $newdevdll ..."
+     cp "$newdevdll" "$newdevdll.linbo-orig"
+     grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
+    fi
+   fi
+   # restore win7 bcd
+   local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])"
+   local groupbcd="$bcd"."$group"
+   if [ -s "$groupbcd" ]; then
+    echo "Stelle BCD fuer Gruppe $group wieder her."
+    cp -f "$groupbcd" "$bcd"
+   fi
+   # write partition boot sector (vfat only)
+   if [ "$(fstype "$5")" = "vfat" ]; then
+    local msopt=""
+    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] && msopt="-2"
+    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] && msopt="-3"
+    if [ -n "$msopt" ]; then
+     echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
+     ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
    fi
    # patching for linux systems
    # hostname
