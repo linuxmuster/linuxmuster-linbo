@@ -1222,6 +1222,7 @@ syncl(){
     if [ -n "$msopt" ]; then
      echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
      ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
+    fi
    fi
    # patching for linux systems
    # hostname
