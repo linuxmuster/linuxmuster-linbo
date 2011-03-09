@@ -17,8 +17,9 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
   * updated example files due to Windows 7, removed examples for Win98/Win2k.
   * using now gpxelinux.0 instead of pxelinux.0 as pxebootfile.
   * make-linbo-media.sh: added -t option for linbo boot timeout in seconds.
+  * package: changed architecture to all.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Mar 2011 11:44:00 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 9 Mar 2011 15:18:14 +0100
 
 linuxmuster-linbo (1.99.39-0) unstable; urgency=low
 

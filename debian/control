@@ -15,7 +15,7 @@ Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctor
                libaudio-dev, libcupsys2-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libsqlite3-dev
 
 Package: linuxmuster-linbo
-Architecture: any
+Architecture: all
 Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), atftpd, udpcast, zip, mbr, etherwake
 Suggests: dhcp-server | dhcp3-server
 Recommends: wodim
