@@ -759,7 +759,7 @@ prepare_fs(){
   local bcd="$(ls [Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
   local group="$(hostgroup)"
   if [ -n "$bcd" -a -n "$group" ]; then
-   echo "Sichere BCD."
+   echo "Sichere BCD --> BCD.$group."
    cp -f "$bcd" "$bcd"."$group"
   fi
  )
