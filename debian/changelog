@@ -10,6 +10,7 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
     - syncl():
       o minor code optimations,
       o added code to restore windows 7 bcd group file as saved by prepare_fs().
+      o removed "mountcache -r" at the end.
   * linbo-bittorrent: starting torrent processes also for iso images.
   * syslinux: 
     - updated to 4.03,
@@ -19,7 +20,7 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
   * make-linbo-media.sh: added -t option for linbo boot timeout in seconds.
   * package: changed architecture to all.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Mar 2011 09:33:33 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Mar 2011 09:51:33 +0100
 
 linuxmuster-linbo (1.99.39-0) unstable; urgency=low
 
