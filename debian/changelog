@@ -12,7 +12,7 @@ linuxmuster-linbo (1.99.17-22) unstable; urgency=low
   * component updates: ntfs-3g 2011.1.15.
   * Added and updated Windows 7 example files. Removed Win2k and Win98 examples.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 10 Mar 2011 09:52:34 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 14 Mar 2011 18:01:39 +0100
 
 linuxmuster-linbo (1.99.17-21) unstable; urgency=low
 
