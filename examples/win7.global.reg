@@ -1,3 +1,4 @@
+; $Id$
 Windows Registry Editor Version 5.00
 
 ; notwendig, damit der Domaenenbeitritt klappt
@@ -12,6 +13,17 @@ Windows Registry Editor Version 5.00
 "RefusePasswordChange"=dword:00000001
 "RequireSignOrSeal"=dword:00000001
 "RequireStrongKey"=dword:00000001
+
+; optional, beschleunigt Anmeldevorgang
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
+"SlowLinkDetectEnabled"=dword:00000000
+"DeleteRoamingCache"=dword:00000001
+"WaitForNetwork"=dword:00000000
+"CompatibleRUPSecurity"=dword:00000001
+
+; optional, deaktiviert UAC
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"EnableLUA"=dword:00000000'
 
 ; optional, deaktiviert den automatischen Neustart bei Bluescreen
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\CrashControl]

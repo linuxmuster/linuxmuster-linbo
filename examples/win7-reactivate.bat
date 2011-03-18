@@ -1,8 +1,20 @@
 rem $Id$
-rem Reaktivierung der in anon.cil gespeichterten Produkte.
+rem Reaktivierung der in schule.cil gespeichterten Produkte.
 rem VAMT 2.0 muss dazu installiert sein.
 rem Pfade und Dateinamen sind ggf. anzupassen.
 
-"C:\Program Files\VAMT 2.0\Vamt.exe" /c /i c:\cil\schule.cil /o c:\cil\out.cil
-rmdir /Q /S c:\cil
+@echo off
 
+set VAMT="C:\Program Files\VAMT 2.0\Vamt.exe"
+set WorkDir=C:\cil
+set InFile=%WorkDir%\schule.cil
+set OutFile=%WorkDir%\out.cil
+
+if not exist ""%VAMT%"" goto end
+if not exist %InFile% goto end
+
+""%VAMT%"" /c /i %InFile% /o %OutFile%
+
+rmdir /Q /S %WorkDir%
+
+:end
