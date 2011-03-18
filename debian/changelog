@@ -1,3 +1,9 @@
+linuxmuster-linbo (1.99.17-23) unstable; urgency=low
+
+  * More updated Windows 7 examples.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Mar 2011 15:52:45 +0100
+
 linuxmuster-linbo (1.99.17-22) unstable; urgency=low
 
   * rsync-post: fixed torrent services restart when new image is uploaded (closes #426).

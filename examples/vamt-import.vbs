@@ -49,7 +49,7 @@ objFile.Close
 Computers = ""
 For Each strLine in objDictionary.Items
  LineArray = Split(strLine, ";", -1, 1)
- HostName = LineArray(1)
+ HostName = LineArray(4)
  If Computers = "" Then
   Computers = Hostname
  Else
@@ -59,7 +59,7 @@ Next
 
 ' Run VAMT.exe to add computer list
 CmdLine = Chr(34) & VAMT & Chr(34) & " /a  /computers " & Computers & " /o " & Chr(34) & OutFile & Chr(34)
-'WScript.echo CmdLine
+WScript.echo CmdLine
 WshShell.Run CmdLine,  , True
 
 ' Tests if line begins with a valid char (a-z,0-9,_)
