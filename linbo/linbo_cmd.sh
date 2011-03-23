@@ -1209,8 +1209,8 @@ syncl(){
    fi
    # restore win7 bcd
    local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
-   local groupbcd="$bcd"."$group"
-   if [ -s "$groupbcd" ]; then
+   [ -n "$bcd" ] && local groupbcd="$bcd"."$group"
+   if [ -n "$groupbcd" -a -s "$groupbcd" ]; then
     echo "Stelle BCD fuer Gruppe $group wieder her."
     cp -f "$groupbcd" "$bcd"
    fi

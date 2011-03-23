@@ -1,6 +1,13 @@
+linuxmuster-linbo (1.99.41-0) unstable; urgency=low
+
+  * Kernel update 2.6.38.
+  * linbo_cmd.sh, restore(): fixed BCD restore if no BCD file is present.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Mar 2011 18:32:48 +0100
+
 linuxmuster-linbo (1.99.40-1) unstable; urgency=low
 
- * More updated Windows 7 examples.
+  * More updated Windows 7 examples.
 
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Mar 2011 16:05:08 +0100
 
