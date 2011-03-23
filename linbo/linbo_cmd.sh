@@ -1185,17 +1185,17 @@ syncl(){
     fi
    fi
    # restore win7 bcd
-   local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
-   local groupbcd="$bcd"."$group"
-   if [ -s "$groupbcd" ]; then
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
+   [ -n "$bcd" ] && local groupbcd="$bcd"."$group"
+   if [ -n "$groupbcd" -a -s "$groupbcd" ]; then
     echo "Stelle BCD fuer Gruppe $group wieder her."
     cp -f "$groupbcd" "$bcd"
    fi
    # write partition boot sector (vfat only)
    if [ "$(fstype "$5")" = "vfat" ]; then
     local msopt=""
-    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] && msopt="-2"
-    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] && msopt="-3"
+    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
+    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
     if [ -n "$msopt" ]; then
      echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
      ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
