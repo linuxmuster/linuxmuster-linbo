@@ -1,8 +1,8 @@
 linuxmuster-linbo (1.99.17-24) unstable; urgency=low
 
-  * linbo_cmd.sh, restore(): fixed missing ] and missing bcd file message.
+  * linbo_cmd.sh, restore(): fixed missing ] and missing bcd file message (closes #427).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 23 Mar 2011 18:57:18 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 24 Mar 2011 13:08:34 +0100
 
 linuxmuster-linbo (1.99.17-23) unstable; urgency=low
 
