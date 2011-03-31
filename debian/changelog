@@ -1,9 +1,11 @@
 linuxmuster-linbo (1.99.41-0) unstable; urgency=low
 
-  * Kernel update 2.6.38.2.
+  * Kernel:
+    * update to 2.6.38.2.
+    * removed 10GB nic drivers.
   * linbo_cmd.sh, restore(): fixed BCD restore if no BCD file is present.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 30 Mar 2011 18:43:34 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 31 Mar 2011 009:06:36 +0100
 
 linuxmuster-linbo (1.99.40-1) unstable; urgency=low
 
