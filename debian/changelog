@@ -1,3 +1,11 @@
+linuxmuster-linbo (1.99.42-0) unstable; urgency=low
+
+  * linbo_cmd.sh:
+    - syncl(), prepare_fs(): added code to save and restore windows 7 mbr (closes #445).
+    - added /var/log/ConsoleKit/history to RSYNC_EXCLUDE.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 8 Apr 2011 19:19:57 +0200
+
 linuxmuster-linbo (1.99.41-0) unstable; urgency=low
 
   * Kernel:

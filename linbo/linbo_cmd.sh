@@ -129,6 +129,7 @@ Papierkorb/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
 tmp/*
+var/log/ConsoleKit/history
 var/tmp/*'
 
 bailout(){
@@ -741,26 +742,35 @@ ${RSYNC_EXCLUDE}
 EOT
 }
 
-# prepare_fs directory
+# prepare_fs directory inputdev
 # Removes all files from ${RSYNC_EXCLUDE} and saves win7 boot configuration in
 # the root directory of the os.
 prepare_fs(){
  (
   # remove excluded files
-  local i=""
   cd "$1" || return 1
+  local disk="${2%%[1-9]*}"
+  local i=""
   for i in ${RSYNC_EXCLUDE}; do # Expand patterns
    if [ -e "$i" ]; then
     echo "Entferne $i."
     rm -rf "$i"
    fi
   done
-  # save win7 bcd
-  local bcd="$(ls [Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
-  local group="$(hostgroup)"
-  if [ -n "$bcd" -a -n "$group" ]; then
-   echo "Sichere BCD --> BCD.$group."
-   cp -f "$bcd" "$bcd"."$group"
+  # save win7 bcd & mbr
+  local targetdir="$(ls [Bb][Oo][Oo][Tt])" 2> /dev/null
+  if [ -n "$targetdir" -a -d "$targetdir" ]; then
+   local bcd="$(ls $targetdir/[Bb][Cc][Dd])" 2> /dev/null
+   local group="$(hostgroup)"
+   if [ -n "$bcd" -a -n "$group" ]; then
+    echo "Sichere BCD --> BCD.$group."
+    cp -f "$bcd" "$bcd"."$group"
+   fi
+   if [ -s "$bcd" ]; then
+    echo "Sichere MBR."
+    local win7mbr=$targetdir/win7.mbr
+    dd if=$disk of=$win7mbr bs=1 count=4 skip=440
+   fi
   fi
  )
 }
@@ -782,7 +792,7 @@ mk_cloop(){
   partition) # full partition dump
    if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
-    prepare_fs /mnt | tee -a /tmp/image.log
+    prepare_fs /mnt "$2" | tee -a /tmp/image.log
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
@@ -1137,6 +1147,7 @@ syncl(){
  local patchfile=""
  local postsync=""
  local rootdev="$5"
+ local disk="${rootdev%%[1-9]*}"
  local group="$(hostgroup)"
  # don't sync in that case
  if [ "$1" = "$rootdev" ]; then
@@ -1208,11 +1219,17 @@ syncl(){
     fi
    fi
    # restore win7 bcd
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" &> /dev/null
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" 2> /dev/null
    [ -n "$bcd" ] && local groupbcd="$bcd"."$group"
    if [ -n "$groupbcd" -a -s "$groupbcd" ]; then
     echo "Stelle BCD fuer Gruppe $group wieder her."
     cp -f "$groupbcd" "$bcd"
+   fi
+   # restore win7 mbr flag
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/win7.mbr ] && local win7mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7.mbr)" 2> /dev/null
+   if [ -n "$win7mbr" -a -s "$win7mbr" ]; then
+    echo "Patche MBR."
+    dd if=$win7mbr of=$disk bs=1 count=4 seek=440
    fi
    # write partition boot sector (vfat only)
    if [ "$(fstype "$5")" = "vfat" ]; then
