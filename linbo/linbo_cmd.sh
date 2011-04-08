@@ -758,8 +758,8 @@ prepare_fs(){
    fi
   done
   # save win7 bcd & mbr
-  local targetdir="$(ls [Bb][Oo][Oo][Tt])" 2> /dev/null
-  if [ -n "$targetdir" -a -d "$targetdir" ]; then
+  local targetdir="$(ls -d [Bb][Oo][Oo][Tt])" 2> /dev/null
+  if [ -n "$targetdir" ]; then
    local bcd="$(ls $targetdir/[Bb][Cc][Dd])" 2> /dev/null
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
@@ -840,7 +840,7 @@ mk_cloop(){
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
-      prepare_fs /mnt | tee -a /tmp/image.log
+      prepare_fs /mnt "$2" | tee -a /tmp/image.log
       mkexclude
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
