@@ -1,3 +1,13 @@
+linuxmuster-linbo (1.99.17-25) unstable; urgency=low
+
+  * linbo_cmd.sh:
+    - syncl(), prepare_fs(): added code to save and restore windows 7 mbr (closes #445).
+    - added /var/log/ConsoleKit/history to RSYNC_EXCLUDE.
+  * Kernel updated to 2.6.38.2.
+  * cloop updated to 2.637-1.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 8 Apr 2011 19:44:34 +0200
+
 linuxmuster-linbo (1.99.17-24) unstable; urgency=low
 
   * linbo_cmd.sh, restore(): fixed missing ] and missing bcd file message (closes #427).
