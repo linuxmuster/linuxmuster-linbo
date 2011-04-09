@@ -741,11 +741,9 @@ prepare_fs(){
    if [ -n "$bcd" -a -n "$group" ]; then
     echo "Sichere BCD --> BCD.$group."
     cp -f "$bcd" "$bcd"."$group"
-   fi
-   if [ -s "$bcd" ]; then
-    echo "Sichere MBR."
-    local win7mbr=$targetdir/win7.mbr
-    dd if=$disk of=$win7mbr bs=1 count=4 skip=440
+    echo "Sichere MBR --> win7mbr.$group."
+    local mbr=$targetdir/win7mbr.$group
+    dd if=$disk of=$mbr bs=1 count=4 skip=440
    fi
   fi
  )
@@ -1203,10 +1201,10 @@ syncl(){
     cp -f "$groupbcd" "$bcd"
    fi
    # restore win7 mbr flag
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/win7.mbr ] && local win7mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7.mbr)" 2> /dev/null
-   if [ -n "$win7mbr" -a -s "$win7mbr" ]; then
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" ] && local mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group")" 2> /dev/null
+   if [ -n "$mbr" -a -s "$mbr" ]; then
     echo "Patche MBR."
-    dd if=$win7mbr of=$disk bs=1 count=4 seek=440
+    dd if=$mbr of=$disk bs=1 count=4 seek=440
    fi
    # write partition boot sector (vfat only)
    if [ "$(fstype "$5")" = "vfat" ]; then

@@ -6,7 +6,7 @@ linuxmuster-linbo (1.99.17-25) unstable; urgency=low
   * Kernel updated to 2.6.38.2.
   * cloop updated to 2.637-1.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 8 Apr 2011 19:44:34 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 9 Apr 2011 12:19:19 +0200
 
 linuxmuster-linbo (1.99.17-24) unstable; urgency=low
 
