@@ -739,11 +739,15 @@ prepare_fs(){
    local bcd="$(ls $targetdir/[Bb][Cc][Dd])" 2> /dev/null
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
-    echo "Sichere BCD --> BCD.$group."
+    echo "Sichere Windows-7-Bootsektor-Dateien."
+    # BCD group specific
     cp -f "$bcd" "$bcd"."$group"
-    echo "Sichere MBR --> win7mbr.$group."
+    # 4 bytes mbr group specific
     local mbr=$targetdir/win7mbr.$group
     dd if=$disk of=$mbr bs=1 count=4 skip=440
+    # ntfs partition id
+    local ntfsid=$targetdir/ntfs.id
+    dd if=$2 of=$ntfsid bs=8 count=1 skip=9 
    fi
   fi
  )
@@ -1182,30 +1186,35 @@ syncl(){
     fi
     rm -f "$TMP"
    fi
-   # patch newdev.dll for xp/2000 only (suppresses new hardware dialog)
-   if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-    local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
-    [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])"
-    # patch newdev.dll only if it has not yet patched
-    if [ -n "$newdevdll" -a ! -s "$newdevdll.linbo-orig" ]; then
-     echo "Patche $newdevdll ..."
-     cp "$newdevdll" "$newdevdll.linbo-orig"
-     grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
-    fi
+   # patch newdev.dll (suppresses new hardware dialog)
+   local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
+   [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
+   local newdevdllbak="$newdevdll.linbo-orig"
+   # patch newdev.dll only if it has not yet patched
+   if [ -n "$newdevdll" -a ! -s "$newdevdllbak" ]; then
+    echo "Patche $newdevdll ..."
+    cp "$newdevdll" "$newdevdllbak"
+    grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
    fi
    # restore win7 bcd
    [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" 2> /dev/null
    [ -n "$bcd" ] && local groupbcd="$bcd"."$group"
    if [ -n "$groupbcd" -a -s "$groupbcd" ]; then
-    echo "Stelle BCD fuer Gruppe $group wieder her."
+    echo "Restauriere /Boot/BCD."
     cp -f "$groupbcd" "$bcd"
    fi
    # restore win7 mbr flag
    [ -e /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" ] && local mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group")" 2> /dev/null
    if [ -n "$mbr" -a -s "$mbr" ]; then
-    echo "Patche MBR."
+    echo "Patche Win7-MBR."
     dd if=$mbr of=$disk bs=1 count=4 seek=440
    fi
+   # restore ntfs id
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/ntfs.id ] && local ntfsid="$(ls /mnt/[Bb][Oo][Oo][Tt]/ntfs.id)" 2> /dev/null
+   if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
+    echo "Restauriere NTFS-ID."
+    dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9
+   fi 
    # write partition boot sector (vfat only)
    if [ "$(fstype "$5")" = "vfat" ]; then
     local msopt=""

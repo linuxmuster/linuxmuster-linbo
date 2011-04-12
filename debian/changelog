@@ -1,3 +1,12 @@
+linuxmuster-linbo (1.99.17-26) unstable; urgency=low
+
+  * linbo_cmd.sh:
+    - syncl(), prepare_fs(): minor code optimations, newdev.dll patch now for Windows 7 also.
+  * linbofs: added Windows 7 patch to /etc/newdev-patch.bvi.
+  * examples win7.global.reg: moved $Id from first to second line since regedit gets irritated.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 12 Apr 2011 19:01:05 +0200
+
 linuxmuster-linbo (1.99.17-25) unstable; urgency=low
 
   * linbo_cmd.sh:

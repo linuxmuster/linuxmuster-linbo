@@ -1,5 +1,5 @@
-; $Id$
 Windows Registry Editor Version 5.00
+; $Id$
 
 ; notwendig, damit der Domaenenbeitritt klappt
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\LanmanWorkstation\Parameters]
