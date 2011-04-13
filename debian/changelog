@@ -5,7 +5,7 @@ linuxmuster-linbo (1.99.17-26) unstable; urgency=low
   * linbofs: added Windows 7 patch to /etc/newdev-patch.bvi (closes #447).
   * examples win7.global.reg: moved $Id from first to second line since regedit gets irritated.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 12 Apr 2011 19:01:05 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 13 Apr 2011 08:16:56 +0200
 
 linuxmuster-linbo (1.99.17-25) unstable; urgency=low
 

@@ -1186,14 +1186,15 @@ syncl(){
     fi
     rm -f "$TMP"
    fi
-   # patch newdev.dll (suppresses new hardware dialog)
+   # tweak newdev.dll (suppresses new hardware dialog)
    local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
    [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
    local newdevdllbak="$newdevdll.linbo-orig"
-   # patch newdev.dll only if it has not yet patched
-   if [ -n "$newdevdll" -a ! -s "$newdevdllbak" ]; then
+   # save original file
+   [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
+   # patch newdev.dll
+   if [ -n "$newdevdll" ]; then
     echo "Patche $newdevdll ..."
-    cp "$newdevdll" "$newdevdllbak"
     grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
    fi
    # restore win7 bcd
