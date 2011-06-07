@@ -26,8 +26,8 @@ KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v2.6
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
 CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-[0-9].tar.gz//')
-#CLOOP_URL=http://debian-knoppix.alioth.debian.org/sources
-CLOOP_URL=$(LML_URL)
+CLOOP_URL=http://debian-knoppix.alioth.debian.org/packages/cloop
+#CLOOP_URL=$(LML_URL)
 
 # qt
 QT_ARCHIVE=$(shell grep qt-embedded-linux-opensource-src- debian/md5sums.src | awk '{ print $$2 }')

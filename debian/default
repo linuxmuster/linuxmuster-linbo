@@ -10,9 +10,6 @@ MULTICASTLIST=$LINBODIR/multicast.list
 # yes|no
 START_MULTICAST=yes
 
-# logfile
-LOGFILE=/var/log/linuxmuster/linbo/linbo_multicast.log
-
 # variables for udpcast
 PORTBASE=9000
 MINCLIENTS=15
