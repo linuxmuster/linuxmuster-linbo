@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# $Id$
 
 error(){
  echo "$1"
@@ -7,7 +9,6 @@ error(){
 
 [ -n "$LINBODIR" ] || error "LINBODIR not set."
 [ -n "$INTERFACE" ] || error "INTERFACE not set."
-[ -n "$LOGFILE" ] || error "LOGFILE not set."
 [ -n "$MINCLIENTS" ] || error "MINCLIENTS not set."
 [ -n "$MINSECONDS" ] || error "MINSECONDS not set."
 [ -n "$MAXSECONDS" ] || error "MAXSECONDS not set."
@@ -17,9 +18,14 @@ cd "$LINBODIR" || exit 1
 while read file serverport relax; do
  port="${serverport##*:}"
  if [ -s "$file" ]; then
-  echo "Starte udp-sender $file -> $INTERFACE:$port" >&2
+  echo -n " * $file -> $INTERFACE:$port" >&2
+  LOGFILE="$LINBODIR/log/${file}_mcast.log"
   while true; do
-   udp-sender --full-duplex --interface "$INTERFACE" --portbase $port --min-clients $MINCLIENTS --min-wait $MINSECONDS --max-wait $MAXSECONDS --log $LOGFILE --file "$file" --nokbd || exit 1
+   echo >> $LOGFILE
+   echo "### Starting new session: `date`" >> $LOGFILE
+   udp-sender --full-duplex --interface "$INTERFACE" --portbase $port --min-clients $MINCLIENTS --min-wait $MINSECONDS --max-wait $MAXSECONDS --file "$file" --nokbd 2>> $LOGFILE 1>> $LOGFILE || exit 1
   done &
+  echo .
  fi
 done < multicast.list
+

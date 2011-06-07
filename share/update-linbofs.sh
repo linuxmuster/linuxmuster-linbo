@@ -3,11 +3,8 @@
 # creating/updating group specific linbofs.gz
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
-#
 # GPL V3
-#
-# last change: 28.11.2009
-#
+# $Id$
 
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -17,34 +14,35 @@ groups="$@"
 
 # sets serverip in start.conf
 set_serverip(){
-	local conf=$1
-	grep -q ^"Server = $serverip" $conf && return 0
-	if grep -q ^Server $conf; then
-		sed -e "s/^Server.*/Server = $serverip/" -i $conf
-	else
-		sed -e "/^\[LINBO\]/a\
+ local conf=$1
+ grep -q ^"Server = $serverip" $conf && return 0
+ if grep -q ^Server $conf; then
+  sed -e "s/^Server.*/Server = $serverip/" -i $conf
+ else
+  sed -e "/^\[LINBO\]/a\
 Server = $serverip" -i $conf
-	fi
+ fi
 }
 
 # sets group in start.conf
 set_group(){
-	local conf=$1
-	local group=$2
-	grep -q ^"Group = $group" $conf && return 0
-	if grep -q ^Group $conf; then
-		sed -e "s/^Group.*/Group = $group/" -i $conf
-	else
-		sed -e "/^Server/a\
+ local conf=$1
+ local group=$2
+ grep -q ^"Group = $group" $conf && return 0
+ if grep -q ^Group $conf; then
+  sed -e "s/^Group.*/Group = $group/" -i $conf
+ else
+  sed -e "/^Server/a\
 Group = $group" -i $conf
-	fi
+ fi
 }
+
 # sets pxe config file
 set_pxeconfig(){
-	local group=$1
-	local conf="$LINBODIR/pxelinux.cfg/$group"
-	if [ -e "$conf" ]; then
-	 sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
+ local group=$1
+ local conf="$LINBODIR/pxelinux.cfg/$group"
+ if [ -e "$conf" ]; then
+  sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
  else
   # copy default pxelinux config for group
   cp $PXELINUXCFG $conf
@@ -55,53 +53,56 @@ set_pxeconfig(){
  fi
 }
 
-# this script makes only sense if imaging=linbo
-if [ "$imaging" != "linbo" ]; then
-	echo "Imaging system is $imaging and not linbo!"
-	exit 0
-fi
-
-# check for default linbofs.gz
-if [ ! -s "$LINBODIR/linbofs.gz" ]; then
-	echo "Error: $LINBODIR/linbofs.gz not found!"
+# check & set lockfile
+locker=/tmp/.update-linbofs.lock
+if [ -e "$locker" ]; then
+	echo "Caution! Probably there is another update-linbofs process running!"
+	echo "If this is not the case you can safely remove the lockfile $locker"
+	echo "and give update-linbofs another try."
+	echo "update-linbofs is locked! Exiting!"
 	exit 1
 fi
-
-# grep linbo rsync password to sync it with linbo account
-if [ ! -s /etc/rsyncd.secrets ]; then
-	echo "/etc/rsyncd.secrets not found!"
-	exit 1
-fi
-linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
-if [ -z "$linbo_passwd" ]; then
-	echo "Cannot read linbo password from /etc/rsyncd.secrets!"
-	exit 1
-else
-	sophomorix-passwd --user linbo --pass $linbo_passwd &> /dev/null ; RC=$?
-	if [ $RC -ne 0 ]; then
-		echo "Failed to set linbo password!"
-		exit 1
-	fi
-	# md5sum of linbo password goes into ramdisk
-	linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
-fi
+touch $locker || exit 1
+chmod 400 $locker
+curdir=`pwd`
+tmpdir="/var/tmp/linbofs.$$"
+[ -e "$tmpdir" ] && rm -rf $tmpdir
 
 # clean tmpdir and exit with error
 bailout() {
-	echo "$1"
-	cd $curdir
-	[ -d "$tmpdir" ] && rm -rf $tmpdir
-	exit 1
+ echo "$1"
+ cd "$curdir"
+ [ -n "$tmpdir" -a -e "$tmpdir" ] && rm -rf $tmpdir
+ [ -n "$locker" -a -e "$locker" ] && rm -f $locker
+ exit 1
 }
+
+# this script makes only sense if imaging=linbo
+[ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
+
+# check for default linbofs.gz
+[ ! -s "$LINBODIR/linbofs.gz" ] && bailout "Error: $LINBODIR/linbofs.gz not found!"
+
+# grep linbo rsync password to sync it with linbo account
+[ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
+linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+if [ -z "$linbo_passwd" ]; then
+ bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
+else
+ sophomorix-passwd --user linbo --pass $linbo_passwd &> /dev/null ; RC=$?
+ if [ $RC -ne 0 ]; then
+  bailout "Failed to set linbo password!"
+ fi
+ # md5sum of linbo password goes into ramdisk
+ linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+fi
 
 # begin to process linbofs.gz
 echo "Processing LINBO groups:"
 
 # create temp dir for linbofs content
-tmpdir=/var/tmp/linbofs.$$
-curdir=`pwd`
-mkdir -p /var/tmp/linbofs.$$
-cd $tmpdir
+mkdir -p $tmpdir
+cd $tmpdir || bailout "Cannot change to $tmpdir!"
 # unpack linbofs.gz to tmpdir
 zcat $LINBODIR/linbofs.gz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
 [ $RC -ne 0 ] && bailout " Failed to unpack linbofs.gz!"
@@ -124,18 +125,18 @@ mkdir -p var/log
 touch var/log/lastlog
 
 if [ -z "$groups" ] || stringinstring default "$groups"; then
-	# begin with default linbofs.gz
-	echo -n "  * default ... "
+ # begin with default linbofs.gz
+ echo -n "  * default ... "
 
-	# check and copy default start.conf
-	set_serverip $LINBODIR/start.conf
-	cp -f $LINBODIR/start.conf .
+ # check and copy default start.conf
+ set_serverip $LINBODIR/start.conf
+ cp -f $LINBODIR/start.conf .
 
-	# pack default linbofs.gz again
-	find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.gz ; RC="$?"
-	[ $RC -ne 0 ] && bailout "failed!"
-	echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.gz | awk '{print $5}'`" > $LINBODIR/linbofs.gz.info
-	echo "Ok!"
+ # pack default linbofs.gz again
+ find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.gz ; RC="$?"
+ [ $RC -ne 0 ] && bailout "failed!"
+ echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.gz | awk '{print $5}'`" > $LINBODIR/linbofs.gz.info
+ echo "Ok!"
 fi
 
 # if no groups are given on cmdline then take all groups from workstations file
@@ -144,25 +145,31 @@ fi
 # now process all groups found in $WIMPORTDATA
 for i in $groups; do
 
-	# skip group default
-	[ "$group" = "default" ] && continue
+ # skip group default
+ [ "$group" = "default" ] && continue
 
-	# do nothing if there is no start.conf for this group
-	[ -e "$LINBODIR/start.conf.$i" ] || continue
+ # do nothing if there is no start.conf for this group
+ [ -e "$LINBODIR/start.conf.$i" ] || continue
 
-	# print group name
-	echo -n "  * $i ... "
+ # print group name
+ echo -n "  * $i ... "
 
-	# check and repair necessary conf files
-	set_serverip $LINBODIR/start.conf.$i
-	set_group $LINBODIR/start.conf.$i $i
-	set_pxeconfig $i
+ # check and repair necessary conf files
+ set_serverip $LINBODIR/start.conf.$i
+ set_group $LINBODIR/start.conf.$i $i
+ set_pxeconfig $i
 
  echo "Ok!"
 
 done
 
+# restart image services
+for i in linbo-multicast linbo-bittorrent; do
+ /etc/init.d/$i restart
+done
+
 # clean tmpdir
-cd $curdir
+cd "$curdir"
 rm -rf $tmpdir
+rm -f $locker
 

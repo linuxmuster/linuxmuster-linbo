@@ -14,7 +14,7 @@
 
 # Author: Thomas Schmitt <schmitt@lmz-bw.de>
 # License: GPL V3
-#
+# $Id$
 
 # defaults
 LINBODIR=/var/linbo
@@ -26,51 +26,53 @@ MAXSECONDS=90
 MULTICASTLIST=$LINBODIR/multicast.list
 INTERFACE=eth0
 SERVERIP=10.16.1.1
-LOGFILE=/var/log/linuxmuster/linbo_multicast.log
 
-# reading linbo defaults
+# read necessary functions and constants
+. /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
 [ -f /etc/default/linuxmuster-linbo ] && . /etc/default/linuxmuster-linbo
 [ "$START_MULTICAST" = "yes" -o ! -x /usr/sbin/linbo-multicast-server ] || exit 0
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+. /lib/lsb/init-functions
 
 # reading internal interface name
-[ -f /etc/default/linuxmuster-base ] && . /etc/default/linuxmuster-base && INTERFACE=$IFACE
+if [ -s /etc/default/linuxmuster-base ]; then
+ . /etc/default/linuxmuster-base
+ [ -n "$IFACE" ] && INTERFACE=$IFACE
+fi
 
 # reading server ip
 [ -f /var/lib/linuxmuster/network.settings ] && . /var/lib/linuxmuster/network.settings && SERVERIP=$serverip
 
 create_multicast_list() {
-
-	echo "Creating multicast.list ..."
-	mv $MULTICASTLIST $MULTICASTLIST.old
-	p=$PORTBASE
-	BASEIMAGES=`grep ^BaseImage $LINBODIR/start.conf.* | awk -F= '{ print $2 }' | awk '{ print $1 }' | sort -u`
-	IMAGES=`grep ^Image $LINBODIR/start.conf.* | awk -F= '{ print $2 }' | awk '{ print $1 }' | sort -u`
-	for i in $BASEIMAGES $IMAGES; do
-		if [ -s "$LINBODIR/$i" ]; then
-			echo "$i $SERVERIP:$p" >> $MULTICASTLIST
-			let "p+=2"
-		fi
-	done
-
+  echo -n "Creating multicast.list"
+  [ -e "$MULTICASTLIST" ] && mv $MULTICASTLIST $MULTICASTLIST.old
+  p=$PORTBASE
+  for i in $images; do
+    echo "$i $SERVERIP:$p" >> $MULTICASTLIST
+    let "p+=2"
+  done
+  echo .
 }
 
 start() {
-
-	create_multicast_list
-	cd $LINBODIR
-	echo "Starting linbo multicast" >&2
-	LINBODIR=$LINBODIR LOGFILE=$LOGFILE INTERFACE=$INTERFACE MINCLIENTS=$MINCLIENTS MINSECONDS=$MINSECONDS MAXSECONDS=$MAXSECONDS /usr/sbin/linbo-multicast-server
-
+  images="$(active_images)"
+  if [ -z "$images" ]; then
+   echo "There exist no images yet!"
+   rm -f "$MULTICASTLIST"
+   exit 0
+  fi
+  create_multicast_list
+  cd $LINBODIR
+  echo "Starting linbo-multicast:" >&2
+  LINBODIR=$LINBODIR INTERFACE=$INTERFACE MINCLIENTS=$MINCLIENTS MINSECONDS=$MINSECONDS MAXSECONDS=$MAXSECONDS /usr/sbin/linbo-multicast-server
 }
 
 stop() {
-
-	echo "Stopping linbo multicast" >&2
-	killall linbo-multicast-server >/dev/null 2>&1
-	killall udp-sender >/dev/null 2>&1
-
+  echo -n "Stopping linbo-multicast" >&2
+  killall linbo-multicast-server >/dev/null 2>&1
+  killall udp-sender >/dev/null 2>&1
+  echo .
 }
-
 
 case "$1" in
   start)

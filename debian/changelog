@@ -1,3 +1,19 @@
+linuxmuster-linbo (1.99.17-27) unstable; urgency=low
+
+  * update-linbofs:
+    - added restart of download services (#463).
+    - added locker to prevent script to be started multiple times.
+  * helperfunctions.sh: improved detection of active images, renamed image_in_use()
+    to active_images().
+  * linbo-multicast: improved multicast start scripts.
+  * linbo-multicast-server: added per image logging (closes #118).
+  * linbo-bittorrent: modifications according to helperfunctions.sh above.
+  * logrotate: added create command.
+  * default: removed LOGFILE assignment.
+  * kernel: updated to 2.6.38.8.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 7 Jun 2011 12:40:19 +0200
+
 linuxmuster-linbo (1.99.17-26) unstable; urgency=low
 
   * linbo_cmd.sh:
