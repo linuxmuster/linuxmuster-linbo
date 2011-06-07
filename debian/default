@@ -1,4 +1,5 @@
 # default values for linbo multicast server
+# $Id$
 
 # where the linbo stuff is located
 LINBODIR=/var/linbo
