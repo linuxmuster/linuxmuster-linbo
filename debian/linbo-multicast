@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/sh
 
 ### BEGIN INIT INFO
 # Provides:          linbo-multicast
@@ -8,13 +8,27 @@
 # Should-Stop:       
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start linbo multicast server
-# Description:       Start linbo multicast server
+# Short-Description: Starts per image multicast sessions
+# Description:       Starts a multicast session for each LINBO image
 ### END INIT INFO
 
-# Author: Thomas Schmitt <schmitt@lmz-bw.de>
-# License: GPL V3
+# schmitt@lmz-bw.de
+# GPL v3
 # $Id$
+
+#set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DESC="Multicast session for"
+DAEMON=/usr/share/linuxmuster-linbo/linbo-mcasthelper.sh
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# read cmdline
+action="$1"
+images="$2"
+force="$3"
 
 # defaults
 LINBODIR=/var/linbo
@@ -29,9 +43,9 @@ SERVERIP=10.16.1.1
 
 # read necessary functions and constants
 . /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 [ -f /etc/default/linuxmuster-linbo ] && . /etc/default/linuxmuster-linbo
 [ "$START_MULTICAST" = "yes" -o ! -x /usr/sbin/linbo-multicast-server ] || exit 0
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 . /lib/lsb/init-functions
 
 # reading internal interface name
@@ -54,41 +68,99 @@ create_multicast_list() {
   echo .
 }
 
+images="$(active_images)"
+
 start() {
-  images="$(active_images)"
   if [ -z "$images" ]; then
    echo "There exist no images yet!"
    rm -f "$MULTICASTLIST"
    exit 0
   fi
+
   create_multicast_list
   cd $LINBODIR
-  echo "Starting linbo-multicast:" >&2
-  LINBODIR=$LINBODIR INTERFACE=$INTERFACE MINCLIENTS=$MINCLIENTS MINSECONDS=$MINSECONDS MAXSECONDS=$MAXSECONDS /usr/sbin/linbo-multicast-server
+
+  while read file serverport relax; do
+   port="${serverport##*:}"
+   if [ -s "$file" ]; then
+    # start daemon stuff
+    #[ "$port" = "$PORTBASE" ] || echo
+    log_daemon_msg "Starting $DESC" "$file"
+
+    if screen -list | grep -q "$file.mcast"; then
+     echo
+     log_failure_msg "Multicast for $file is already running. Skipped!"
+     continue
+    fi
+
+    LOGFILE="$LINBODIR/log/${file}_mcast.log"
+
+    screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
+    sleep 1
+    if ! screen -list | grep -q "$file.mcast"; then
+     echo -n " "
+     log_failure_msg "failed!"
+    else
+     echo -n "."
+     [ "$RC" = "0" ] && echo
+    fi
+
+   fi
+  done < "$MULTICASTLIST"
+  #echo
 }
 
-stop() {
-  echo -n "Stopping linbo-multicast" >&2
-  killall linbo-multicast-server >/dev/null 2>&1
-  killall udp-sender >/dev/null 2>&1
-  echo .
+stop(){
+
+ local i=""
+ local pid=""
+ for i in $images; do
+  if screen -list | grep -q "$i.mcast"; then
+    log_daemon_msg "Stopping $DESC" "$i"
+    pid="$(screen -list | grep "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    kill $pid ; RC="$?"
+    log_end_msg "$RC"
+  fi
+ done
+ local pids="$(screen -list | grep mcast | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+ if [ -n "$pids" ]; then
+  log_daemon_msg "Sending all remaining linbo-multicast processes the TERM signal."
+  kill $pids ; RC="$?"
+  log_end_msg "$RC"
+ fi
 }
 
-case "$1" in
-  start)
-	start
-	;;
-  stop)
-	stop
-	;;
-  restart)
-	stop
-	start
-	;;
-  *)
-	echo "Usage: $0 {start|stop|restart}" >&2
-	exit 1
-	;;
+status(){
+   local line=""
+   local pid=""
+   local screen=""
+   local status=""
+   local c=0
+   local d=""
+   screen -wipe | grep [ioy][nos][cop].mcast | while read line; do
+    let c+=1
+    pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    screen="$(echo $line | awk '{ print $1 }')"
+    screen="${screen#*.}"
+    status="$(echo $line | awk '{ print $2 }')"
+    d=""
+    [ $c -lt 100 ] && d=" "
+    [ $c -lt 10 ] && d="  "
+    echo -e "$d$c\t$pid\t$screen\t$status"
+   done
+}
+
+case "$action" in
+ start) start ;;
+ stop) stop ;;
+ restart)
+  stop
+  start ;;
+ status) status ;;
+ *)
+  echo "Usage: $0 {start|stop|restart|status}" >&2
+  exit 1 ;;
 esac
 
 exit 0
+
