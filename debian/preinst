@@ -1,0 +1,12 @@
+#!/bin/sh -e
+#
+# $Id$
+
+if [ "$1" = "upgrade" ]; then
+
+ [ -x /etc/init.d/linbo-multicast ] && /etc/init.d/linbo-multicast stop
+
+fi
+
+exit 0
+
