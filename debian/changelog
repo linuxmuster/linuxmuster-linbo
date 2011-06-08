@@ -5,15 +5,15 @@ linuxmuster-linbo (1.99.44-0) unstable; urgency=low
     - added locker to prevent script to be started multiple times.
   * helperfunctions.sh: improved detection of active images, renamed image_in_use()
     to active_images().
-  * linbo-multicast: improved multicast start scripts.
-  * linbo-multicast-server: added per image logging (closes #118).
+  * linbo-multicast: improvements with screen technique similar to linbo-bittorrent.
+  * removed linbo-multicast-server, added linbo-mcasthelper.sh script with per image logging (closes #118).
   * linbo-bittorrent: modifications according to helperfunctions.sh above.
   * logrotate: added create command.
   * default: removed LOGFILE assignment.
   * rules: updated cloop download address.
   * kernel: updated to 2.6.39.1.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 7 Jun 2011 12:47:28 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 8 Jun 2011 20:46:28 +0200
 
 linuxmuster-linbo (1.99.43-0) unstable; urgency=low
 

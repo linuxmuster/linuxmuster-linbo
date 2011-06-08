@@ -402,7 +402,6 @@ install: build
 	echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.gz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.gz.info
 	# supplemental server stuff
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/var/linbo/german.kbd
-	install -m 755 debian/linbo-multicast-server debian/linuxmuster-linbo/usr/sbin/linbo-multicast-server
 	install -m 644 graphics/linbo-pxe-bootscreen.16 debian/linuxmuster-linbo/var/linbo/logo.16
 	install -m 644 graphics/debian.png debian/linuxmuster-linbo/var/linbo/icons/debian.png
 	install -m 644 graphics/winxp.png debian/linuxmuster-linbo/var/linbo/icons/winxp.png
