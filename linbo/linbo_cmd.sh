@@ -1366,7 +1366,7 @@ get_multicast_port(){
 
 # download_multicast server port file
 download_multicast(){
- local interface="$(route -n | tail -1 | awk '/^0.0.0.0/{print $NF}')"
+ local interface="$(route -n | grep ^0.0.0.0 | awk '{print $NF}')"
  echo "MULTICAST Download $interface($1):$2 -> $3"
  echo "udp-receiver --log /tmp/image.log --nosync --nokbd --interface $interface --rcvbuf 4194304 --portbase $2 --file $3"
  interruptible udp-receiver --log /tmp/image.log --nosync --nokbd --interface "$interface" --rcvbuf 4194304 --portbase "$2" --file "$3" 2>&1 ; RC="$?"
