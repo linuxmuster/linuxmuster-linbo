@@ -1,5 +1,6 @@
 linuxmuster-linbo (1.99.44-0) unstable; urgency=low
 
+  * linbo_cmd, download_multicast(): fixed getting interface from route command.
   * update-linbofs:
     - added restart of download services (#463).
     - added locker to prevent script to be started multiple times.
@@ -13,7 +14,7 @@ linuxmuster-linbo (1.99.44-0) unstable; urgency=low
   * rules: updated cloop download address.
   * kernel: updated to 2.6.39.1.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 8 Jun 2011 20:46:28 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 9 Jun 2011 10:46:24 +0200
 
 linuxmuster-linbo (1.99.43-0) unstable; urgency=low
 
