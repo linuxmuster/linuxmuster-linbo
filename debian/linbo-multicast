@@ -45,7 +45,7 @@ SERVERIP=10.16.1.1
 . /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
 [ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 [ -f /etc/default/linuxmuster-linbo ] && . /etc/default/linuxmuster-linbo
-[ "$START_MULTICAST" = "yes" -o ! -x /usr/sbin/linbo-multicast-server ] || exit 0
+[ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
 . /lib/lsb/init-functions
 
 # reading internal interface name

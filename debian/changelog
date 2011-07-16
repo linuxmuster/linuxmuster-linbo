@@ -1,3 +1,9 @@
+linuxmuster-linbo (1.99.45-0) unstable; urgency=low
+
+  * linbo-multicast: fixed evaluation of multicast start variable (closes #479).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 16 Jul 2011 13:56:19 +0200
+
 linuxmuster-linbo (1.99.44-0) unstable; urgency=low
 
   * linbo_cmd, download_multicast(): fixed getting interface from route command.
