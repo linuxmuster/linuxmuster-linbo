@@ -2,7 +2,7 @@ linuxmuster-linbo (1.99.17-29) unstable; urgency=low
 
   * logrotate: fixed wrong owner of new created logfiles (closes #507).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 7 Sep 09:25:14 +0200
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 7 Sep 2011 09:25:14 +0200
 
 linuxmuster-linbo (1.99.17-28) unstable; urgency=low
 
