@@ -1,3 +1,9 @@
+linuxmuster-linbo (1.99.46-0) unstable; urgency=low
+
+  * logrotate: fixed wrong owner of new created logfiles (closes #507).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 7 Sep 2011 11:10:50 +0200
+
 linuxmuster-linbo (1.99.45-0) unstable; urgency=low
 
   * linbo-multicast: fixed evaluation of multicast start variable (closes #479).

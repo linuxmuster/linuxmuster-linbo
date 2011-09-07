@@ -193,7 +193,7 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 
  # change owner of logdir to nobody
  [ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
- chown nobody $LINBOLOGDIR
+ chown nobody $LINBOLOGDIR -R
 
  # create dropbear ssh keys
  if [ ! -s "$SYSCONFDIR/linbo/ssh_host_rsa_key" ]; then
