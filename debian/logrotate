@@ -5,5 +5,5 @@
      size 50k
      missingok
      notifempty
-     create 644 root root
+     create 600 nobody nogroup
 }
