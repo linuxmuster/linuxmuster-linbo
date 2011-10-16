@@ -1,3 +1,16 @@
+linuxmuster-linbo (1.99.17-31) unstable; urgency=low
+
+  * Fixed bittorrent tracker issue in linbo-bittorrent init script (#533).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 16 Oct 2011 11:37:54 +0200
+
+linuxmuster-linbo (1.99.17-30) unstable; urgency=low
+
+  * kernel: updated to 2.6.39.1.
+  * cloop: updated to 2.639-1.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 12 Sep 2011 11:35:08 +0200
+
 linuxmuster-linbo (1.99.17-29) unstable; urgency=low
 
   * logrotate: fixed wrong owner of new created logfiles (closes #507).
