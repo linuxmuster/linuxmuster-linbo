@@ -4,7 +4,11 @@
 
 if [ "$1" = "upgrade" ]; then
 
+ # stopping multicast before package configuration
  [ -x /etc/init.d/linbo-multicast ] && /etc/init.d/linbo-multicast stop
+
+ # saving default pxe config if it is not yet a link
+ [ -L "$PXELINUXCFG" ] || cp "$PXELINUXCFG" "$PXELINUXCFG.dpkg-bak"
 
 fi
 
