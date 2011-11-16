@@ -4,6 +4,8 @@
 
 if [ "$1" = "upgrade" ]; then
 
+ . /usr/share/linuxmuster/config/dist.conf || exit 1
+
  # stopping multicast before package configuration
  [ -x /etc/init.d/linbo-multicast ] && /etc/init.d/linbo-multicast stop
 
