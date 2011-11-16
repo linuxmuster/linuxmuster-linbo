@@ -51,7 +51,7 @@ case "$1" in
  fi
 
  # check serverip in default pxelinux.cfg and start.conf
- for i in $LINBODEFAULTCONF $LINBODIR/start.conf; do
+ for i in $LINBODEFAULTCONF $SYSCONFDIR/linbo/start.conf.default; do
   if ! grep ^Server $i | grep -q "$serverip"; then
    echo "Adjusting server ip in $i to $serverip ..."
    cp $i $i.dpkg-old

@@ -9,7 +9,7 @@ linuxmuster-linbo (2.0.0-0) unstable; urgency=low
   * changed tftp service to tftpd-hpa (closes #499).
   * linbo-remote: new option "-r" to process all hosts of a specified room (closes #538).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Nov 2011 10:44:45 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Nov 2011 17:13:45 +0100
 
 linuxmuster-linbo (1.99.46-0) unstable; urgency=low
 
