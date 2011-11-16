@@ -65,14 +65,9 @@ MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
 MSSYS_URL=$(LML_URL)
 
 # ntfs-3g
-NTFS3G_ARCHIVE=$(shell grep ntfs-3g- debian/md5sums.src | awk '{ print $$2 }')
+NTFS3G_ARCHIVE=$(shell grep ntfs-3g_ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
 NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
 NTFS3G_URL=http://tuxera.com/opensource
-
-# ntfsprogs
-#NTFSPROGS_ARCHIVE=$(shell grep ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
-#NTFSPROGS_DIR=src/$(shell echo $(NTFSPROGS_ARCHIVE) | sed -e 's/.tar.bz2//')
-#NTFSPROGS_URL=$(LML_URL)
 
 # rsync
 RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
@@ -293,7 +288,7 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/ntfs-3g.secaudit && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.80.0.0 ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.80.0.0 && strip ntfsprogs/.libs/mkntfs ); \
 	fi
 
 	# rsync
@@ -416,6 +411,10 @@ install: build
 	install -m 644 $(SYSLINUX_DIR)/memdisk/memdisk debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/memdisk
 	install -m 644 $(SYSLINUX_DIR)/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
 	install -m 644 $(SYSLINUX_DIR)/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
+	install -m 644 $(SYSLINUX_DIR)/core/pxelinux.0 debian/linuxmuster-linbo/var/linbo/pxelinux.0
+	install -m 644 $(SYSLINUX_DIR)/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/vesamenu.c32
+	install -m 644 $(SYSLINUX_DIR)/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/memdisk
+	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/var/linbo/gpxe.krn
 	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
 	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png
@@ -431,7 +430,8 @@ install: build
 	install -m 644 etc/pxelinux.cfg debian/linuxmuster-linbo/etc/linuxmuster/linbo/pxelinux.cfg.default
 	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
 	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
-	install -m 755 share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	install -m 755 share/*.sh debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	install -m 644 share/templates/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
 	sed -e 's|@@version@@|$(LVERS)|' media/boot.msg > debian/linuxmuster-linbo/var/linbo/boot.msg
 
 # Build architecture-independent files here.

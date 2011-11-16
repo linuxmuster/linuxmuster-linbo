@@ -156,7 +156,9 @@ start(){
  done
 
  # restart bittorrent service
- /etc/init.d/bittorrent restart
+ /etc/init.d/bittorrent stop
+ killall bttrack.bittorrent &> /dev/null
+ /etc/init.d/bittorrent start
 }
 
 stop(){

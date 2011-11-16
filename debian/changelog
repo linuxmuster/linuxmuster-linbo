@@ -1,3 +1,16 @@
+linuxmuster-linbo (2.0.0-0) unstable; urgency=low
+
+  * Fixed bittorrent tracker issue in linbo-bittorrent init script (closes #533).
+  * ntfs-3g: updated to 2011.4.12.
+  * kernel:
+    * updated to 2.6.39.4.
+    * activated intel fb video drivers.
+  * cloop: updated to 2.639-2.
+  * changed tftp service to tftpd-hpa (closes #499).
+  * linbo-remote: new option "-r" to process all hosts of a specified room (closes #538).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 16 Nov 2011 10:44:45 +0100
+
 linuxmuster-linbo (1.99.46-0) unstable; urgency=low
 
   * logrotate: fixed wrong owner of new created logfiles (closes #507).

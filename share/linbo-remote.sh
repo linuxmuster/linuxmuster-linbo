@@ -6,7 +6,7 @@
 #
 # GPL V3
 #
-# last change: 14.12.2009
+# $Id$
 #
 
 # read linuxmuster environment
@@ -36,11 +36,12 @@ usage(){
  echo " -g <group>         All members of this hostgroup will be processed."
  echo " -i <ip|hostname>   Only the client with this ip or hostname will be processed."
  echo " -l                 List current linbo-remote screens."
+ echo " -r <room>          All members of this room will be processed."
  echo " -w <sec>           Send wake-on-lan magic packets to the client(s) and wait"
  echo "                    <sec> seconds before executing the commands to be sure the"
  echo "                    clients have booted."
  echo
- echo "Important: Options -g and -i exclude each other mutually."
+ echo "Important: Options -r, -g and -i exclude each other mutually."
  echo
  echo "Supported commands for -c option are:"
  echo
@@ -90,7 +91,7 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:g:hi:lw:" opt; do
+while getopts ":b:c:g:hi:lr:w:" opt; do
  case $opt in
   l) list
      exit 0 ;;
@@ -99,6 +100,7 @@ while getopts ":b:c:g:hi:lw:" opt; do
      case "$CMDS" in *upload*|*create*) SECRETS=/etc/rsyncd.secrets ;; esac ;;
   i) IP=$OPTARG ;;
   g) GROUP=$OPTARG ;;
+  r) ROOM=$OPTARG ;;
   w) WAIT=$OPTARG ;;
   h) usage ;;
   \?) echo "Invalid option: -$OPTARG" >&2
@@ -109,8 +111,10 @@ while getopts ":b:c:g:hi:lw:" opt; do
 done
 
 # check options
-[ -z "$GROUP" -a -z "$IP" ] && usage
+[ -z "$GROUP" -a -z "$IP" -a -z "$ROOM" ] && usage
 [ -n "$GROUP" -a -n "$IP" ] && usage
+[ -n "$GROUP" -a -n "$ROOM" ] && usage
+[ -n "$IP" -a -n "$ROOM" ] && usage
 [ -z "$CMDS" ] && usage
 if [ -n "$WAIT" ]; then
  isinteger "$WAIT" || usage
@@ -125,7 +129,7 @@ if [ -n "$BETWEEN" ]; then
 fi
 CMDS="${CMDS//,/ }"
 
-# check ip / group
+# evaluate ip / group / room
 if [ -n "$IP" ]; then
  if ! validip "$IP"; then
   HOSTNAME="$IP"
@@ -137,8 +141,11 @@ if [ -n "$IP" ]; then
   HOSTNAME="$RET"
   [ -z "$HOSTNAME" ] && usage
  fi
-else # group
+elif [ -n "$GROUP" ]; then # group
  IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $3, $5 }' | grep ^"$GROUP " | awk '{ print $2 }')"
+ [ -z "$IP" ] && usage
+else # room
+ IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1, $5 }' | grep ^"$ROOM " | awk '{ print $2 }')"
  [ -z "$IP" ] && usage
 fi
 
