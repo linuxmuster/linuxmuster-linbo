@@ -231,7 +231,16 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
   cp "$tpl" "$conf"
   tftpd_restart=yes
  fi
- [ -n "$tftpd_restart" ] && /etc/init.d/tftpd-hpa restart
+ if [ -n "$tftpd_restart" ]; then
+  # check for tftp in inetd.conf
+  if grep -q ^tftp /etc/inetd.conf; then
+   echo "Deactivating tftp in /etc/inetd.conf."
+   cp /etc/inetd.conf /etc/inetd.conf.dpkg-bak
+   sed -e 's|^tftp|#tftp|' -i /etc/inetd.conf
+   /etc/init.d/openbsd-inetd restart
+  fi
+  /etc/init.d/tftpd-hpa restart
+ fi
 
  # update linbofs.gz
  $LINBOUPDATE
