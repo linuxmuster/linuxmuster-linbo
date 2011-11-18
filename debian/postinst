@@ -105,17 +105,29 @@ case "$1" in
     fi
     sed -e "s|^[Uu][Ss][Ee][Mm][Uu][Ll][Tt][Ii][Cc][Aa][Ss][Tt].*|DownloadType = $rstr # Image-Download per torrent\|multicast\|rsync\, default ist rsync|" -i $i
    fi
-   # adding DownloadType
-   if ! grep -qi ^downloadtype $i; then
-    if [ -z "$backed_up" ]; then
-     cp $i $LINBODIR/backup
-     backed_up=yes
+   # adding new options
+   for t in "DownloadType rsync" "BackgroundFontColor white" "ConsoleFontColorStdout white" "ConsoleFontColorStderr red" "IconName default.png" "DefaultAction sync" "AutostartTimeout 5"; do
+    option="$(echo "$t" | awk '{ print $1 }')"
+    if ! grep -qi ^$option $i; then
+     value="$(echo "$t" | awk '{ print $2 }')"
+     if [ -z "$backed_up" ]; then
+      cp $i $LINBODIR/backup
+      backed_up=yes
+     fi
+     echo -n "Adding $option ... "
+     case $option in
+      IconName|DefaultAction|AutostartTimeout)
+       sed -e "/^\[[Oo][Ss]\]/a\
+$option = $value" -i $i
+      ;;
+      *)
+       sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
+$option = $value" -i $i
+      ;;
+     esac
     fi
-    echo -n "Adding DownloadType ... "
-    sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
-DownloadType = rsync # Image-Download per torrent\|multicast\|rsync\, default ist rsync" -i $i
-   fi
-   echo "Ok!"
+    echo "Ok!"
+   done # DownloadType etc.
    [ -n "$backed_up" ] && backup_flag=yes
   done
   [ -n "$backup_flag" ] && echo "Changed files were backed up to $LINBODIR/backup!"

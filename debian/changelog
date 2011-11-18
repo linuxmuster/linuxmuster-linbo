@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.0.1-0) unstable; urgency=low
+
+  * updated start.conf examples with missing IconName option.
+  * postinst: will add more missing options automatically to start.conf.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 18 Nov 2011 17:07:35 +0100
+
 linuxmuster-linbo (2.0.0-0) unstable; urgency=low
 
   * Fixed bittorrent tracker issue in linbo-bittorrent init script (closes #533).
