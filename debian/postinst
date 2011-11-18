@@ -78,7 +78,6 @@ case "$1" in
    if grep -qi ^remotesyncenabled $i; then
     cp $i $LINBODIR/backup
     backed_up=yes
-    echo -n "RemoteSyncEnabled -> NewEnabled ... "
     sed -e 's/[Rr][Ee][Mm][Oo][Tt][Ee][Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd]/NewEnabled/g' -i $i
    fi
    # pxegrub -> grub.exe
@@ -87,7 +86,6 @@ case "$1" in
      cp $i $LINBODIR/backup
      backed_up=yes
     fi
-    echo -n "pxegrub -> grub.exe ... "
     sed -e 's/[Pp][Xx][Ee][Gg][Rr][Uu][Bb]/grub.exe/g' -i $i
    fi
    # UseMultiCast -> DownloadType (#403)
@@ -97,7 +95,6 @@ case "$1" in
      backed_up=yes
     fi
     RET=`grep -i ^usemulticast $i | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
-    echo -n "UseMultiCast -> DownloadType ... "
     if [ "$RET" = "yes" ]; then
      rstr="multicast"
     else
@@ -114,7 +111,6 @@ case "$1" in
       cp $i $LINBODIR/backup
       backed_up=yes
      fi
-     echo -n "Adding $option ... "
      case $option in
       IconName|DefaultAction|AutostartTimeout)
        sed -e "/^\[[Oo][Ss]\]/a\
@@ -126,9 +122,13 @@ $option = $value" -i $i
       ;;
      esac
     fi
-    echo "Ok!"
    done # DownloadType etc.
-   [ -n "$backed_up" ] && backup_flag=yes
+   if [ -n "$backed_up" ]; then
+    backup_flag=yes
+    echo "updated!"
+   else
+    echo "Ok."
+   fi
   done
   [ -n "$backup_flag" ] && echo "Changed files were backed up to $LINBODIR/backup!"
  fi # updating start.confs
