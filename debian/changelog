@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.0.3-0) unstable; urgency=low
+
+  * added tftpd-hpa config template for ubuntu.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 15 Jan 2011 10:55:34 +0100
+
 linuxmuster-linbo (2.0.2-0) unstable; urgency=low
 
   * added missing default.png start.conf icon.

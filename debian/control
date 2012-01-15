@@ -16,7 +16,7 @@ Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctor
 
 Package: linuxmuster-linbo
 Architecture: all
-Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), tftpd-hpa, udpcast, zip, mbr, etherwake
+Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), tftp-hpa, udpcast, zip, mbr, etherwake
 Suggests: dhcp-server | dhcp3-server
 Recommends: wodim
 Description: LINBO PXE boot files
