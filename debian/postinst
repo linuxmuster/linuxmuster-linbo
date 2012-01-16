@@ -144,7 +144,7 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 
  # add bittorrent user if not present
  if ! id bittorrent &> /dev/null; then
-  useradd -c "BitTorrent User" -d /var/lib/bittorrent -g nogroup -r bittorrent
+  useradd -r -c "BitTorrent User" -d /var/lib/bittorrent -g nogroup -r bittorrent
   dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent
   dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent
  fi
