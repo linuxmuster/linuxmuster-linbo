@@ -332,7 +332,7 @@ mountpart(){
  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   *ntfs*)
-   OPTS="$OPTS,recover,remove_hiberfile,streams_interface=xattr"
+   OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
   *fat*)
