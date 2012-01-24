@@ -284,9 +284,9 @@ build-stamp: configure-stamp
 #	fi
 
 	# ntfs-3g
-	-@if [ ! -e $(NTFS3G_DIR)/src/.libs/ntfs-3g ]; then \
+	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip libntfs-3g/.libs/libntfs-3g.so.80.0.0 && strip ntfsprogs/.libs/mkntfs ); \
+		( cd $(NTFS3G_DIR) && ./configure --enable-static --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
 	fi
 
 	# rsync
