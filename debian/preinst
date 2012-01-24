@@ -12,6 +12,15 @@ if [ "$1" = "upgrade" ]; then
  # saving default pxe config if it is not yet a link
  [ -L "$PXELINUXCFG" ] || cp "$PXELINUXCFG" "$PXELINUXCFG.dpkg-bak"
 
+ # add bittorrent user if not present
+ if ! id bittorrent &> /dev/null; then
+  adduser --gecos "BitTorrent User" --home /var/lib/bittorrent --ingroup nogroup --system bittorrent
+  dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent || true
+  dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent || true
+  chown bittorrent:nogroup /var/lib/bittorrent -R
+  chown bittorrent:nogroup /var/log/bittorrent -R
+ fi
+
 fi
 
 exit 0

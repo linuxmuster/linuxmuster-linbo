@@ -142,15 +142,6 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
   newaliases
  fi
 
- # add bittorrent user if not present
- if ! id bittorrent &> /dev/null; then
-  adduser --gecos "BitTorrent User" --home /var/lib/bittorrent --ingroup nogroup --system bittorrent
-  dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent
-  dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent
- fi
- chown bittorrent:nogroup /var/lib/bittorrent -R
- chown bittorrent:nogroup /var/log/bittorrent -R
-
  # provide a bittorrent default file if necessary
  if [ ! -s /etc/default/bittorrent -a -s /usr/share/doc/bittorrent/examples/bittorrent.default ]; then
   cp /usr/share/doc/bittorrent/examples/bittorrent.default /etc/default/bittorrent
