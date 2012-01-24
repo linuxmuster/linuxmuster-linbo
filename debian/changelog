@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.0.4-0) unstable; urgency=low
+
+  * rsync: updated to 3.0.9, removed Patch.
+  * ntfs-3g: updated to 2012.1.15.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 24 Jan 2011 12:53:07 +0100
+
 linuxmuster-linbo (2.0.3-1) unstable; urgency=low
 
   * postinst: using adduser instead of useradd to create bittorrent user.

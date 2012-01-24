@@ -174,8 +174,6 @@ configure-stamp:
 		( cd cache && grep $(RSYNC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(RSYNC_ARCHIVE)...[0m" ; \
 		tar xf cache/$(RSYNC_ARCHIVE) -C src; \
-		echo "[1mPatching rsync sources...[0m" ; \
-		( cd $(RSYNC_DIR) && for i in ../../patches/rsync/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(RSYNC_DIR) src/rsync; \
 	fi
 
