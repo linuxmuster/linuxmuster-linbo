@@ -1,10 +1,13 @@
 linuxmuster-linbo (2.0.4-0) unstable; urgency=low
 
-  * rsync: updated to 3.0.9, building it unpatched.
+  * kernel: updated to 3.0.18.
+  * rsync: updated to 3.0.9, fnametmp-xattrs.patch modified.
   * ntfs-3g: updated to 2012.1.15.
+  * kexec-tools: updated to 2.0.3.
+  * linbo_cmd.sh: optimized ntfs mount options.
   * moved bittorrent user creation to preinst.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 24 Jan 2011 14:03:31 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 27 Jan 2011 16:30:09 +0100
 
 linuxmuster-linbo (2.0.3-1) unstable; urgency=low
 
