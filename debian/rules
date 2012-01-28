@@ -259,7 +259,8 @@ build-stamp: configure-stamp
 	# grub4dos
 	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
 		echo "[1mBuilding grub4dos...[0m" ; \
-		( cd $(GRUB4DOS_DIR) && ./configure --prefix=/usr \
+		( cd $(GRUB4DOS_DIR) && CC=gcc-4.1 CFLAGS=-fno-stack-protector ./configure \
+			--prefix=/usr \
 			--enable-preset-menu=preset_menu.lst \
 			--disable-ffs \
 			--disable-minix \

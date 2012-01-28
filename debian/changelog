@@ -1,15 +1,15 @@
 linuxmuster-linbo (2.0.5-0) unstable; urgency=low
 
   * changed to squeeze build system.
-  * grub4dos: optimized compile options.
   * linbofs:
     - added badgrub.exe for testing purposes.
     - modified udev configuration according to squeeze.
   * removed obsolete documentation.
-  * removed tetex stuff, gcc-4.1 and g++-4.1 from build dependencies.
+  * removed tetex stuff and g++-4.1 from build dependencies.
   * added ethtool version 2.6.34 to build dependencies according to squeeze.
+  * grub4dos: optimized compile options.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Jan 2011 18:02:26 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Sat, 28 Jan 2011 18:06:26 +0100
 
 linuxmuster-linbo (2.0.4-0) unstable; urgency=low
 
