@@ -55,8 +55,8 @@ KEXEC_URL=$(LML_URL)
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
 #GRUB4DOS_DIR=src/grub4dos-$(shell echo $(GRUB4DOS_ARCHIVE) | awk -F\- '{ print $$2 }')
-#GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
-GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//' | awk -F\- '{ print $$1 "-" $$2 }')
+GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
+#GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//' | awk -F\- '{ print $$1 "-" $$2 }')
 #GRUB4DOS_URL=http://nufans.net/grub4dos
 GRUB4DOS_URL=$(LML_URL)
 
@@ -113,21 +113,14 @@ configure-stamp:
 	fi
 
 	# grub4dos
-#	-@if [ ! -d $(GRUB4DOS_DIR) ]; then \
-#		( [ -e cache/$(GRUB4DOS_ARCHIVE) ] || ( cd cache && wget $(GRUB4DOS_URL)/$(GRUB4DOS_ARCHIVE) ) ); \
-#		( cd cache && grep $(GRUB4DOS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(GRUB4DOS_ARCHIVE)...[0m" ; \
-#		( cd src && unzip ../cache/$(GRUB4DOS_ARCHIVE) ); \
-#		echo "[1mPatching grub4dos sources...[0m" ; \
-#		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
-#		chmod 755 $(GRUB4DOS_DIR)/configure; \
-#		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
-#	fi
 	-@if [ ! -d $(GRUB4DOS_DIR) ]; then \
 		( [ -e cache/$(GRUB4DOS_ARCHIVE) ] || ( cd cache && wget $(GRUB4DOS_URL)/$(GRUB4DOS_ARCHIVE) ) ); \
 		( cd cache && grep $(GRUB4DOS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(GRUB4DOS_ARCHIVE)...[0m" ; \
 		( cd src && unzip ../cache/$(GRUB4DOS_ARCHIVE) ); \
+		echo "[1mPatching grub4dos sources...[0m" ; \
+		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
+		chmod 755 $(GRUB4DOS_DIR)/configure; \
 		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
 	fi
 
@@ -264,10 +257,19 @@ build-stamp: configure-stamp
 	fi
 
 	# grub4dos
-#	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
-#		echo "[1mBuilding grub4dos...[0m" ; \
-#		( cd $(GRUB4DOS_DIR) && CC=gcc-4.1 CFLAGS=-fno-stack-protector ./configure --prefix=/usr --enable-preset-menu=preset_menu.lst && make all && strip grub/grub );\
-#	fi
+	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
+		echo "[1mBuilding grub4dos...[0m" ; \
+		( cd $(GRUB4DOS_DIR) && ./configure --prefix=/usr \
+			--enable-preset-menu=preset_menu.lst \
+			--disable-ffs \
+			--disable-minix \
+			--disable-vstafs \
+                        --disable-jfs \
+			--disable-xfs \
+			--disable-ufs2 \
+			--disable-hercules \
+			--disable-serial && make && strip grub/grub );\
+	fi
 
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
@@ -334,10 +336,6 @@ build-stamp: configure-stamp
 		echo "[1mBuilding linbo_gui...[0m" ; \
 		( cd linbo_gui && ./build_gui ); \
 	fi
-	
-	# docs
-	@echo "[1mBuilding docs...[0m" ; \
-	( cd doc && make )
 
 	# linbo kernel
 	@echo "[1mBuilding LINBO kernel...[0m" ; \
@@ -363,7 +361,6 @@ distclean: clean
 	rm -rf $(QT_DIR) || true
 	rm -rf src || true
 	rm -rf kernel || true
-	( cd doc && rm *.toc *.pdf *.out *.log *.lof *.aux ) || true
 
 clean: 
 	dh_testdir
@@ -428,8 +425,6 @@ install: build
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
 	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png
 	install -m 644 graphics/linbo-usb.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-usb.png
-	install -m 644 doc/LINBO-M3.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO.pdf
-	install -m 644 doc/LINBO-Vortrag-2007-09-25.pdf debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/LINBO-Vortrag.pdf
 	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
 	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/menu.lst.default
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
