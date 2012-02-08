@@ -1,3 +1,28 @@
+linuxmuster-linbo (2.0.6-0) unstable; urgency=low
+
+  * added samba machine account password handling (closes #576):
+  * reworked and renamed rsync xfer scripts:
+    * rsync-pre-download.sh, rsync-pre-upload.sh, rsync-post-upload.sh.
+    * splitted logfiles, every script has now its own.
+    * dectivated debug mode.
+    * added code to save and restore sambaNTPassword (#576).
+    * fixed: download services restart not being invoked when a new image was
+      uploaded (closes #577).
+  * linbofs:
+    * chntpw updated to 110511.
+    * linbo_cmd.sh, syncl():
+      * added rsync download of machine account file to trigger sambaNTPassword
+        restore on the server (#576).
+      * redirect bvi patch stdout garbage to /dev/null.
+  * kernel:
+    * updated to 3.2.5.
+    * changed compression method to lzo.
+  * package:
+    * added ldap-utils to recommends.
+    * added lzop to build-depends.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Jan 2011 12:19:20 +0100
+
 linuxmuster-linbo (2.0.5-0) unstable; urgency=low
 
   * changed to squeeze build system.

@@ -1,0 +1,5 @@
+dn: uid=@@compname@@$,ou=machines,@@basedn@@
+changetype: modify
+replace: sambaNTPassword
+sambaNTPassword: @@sambaNTpwhash@@
+-

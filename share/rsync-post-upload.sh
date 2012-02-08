@@ -9,25 +9,39 @@
 # $Id$
 #
 
+# read in paedml specific environment
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+
+LOGFILE=rsync-post-upload.log
+if [ -n "$LINBODIR" ]; then
+ LOGFILE="$LINBODIR/log/$LOGFILE"
+else
+ LOGFILE="/var/log/$LOGFILE"
+fi
+
 # Debug
-exec >>/var/log/linuxmuster/linbo/rsync.log 2>&1
-echo "$0 $*, Variables:" ; set
+exec >>$LOGFILE 2>&1
+#echo "$0 $*, Variables:" ; set
+
+echo "### rsync post upload begin: $(date) ###"
 
 # Needs Version 2.9 of rsync
 [ -n "$RSYNC_PID" ] || exit 0
 
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 
-# Check for pidfile, quit if nothing to do
+# Check for pidfile, exit if nothing to do
 [ -s "$PIDFILE" ] || exit 0
-
-# read in paedml specific environment
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 
 FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
+
+echo "FILE: $FILE"
+echo "PIDFILE: $PIDFILE"
+echo "BACKUP: $BACKUP"
+echo "EXT: $EXT"
 
 # Check for backup file that should have been created by pre-upload script
 if [ -s "$BACKUP" ]; then
@@ -50,14 +64,30 @@ fi
 case "$EXT" in
  # restart multicast service if image file was uploaded.
  *.cloop|*.rsync)
-  echo "Image file ${FILE##*/} detected. Restarting multicast service if enabled." >&2
+  image="${FILE##*/}"
+  echo "Image file $image detected. Restarting multicast service if enabled." >&2
   /etc/init.d/linbo-multicast restart >&2
+  # save samba passwords of host we made the new image
+  LDAPSEARCH="$(which ldapsearch)"
+  ldapsec="/etc/ldap.secret"
+  if [ -n "$RSYNC_HOST_NAME" -a -n "$LDAPSEARCH" -a -s "$ldapsec" -a -n "$NETWORKSETTINGS" ]; then
+   #  fetch samba nt password hash from ldap machine account
+   . $NETWORKSETTINGS # read basedn
+   compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
+   sambaNTpwhash="$("$LDAPSEARCH" -y "$ldapsec" -D cn=admin,$basedn -x -h localhost "(uid=$compname$)" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
+   if [ -n "$sambaNTpwhash" ]; then
+    echo "Writing samba password hash file for image $image."
+    template=/usr/share/linuxmuster-linbo/templates/machineacct
+    imagemacct=$LINBODIR/$image.macct
+    sed -e "s|@@basedn@@|$basedn|
+            s|@@sambaNTpwhash@@|$sambaNTpwhash|" "$template" > "$imagemacct"
+   fi
+  fi
  ;;
  *.torrent)
   # restart torrent service if torrent file was uploaded.
   echo "Torrent file ${FILE##*/} detected. Restarting bittorrent service." >&2
   /etc/init.d/linbo-bittorrent restart >&2
-  /etc/init.d/bittorrent restart >&2
  ;;
  *.new)
   # add new host data to workstations file
@@ -75,6 +105,9 @@ case "$EXT" in
  ;;
  *) ;;
 esac
+
+echo "RC: $RSYNC_EXIT_STATUS"
+echo "### rsync post upload end: $(date) ###"
 
 exit $RSYNC_EXIT_STATUS
 

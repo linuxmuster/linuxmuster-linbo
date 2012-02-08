@@ -254,6 +254,16 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
   fi
  fi
 
+ # update rsyncd.conf
+ conf=/etc/rsyncd.conf
+ tpl="$tpldir/$(basename $conf)"
+ if ! grep rsync-pre-download.sh "$conf" &> /dev/null; then
+  echo "Updating $conf."
+  [ -e "$conf" ] && cp "$conf" "$conf.dpkg-bak"
+  sed -e "s|@@linbodir@@|$LINBODIR|g" "$tpl" > "$conf"
+  /etc/init.d/rsync restart
+ fi
+
  # update linbofs.gz
  $LINBOUPDATE
  ;;

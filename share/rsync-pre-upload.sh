@@ -4,10 +4,26 @@
 # Pre-Upload script for rsync/LINBO:
 # Moves old version of file out of the way,
 # and installs a new version.
+#
+# later improvements by Thomas Schmitt
+# $Id$
+#
+
+# read in paedml specific environment
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+
+LOGFILE=rsync-pre-upload.log
+if [ -n "$LINBODIR" ]; then
+ LOGFILE="$LINBODIR/log/$LOGFILE"
+else
+ LOGFILE="/var/log/$LOGFILE"
+fi
 
 # Debug
-exec >>/var/log/linuxmuster/linbo/rsync.log 2>&1
-echo "$0 $*, Variables:" ; set
+exec >>$LOGFILE 2>&1
+#echo "$0 $*, Variables:" ; set
+
+echo "### rsync pre upload begin: $(date) ###"
 
 # Needs Version 2.9 of rsync
 [ -n "$RSYNC_PID" ] || exit 0
@@ -18,6 +34,12 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 
 # Save filename for post-script and exit, if it is a new host data file
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
+
+echo "FILE: $FILE"
+echo "PIDFILE: $PIDFILE"
+echo "BACKUP: $BACKUP"
+echo "EXT: $EXT"
+
 if [ "$EXT" = ".new" ]; then
  [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
  echo "$FILE" > "$PIDFILE"
@@ -30,15 +52,21 @@ if [ -s "$BACKUP" ]; then
  exit 1
 fi
 
-# Continue without creating backups, if file does not exist yet.
+# Create backups, if file exists, otherwise save only the filename.
 [ -d "$FILE" ] && exit 0
-[ -s "$FILE" ] || exit 0
-
-# Move file out of the way
-mv -fv "$FILE" "$BACKUP" ; RC="$?"
+if [ -e "$FILE" ]; then
+ # Move file out of the way
+ mv -fv "$FILE" "$BACKUP" ; RC="$?"
+else
+ RC=0
+fi
 
 # Save filename for post-script and exit
 [ "$RC" = "0" ] && { rm -f "$PIDFILE" ; echo "$FILE" > "$PIDFILE"; }
+
+echo "RC: $RC"
+echo "### rsync pre upload end: $(date) ###"
+
 exit $RC
 # post-script will change the name of the backup to a more meaningful one,
 # or rename it back in case of a failed download.

@@ -1083,6 +1083,25 @@ restore(){
  return "$RC"
 }
 
+# download server file [important]
+download(){
+ local RC=1
+ [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
+ rm -f "$TMP"
+ interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
+ if [ "$RC" != "0" ]; then
+  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
+  rm -f "$2" 2>/dev/null
+  if [ -n "$3" ]; then
+   # Verbose error message if file was important
+   cat "$TMP" >&2
+   echo "Datei $2 konnte nicht heruntergeladen werden." >&2
+  fi
+ fi
+ rm -f "$TMP"
+ return "$RC"
+}
+
 # tschmitt
 # patch fstab with root partition and root fstype: patch_fstab rootdev
 patch_fstab(){
@@ -1148,6 +1167,7 @@ syncl(){
  local RC=1
  local patchfile=""
  local postsync=""
+ local macctfile=""
  local rootdev="$5"
  local disk="${rootdev%%[1-9]*}"
  local group="$(hostgroup)"
@@ -1167,9 +1187,18 @@ syncl(){
    [ "$RC" = "0" ] || break
    patchfile="$image.reg"
    postsync="$image.postsync"
+   # file with samba machine password hashes
+   macctfile="$image.macct"
   fi
  done
  if [ "$RC" = "0" ]; then
+  # request macct file to invoke samba password hash ldap upload stuff on the server
+  local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+  if [ -n "$serverip" ]; then
+   #echo "Fordere $macctfile von $serverip an."
+   download "$serverip" "$macctfile"
+   rm -f "/cache/$macctfile"
+  fi
   # Apply patches
   if mountpart "$5" /mnt -w ; then
    # hostname
@@ -1198,7 +1227,7 @@ syncl(){
     # WinXP, Win7
     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
      # tschmitt: logging
-     echo -n "Patche System mit $patchfile ... " >/tmp/patch.log
+     echo -n "Patche System mit $patchfile." >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
@@ -1217,8 +1246,8 @@ syncl(){
    [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
    # patch newdev.dll
    if [ -n "$newdevdll" ]; then
-    echo "Patche $newdevdll ..."
-    grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
+    echo "Patche $newdevdll."
+    grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
    fi
    # restore win7 bcd
    [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" 2> /dev/null
@@ -1314,25 +1343,6 @@ create(){
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2
  sendlog
  cd / ; mountcache "$1" -r
- return "$RC"
-}
-
-# download server file [important]
-download(){
- local RC=1
- [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
- rm -f "$TMP"
- interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
- if [ "$RC" != "0" ]; then
-  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
-  rm -f "$2" 2>/dev/null
-  if [ -n "$3" ]; then
-   # Verbose error message if file was important
-   cat "$TMP" >&2
-   echo "Datei $2 konnte nicht heruntergeladen werden." >&2
-  fi
- fi
- rm -f "$TMP"
  return "$RC"
 }
 
