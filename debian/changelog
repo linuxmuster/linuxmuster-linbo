@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.0.7-0) unstable; urgency=low
+
+  * linbo-remote: Fixed bug with room parameter (closes #578).
+  * linbo_cmd, register(): Fixed mac address inquiry for computer registration (closes #579).
+  * linbo_cmd, mac(): Converting mac addresses to upper case per default.
+  * rsync-post-upload.sh: removed mac address upper case conversion for new computers.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 09 Jan 2011 16:21:21 +0100
+
 linuxmuster-linbo (2.0.6-0) unstable; urgency=low
 
   * added samba machine account password handling (closes #576):

@@ -1930,6 +1930,13 @@ ready(){
  return 0
 }
 
+mac(){
+ local iface="$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')"
+ local mac="$(LANG=C ifconfig "$iface" | grep HWaddr | awk '{print $5}' | tr a-z A-Z)"
+ [ -z "$mac" ] && mac="OFFLINE"
+ echo "$mac"
+}
+
 # register server user password variables...
 register(){
  local RC=1
@@ -1937,21 +1944,18 @@ register(){
  local client="$5"
  local ip="$6"
  local group="$7"
- local device="$(route -n | awk '/^0.0.0.0/{print $NF; exit}')"
- [ -n "$device" ] && device="eth0"
- local mac="$(cat /sys/class/net/$device/address)"
- local info="$room;$client;$group;$mac;$ip;255.240.0.0;1;1;1;1;22"
+ local macaddr="$(mac)"
+ [ "$maccaddr" = "OFFLINE" ] && return 1
+ local info="$room;$client;$group;$macaddr;$ip;255.240.0.0;1;1;1;1;1"
  # Plausibility check
  if echo "$client" | grep -qi '[^a-z0-9-]'; then
   echo "Falscher Rechnername: '$client'," >&2
   echo "Rechnernamen dürfen nur Buchstaben [a-z0-9-] enthalten." >&2
-  sendlog
   return 1
  fi
  if echo "$group" | grep -qi '[^a-z0-9_]'; then
   echo "Falscher Gruppenname: '$group'," >&2
   echo "Rechnergruppen dürfen nur Buchstaben [a-z0-9_] enthalten." >&2
-  sendlog
   return 1
  fi
  cd /tmp
@@ -1961,7 +1965,6 @@ register(){
  export RSYNC_PASSWORD="$3"
  interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
  cd /
- sendlog
  return "$RC"
 }
 
@@ -1984,13 +1987,6 @@ clientname(){
   fi
  fi
  echo "$clientname"
-}
-
-mac(){
- local iface="$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')"
- local mac="$(ifconfig "$iface" | grep HWaddr | awk '{print $5}')"
- [ -z "$mac" ] && mac="OFFLINE"
- echo "$mac"
 }
 
 cpu(){

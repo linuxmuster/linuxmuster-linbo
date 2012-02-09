@@ -96,9 +96,6 @@ case "$EXT" in
    echo "Row already present in workstations data file. Skipped!" >&2
   else
    echo "Adding row to $WIMPORTDATA." >&2
-   # convert mac to upper case
-   mac_old="$(echo $ROW | awk -F\; '{ print $4 }')"
-   mac_new="$(echo $mac_old | tr a-z A-Z)"
    echo "$ROW" | sed -e "s|$mac_old|$mac_new|" >> $WIMPORTDATA
   fi
   rm $FILE
