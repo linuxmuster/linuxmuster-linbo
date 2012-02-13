@@ -149,31 +149,48 @@ else # room
  [ -z "$IP" ] && usage
 fi
 
-# reset auto values in start.conf in remote control mode
-reset_startconf(){
- if [ ! -s "$STARTCONF" ]; then
-  echo "Fatal: `basename $STARTCONF` not found!"
-  exit 1
- fi
- [ -e "$BACKUPCONF" ] && rm -rf "$BACKUPCONF"
- mv "$STARTCONF" "$BACKUPCONF"
- echo "$REMOTE_TAG" > "$STARTCONF"
- local line=""
- while read line; do
-  line="${line%\#*}"
-  line="$(echo "$line" | sed 's/[ \t]*$//')"
-  [ "${line:0:1}" = "#" ] && continue
-  [ -z "$line" ] && continue
-  echo "$line" >> "$STARTCONF"
- done < "$BACKUPCONF"
- sed -e 's|^[Aa][Uu][Tt][Oo][Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn].*|AutoPartition = no|g
-         s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g
-         s|^[Aa][Uu][Tt][Oo][Ii][Nn][Ii][Tt][Cc][Aa][Cc][Hh][Ee].*|AutoInitCache = no|g
-         s|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
-         s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
-         s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
-         s|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i "$STARTCONF"
+# temporarily replace start.conf's in remote control mode
+replace_startconfs(){
+ for i in $STARTCONF; do
+  # check if start.conf exists for remote tag
+  if [ ! -e "$i" ]; then
+   echo "Fatal: `basename $i` not found!"
+   exit 1
+  fi
+  # check for remote tag
+  if grep "$REMOTE_TAG" "$i"; then
+   echo "Remote tag in `basename $i` detected! Aborting!"
+   exit 1
+  fi
+ done
+ # start processing after checks
+ echo "Replacing"
+ local BACKUPCONF=""
+ for i in $STARTCONF; do
+  echo " $(basename "$i") ..."
+  # move start.conf
+  BACKUPCONF="$i.$$"
+  [ -e "$BACKUPCONF" ] && rm -rf "$BACKUPCONF"
+  mv "$i" "$BACKUPCONF"
+  # set remote tag
+  echo "$REMOTE_TAG" > "$i"
+  # convert to utf8 and remove comments and empty lines
+  iconv -f latin1 -t utf-8 "$BACKUPCONF" | sed -e 's/#.*//' -e 's/[ ^I]*$//' -e '/^$/ d' >> "$i"
+  # disable start automatisms and buttons
+  sed -e 's|^[Aa][Uu][Tt][Oo][Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn].*|AutoPartition = no|g
+          s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g
+          s|^[Aa][Uu][Tt][Oo][Ii][Nn][Ii][Tt][Cc][Aa][Cc][Hh][Ee].*|AutoInitCache = no|g
+          s|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
+          s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
+          s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
+          s|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i "$i"
+ done
 }
+
+# script header info
+echo "###"
+echo "### linbo-remote ($$) start: $(date)"
+echo "###"
 
 # wake-on-lan stuff
 if [ -n "$WAIT" ]; then
@@ -183,34 +200,31 @@ if [ -n "$WAIT" ]; then
   echo "Default route not found. Cannot determine network interface!"
   exit 1
  fi
- # move start.conf
+ # get start.conf's
  if [ -n "$GROUP" ]; then
   STARTCONF="$LINBODIR/start.conf.$GROUP"
-  BACKUPCONF="$LINBODIR/start.conf.$GROUP.$$"
  else
-  STARTCONF="$LINBODIR/start.conf-$IP"
-  BACKUPCONF="$LINBODIR/start.conf-$IP.$$"
+  for i in $IP; do
+   STARTCONF="$STARTCONF $LINBODIR/start.conf-$i"
+  done
  fi
- if grep "$REMOTE_TAG" "$STARTCONF"; then
-  echo "Remote tag in $STARTCONF detected! Aborting!"
-  exit 1
- fi
- # reset start.conf for remote control mode
- reset_startconf
+ # replace start.conf's for remote control mode
+ replace_startconfs
  # wake-on-lan
+ echo "Waking up"
  for i in $IP; do
-  echo "Waking up $i ..."
+  echo " $i ..."
   get_mac "$i"
   $ETHERWAKE -i "$iface" "$RET"
   [ -n "$BETWEEN" ] && sleep "$BETWEEN"
  done
  # wait
- echo "Waiting $WAIT seconds for clients to boot ..."
+ echo "Waiting $WAIT second(s) for client(s) to boot ..."
  sleep "$WAIT"
 fi
 
 # send commands
-echo "Starting to send command(s) \"$CMDS\" to ..."
+echo "Sending command(s) \"$CMDS\" to"
 for i in $IP; do
  echo -n " $i ... "
  if $SSH $i ls /start.conf &> /dev/null; then
@@ -245,9 +259,18 @@ done
 
 # restore start.conf
 if [ -n "$WAIT" ]; then
- rm -rf "$STARTCONF"
- mv "$BACKUPCONF" "$STARTCONF"
+ echo "Restoring"
+ for i in $STARTCONF; do
+  echo " $(basename "$i") ..."
+  BACKUPCONF="$i.$$"
+  mv "$BACKUPCONF" "$i"
+ done
 fi
+
+# script footer info
+echo "###"
+echo "### linbo-remote ($$) end: $(date)"
+echo "###"
 
 exit 0
 

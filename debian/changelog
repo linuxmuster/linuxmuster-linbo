@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.0.7-1) unstable; urgency=low
+
+  * repackaged with the accurate linbo-remote.sh (r1280).
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 13 Jan 2011 12:38:48 +0100
+
 linuxmuster-linbo (2.0.7-0) unstable; urgency=low
 
   * linbo-remote: Fixed bug with room parameter (closes #578).

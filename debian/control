@@ -24,6 +24,3 @@ Description: LINBO PXE boot files
  for the Linux-based Network Boot (LINBO) boot/install/repair system.
  Installation and configuration of a DHCP, TFTP and RSYNC server, as well
  as udpcast, is highly recommended for this to work.
- .
- Please read about LINBO configuration and administration in
- /usr/share/doc/linuxmuster-linbo/LINBO.pdf.
