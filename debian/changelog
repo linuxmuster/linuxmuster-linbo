@@ -1,8 +1,18 @@
+linuxmuster-linbo (2.0.8-0) unstable; urgency=low
+
+  * linbo-remote: added filter for non pxe hosts.
+  * kernel:
+    - updated to 3.2.6.
+    * changed compression method back to bzip2.
+  * package: removed lzop from build-depends.
+
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 14 Feb 2011 18:10:07 +0100
+
 linuxmuster-linbo (2.0.7-1) unstable; urgency=low
 
   * repackaged with the accurate linbo-remote.sh (r1280).
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 13 Jan 2011 12:38:48 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Mon, 13 Feb 2011 12:38:48 +0100
 
 linuxmuster-linbo (2.0.7-0) unstable; urgency=low
 
@@ -11,7 +21,7 @@ linuxmuster-linbo (2.0.7-0) unstable; urgency=low
   * linbo_cmd, mac(): Converting mac addresses to upper case per default.
   * rsync-post-upload.sh: removed mac address upper case conversion for new computers.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 09 Jan 2011 16:21:21 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 09 Feb 2011 16:21:21 +0100
 
 linuxmuster-linbo (2.0.6-0) unstable; urgency=low
 
@@ -36,7 +46,7 @@ linuxmuster-linbo (2.0.6-0) unstable; urgency=low
     * added ldap-utils to recommends.
     * added lzop to build-depends.
 
- -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Jan 2011 12:19:20 +0100
+ -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Feb 2011 12:19:20 +0100
 
 linuxmuster-linbo (2.0.5-0) unstable; urgency=low
 

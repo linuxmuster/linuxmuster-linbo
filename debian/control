@@ -5,7 +5,7 @@ Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
 Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctorrent, bvi, ethtool (>= 2.6.34),
                dropbear, nasm, ncurses-base, coreutils, sysvinit-utils, util-linux, ntfsprogs,
                libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip, gettext, zlib1g-dev,
-               libncurses5-dev, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev, lzop,
+               libncurses5-dev, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev,
                qt3-dev-tools, gcc-4.1, gcc-4.3, g++-4.3, flex, libxext-dev (>= 4.3.0.dfsg.1-4),
                libxrandr-dev (>= 4.3.0.dfsg.1-4), libsm-dev (>= 4.3.0.dfsg.1-4), libxmu-dev (>= 4.3.0.dfsg.1-4),
                libice-dev (>= 4.3.0.dfsg.1-4), libx11-dev (>= 4.3.0.dfsg.1-4), libxt-dev (>= 4.3.0.dfsg.1-4),

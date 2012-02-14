@@ -142,10 +142,10 @@ if [ -n "$IP" ]; then
   [ -z "$HOSTNAME" ] && usage
  fi
 elif [ -n "$GROUP" ]; then # group
- IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $3, $5 }' | grep ^"$GROUP " | awk '{ print $2 }')"
+ IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
  [ -z "$IP" ] && usage
 else # room
- IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1, $5 }' | grep ^"$ROOM " | awk '{ print $2 }')"
+ IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
  [ -z "$IP" ] && usage
 fi
 
