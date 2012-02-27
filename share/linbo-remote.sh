@@ -13,6 +13,8 @@
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
+KNOWNCMDS="partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
+DLTYPES="multicast rsync torrent"
 SSH=linbo-ssh
 SCP=linbo-scp
 WRAPPER=/usr/bin/linbo_wrapper
@@ -66,7 +68,8 @@ usage(){
  echo "<\"msg\"> is an optional image comment."
  echo "The position numbers are related to the position in start.conf."
  echo "The commands were sent per ssh to the linbo_wrapper on the client and processed in the order given on the commandline."
-	exit 1
+ echo "create_* and upload_* commands cannot be used with -r and -g options."
+ exit 1
 }
 
 # list linbo-remote screens
@@ -96,8 +99,7 @@ while getopts ":b:c:g:hi:lr:w:" opt; do
   l) list
      exit 0 ;;
   b) BETWEEN=$OPTARG ;;
-  c) CMDS=$OPTARG
-     case "$CMDS" in *upload*|*create*) SECRETS=/etc/rsyncd.secrets ;; esac ;;
+  c) CMDS=$OPTARG ;;
   i) IP=$OPTARG ;;
   g) GROUP=$OPTARG ;;
   r) ROOM=$OPTARG ;;
@@ -127,7 +129,104 @@ if [ -n "$BETWEEN" ]; then
  [ -z "$WAIT" ] && usage
  isinteger "$BETWEEN" || usage
 fi
-CMDS="${CMDS//,/ }"
+
+# no upload or create for groups/rooms
+case "$CMDS" in *upload*|*create*)
+ [ -z "$IP" ] && usage
+ # provide secrets file for upload
+ SECRETS=/etc/rsyncd.secrets
+ ;;
+esac
+
+
+## evaluate commands string - begin
+# strip from beginning of commands string
+strip_cmds(){
+ local tostrip="$1"
+ CMDS="$(echo "$CMDS" | sed -e "s|^$tostrip||")"
+}
+
+# extract number parameter
+extract_nr(){
+ local nr="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
+ isinteger "$nr" || usage
+ strip_cmds ":$nr"
+ command[$c]="$cmd:$nr"
+}
+
+# extract comment
+extract_comment(){
+ local comment="$(echo "$CMDS" | awk -F\: '{ print $2 }')"
+ # count commas in comment string
+ local nrofc="$(echo "$CMDS" | grep -o "," | wc -l)"
+ # if more than zero commas exist
+ if [ $nrofc -gt 0 ]; then
+  # strip next command
+  local i
+  for i in $KNOWNCMDS; do
+   stringinstring ",$i" "$comment" && comment="$(echo "$comment" | sed -e "s|\,${i}.*||")"
+  done
+ fi
+ strip_cmds ":$comment"
+ command[$c]="${command[$c]}:\\\"$comment\\\""
+}
+
+# iterate over command string and split the commands
+c=0
+while [ -n "$CMDS" ]; do
+
+ # extract command from string
+ cmd="$(echo "$CMDS" | awk -F\: '{ print $1 }' | awk -F\, '{ print $1 }')"
+ # check if command is known
+ stringinstring "$cmd" "$KNOWNCMDS" || usage
+ # build array of commands
+ command[$c]="$cmd"
+ # strip command from beginning of string
+ strip_cmds "$cmd"
+
+ # evaluate commands and parameters
+ case "$cmd" in
+
+  format)
+   [ "${CMDS:0:1}" = ":" ] && extract_nr
+  ;;
+
+  sync|start|upload_cloop|upload_rsync)
+   [ "${CMDS:0:1}" = ":" ] || usage
+   extract_nr
+  ;;
+
+  initcache)
+   if [ "${CMDS:0:1}" = ":" ]; then
+    dltype="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
+    stringinstring "$dltype" "$DLTYPES" || usage
+    strip_cmds ":$dltype"
+    command[$c]="$cmd:$dltype"
+   fi
+  ;;  
+
+  create_cloop|create_rsync)
+   extract_nr
+   [ "${CMDS:0:1}" = ":" ] && extract_comment
+  ;;
+
+  partition|reboot|halt) ;;
+
+  *)
+   echo "Unknown command: $cmd."
+   usage
+  ;;
+
+ esac
+
+ # remove preceding comma
+ strip_cmds ","
+ c=$(( $c + 1 ))
+
+done
+nrofcmds=$c
+## evaluate commands string - end
+
 
 # evaluate ip / group / room
 if [ -n "$IP" ]; then
@@ -224,7 +323,7 @@ if [ -n "$WAIT" ]; then
 fi
 
 # send commands
-echo "Sending command(s) \"$CMDS\" to"
+echo "Sending command(s) to"
 for i in $IP; do
  echo -n " $i ... "
  if $SSH $i ls /start.conf &> /dev/null; then
@@ -237,14 +336,16 @@ for i in $IP; do
   # create a temporary script with linbo remote commands
   REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
   echo "#!/bin/sh" > $REMOTESCRIPT
-  for c in $CMDS; do
-   case $c in
-    start:*|reboot|halt|poweroff)
+  c=0
+  while [ $c -lt $nrofcmds ]; do
+   case ${command[$c]} in
+    start|reboot|halt|poweroff)
      START=yes
-     echo "$SSH $i $WRAPPER $c &" >> $REMOTESCRIPT
+     echo "$SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
      echo "sleep 10" >> $REMOTESCRIPT ;;
-    *) echo "$SSH $i $WRAPPER $c" >> $REMOTESCRIPT ;;
+    *) echo "$SSH $i $WRAPPER ${command[$c]}" >> $REMOTESCRIPT ;;
    esac
+   c=$(( $c + 1 ))
   done
   [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm /tmp/rsyncd.secrets" >> $REMOTESCRIPT
   echo "rm $REMOTESCRIPT" >> $REMOTESCRIPT
