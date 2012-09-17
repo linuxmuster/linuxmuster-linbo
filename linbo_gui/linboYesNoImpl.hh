@@ -10,16 +10,19 @@
 #include <qwidget.h>
 #include <qdialog.h>
 #include <qpushbutton.h>
-#include <q3process.h>
-#include <q3textbrowser.h>
+#include <Q3TextEdit>
 #include <qstringlist.h>
-#include <q3process.h>
+#include <QProcess>
 #include <iostream>
 #include "linboGUIImpl.hh"
+#include "linboProgressImpl.hh"
 
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
-using namespace Ui;
+class linboGUIImpl;
+class linboLogConsole;
+class linboProgressImpl;
 
 class linboYesNoImpl : public QWidget, public Ui::linboYesNo, public linboDialog
 {
@@ -27,27 +30,34 @@ class linboYesNoImpl : public QWidget, public Ui::linboYesNo, public linboDialog
 
 private:
   QString line;
-  QStringList myCommand;
-  Q3Process *process;
+  QStringList myCommand, arguments;
+  QProcess *process;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
+  linboGUIImpl* app;
+  linboProgressImpl *progwindow;
+  linboLogConsole *logConsole;
 
 public slots:
   virtual void precmd();
   virtual void postcmd();
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status );
+
   
 protected slots:
 virtual void languageChange() {};
   
 public:
   linboYesNoImpl( QWidget* parent = 0 );
-
    ~linboYesNoImpl();
 
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   QStringList getCommand();
   void setCommand(const QStringList& arglist);
   void setMainApp( QWidget* newMainApp );

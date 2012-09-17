@@ -10,11 +10,12 @@
 #include <qdialog.h>
 #include <QProcess>
 #include <qstring.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <QTextBrowser>
 #include <qlineedit.h>
 
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
 using namespace Ui;
 
@@ -27,14 +28,17 @@ private:
   QStringList myCommand;
   QString line;
   QWidget *myMainApp, *myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
+  linboLogConsole* logConsole;
 
 public:
   linboConsoleImpl( QWidget* parent = 0 );
 
   ~linboConsoleImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setMainApp( QWidget* newMainApp );
@@ -45,6 +49,8 @@ public slots:
   virtual void precmd();
   void readFromStderr();
   void readFromStdout();
+  void processFinished( int retval,
+			QProcess::ExitStatus status);
   void showOutput();
   void execute();
 };

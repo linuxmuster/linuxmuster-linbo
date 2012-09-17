@@ -12,13 +12,16 @@
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
 #include "ui_linboGUI.h"
+#include <QProcess>
 #include <qstringlist.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qtimer.h>
 #include "linboCounterImpl.hh"
+#include "linboLogConsole.hh"
 
 using namespace Ui;
 class linboGUIImpl;
+class linboLogConsole;
 
 class linboPasswordBoxImpl : public QWidget, public Ui::linboPasswordBox, public linboDialog
 {
@@ -27,13 +30,14 @@ class linboPasswordBoxImpl : public QWidget, public Ui::linboPasswordBox, public
 private:
   QWidget* myMainApp,*myParent;
   linboGUIImpl* app;
-  QStringList myCommand;
-  Q3Process* process;
+  QStringList myCommand, arguments;
+  QProcess* process;
   QString line;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   linboCounterImpl* myCounter;
   QTimer* myTimer;
   int currentTimeout;
+  linboLogConsole *logConsole;
 
 public:
   linboPasswordBoxImpl( QDialog* parent = 0 );
@@ -45,7 +49,9 @@ public:
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
 
 
 public slots:
@@ -53,6 +59,9 @@ public slots:
   void readFromStdout();
   void readFromStderr();
   void processTimeout();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 
 };

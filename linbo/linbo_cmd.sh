@@ -1,10 +1,10 @@
 #!/bin/sh
 # linbo_cmd - Backend worker script for LINBO
-# (C) Klaus Knopper 2007
+# (C) Klaus Knopper 2007-2010
 # License: GPL V2
 #
 # paedML/openML modifications by Thomas Schmitt
-# $Id$
+# $Id: linbo_cmd.sh 1275 2012-02-09 16:49:24Z tschmitt $
 #
 
 CLOOP_BLOCKSIZE="131072"
@@ -161,7 +161,7 @@ bailout(){
  sync; sync; sleep 1
  umount /mnt >/dev/null 2>&1 || umount -l /mnt >/dev/null 2>&1
  sendlog
- #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
+ umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
  umount /cloop >/dev/null 2>&1 || umount -l /cloop >/dev/null 2>&1
  rmmod cloop >/dev/null 2>&1
  rm -f "$TMP" /tmp/rsync.exclude
@@ -332,7 +332,7 @@ mountpart(){
  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   *ntfs*)
-   OPTS="$OPTS,recover,remove_hiberfile,streams_interface=xattr"
+   OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
    ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
   *fat*)
@@ -373,6 +373,16 @@ mountcache(){
  local RC=1
  [ -n "$1" ] || return 1
  export CACHE_PARTITION="$1"
+ # Avoid duplicate mounts by just preparing read/write mode
+ if grep -q "^$1 " /proc/mounts; then
+  local RW
+  grep -q "^$1 .*rw.*" /proc/mounts && RW="true" || RW=""
+  case "$2" in
+   -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache; RC=0 ;; 
+   *) [ -n "$RW" ] || mount -o remount,rw /cache; RC="$?" ;; 
+  esac
+  return "$RC"
+ fi
  case "$1" in
   *:*) # NFS
    local server="${1%%:*}"
@@ -409,12 +419,13 @@ mountcache(){
   /dev/*) # local cache
    # Check if cache partition exists
    if grep -q "${1##*/}" /proc/partitions; then
-    if cat /proc/mounts | grep -q /cache; then
-     echo "Cache ist bereits gemountet."
-     RC=0
-    else
+#    if cat /proc/mounts | grep -q /cache; then
+#     echo "Cache ist bereits gemountet."
+#     RC=0
+#    else
+     echo "Mounte Cachepartition $1 ..."
      mountpart "$1" /cache $2 ; RC="$?"
-    fi
+#    fi
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
      local cachefs="$(fstype_startconf "$1")"
@@ -435,6 +446,17 @@ mountcache(){
   esac
  [ "$RC" = "0" ] || echo "Kann $1 nicht als /cache einbinden." >&2
  return "$RC"
+}
+
+killalltorrents(){
+ local WAIT=5
+ # check for running torrents and kill them if any
+ if [ -n "`ps w | grep ctorrent | grep -v grep`" ]; then
+  echo "Killing torrents ..."
+  killall -9 ctorrent 2>/dev/null
+  sleep "$WAIT"
+  [ -n "`ps w | grep ctorrent | grep -v grep`" ] && sleep "$WAIT"
+ fi
 }
 
 # Changed: All partitions start on cylinder boundaries.
@@ -467,6 +489,7 @@ partition(){
  # grep all disks from start.conf
  local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
  # compute the last partition of each disk
+ local i=""
  for i in $disks; do
   local lastpartitions="$lastpartitions $(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -r | grep $i | head -1)"
  done
@@ -548,6 +571,7 @@ mkgrub(){
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
  if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
   local append=""
+  local vga="vga=785"
   local i
   for i in $(cat /proc/cmdline); do
    case "$i" in
@@ -644,12 +668,11 @@ start(){
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
   umount /mnt 2>/dev/null
   sendlog
-  #umount /cache 2>/dev/null
+  mountcache "$6" -r
   return 1
  fi
  # kill torrents if any
- ps w | grep ctorrent | grep -v grep &> /dev/null && killall -9 ctorrent
-
+ killalltorrents
  # No more timer interrupts
  [ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
  [ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
@@ -658,11 +681,12 @@ start(){
   kexec -l $INITRD --append="$APPEND" $KERNEL && LOADED="true"
   sleep 3
  fi
-
  umount /mnt 2>/dev/null
  sendlog
- umount /cache || umount -l /cache 2>/dev/null
-
+ # do not umount cache if root = cache
+ if [ "$2" != "$6" ]; then
+  umount /cache || umount -l /cache 2>/dev/null
+ fi
  if [ -n "$LOADED" ]; then
   # Workaround for missing speedstep-capability of Windows
   local i=""
@@ -792,7 +816,7 @@ mk_cloop(){
    fi
    echo "Starte Kompression von $2 -> $3 (ganze Partition, ${size}K)." | tee -a /tmp/image.log
    echo "create_compressed_fs -B $CLOOP_BLOCKSIZE -L 1 -t 2 -s ${size}K $2 $3" | tee -a /tmp/image.log
-   interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 ; RC="$?"
+   interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 ; export RC="$?"
    if [ "$RC" = "0" ]; then
     # create status file
     if mountpart "$2" /mnt -w ; then
@@ -817,8 +841,8 @@ mk_cloop(){
     if test -s /cache/"$4" && modprobe cloop file=/cache/"$4"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r ; then
-      prepare_fs /mnt "$2" | tee -a /tmp/image.log
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
+      prepare_fs /mnt "$2" | tee -a /tmp/image.log
       mkexclude
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
@@ -914,7 +938,9 @@ cp_cloop(){
    return 1
   fi
   # Userspace program MAY be faster than kernel module (no kernel lock necessary)
-  interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
+  # Forking an additional dd makes use of a second CPU and speeds up writing
+  ( interruptible extract_compressed_fs /cache/"$1" - | dd of="$2" bs=1M ) 2>&1 | tee -a /tmp/image.log
+  #interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
   # interruptible dd if=/dev/cloop of="$2" bs=1024k
   RC="$?"
  else
@@ -954,10 +980,8 @@ sync_cloop(){
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
  local ROPTS="-HaAX"
- case "$(fstype "$2")" in
-  vfat) ROPTS="-rt" ;;
-  *) ;;
- esac
+ #local ROPTS="-a"
+ [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
  if mountpart "$2" /mnt -w ; then
   case "$1" in
    *.[Rr][Ss][Yy]*)
@@ -1035,7 +1059,6 @@ restore(){
    if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
-## for testing, complete sync also for vfat
    elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
     echo "[Komplette Partition]..."
     cp_cloop "$1" "$2" ; RC="$?"
@@ -1057,6 +1080,25 @@ restore(){
  else
   return "$RC"
  fi
+ return "$RC"
+}
+
+# download server file [important]
+download(){
+ local RC=1
+ [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
+ rm -f "$TMP"
+ interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
+ if [ "$RC" != "0" ]; then
+  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
+  rm -f "$2" 2>/dev/null
+  if [ -n "$3" ]; then
+   # Verbose error message if file was important
+   cat "$TMP" >&2
+   echo "Datei $2 konnte nicht heruntergeladen werden." >&2
+  fi
+ fi
+ rm -f "$TMP"
  return "$RC"
 }
 
@@ -1125,6 +1167,7 @@ syncl(){
  local RC=1
  local patchfile=""
  local postsync=""
+ local macctfile=""
  local rootdev="$5"
  local disk="${rootdev%%[1-9]*}"
  local group="$(hostgroup)"
@@ -1144,9 +1187,18 @@ syncl(){
    [ "$RC" = "0" ] || break
    patchfile="$image.reg"
    postsync="$image.postsync"
+   # file with samba machine password hashes
+   macctfile="$image.macct"
   fi
  done
  if [ "$RC" = "0" ]; then
+  # request macct file to invoke samba password hash ldap upload stuff on the server
+  local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+  if [ -n "$serverip" ]; then
+   #echo "Fordere $macctfile von $serverip an."
+   download "$serverip" "$macctfile"
+   rm -f "/cache/$macctfile"
+  fi
   # Apply patches
   if mountpart "$5" /mnt -w ; then
    # hostname
@@ -1175,7 +1227,7 @@ syncl(){
     # WinXP, Win7
     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
      # tschmitt: logging
-     echo -n "Patche System mit $patchfile ... " >/tmp/patch.log
+     echo -n "Patche System mit $patchfile." >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
@@ -1194,8 +1246,8 @@ syncl(){
    [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
    # patch newdev.dll
    if [ -n "$newdevdll" ]; then
-    echo "Patche $newdevdll ..."
-    grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>&1 >>/tmp/patch.log
+    echo "Patche $newdevdll."
+    grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
    fi
    # restore win7 bcd
    [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" 2> /dev/null
@@ -1273,7 +1325,7 @@ create(){
  if ! cache_writable; then
   echo "Cache-Partition ist nicht schreibbar, Abbruch." >&2 | tee -a /tmp/image.log
   sendlog
-  #umount /cache
+  mountcache "$1" -r
   return 1
  fi
  cd /cache
@@ -1289,27 +1341,8 @@ create(){
    ;;
  esac
  [ "$RC" = "0" ] && echo "Fertig." || echo "Fehler." >&2
- cd / ; sendlog
- #umount /cache
- return "$RC"
-}
-
-# download server file [important]
-download(){
- local RC=1
- [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
- rm -f "$TMP"
- interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
- if [ "$RC" != "0" ]; then
-  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
-  rm -f "$2" 2>/dev/null
-  if [ -n "$3" ]; then
-   # Verbose error message if file was important
-   cat "$TMP" >&2
-   echo "Datei $2 konnte nicht heruntergeladen werden." >&2
-  fi
- fi
- rm -f "$TMP"
+ sendlog
+ cd / ; mountcache "$1" -r
  return "$RC"
 }
 
@@ -1687,8 +1720,9 @@ upload(){
  else
   echo "Upload von $FILES nach $1 ist fehlgeschlagen." | tee -a /tmp/linbo.log
  fi
- cd / ; sendlog 
- #umount /cache
+ sendlog 
+ cd / ; mountcache "$4" -r
+ [ "$RC" = "0" ] && echo "Upload von $FILES nach $1 erfolgreich." || echo "Upload von $FILES nach $1 ist fehlgeschlagen." >&2
  return "$RC"
 }
 
@@ -1704,12 +1738,9 @@ syncr(){
   local i
   for i in "$3" "$4"; do
    [ -n "$i" ] && download_if_newer "$1" "$i"
-   # moved this to download_if_newer()
-#   localmode || rm -f "$i".reg "$i".postsync 2>/dev/null
-#   download "$1" "$i".reg "$i".postsync >/dev/null 2>&1
   done
-  cd / ; sendlog
-  #umount /cache
+  sendlog
+  cd / ; mountcache "$2" -r
   # Also update LINBO, while we are here.
   update "$1" "$2"
  fi
@@ -1793,6 +1824,13 @@ initcache(){
   echo "Cache $cachedev ist nicht lokal, und muss daher nicht aktualisiert werden."
   return 1
  fi
+ if [ -n "$FORCE_FORMAT" ]; then
+  local cachefs="$(fstype_startconf "$cachedev")"
+  if [ -n "$cachefs" ]; then
+   echo "Formatiere Cache-Partition $cachedev..."
+   format "$cachedev" "$cachefs"
+  fi
+ fi
  mountcache "$cachedev" || return "$?"
  cd /cache
  shift; shift; shift
@@ -1824,7 +1862,8 @@ initcache(){
    download_if_newer "$server" "$i" "$download_type"
   fi
  done
- cd / ; sendlog
+ sendlog
+ cd / ; mountcache "$cachedev" -r
  update "$server" "$cachedev"
 }
 
@@ -1869,7 +1908,7 @@ writefile(){
   RC=1
  fi
  #sendlog
- #umount /cache
+ mountcache "$1" -r
  return "$RC"
 }
 
@@ -1891,6 +1930,13 @@ ready(){
  return 0
 }
 
+mac(){
+ local iface="$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')"
+ local mac="$(LANG=C ifconfig "$iface" | grep HWaddr | awk '{print $5}' | tr a-z A-Z)"
+ [ -z "$mac" ] && mac="OFFLINE"
+ echo "$mac"
+}
+
 # register server user password variables...
 register(){
  local RC=1
@@ -1898,21 +1944,18 @@ register(){
  local client="$5"
  local ip="$6"
  local group="$7"
- local device="$(route -n | awk '/^0.0.0.0/{print $NF; exit}')"
- [ -n "$device" ] && device="eth0"
- local mac="$(cat /sys/class/net/$device/address)"
- local info="$room;$client;$group;$mac;$ip;255.240.0.0;1;1;1;1;22"
+ local macaddr="$(mac)"
+ [ "$maccaddr" = "OFFLINE" ] && return 1
+ local info="$room;$client;$group;$macaddr;$ip;255.240.0.0;1;1;1;1;1"
  # Plausibility check
  if echo "$client" | grep -qi '[^a-z0-9-]'; then
   echo "Falscher Rechnername: '$client'," >&2
   echo "Rechnernamen dürfen nur Buchstaben [a-z0-9-] enthalten." >&2
-  sendlog
   return 1
  fi
  if echo "$group" | grep -qi '[^a-z0-9_]'; then
   echo "Falscher Gruppenname: '$group'," >&2
   echo "Rechnergruppen dürfen nur Buchstaben [a-z0-9_] enthalten." >&2
-  sendlog
   return 1
  fi
  cd /tmp
@@ -1920,9 +1963,8 @@ register(){
  echo "$info" >"$client.new"
  echo "Uploade $client.new auf $1..."
  export RSYNC_PASSWORD="$3"
- interruptible rsync --progress -Ha --partial "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
+ interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
  cd /
- sendlog
  return "$RC"
 }
 
@@ -1933,26 +1975,18 @@ ip(){
 }
 
 clientname(){
+ local clientname="$(hostname)"
  if localmode; then
   local cachedev="$(grep ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  if [ -n "$cachedev" ]; then
-   if mountcache $cachedev; then
+  if [ -b "$cachedev" ]; then
+   if mountcache $cachedev -r &> /dev/null; then
     if [ -s /cache/hostname ]; then
-     cat /cache/hostname
-     #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
-     return 0
+     clientname="$(cat /cache/hostname)"
     fi
-    #umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
    fi
   fi
-  echo `hostname`
- else
-  echo `hostname`
  fi
-}
-
-mac(){
- ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep HWaddr | awk '{print $5}'
+ echo "$clientname"
 }
 
 cpu(){
@@ -1979,6 +2013,15 @@ size(){
  return 0
 }
 
+version(){
+ local versionfile="/etc/linbo-version"
+ if [ -s "$versionfile" ]; then
+  cat "$versionfile"
+ else
+  echo "LINBO 2.x"
+ fi
+}
+
 # Main
 
 case "$cmd" in
@@ -1994,6 +2037,7 @@ case "$cmd" in
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
  initcache) initcache "$@" ;;
+ initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
  mountcache) mountcache "$@" ;;
  readfile) readfile "$@" ;;
  ready) ready "$@" ;;
@@ -2004,6 +2048,7 @@ case "$cmd" in
  synconly) syncr "$@" ;;
  update) update "$@" ;;
  upload) upload "$@" ;;
+ version) version ;;
  writefile) writefile "$@" ;;
  *) help "$cmd" "$@" ;;
 esac

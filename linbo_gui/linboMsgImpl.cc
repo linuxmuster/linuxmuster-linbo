@@ -7,16 +7,19 @@ linboMsgImpl::linboMsgImpl(  QWidget* parent ) : linboDialog()
 
   Ui_linboMsg::setupUi((QDialog*)this);
 
-  myProcess = new Q3Process();
+  process = new QProcess();
   if( parent )
     myParent = parent;
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( myProcess, SIGNAL(readyReadStdout()),
+  connect( process, SIGNAL(readyReadStandardOutput()),
            this, SLOT(readFromStdout()) );
-  connect( myProcess, SIGNAL(readyReadStderr()),
+  connect( process, SIGNAL(readyReadStandardError()),
            this, SLOT(readFromStderr()) );
-  connect( myProcess, SIGNAL(processExited()), this, SLOT(close()));
 }
 
 linboMsgImpl::~linboMsgImpl()
@@ -34,39 +37,23 @@ void linboMsgImpl::postcmd() {
 }
 
 void linboMsgImpl::execute() {
-  myProcess->start();
+
+  QStringList processargs( arguments );
+  QString command = processargs.takeFirst();
+
+  process->start( command, processargs );
   
-  while( myProcess->isRunning() ) {
-    usleep(10000);
+  process->waitForStarted();
+
+  // wait until the process is finished
+  while(process->state() == QProcess::Running ) {
     this->update();
     qApp->processEvents();
-    };
+  }
 }
 
-void linboMsgImpl::readFromStdout()
-{
-  while( myProcess->canReadLineStdout() )
-    {
-      line = myProcess->readLineStdout();
-      message->setText( line );
-      qApp->processEvents();
-      usleep(50000);
-    } 
-  this->close();
-}
 
-void linboMsgImpl::readFromStderr()
-{
-  while( myProcess->canReadLineStderr() )
-    {
-      line = myProcess->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      message->setText( line );
-      qApp->processEvents();
-      usleep(50000);
-    } 
-}
+
 
 void linboMsgImpl::setMainApp( QWidget* newMainApp ) {
   if ( newMainApp ) {
@@ -75,11 +62,29 @@ void linboMsgImpl::setMainApp( QWidget* newMainApp ) {
 }
 
 QStringList linboMsgImpl::getCommand() {
-  return myProcess->arguments();
+  return arguments;
 }
 
 
 void linboMsgImpl::setCommand(const QStringList& arglist)
 {
-  myProcess->setArguments(arglist);
+  arguments = arglist;
+}
+
+void linboMsgImpl::readFromStdout()
+{
+  message->setText( process->readAllStandardOutput() );
+  this->update();
+}
+
+void linboMsgImpl::readFromStderr()
+{
+  // ignore this
+  // message->setText( process->readAllStandardError() );
+}
+
+void linboMsgImpl::processFinished( int retval,
+				    QProcess::ExitStatus status) {
+  // let user read the process results
+  this->close();
 }

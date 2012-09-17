@@ -1,0 +1,7 @@
+#Defaults for tftpd-hpa
+#
+# $Id: tftpd-hpa.default 1161 2011-11-16 15:58:02Z tschmitt $
+
+RUN_DAEMON="yes"
+OPTIONS="-v -l -s @@linbodir@@ -m /etc/tftp_remap.conf"
+

@@ -1,6 +1,4 @@
 #include "linboImageUploadImpl.hh"
-#include "linboProgressImpl.hh"
-#include "linboGUIImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <q3listbox.h>
@@ -11,7 +9,7 @@
 linboImageUploadImpl::linboImageUploadImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboImageUpload::setupUi((QDialog*)this);
-  process = new Q3Process( this );
+  process = new QProcess( this );
 
   if( parent )
     myParent = parent;
@@ -19,15 +17,24 @@ linboImageUploadImpl::linboImageUploadImpl(  QWidget* parent ) : linboDialog()
   connect( cancelButton, SIGNAL(pressed()), this, SLOT(close()) );
   connect( okButton, SIGNAL(pressed()), this, SLOT(postcmd()) );
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
+
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
   setWindowFlags( flags );
+
+  progwindow = new linboProgressImpl(0);
+
+  logConsole = new linboLogConsole(0);
 
   QRect qRect(QApplication::desktop()->screenGeometry());
   // open in the center of our screen
@@ -41,9 +48,13 @@ linboImageUploadImpl::~linboImageUploadImpl()
 {
 } 
 
-void linboImageUploadImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboImageUploadImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+				      const QString& new_consolefontcolorstderr,
+				      QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboImageUploadImpl::setMainApp( QWidget* newMainApp ) {
@@ -58,78 +69,85 @@ void linboImageUploadImpl::precmd() {
 
 void linboImageUploadImpl::postcmd() {
   
-
-  linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
+  app = static_cast<linboGUIImpl*>( myMainApp );
   
   this->hide();
-  myCommand[6] = listBox->currentText();
+  arguments[6] = listBox->currentText();
 
   
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0);//,"Arbeite...",0, Qt::WStyle_Tool );
+
     progwindow->setProcess( process );
-    connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+    // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->show();
     progwindow->raise();
-    progwindow->progressBar->setTotalSteps( 100 );
     
     progwindow->setActiveWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
-    
-    process->clearArguments();
-    process->setArguments( myCommand );
-    
+       
     app->disableButtons();
-    
-    process->start();
-    
-    while( process->isRunning() ) {
+
+
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
+
+    logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
+
+    progwindow->startTimer();
+    process->start( command, processargs );
+
+    while( process->state() == QProcess::Running ) {
       for( int i = 0; i <= 100; i++ ) {
         usleep(10000);
-        progwindow->progressBar->setProgress(i,100);
+        progwindow->progressBar->setValue(i);
         progwindow->update();
         
         qApp->processEvents();
       } 
-        
-      if( ! process->isRunning() ) {
-        progwindow->close();
-      }
     }
   }
-  app->restoreButtonsState();
+
+  if ( this->checkShutdown->isChecked() ) {
+    system("busybox poweroff");
+  } else if ( this->checkReboot->isChecked() ) {
+    system("busybox reboot");
+  }
+
   this->close(); 
 }
 
 void linboImageUploadImpl::setCommand(const QStringList& arglist)
 {
-  myCommand = QStringList(arglist); 
+  arguments = arglist; 
 }
 
 QStringList linboImageUploadImpl::getCommand()
 {
-  return QStringList(myCommand); 
+  return arguments; 
 }
-
 
 void linboImageUploadImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboImageUploadImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
+
+void linboImageUploadImpl::processFinished( int retval,
+                                             QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+			   
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
+
+
 }

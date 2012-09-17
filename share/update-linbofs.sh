@@ -4,7 +4,7 @@
 #
 # Thomas Schmitt <schmitt@lmz-bw.de>
 # GPL V3
-# $Id$
+# $Id: update-linbofs.sh 1083 2011-06-07 10:13:34Z tschmitt $
 
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1

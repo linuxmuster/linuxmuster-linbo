@@ -1,11 +1,12 @@
+
 #ifndef LINBOPUSHBUTTON_HH
 #define LINBOPUSHBUTTON_HH
 
 #include <qpushbutton.h>
 #include <qstring.h>
 #include <qwidget.h>
-#include <q3process.h>
-#include <q3textbrowser.h>
+#include <qprocess.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qtimer.h>
 #include <qdialog.h>
@@ -17,8 +18,10 @@
 #include "linboInputBoxImpl.hh"
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
+#include "linboLogConsole.hh"
 
 class linboGUIImpl;
+class linboLogConsole;
 
 class linbopushbutton : public QPushButton
 {
@@ -26,8 +29,9 @@ class linbopushbutton : public QPushButton
 
 private:
   QString myCommand, line;
-  Q3TextBrowser* Console;
-  Q3Process *myprocess;
+  QStringList arguments;
+  QTextEdit* Console;
+  QProcess *process;
   QTimer *timer;
   QDialog* myQDialog,*myParent;
   linboDialog* myLinboDialog;
@@ -36,6 +40,8 @@ private:
   linboGUIImpl* app;
   bool progress;
   linbopushbutton* neighbour;
+  linboProgressImpl *progwindow;
+  linboLogConsole *logConsole;
 
 public:
   linbopushbutton( QWidget* parent = 0,
@@ -43,7 +49,10 @@ public:
 
   ~linbopushbutton();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
+
   // void setMainApp( QDialog* newMainApp );
   void setMainApp( QWidget* newMainApp );
   void setLinboDialog( linboDialog* newDialog );
@@ -66,6 +75,9 @@ public slots:
 private slots:
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 };
 

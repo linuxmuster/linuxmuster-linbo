@@ -21,6 +21,7 @@ HEADERS += image_description.hh \
            linboPasswordBoxImpl.hh \
            linboProgressImpl.hh \
            linboPushButton.hh \
+	   linboLogConsole.hh \
            linboRegisterBoxImpl.hh \
            linboYesNoImpl.hh 
 
@@ -52,6 +53,7 @@ SOURCES += image_description.cc \
            linboPasswordBoxImpl.cc \
            linboProgressImpl.cc \
            linboPushButton.cc \
+	   linboLogConsole.cc \
            linboRegisterBoxImpl.cc \
            linboYesNoImpl.cc \
            main.cc

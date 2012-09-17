@@ -1,10 +1,25 @@
 #!/bin/sh -e
 #
-# $Id$
+# $Id: preinst 1256 2012-01-24 13:11:19Z tschmitt $
 
 if [ "$1" = "upgrade" ]; then
 
+ . /usr/share/linuxmuster/config/dist.conf || exit 1
+
+ # stopping multicast before package configuration
  [ -x /etc/init.d/linbo-multicast ] && /etc/init.d/linbo-multicast stop
+
+ # saving default pxe config if it is not yet a link
+ [ -L "$PXELINUXCFG" ] || cp "$PXELINUXCFG" "$PXELINUXCFG.dpkg-bak"
+
+ # add bittorrent user if not present
+ if ! id bittorrent &> /dev/null; then
+  adduser --gecos "BitTorrent User" --home /var/lib/bittorrent --ingroup nogroup --system bittorrent
+  dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent || true
+  dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent || true
+  chown bittorrent:nogroup /var/lib/bittorrent -R
+  chown bittorrent:nogroup /var/log/bittorrent -R
+ fi
 
 fi
 

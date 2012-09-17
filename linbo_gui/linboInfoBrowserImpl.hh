@@ -9,14 +9,14 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
+#include <QProcess>
 #include <qfile.h>
 #include "linboDialog.hh"
 #include "linboGUIImpl.hh"
-
+#include "linboLogConsole.hh"
 
 class linboInfoBrowserImpl : public QWidget, public Ui::linboInfoBrowser, public linboDialog
 {
@@ -26,16 +26,20 @@ private:
   QString line;
   QWidget *myMainApp,*myParent;
   linboGUIImpl *app;
-  Q3Process* myProcess;
-  QStringList myUploadCommand, myLoadCommand, mySaveCommand;
+  QProcess* process;
+  QStringList myUploadCommand, myLoadCommand, mySaveCommand, arguments;
   QString filepath;
   QFile *file;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
+  linboLogConsole* logConsole;
   
 
 public slots:
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
   virtual void precmd();
   virtual void postcmd();
 
@@ -46,7 +50,10 @@ public:
 
   ~linboInfoBrowserImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
+
   void setMainApp( QWidget* newMainApp );
 
   void setCommand(const QStringList& );

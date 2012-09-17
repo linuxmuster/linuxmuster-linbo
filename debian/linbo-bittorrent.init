@@ -14,7 +14,7 @@
 
 # schmitt@lmz-bw.de
 # GPL v3
-# $Id$
+# $Id: linbo-bittorrent.init 1161 2011-11-16 15:58:02Z tschmitt $
 
 #set -e
 

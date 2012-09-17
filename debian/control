@@ -2,11 +2,11 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
-Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctorrent, bvi, ethtool,
+Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctorrent, bvi, ethtool (>= 2.6.34),
                dropbear, nasm, ncurses-base, coreutils, sysvinit-utils, util-linux, ntfsprogs,
-               tetex-base, libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip, gettext, zlib1g-dev,
-               libncurses5-dev, tetex-bin, tetex-extra, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev,
-               qt3-dev-tools, gcc-4.1, g++-4.1, gcc-4.3, g++-4.3, flex, libxext-dev (>= 4.3.0.dfsg.1-4),
+               libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip, gettext, zlib1g-dev,
+               libncurses5-dev, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev,
+               qt3-dev-tools, gcc-4.1, gcc-4.3, g++-4.3, flex, libxext-dev (>= 4.3.0.dfsg.1-4),
                libxrandr-dev (>= 4.3.0.dfsg.1-4), libsm-dev (>= 4.3.0.dfsg.1-4), libxmu-dev (>= 4.3.0.dfsg.1-4),
                libice-dev (>= 4.3.0.dfsg.1-4), libx11-dev (>= 4.3.0.dfsg.1-4), libxt-dev (>= 4.3.0.dfsg.1-4),
                libxrender-dev, libxcursor-dev, libxinerama-dev, libxi-dev, zlib1g-dev, libjpeg62-dev,
@@ -15,15 +15,12 @@ Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctor
                libaudio-dev, libcupsys2-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libsqlite3-dev
 
 Package: linuxmuster-linbo
-Architecture: any
-Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), atftpd, udpcast, zip, mbr, etherwake
+Architecture: all
+Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), tftpd-hpa, udpcast, zip, mbr, etherwake
 Suggests: dhcp-server | dhcp3-server
-Recommends: wodim
+Recommends: wodim, ldap-utils
 Description: LINBO PXE boot files
  This package contains the bootfiles and multicast startscripts
  for the Linux-based Network Boot (LINBO) boot/install/repair system.
  Installation and configuration of a DHCP, TFTP and RSYNC server, as well
  as udpcast, is highly recommended for this to work.
- .
- Please read about LINBO configuration and administration in
- /usr/share/doc/linuxmuster-linbo/LINBO.pdf.

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: helperfunctions.sh 1083 2011-06-07 10:13:34Z tschmitt $
 
 # return active images
 active_images() {

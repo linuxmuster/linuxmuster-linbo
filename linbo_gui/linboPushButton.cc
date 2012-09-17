@@ -11,17 +11,26 @@ linbopushbutton::linbopushbutton( QWidget* parent,
 {
   connect(this, SIGNAL(clicked()), this, SLOT(lclicked()));
 
-  myprocess = new Q3Process( this );;
+  // myprocess = new Q3Process( this )
+  process = new QProcess( this );
+
+  progwindow = new linboProgressImpl(0);
+
+  logConsole = new linboLogConsole(0);
 
   myQDialog = 0;
   myLinboDialog = 0;
   neighbour = 0;
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( myprocess, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
-  connect( myprocess, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
 
   timer = new QTimer( this );
   progress = true;
@@ -39,14 +48,22 @@ void linbopushbutton::setProgress( const bool& newProgress )
 
 void linbopushbutton::setCommand(const QStringList& arglist )
 {
-  myprocess->clearArguments();
-  myprocess->setArguments( arglist );
+  arguments.clear();
+  //process->clearArguments();
+  //process->setArguments( arglist );
+  arguments = arglist;
 }
 
-void linbopushbutton::setTextBrowser( Q3TextBrowser* newBrowser )
+void linbopushbutton::setTextBrowser( const QString& new_consolefontcolorstdout,
+				      const QString& new_consolefontcolorstderr,
+				      QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
+
+
 
 void linbopushbutton::setLinboDialog( linboDialog* newDialog )
 {
@@ -63,7 +80,7 @@ void linbopushbutton::lclicked()
 {
   app = static_cast<linboGUIImpl*>( myMainApp );
 
-  linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
+  
 
   // disable cancel button for non-root users
   if ( !app->isRoot() ) 
@@ -88,47 +105,52 @@ void linbopushbutton::lclicked()
   // do we need the progress bar?
   if ( progress ) {
     
-    connect( myprocess, SIGNAL(processExited()), progwindow, SLOT(close()));
-    progwindow->setProcess( myprocess );
+    // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+    progwindow->setProcess( process );
     progwindow->show();
     progwindow->raise();
-    progwindow->progressBar->setTotalSteps( 100 );
-    progwindow->setTextBrowser( Console );
+    // progwindow->setTextBrowser( Console );
   
     progwindow->setActiveWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
   }
-  // disable buttons
-  
-  app->disableButtons();
 
   // wait for progress bar 
   usleep( 10000 );
 
   // start the command
-  if( myprocess->arguments().size() > 0 )
-    {
-      myprocess->start();
-
-      if ( progress ) {
-    
-        while( myprocess->isRunning() ) {
-          for( int i = 0; i <= 100; i++ ) {
-            usleep(10000);
-            progwindow->progressBar->setProgress(i,100);
-            progwindow->update();
-            
-            qApp->processEvents();
-          }
-        }
-        if( ! myprocess->isRunning() ) {
-          progwindow->close();
-        }
-      }
-  }
-  app->restoreButtonsState();
   
+  if( arguments.size() > 0 )
+    {
+      // disable buttons - only if a process runs
+      app->disableButtons();
+
+      //     Console->setColor( QColor( QString("red") ) );
+      // Console->insert( QString("Executing ") + arguments.join(" ") );
+      // Console->setColor( QColor( QString("black") ) );
+
+      QStringList processargs( arguments );
+      QString command = processargs.takeFirst();
+      
+      logConsole->writeStdErr( QString("Executing ") + command  + processargs.join(" ") );
+
+      progwindow->startTimer();
+      process->start( command, processargs );
+
+      // important: give process time to start up
+      process->waitForStarted();
+
+      while (process->state() == QProcess::Running ) {
+	for( int i = 0; i <= 100; i++ ) {
+	  usleep(10000);
+	  progwindow->progressBar->setValue(i);
+	  progwindow->update();
+          
+	  qApp->processEvents();
+	}
+      } 
+  }
 }
 
 void linbopushbutton::setMainApp( QWidget* newMainApp ) {
@@ -136,7 +158,7 @@ void linbopushbutton::setMainApp( QWidget* newMainApp ) {
 }
 
 QStringList linbopushbutton::getCommand() {
-  return myprocess->arguments();
+  return arguments;
 }
 
 QDialog* linbopushbutton::getQDialog()
@@ -159,26 +181,22 @@ linbopushbutton* linbopushbutton::getNeighbour() {
 
 void linbopushbutton::readFromStdout()
 {
-  while( myprocess->canReadLineStdout() )
-    {
-      line = myprocess->readLineStdout();
-      if( app )
-        app->log( line );
- 
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linbopushbutton::readFromStderr()
 {
-  while( myprocess->canReadLineStderr() )
-    {
-      line = myprocess->readLineStderr();
-      if( app )
-        app->log( line );
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
 
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+void linbopushbutton::processFinished( int retval,
+				       QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
 }
