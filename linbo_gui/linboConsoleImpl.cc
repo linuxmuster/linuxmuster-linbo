@@ -30,6 +30,8 @@ linboConsoleImpl::linboConsoleImpl(  QWidget* parent ) : linboDialog()
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
   setWindowFlags( flags );
 
+  logConsole = new linboLogConsole(0);
+
   QRect qRect(QApplication::desktop()->screenGeometry());
   // open in the upper left of our screen
   int xpos=qRect.width()/2-this->width()/2;
@@ -60,9 +62,13 @@ void linboConsoleImpl::execute() {
     of the bash child process */
 }
 
-void linboConsoleImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboConsoleImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+				       const QString& new_consolefontcolorstderr,
+				       QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboConsoleImpl::precmd() {
@@ -101,3 +107,8 @@ void linboConsoleImpl::readFromStderr()
   // nothing to do
 }
 
+void linboConsoleImpl::processFinished( int retval,
+					QProcess::ExitStatus status) {
+  // nothing to do
+  static_cast<linboGUIImpl*>(myMainApp)->restoreButtonsState();
+}

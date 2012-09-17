@@ -9,13 +9,14 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
-
+#include <QProcess>
+#include "linboGUIImpl.hh"
+#include "linboProgressImpl.hh"
 #include "linboDialog.hh"
-
+#include "linboLogConsole.hh"
 
 class linboInputBoxImpl : public QWidget, public Ui::linboInputBox, public linboDialog
 {
@@ -24,14 +25,19 @@ class linboInputBoxImpl : public QWidget, public Ui::linboInputBox, public linbo
 private:
   QString line;
   QStringList myCommand;
-  Q3Process *process;
+  QStringList arguments;
+  linboProgressImpl *progwindow;
+  QProcess *process;
+  linboGUIImpl* app;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
-  
+  QTextEdit *Console;
+  linboLogConsole *logConsole;
 
 public slots:
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
   virtual void precmd();
   virtual void postcmd();
 
@@ -41,7 +47,9 @@ public:
   linboInputBoxImpl( QWidget* parent = 0);
   ~linboInputBoxImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   void setMainApp( QWidget* newMainApp );

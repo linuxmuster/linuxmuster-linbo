@@ -14,20 +14,29 @@ linboPasswordBoxImpl::linboPasswordBoxImpl(  QDialog* parent ) : linboDialog()
 
   connect(passwordInput,SIGNAL(returnPressed()),this,SLOT(postcmd()));
 
-  process=new Q3Process( this );
+  process=new QProcess( this );
   if(parent)
     myParent = parent;
 
   myTimer = new QTimer(this);
   myCounter = new linboCounterImpl(this);
 
+  logConsole = new linboLogConsole(0);
+
   connect( myTimer, SIGNAL(timeout()), this, SLOT(processTimeout()) );
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
+  connect( process, SIGNAL(readyReadStandardOutput()),
            this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStderr()),
+
+  connect( process, SIGNAL(readyReadStandardError()),
            this, SLOT(readFromStderr()) );
+
+
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
@@ -59,98 +68,101 @@ void linboPasswordBoxImpl::postcmd() {
 
   if( app ) {
     // build authentication command
-    QStringList command("linbo_cmd");
-    command.append( "authenticate" );
-    command.append( app->config.get_server() );
-    command.append( "linbo" );
-    command.append( passwordInput->text() );
-    command.append( "linbo" );
-    
-    process->clearArguments();
-    process->setArguments( command );
-    
-    if( process->start() ) {
+    arguments.clear();
+    arguments.append("linbo_cmd");
+    arguments.append( "authenticate" );
+    arguments.append( app->config.get_server() );
+    arguments.append( "linbo" );
+    arguments.append( passwordInput->text() );
+    arguments.append( "linbo" );
 
-      while( process->isRunning() ) {
-      };
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
+
+    process->start( command, processargs );
+
+    while( !process->waitForFinished(10000) ) {
+    };
       
-      if ( !process->exitStatus() ) {
-        if( app ) {
+    // Console->insert( QString("Test linboPasswordBoxImpl exitCode() == ") + QString::number( process->exitCode() ) );
 
-          // set password in all buttons
-          QStringList tmp;
+    if ( process->exitCode() == 0 ) {
+      if( app ) {
 
-          for( unsigned int i = 0; i < app->p_buttons.size(); i++ )
-            {
-          
-              linboDialog* tmpDialog = app->p_buttons[i]->getLinboDialog();
-              if( tmpDialog  ) {
-                // in this case, we have a sub-dialogue
-                tmp = tmpDialog->getCommand();
+	// set password in all buttons
+	QStringList tmp;
 
-                // fear the segmentation fault!
-                // fifth argument is password
-                if( tmp.size() > 4 ) {
+	for( unsigned int i = 0; i < app->p_buttons.size(); i++ )
+	  {
+	    
+	    linboDialog* tmpDialog = app->p_buttons[i]->getLinboDialog();
+	    if( tmpDialog  ) {
+	      // in this case, we have a sub-dialogue
+	      tmp = tmpDialog->getCommand();
+	      
+	      // fear the segmentation fault!
+	      // fifth argument is password
+	      if( tmp.size() > 4 ) {
 
-                  if( tmp[1] == QString("upload") ||
-                      tmp[1] == QString("register") ) {
-
-                    // change upload password
-                    tmp[4] = passwordInput->text();
-                    tmpDialog->setCommand( tmp );
-                  }         
-                }
-              }         
-
-              // this is for the case we have no associated linbo dialog
-              if( app->p_buttons[i] ) {
-                tmp.clear();
-                tmp = app->p_buttons[i]->getCommand();
-
-                // fifth argument is password
-                if( tmp.size() > 4 ) {
-
-                  if( tmp[1] == QString("upload") ||
-                      tmp[1] == QString("register") ) {
-                    // change upload password
-                    tmp[4] = passwordInput->text();
-                    app->p_buttons[i]->setCommand( tmp );
-                  }
-                }
-              }  
-            }
-          
-          app->enableButtons();
-          app->showImagingTab();
-              
-          myTimer->stop();
-          myTimer->start( 1000, FALSE ); 
-          currentTimeout = app->config.get_roottimeout();
-
-          myCounter->counter->display( currentTimeout );
-
-          connect( myCounter->logoutButton, SIGNAL(pressed()), app, SLOT(resetButtons()) );
-          connect( myCounter->logoutButton, SIGNAL(clicked()), myTimer, SLOT(stop()) );
-          
-          myCounter->show();
-          myCounter->raise();
-          myCounter->move( QPoint( 5, 5 ) ); 
-        }
+		if( tmp[1] == QString("upload") ||
+		    tmp[1] == QString("register") ) {
+		  
+		  // change upload password
+		  tmp[4] = passwordInput->text();
+		  tmpDialog->setCommand( tmp );
+		}         
+	      }
+	    }         
+	    
+	    // this is for the case we have no associated linbo dialog
+	    if( app->p_buttons[i] ) {
+	      tmp.clear();
+	      tmp = app->p_buttons[i]->getCommand();
+	      
+	      // fifth argument is password
+	      if( tmp.size() > 4 ) {
+		
+		if( tmp[1] == QString("upload") ||
+		    tmp[1] == QString("register") ) {
+		  // change upload password
+		  tmp[4] = passwordInput->text();
+		  app->p_buttons[i]->setCommand( tmp );
+		}
+	      }
+	    }  
+	  }
+	
+	app->enableButtons();
+	app->showImagingTab();
+        
+	myTimer->stop();
+	myTimer->start( 1000, FALSE ); 
+	currentTimeout = app->config.get_roottimeout();
+	
+	myCounter->counter->display( currentTimeout );
+	
+	connect( myCounter->logoutButton, SIGNAL(pressed()), app, SLOT(resetButtons()) );
+	connect( myCounter->logoutButton, SIGNAL(clicked()), myTimer, SLOT(stop()) );
+        
+	myCounter->show();
+	myCounter->raise();
+	myCounter->move( QPoint( 5, 5 ) ); 
       }
     }
   }
+  
   passwordInput->clear();
   this->close();
 }
 
 void linboPasswordBoxImpl::setCommand(const QStringList& arglist)
 {
-  myCommand = arglist;
+  arguments = arglist;
 }
 
 QStringList linboPasswordBoxImpl::getCommand()
 {
-  return QStringList(myCommand); 
+  return arguments; 
 }
 
 void linboPasswordBoxImpl::setMainApp( QWidget* newMainApp ) {
@@ -161,27 +173,21 @@ void linboPasswordBoxImpl::setMainApp( QWidget* newMainApp ) {
 
 void linboPasswordBoxImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboPasswordBoxImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
 }
 
-void linboPasswordBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboPasswordBoxImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					   const QString& new_consolefontcolorstderr,
+					   QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboPasswordBoxImpl::processTimeout() {
@@ -198,4 +204,12 @@ void linboPasswordBoxImpl::processTimeout() {
       myCounter->close();
     }
   }
+}
+
+void linboPasswordBoxImpl::processFinished( int retval,
+					     QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+
+  // app->restoreButtonsState();
 }

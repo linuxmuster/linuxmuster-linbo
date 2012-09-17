@@ -9,7 +9,7 @@
 #include <qdialog.h>
 #include <q3process.h>
 #include <qstring.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include "linboDialog.hh"
 
 
@@ -19,7 +19,7 @@ class linboCounterImpl : public QWidget, public Ui::linboCounter, public linboDi
 
   
 private:
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
   Q3Process* myProcess;
   QString line;
   QWidget *myMainApp,*myParent;
@@ -36,11 +36,14 @@ public:
   virtual QStringList getCommand();
   // not needed here
   virtual void setMainApp( QWidget* newMainApp );
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( QTextEdit* newBrowser );
 
 public slots:
-void readFromStderr();
-void readFromStdout();
+  void readFromStderr();
+  void readFromStdout();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
+
 
 };
 #endif

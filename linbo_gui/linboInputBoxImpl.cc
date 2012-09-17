@@ -1,6 +1,4 @@
 #include "linboInputBoxImpl.hh"
-#include "linboProgressImpl.hh"
-#include "linboGUIImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <QtGui>
@@ -10,7 +8,7 @@
 linboInputBoxImpl::linboInputBoxImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboInputBox::setupUi((QDialog*)this);
-  process = new Q3Process( this );
+  process = new QProcess( this );
 
   if( parent )
     myParent = parent;
@@ -18,11 +16,19 @@ linboInputBoxImpl::linboInputBoxImpl(  QWidget* parent ) : linboDialog()
   // nothing to do
   connect(input,SIGNAL(returnPressed()),this,SLOT(postcmd()));
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
+
+  progwindow = new linboProgressImpl(0);
+
+  logConsole = new linboLogConsole(0);
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint ;
@@ -40,9 +46,13 @@ linboInputBoxImpl::~linboInputBoxImpl()
 {
 } 
 
-void linboInputBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboInputBoxImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					const QString& new_consolefontcolorstderr,
+					QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboInputBoxImpl::setMainApp( QWidget* newMainApp ) {
@@ -91,46 +101,41 @@ void linboInputBoxImpl::postcmd() {
   }  
         
   if( !input->text().isEmpty() && myMainApp ) {
-    linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
+    app = static_cast<linboGUIImpl*>( myMainApp );
     myCommand[3]=input->text();
    
     
 
     if( app ) {
       // do something
-      linboProgressImpl *progwindow = new linboProgressImpl(0);//,"Arbeite...",0, Qt::WStyle_Tool );
       progwindow->setProcess( process );
-      connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+      // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
       progwindow->show();
       progwindow->raise();
-      progwindow->progressBar->setTotalSteps( 100 );
 
       progwindow->setActiveWindow();
       progwindow->setUpdatesEnabled( true );
       progwindow->setEnabled( true );
       
-      process->clearArguments();
-      process->setArguments( myCommand );
-
       app->disableButtons();
 
-      process->start();
+      arguments = myCommand;
 
-      while( process->isRunning() ) {
+      QStringList processargs( arguments );
+      QString command = processargs.takeFirst();
+
+      process->start( command, processargs );
+
+      while( process->state() == QProcess::Running ) {
         for( int i = 0; i <= 100; i++ ) {
           usleep(10000);
-          progwindow->progressBar->setProgress(i,100);
+          progwindow->progressBar->setValue(i);
           progwindow->update();
           
           qApp->processEvents();
         } 
-        
-        if( ! process->isRunning() ) {
-          progwindow->close();
-        }
       }
     }
-    app->restoreButtonsState();
   }
   this->close();
 }
@@ -148,20 +153,23 @@ QStringList linboInputBoxImpl::getCommand()
 
 void linboInputBoxImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboInputBoxImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
+
+void linboInputBoxImpl::processFinished( int retval,
+                                             QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+  
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
+
 }

@@ -8,13 +8,14 @@
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
-
+#include <QProcess>
+#include "linboGUIImpl.hh"
+#include "linboProgressImpl.hh"
 #include "linboDialog.hh"
-
+#include "linboLogConsole.hh"
 
 class linboImageUploadImpl : public QWidget, public Ui::linboImageUpload, public linboDialog
 {
@@ -22,10 +23,13 @@ class linboImageUploadImpl : public QWidget, public Ui::linboImageUpload, public
 
 private:
   QString line;
-  QStringList myCommand;
-  Q3Process *process;
+  QStringList arguments;
+  QProcess *process;
+  linboGUIImpl* app;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  QTextEdit *Console;
+  linboProgressImpl *progwindow;
+  linboLogConsole* logConsole;
   
 
 public slots:
@@ -33,15 +37,17 @@ public slots:
   void readFromStderr();
   virtual void precmd();
   virtual void postcmd();
-
-
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
 
 public:
   linboImageUploadImpl( QWidget* parent = 0);
 
   ~linboImageUploadImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   virtual void setMainApp( QWidget* newMainApp );

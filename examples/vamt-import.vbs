@@ -1,4 +1,4 @@
-' $Id$
+' $Id: vamt-import.vbs 1020 2011-03-18 15:07:12Z tschmitt $
 ' Creates a cil file which can be imported into VAMT 2.0
 
 VAMT = "C:\Program Files\VAMT 2.0\Vamt.exe"

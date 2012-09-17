@@ -1,4 +1,4 @@
-rem $Id$
+rem $Id: win7-driverinst.bat 993 2011-03-09 14:17:35Z tschmitt $
 rem Installiert alle Treiber, die sich unterhalb des auf der Kommandozeile
 rem uebergebenen Verzeichnisses befinden.
 rem Aufruf:

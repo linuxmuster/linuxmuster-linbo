@@ -2,7 +2,7 @@
 #
 # schmitt@lmz-bw.de
 # GPL v3
-# $Id$
+# $Id: linbo-mcasthelper.sh 1089 2011-06-08 18:48:24Z tschmitt $
 #
 # linbo multicast helper script, started in a screen session by init script
 #

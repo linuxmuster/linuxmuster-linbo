@@ -23,5 +23,5 @@ Windows(tm) Registry-Patches fuer LINBO
     aktiviert beim Betriebssystemstart das Laden diverser Kontroller-Treiber.
 
 ---
-$Id$
+$Id: README-reg.txt 985 2011-03-06 12:09:53Z tschmitt $
 

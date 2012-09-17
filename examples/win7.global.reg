@@ -1,5 +1,5 @@
 Windows Registry Editor Version 5.00
-; $Id$
+; $Id: win7.global.reg 1052 2011-04-12 15:41:42Z tschmitt $
 
 ; notwendig, damit der Domaenenbeitritt klappt
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\LanmanWorkstation\Parameters]

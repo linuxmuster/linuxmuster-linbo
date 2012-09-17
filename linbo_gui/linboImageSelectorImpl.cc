@@ -1,6 +1,4 @@
 #include "linboImageSelectorImpl.hh"
-#include "linboProgressImpl.hh"
-#include "linboGUIImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <q3buttongroup.h>
@@ -15,7 +13,11 @@
 linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboImageSelector::setupUi((QDialog*)this);
-  process = new Q3Process( this );
+  process = new QProcess( this );
+
+  progwindow = new linboProgressImpl(0);
+
+  logConsole = new linboLogConsole(0);
 
   if( parent )
     myParent = parent;
@@ -25,18 +27,20 @@ linboImageSelectorImpl::linboImageSelectorImpl(  QWidget* parent ) : linboDialog
   connect( createUploadButton, SIGNAL(pressed()), this, SLOT(postcmd2()) );
   connect( listBox, SIGNAL(selectionChanged()), this, SLOT(selectionWatcher()) );
   
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
 
   // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
 
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
 
   specialName->setEnabled( false );
   imageButtons->setEnabled( false );
 
-  myParent = parent;
   upload=false;
   neighbourDialog = 0;
 
@@ -56,13 +60,18 @@ linboImageSelectorImpl::~linboImageSelectorImpl()
 {
 } 
 
-void linboImageSelectorImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboImageSelectorImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					     const QString& new_consolefontcolorstderr,
+					     QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboImageSelectorImpl::setMainApp( QWidget* newMainApp ) {
   myMainApp = newMainApp;
+  app = static_cast<linboGUIImpl*>( myMainApp );
 }
 
 
@@ -71,55 +80,71 @@ void linboImageSelectorImpl::precmd() {
 }
 
 void linboImageSelectorImpl::selectionWatcher() {
-  if( listBox->currentText() == "[Neuer Dateiname]" ) {
-    specialName->setEnabled( true );
-    imageButtons->setEnabled( true );
-    infoEditor->clear();
-  } else {
-    specialName->setEnabled( false );
-    imageButtons->setEnabled( false );
-
-    myLoadCommand[3] = listBox->currentText() + QString(".desc");
-    myLoadCommand[4] = QString("/tmp/") + listBox->currentText() + QString(".desc");
-
-    mySaveCommand[3] = listBox->currentText() + QString(".desc");
-    mySaveCommand[4] = QString("/tmp/") + listBox->currentText() + QString(".desc");
-
-    process->clearArguments();
-    process->setArguments( myLoadCommand );
-    
-#ifdef DEBUG
-    Console->append(QString("linboInfoBrowserImpl: myLoadCommand"));
-    QStringList list = myProcess->arguments();
-    QStringList::Iterator it = list.begin();
-    while( it != list.end() ) {
-      Console->append( *it );
-    ++it;
-    }
-    Console->append(QString("*****"));
-#endif
-    
-    if( process->start() ) {
-      while( process->isRunning() ) {
-        usleep( 1000 );
-      }
+  // without this, this element segfaults linboGUI during constructor
+  if( this->isHidden() == false ) {
+    if( listBox->currentText() == "[Neuer Dateiname]" ) {
+      specialName->setEnabled( true );
+      imageButtons->setEnabled( true );
+      infoEditor->clear();
     } else {
-      Console->append("myLoadCommand didn't start");
-    }
+      specialName->setEnabled( false );
+      imageButtons->setEnabled( false );
+      
+      myLoadCommand[3] = listBox->currentText() + QString(".desc");
+      myLoadCommand[4] = QString("/tmp/") + listBox->currentText() + QString(".desc");
+      
+      mySaveCommand[3] = listBox->currentText() + QString(".desc");
+      mySaveCommand[4] = QString("/tmp/") + listBox->currentText() + QString(".desc");
+      
+      arguments.clear();
+      arguments = myLoadCommand;
+      
+#ifdef DEBUG
+      logConsole->writeStdErr(QString("linboInfoBrowserImpl: myLoadCommand"));
+      QStringList list = arguments();
+      QStringList::Iterator it = list.begin();
+      while( it != list.end() ) {
+	Console->insert( *it );
+	++it;
+      }
+      logConsole->writeStdErr(QString("*****"));
+#endif
+      
+      QStringList processargs( arguments );
+      QString command = processargs.takeFirst();
+      
+      progwindow->startTimer();
+      process->start( command, processargs );
+      
 
-    file = new QFile( myLoadCommand[4] );
-    // read content
-    if( !file->open( QIODevice::ReadOnly ) ) {
-      Console->append("Keine passende Beschreibung im Cache.");
+      logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
+      
+      // important: give process time to start up
+      process->waitForStarted();
+      
+      while (process->state() == QProcess::Running ) {
+	for( int i = 0; i <= 100; i++ ) {
+	  usleep(10000);
+	  progwindow->progressBar->setValue(i);
+	  progwindow->update();
+	  qApp->processEvents();
+	}
+      }
+      
+      
+      file = new QFile( myLoadCommand[4] );
+      // read content
+      if( !file->open( QIODevice::ReadOnly ) ) {
+	logConsole->writeStdErr( QString("Keine passende Beschreibung im Cache.") );
+      } 
+      else {
+	Q3TextStream ts( file );
+	infoEditor->setText( ts.read() );
+	file->close();
+      }
     } 
-    else {
-      Q3TextStream ts( file );
-      infoEditor->setText( ts.read() );
-      file->close();
-    }
-  } 
+  }
 }
-
 
 void linboImageSelectorImpl::setLoadCommand( const QStringList& newLoadCommand ) {
   myLoadCommand = newLoadCommand;
@@ -140,12 +165,12 @@ void linboImageSelectorImpl::postcmd2() {
 
 void linboImageSelectorImpl::postcmd() {
   this->hide();
-  linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
+
   QString selection, imageName;
 
   selection = listBox->currentText();
 
- linbopushbutton* neighbour = (static_cast<linbopushbutton*>(myParent))->getNeighbour();
+  linbopushbutton* neighbour = (static_cast<linbopushbutton*>(myParent))->getNeighbour();
 
   neighbourDialog = 0;
   neighbourDialog = neighbour->getLinboDialog();
@@ -209,57 +234,68 @@ void linboImageSelectorImpl::postcmd() {
 
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0);//,"Arbeite...",0, Qt::WStyle_Tool );
     progwindow->setProcess( process );
-    connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+    // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->show();
     progwindow->raise();
-    progwindow->progressBar->setTotalSteps( 100 );
-    
+   
     progwindow->setActiveWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
     
-    process->clearArguments();
-    process->setArguments( myCommand );
-    
     app->disableButtons();
+
+    arguments.clear();
+    arguments = myCommand;
+
+
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
+
+    logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
     
-    process->start();
-      
-    while( process->isRunning() ) {
+    progwindow->startTimer();
+    process->start( command, processargs );
+
+    // important: give process time to start up
+    process->waitForStarted();
+
+    while( process->state() == QProcess::Running ) {
       for( int i = 0; i <= 100; i++ ) {
         usleep(10000);
-        progwindow->progressBar->setProgress(i,100);
+        progwindow->progressBar->setValue(i);
         progwindow->update();
         
         qApp->processEvents();
       } 
-      
-      if( ! process->isRunning() ) {
-        progwindow->close();
-      }
     }
   }
   app->restoreButtonsState();
+
   if( upload ) {
     if( neighbourDialog != 0 ) {
       (static_cast<linboImageUploadImpl*>(neighbourDialog))->listBox->setSelected( (static_cast<linboImageUploadImpl*>(neighbourDialog))->listBox->findItem( imageName ), true );
       neighbourDialog->postcmd();
     }
     else {
-      Console->append( QString("Eintrag nicht gefunden") );
+      logConsole->writeStdErr( QString("Eintrag nicht gefunden") );
     }
   } else {
-    Console->append( QString("Upload nicht ausgewählt") );
+    logConsole->writeStdErr( QString("Upload nicht ausgewählt") );
   }
   upload = false;
+
+  if ( this->checkShutdown->isChecked() ) {
+    system("busybox poweroff");
+  } else if ( this->checkReboot->isChecked() ) {
+    system("busybox reboot");
+  }
   this->close(); 
 }
 
 void linboImageSelectorImpl::setCommand(const QStringList& arglist)
 {
-  myCommand = QStringList(arglist); 
+  myCommand = arglist; 
 }
 
 void linboImageSelectorImpl::setCache(const QString& newCache)
@@ -269,13 +305,13 @@ void linboImageSelectorImpl::setCache(const QString& newCache)
 
 QStringList linboImageSelectorImpl::getCommand()
 {
-  return QStringList(myCommand); 
+  return arguments; 
 }
 
 void linboImageSelectorImpl::writeInfo() {
   file = new QFile( mySaveCommand[4] );
   if ( !file->open( QIODevice::WriteOnly ) ) {
-    Console->append("Fehler beim Speichern der Beschreibung.");
+    logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
   } else {
     Q3TextStream ts( file );
     ts << info;
@@ -283,48 +319,49 @@ void linboImageSelectorImpl::writeInfo() {
     file->close();
   } 
 
-  process->clearArguments();
-  process->setArguments( mySaveCommand );
+  arguments.clear();
+  arguments = mySaveCommand;
 
-#ifdef DEBUG
-  Console->append(QString("Save Command="));
-  QStringList list = process->arguments();
-  QStringList::Iterator it = list.begin();
-  while( it != list.end() ) {
-    Console->append( *it );
-    ++it;
-  }
-#endif
+  QStringList processargs( arguments );
+  QString command = processargs.takeFirst();
 
-  if( process->start() ) {
-  while( process->isRunning() ) {
-      usleep( 1000 );
+  progwindow->startTimer();
+  process->start( command, processargs );
+
+  // important: give process time to start up
+  process->waitForStarted();
+
+  while (process->state() == QProcess::Running ) {
+    for( int i = 0; i <= 100; i++ ) {
+      usleep(10000);
+      progwindow->progressBar->setValue(i);
+      progwindow->update();
+      
+      qApp->processEvents();
     }
-  } else {
-    Console->append("mySaveCommand didn't start");
-  }
-
-
+  }  
 }
 
 
 
 void linboImageSelectorImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboImageSelectorImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
+
+void linboImageSelectorImpl::processFinished( int retval,
+					      QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
 }

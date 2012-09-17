@@ -4,7 +4,7 @@
 #include <qapplication.h>
 #include <qradiobutton.h>
 #include "linboPushButton.hh"
-#include <q3process.h>
+
 #include <QtGui>
 #include <iostream>
 
@@ -12,7 +12,7 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboMulticastBox::setupUi((QDialog*)this);  
   
-  process = new Q3Process( this );
+  process = new QProcess( this );
 
   if( parent )
     myParent = parent;
@@ -21,12 +21,21 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
   connect(okButton,SIGNAL(pressed()),this,SLOT(postcmd()));
   connect(cancelButton,SIGNAL(clicked()),this,SLOT(close()));
 
-  // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
+  progwindow = new linboProgressImpl(0);
 
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  logConsole = new linboLogConsole(0);
+
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+	   this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
+  // connect stdout and stderr to linbo console
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
+
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
@@ -44,9 +53,13 @@ linboMulticastBoxImpl::~linboMulticastBoxImpl()
 {
 } 
 
-void linboMulticastBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboMulticastBoxImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					    const QString& new_consolefontcolorstderr,
+					    QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboMulticastBoxImpl::setMainApp( QWidget* newMainApp ) {
@@ -65,25 +78,29 @@ void linboMulticastBoxImpl::postcmd() {
   this->hide();
   
   app = static_cast<linboGUIImpl*>( myMainApp );
-  process->clearArguments();
+  arguments.clear();
   
   if ( this->rsyncButton->isChecked() )
-    process->setArguments( myRsyncCommand );
+    arguments =  myRsyncCommand;
+
   if ( this->multicastButton->isChecked() )
-    process->setArguments( myMulticastCommand );
+    arguments =  myMulticastCommand;
+
   if ( this->torrentButton->isChecked() )
-    process->setArguments( myBittorrentCommand );
+    arguments = myBittorrentCommand;
   
+  if ( this->checkFormat->isChecked() ) {
+    arguments[1] = QString("initcache_format");
+  }
+
+
   if( app ) {
     // do something
-    linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
-    connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+    // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
 
-    progwindow->setTextBrowser( Console );
     progwindow->setProcess( process );
     progwindow->show();
     progwindow->raise();
-    progwindow->progressBar->setTotalSteps( 100 );
 
     progwindow->setActiveWindow();
     progwindow->setUpdatesEnabled( true );
@@ -91,24 +108,26 @@ void linboMulticastBoxImpl::postcmd() {
       
     app->disableButtons();
 
-    process->start();
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
 
-    while( process->isRunning() ) {
+    logConsole->writeStdErr( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
+
+    progwindow->startTimer();
+    process->start( command, processargs );
+
+    process->waitForStarted();
+
+    while( process->state() == QProcess::Running ) {
       for( int i = 0; i <= 100; i++ ) {
         usleep(10000);
-        progwindow->progressBar->setProgress(i,100);
+        progwindow->progressBar->setValue(i);
         progwindow->update();
           
         qApp->processEvents();
       } 
-        
-      if( ! process->isRunning() ) {
-        progwindow->close();
-      }
     }
   }
-  app->restoreButtonsState();
-  
   this->close();
 }
 
@@ -131,7 +150,7 @@ void linboMulticastBoxImpl::setBittorrentCommand(const QStringList& arglist)
 void linboMulticastBoxImpl::setCommand(const QStringList& arglist)
 {
   // no sense setting this here
-  myCommand = arglist;
+  arguments = arglist;
 }
 
 QStringList linboMulticastBoxImpl::getCommand()
@@ -142,20 +161,23 @@ QStringList linboMulticastBoxImpl::getCommand()
 
 void linboMulticastBoxImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboMulticastBoxImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
+
+void linboMulticastBoxImpl::processFinished( int retval,
+					     QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
+
 }

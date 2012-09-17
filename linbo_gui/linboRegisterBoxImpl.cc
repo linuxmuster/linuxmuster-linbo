@@ -1,6 +1,4 @@
 #include "linboRegisterBoxImpl.hh"
-#include "linboProgressImpl.hh"
-#include "linboGUIImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <QtGui>
@@ -11,7 +9,10 @@ linboRegisterBoxImpl::linboRegisterBoxImpl(  QWidget* parent ) : linboDialog()
 {
   Ui_linboRegisterBox::setupUi((QDialog*)this);
 
-  process = new Q3Process( this );
+  process = new QProcess( this );
+  progwindow = new linboProgressImpl(0);
+
+  logConsole = new linboLogConsole(0);
 
   if( parent )
     myParent = parent;
@@ -19,11 +20,15 @@ linboRegisterBoxImpl::linboRegisterBoxImpl(  QWidget* parent ) : linboDialog()
   connect(registerButton,SIGNAL(clicked()),this,SLOT(postcmd()));
   connect(cancelButton,SIGNAL(clicked()),this,SLOT(close()));
 
+  // connect SLOT for finished process
+  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
+
   // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStdout()),
-           this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStderr()),
-           this, SLOT(readFromStderr()) );
+  connect( process, SIGNAL(readyReadStandardOutput()),
+	   this, SLOT(readFromStdout()) );
+  connect( process, SIGNAL(readyReadStandardError()),
+	   this, SLOT(readFromStderr()) );
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
@@ -41,9 +46,13 @@ linboRegisterBoxImpl::~linboRegisterBoxImpl()
 {
 } 
 
-void linboRegisterBoxImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboRegisterBoxImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					   const QString& new_consolefontcolorstderr,
+					   QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboRegisterBoxImpl::setMainApp( QWidget* newMainApp ) {
@@ -74,40 +83,37 @@ void linboRegisterBoxImpl::postcmd() {
     // client group
     myCommand[8] = clientGroup->text();
 
-    linboGUIImpl* app = static_cast<linboGUIImpl*>( myMainApp );
+    app = static_cast<linboGUIImpl*>( myMainApp );
 
     if( app ) {
       // do something
-      linboProgressImpl *progwindow = new linboProgressImpl(0); //,"Arbeite...",0, Qt::WStyle_Tool );
       progwindow->setProcess( process );
-      connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
+      // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
       progwindow->show();
       progwindow->raise();
-      progwindow->progressBar->setTotalSteps( 100 );
 
       progwindow->setActiveWindow();
       progwindow->setUpdatesEnabled( true );
       progwindow->setEnabled( true );
       
-      process->clearArguments();
-      process->setArguments( myCommand );
-
       app->disableButtons();
 
-      process->start();
+      QStringList processargs( myCommand );
+      QString command = processargs.takeFirst();
 
-      while( process->isRunning() ) {
+      process->start( command, processargs );
+
+      process->waitForStarted();
+
+      while( process->state() == QProcess::Running ) {
         for( int i = 0; i <= 100; i++ ) {
           usleep(10000);
-          progwindow->progressBar->setProgress(i,100);
+          progwindow->progressBar->setValue(i);
           progwindow->update();
           
           qApp->processEvents();
         } 
         
-        if( ! process->isRunning() ) {
-          progwindow->close();
-        }
       }
     }
     app->restoreButtonsState();
@@ -125,23 +131,24 @@ QStringList linboRegisterBoxImpl::getCommand()
   return QStringList(myCommand); 
 }
 
-
 void linboRegisterBoxImpl::readFromStdout()
 {
-  while( process->canReadLineStdout() )
-    {
-      line = process->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboRegisterBoxImpl::readFromStderr()
 {
-  while( process->canReadLineStderr() )
-    {
-      line = process->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
+
+void linboRegisterBoxImpl::processFinished( int retval,
+                                             QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+
+  app->restoreButtonsState();
+
+  if( progwindow ) {
+    progwindow->close();
+  }
 }

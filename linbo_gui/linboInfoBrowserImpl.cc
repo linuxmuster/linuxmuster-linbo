@@ -7,39 +7,50 @@ linboInfoBrowserImpl::linboInfoBrowserImpl(QWidget* parent ) : linboDialog()
 {
    Ui_linboInfoBrowser::setupUi((QDialog*)this);
 
-   myProcess = new Q3Process( this );
-   
+   process = new QProcess( this );
+
+   logConsole = new linboLogConsole(0);
+
    if( parent)
      myParent = parent;
 
    connect( this->saveButton, SIGNAL(clicked()), this, SLOT(postcmd()));
 
-   connect( myProcess, SIGNAL(readyReadStdout()),
-            this, SLOT(readFromStdout()) );
+   // connect SLOT for finished process
+   connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
+	    this, SLOT(processFinished(int, QProcess::ExitStatus)) );
 
-   connect( myProcess, SIGNAL(readyReadStderr()),
-            this, SLOT(readFromStderr()) );  
+   // connect stdout and stderr to linbo console
+   connect( process, SIGNAL(readyReadStandardOutput()),
+	    this, SLOT(readFromStdout()) );
+   
+   connect( process, SIGNAL(readyReadStandardError()),
+	    this, SLOT(readFromStderr()) );
+   
+   Qt::WindowFlags flags;
+   flags = Qt::Dialog | Qt::WindowStaysOnTopHint ;
+   setWindowFlags( flags );
 
-  Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint ;
-  setWindowFlags( flags );
-
-  QRect qRect(QApplication::desktop()->screenGeometry());
-  // open in the center of our screen
-  int xpos=qRect.width()/2-this->width()/2;
-  int ypos=qRect.height()/2-this->height()/2;
-  this->move(xpos,ypos);
-  this->setFixedSize( this->width(), this->height() );
+   QRect qRect(QApplication::desktop()->screenGeometry());
+   // open in the center of our screen
+   int xpos=qRect.width()/2-this->width()/2;
+   int ypos=qRect.height()/2-this->height()/2;
+   this->move(xpos,ypos);
+   this->setFixedSize( this->width(), this->height() );
 }
 
 linboInfoBrowserImpl::~linboInfoBrowserImpl()
 {
-  delete myProcess;
+  delete process;
 } 
 
-void linboInfoBrowserImpl::setTextBrowser( Q3TextBrowser* newBrowser )
+void linboInfoBrowserImpl::setTextBrowser( const QString& new_consolefontcolorstdout,
+					   const QString& new_consolefontcolorstderr,
+					   QTextEdit* newBrowser )
 {
-  Console = newBrowser;
+  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
+				  new_consolefontcolorstderr,
+				  newBrowser );
 }
 
 void linboInfoBrowserImpl::setMainApp( QWidget* newMainApp ) {
@@ -65,32 +76,22 @@ void linboInfoBrowserImpl::precmd() {
       // connect( this->saveButton, SIGNAL(clicked()), this, SLOT(close()));
     }
 
-    myProcess->clearArguments();
-    myProcess->setArguments( myLoadCommand );
+    arguments.clear();
+    arguments = myLoadCommand;
 
-#ifdef DEBUG
-    Console->append(QString("linboInfoBrowserImpl: myLoadCommand"));
-    QStringList list = myProcess->arguments();
-    QStringList::Iterator it = list.begin();
-    while( it != list.end() ) {
-      Console->append( *it );
-      ++it;
-    }
-    Console->append(QString("*****"));
-#endif
+    QStringList processargs( arguments );
+    QString command = processargs.takeFirst();
 
-    if( myProcess->start() ) {
-      while( myProcess->isRunning() ) {
-        usleep( 1000 );
-      }
-    } else {
-      Console->append("myLoadCommand didn't start");
+    process->start( command, processargs );
+
+    while( process->state() == QProcess::Running ) {
+      usleep( 1000 );
     }
 
     file = new QFile( filepath );
     // read content
     if( !file->open( QIODevice::ReadOnly ) ) {
-      Console->append("Keine passende Beschreibung im Cache.");
+      logConsole->writeStdErr( QString("Keine passende Beschreibung im Cache.") );
     } 
     else {
       Q3TextStream ts( file );
@@ -108,7 +109,7 @@ void linboInfoBrowserImpl::postcmd() {
     if ( app->isRoot() ) {
 
       if ( !file->open( QIODevice::WriteOnly ) ) {
-        Console->append("Fehler beim Speichern der Beschreibung.");
+	logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
       } 
       else {
         Q3TextStream ts( file );
@@ -116,51 +117,30 @@ void linboInfoBrowserImpl::postcmd() {
         file->flush();
         file->close();
 
-        myProcess->clearArguments();
-        myProcess->setArguments( mySaveCommand ); 
+	arguments.clear();
+        arguments = mySaveCommand; 
 
-#ifdef DEBUG
-        Console->append(QString("linboInfoBrowserImpl: mySaveCommand"));
-        QStringList list = myProcess->arguments();
-        QStringList::Iterator it = list.begin();
+	QStringList processargs( arguments );
+	QString command = processargs.takeFirst();
+
+	process->start( command, processargs );
+
+	while( process->state() == QProcess::Running ) {
+	  usleep( 1000 );
+	}
       
-        while( it != list.end() ) {
-          Console->append( *it );
-          ++it;
-        }
-        Console->append(QString("*****"));
-#endif
+	arguments.clear();
+        arguments = myUploadCommand;
 
-        if( myProcess->start() ) {
-          while( myProcess->isRunning() ) {
-            usleep( 1000 );
-          }
-        } else {
-          Console->append("mySaveCommand didn't start");
-        }
-      
-        myProcess->clearArguments();
-        myProcess->setArguments( myUploadCommand );
+	processargs.clear();
+	processargs = arguments;
+	command = processargs.takeFirst();
 
-#ifdef DEBUG
-        Console->append(QString("linboInfoBrowserImpl: myUploadCommand"));
-        list = myProcess->arguments();
-        it = list.begin();
-      
-        while( it != list.end() ) {
-          Console->append( *it );
-          ++it;
-        }
-        Console->append(QString("*****"));
-#endif
+	process->start( command, processargs );
 
-        if( myProcess->start() ) {
-          while( myProcess->isRunning() ) {
-            usleep( 1000 );
-          }
-        } else {
-          Console->append("myUploadCommand didn't start");
-        }
+	while( process->state() == QProcess::Running ) {
+	  usleep( 1000 );
+	}
 
 
       }
@@ -188,7 +168,7 @@ void linboInfoBrowserImpl::setSaveCommand( const QStringList& newSaveCommand ) {
 
 QStringList linboInfoBrowserImpl::getCommand() {
   // not needed here
-  return myUploadCommand;
+  return arguments;
 }
 
 void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
@@ -197,21 +177,18 @@ void linboInfoBrowserImpl::setFilePath( const QString& newFilepath ) {
 
 void linboInfoBrowserImpl::readFromStdout()
 {
-  while( myProcess->canReadLineStdout() )
-    {
-      line = myProcess->readLineStdout();
-      Console->append( line );
-    } 
+  logConsole->writeStdOut( process->readAllStandardOutput() );
 }
 
 void linboInfoBrowserImpl::readFromStderr()
 {
-  while( myProcess->canReadLineStderr() )
-    {
-      line = myProcess->readLineStderr();
-      line.prepend( "<FONT COLOR=red>" );
-      line.append( "</FONT>" );
-      Console->append( line );
-    } 
+  logConsole->writeStdErr( process->readAllStandardError() );
+}
 
+void linboInfoBrowserImpl::processFinished( int retval,
+					     QProcess::ExitStatus status) {
+
+  logConsole->writeResult( retval, status, process->error() );
+
+  app->restoreButtonsState();
 }

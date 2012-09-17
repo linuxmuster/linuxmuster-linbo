@@ -2,20 +2,24 @@
 #define LINBOIMAGESELECTORIMPL_HH
 
 #include "ui_linboImageSelector.h"
-
+#include "linboProgressImpl.hh"
 #include <qobject.h>
+#include "linboGUIImpl.hh"
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <qdialog.h>
-#include <q3textbrowser.h>
+#include <QTextEdit>
 #include <qstringlist.h>
 #include <qstring.h>
-#include <q3process.h>
+#include <QProcess>
+#include <QFile>
 
 #include "linboDialog.hh"
+#include "linboLogConsole.hh"
 
+class linboGuiImpl;
 
 class linboImageSelectorImpl : public QWidget, public Ui::linboImageSelector, public linboDialog
 {
@@ -24,16 +28,22 @@ class linboImageSelectorImpl : public QWidget, public Ui::linboImageSelector, pu
 private:
   QString line, myCache, mySavePath, info, baseImage;
   QStringList myCommand, mySaveCommand, myLoadCommand;
-  Q3Process *process;
+  QProcess *process;
+  QStringList arguments;
   QFile *file;
   QWidget *myMainApp,*myParent;
-  Q3TextBrowser *Console;
+  linboProgressImpl *progwindow;
+  QTextEdit *Console;
   bool upload;
+  linboGUIImpl* app;
   linboDialog* neighbourDialog;
+  linboLogConsole* logConsole;
 
 public slots:
   void readFromStdout();
   void readFromStderr();
+  void processFinished( int retval,
+                        QProcess::ExitStatus status);
   virtual void precmd();
   virtual void postcmd();
   void postcmd2();
@@ -44,7 +54,9 @@ public:
 
   ~linboImageSelectorImpl();
 
-  void setTextBrowser( Q3TextBrowser* newBrowser );
+  void setTextBrowser( const QString& new_consolefontcolorstdout,
+		       const QString& new_consolefontcolorstderr,
+		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
   void setLoadCommand(const QStringList& arglist);
   void setSaveCommand(const QStringList& arglist);

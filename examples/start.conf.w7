@@ -12,6 +12,9 @@ AutoPartition = yes      # automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
 AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Start
 DownloadType = torrent   # Image-Download per torrent|multicast|rsync, default ist rsync
+BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
+ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
+ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
 
 [Partition]              # Start einer Partitionsdefinition, Windows XP auf NTFS
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
@@ -34,20 +37,23 @@ Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = ext4            # Dateisystem fuer Cache-Partition (ext4)
 Bootable = no            # Bootable-Flag
 
-[OS]                                 # Beginn einer Betriebssystemdefinition
-Name = Windows 7                     # Name des Betriebssystems
-Version =                            # Version (optional, frei waehlbar)
-Description = Windows 7 SP1          # Beschreibung
-Image =                              # kein differentielles Image definiert
-BaseImage = win7.cloop               # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
-Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows grub.exe
-Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
-Append =                             # bleibt bei Windows leer
-StartEnabled = no                    # "Start"-Button deaktiviert
-SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
-NewEnabled = yes                     # "Neu+Start"-Button anzeigen
-Hidden = no                          # zeige OS-Reiter an
-Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+[OS]                           # Beginn einer Betriebssystemdefinition
+Name = Windows 7               # Name des Betriebssystems
+Version =                      # Version (optional, frei waehlbar)
+Description = Windows 7 SP1    # Beschreibung
+IconName = winxp.png           # Icon für die Startseite, muss unter /var/linbo/icons abgelegt sein
+Image =                        # kein differentielles Image definiert
+BaseImage = win7.cloop         # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1               # Partition, die Kernel & Initrd enthaelt
+Root = /dev/sda1               # Rootpartition, in die das BS installiert ist
+Kernel = grub.exe              # Relativer Pfad zum Kernel, bei Windows grub.exe
+Initrd =                       # Relativer Pfad zur Initrd, bei Windows immer leer
+Append =                       # bleibt bei Windows leer
+StartEnabled = no              # "Start"-Button deaktiviert
+SyncEnabled = yes              # "Sync+Start"-Button anzeigen
+NewEnabled = yes               # "Neu+Start"-Button anzeigen
+Hidden = no                    # zeige OS-Reiter an
+Autostart = no                 # automatischer synchronisierter Start dieses Betriebssystems: yes|no
+DefaultAction = sync           # DefaultAction bei Autostart: start|sync|new
+AutostartTimeout = 5           # Timeout in Sekunden für Benutzerabbruch bei Autostart
 
