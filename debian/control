@@ -12,7 +12,7 @@ Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctor
                libxrender-dev, libxcursor-dev, libxinerama-dev, libxi-dev, zlib1g-dev, libjpeg62-dev,
                libmng-dev (>= 1.0.3), libpng12-dev | libpng12-0-dev, libfontconfig1-dev, libfreetype6-dev,
                libxft-dev, libiodbc2-dev (>= 3.51.2-4), libmysqlclient15-dev | libmysqlclient-dev, libpq-dev,
-               libaudio-dev, libcupsys2-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libsqlite3-dev
+               libaudio-dev, libcups2-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libsqlite3-dev
 
 Package: linuxmuster-linbo
 Architecture: all

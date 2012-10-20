@@ -1,5 +1,6 @@
+# Defaults for tftpd-hpa (ubuntu)
+#
 # $Id: tftpd-hpa.default.ubuntu 1214 2012-01-15 10:06:58Z tschmitt $
-# /etc/default/tftpd-hpa
 
 TFTP_USERNAME="tftp"
 TFTP_DIRECTORY="@@linbodir@@"

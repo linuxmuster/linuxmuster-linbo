@@ -142,6 +142,11 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
   newaliases
  fi
 
+ # create bittorrent system user if necessary
+ if ! grep -qw ^bittorrent /etc/passwd; then
+  useradd -r -g nogroup -c "BitTorrent User" -d /var/lib/bittorrent -s /bin/false bittorrent
+ fi
+
  # provide a bittorrent default file if necessary
  if [ ! -s /etc/default/bittorrent -a -s /usr/share/doc/bittorrent/examples/bittorrent.default ]; then
   cp /usr/share/doc/bittorrent/examples/bittorrent.default /etc/default/bittorrent
@@ -153,6 +158,13 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
   chmod 755 /etc/init.d/bittorrent
   update-rc.d bittorrent defaults
  fi
+
+ # provide a bittorrent logrotate file if necessary
+ if [ ! -s /etc/logrotate.d/bittorrent ] || ! grep -q "create 600 bittorrent" /etc/logrotate.d/bittorrent &> /dev/null; then
+  cp /usr/share/linuxmuster-linbo/templates/bittorrent.logrotate.d /etc/logrotate.d/bittorrent
+ fi
+ [ -d /var/log/bittorrent ] || mkdir -p /var/log/bittorrent
+ chown bittorrent /var/log/bittorrent -R
 
  # setting needed options in /etc/default/bittorrent
  if [ -s /etc/default/bittorrent ]; then
@@ -220,13 +232,16 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 
  # create tftpd-hpa configs if necessary
  tpldir="/usr/share/linuxmuster-linbo/templates"
+ conf="/etc/default/tftpd-hpa"
  if [ -n "$UBUNTU" ]; then
   tpl="$tpldir/tftpd-hpa.default.ubuntu"
+  grep -q ubuntu "$conf" || update_config=yes
  else
   tpl="$tpldir/tftpd-hpa.default"
+  grep -q openML "$conf" || update_config=yes
  fi
- conf="/etc/default/tftpd-hpa"
- if ! grep -q "$LINBODIR" "$conf"; then
+ grep -q "$LINBODIR" "$conf" || update_config=yes
+ if [ -n "$update_config" ]; then
   echo "Patching $conf."
   cp "$conf" "$conf".dpkg-bak
   sed -e "s|@@linbodir@@|$LINBODIR|" "$tpl" > "$conf"

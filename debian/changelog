@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.0.10-0) precise; urgency=low
+
+  * Bugfix: bittorrent log directory and files are not owned by bittorrent user
+    (closes #19).
+  * Bugfix: on a linuxmuster.net 6 system config file /etc/default/tftpd-hpa 
+    was not switched to the appropriate ubuntu version (closes #17).
+  * postinst creates bittorrent system user if not there (closes #9).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Sat, 20 Oct 2012 13:24:00 +0200
+
 linuxmuster-linbo (2.0.9-0) unstable; urgency=low
 
   * linbo-remote: fixed interpretation of comma separated comments in create
