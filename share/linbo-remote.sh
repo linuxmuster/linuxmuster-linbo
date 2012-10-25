@@ -6,7 +6,7 @@
 #
 # GPL V3
 #
-# $Id: linbo-remote.sh 1290 2012-02-27 16:18:09Z tschmitt $
+# tschmitt 20121025
 #
 
 # read linuxmuster environment
@@ -339,7 +339,7 @@ for i in $IP; do
   c=0
   while [ $c -lt $nrofcmds ]; do
    case ${command[$c]} in
-    start|reboot|halt|poweroff)
+    start*|reboot|halt|poweroff)
      START=yes
      echo "$SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
      echo "sleep 10" >> $REMOTESCRIPT ;;

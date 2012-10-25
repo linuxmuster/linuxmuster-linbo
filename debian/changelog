@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.0.11-0) precise; urgency=low
+
+  * Bugfix: linbo-remote screens do not terminate if start command was given.
+    (closes #20).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Thu, 25 Oct 2012 20:19:00 +0200
+
 linuxmuster-linbo (2.0.10-0) precise; urgency=low
 
   * Bugfix: bittorrent log directory and files are not owned by bittorrent user
