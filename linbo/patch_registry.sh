@@ -18,7 +18,7 @@ else
 fi
 
 # this generates a LOT of debugging messages
-DEBUG="-v"
+DEBUG=""
 hive=""
 logfile="/tmp/output"
 
