@@ -20,7 +20,7 @@ VESAMODE=785 # 640x480, 64k colors
 KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
 KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.bz2//')
 KERNEL_DIR=kernel/linux-$(KVERS)
-KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v2.6
+KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v3.x
 #KERNEL_URL=$(LML_URL)
 
 # cloop
