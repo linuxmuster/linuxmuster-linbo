@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.0.12-0) precise; urgency=low
+
+  * Yannik:
+    - removed reged -v option to prevent logs > 50.000 lines (#23).
+    - fixed kernel download path in debian/rules (#27).
+  * HappyBasher:
+    - updated LML_URL and SSMTP_URL in debian/rules (#27).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Mon, 29 Oct 2012 14:08:00 +0100
+
 linuxmuster-linbo (2.0.11-0) precise; urgency=low
 
   * Bugfix: linbo-remote screens do not terminate if start command was given.

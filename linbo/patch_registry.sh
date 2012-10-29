@@ -5,8 +5,7 @@
 # $1 is the path to the patch file
 # $2 is the path to the windows system root
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
-# 30.10.2009
+# tschmitt 20121029
 #
 
 # trust in this code
@@ -17,7 +16,7 @@ else
 	exit 1
 fi
 
-# this generates a LOT of debugging messages
+# set DEBUG to "-v" to generate a LOT of debugging messages
 DEBUG=""
 hive=""
 logfile="/tmp/output"

@@ -1,13 +1,13 @@
 #!/usr/bin/make -f
 #
-# $Id: rules 1265 2012-01-28 17:09:32Z tschmitt $
+# tschmitt 20121029
 #
 
 export DH_COMPAT=4
 
 CURDIR=$(shell pwd)
 
-LML_URL=http://pkg.lml.support-netz.de/linbo-build-cache
+LML_URL=http://linuxmuster.de/linbo-build-cache
 
 # linbo version
 LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
@@ -78,7 +78,8 @@ RSYNC_URL=http://rsync.samba.org/ftp/rsync/src
 # ssmtp
 SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
 SSMTP_DIR=src/ssmtp
-SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
+#SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
+SSMTP_URL=$(LML_URL)
 
 # syslinux
 SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }')
