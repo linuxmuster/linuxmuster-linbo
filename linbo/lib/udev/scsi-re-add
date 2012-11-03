@@ -1,0 +1,25 @@
+#!/bin/sh -e
+# re-detect the capacity of USB devices after they have been powered off an on
+
+[ "$DEVPATH" ] || exit 1
+
+device=${DEVPATH##*/}
+ctrl=${device%%:*}
+bus=${device#*:}; bus=${bus%%:*}
+target=${device#*:*:}; target=${target%%:*}
+lun=${device#*:*:*:}
+DEV_ID="$ctrl $bus $target $lun"
+
+case "$ctrl$bus$target$lun" in
+    *[A-Za-z_.:-]*)
+    echo "Invalid \$DEVPATH!" >&2
+    exit 1
+    ;;
+esac
+
+# controller, bus, target, lun
+echo "scsi remove-single-device $DEV_ID" > /proc/scsi/scsi
+echo "scsi add-single-device $DEV_ID"    > /proc/scsi/scsi
+
+exit 0
+

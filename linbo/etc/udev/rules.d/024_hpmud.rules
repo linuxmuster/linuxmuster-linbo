@@ -1,0 +1,34 @@
+# Udev rules file for HP printer products.
+
+# Modifications for Debian GNU/Linux hplip package:
+#   MODE removed as will be set by udev to default 0664
+#   OWNER="root" is a noop and has been replaced by "lp" for cups access
+#   GROUP="scanner" makes sense for HP printer products. As the majority
+#     of products are scanners and want to interact with sane(d)
+#     if specific ipProduct can be specified then group scanner can be narrowed
+# 
+#   Upstream sane.d/dll modifications in udev only works at boot time.
+#     For Debian we can ship /etc/sane.d/dll.d/hplip
+# 
+#   This udev rule needs to be loaded before 025_libgphoto2.rules as that also 
+#     contains Photosmart products
+
+ACTION!="add", GOTO="hpmud_rules_end"
+SUBSYSTEM=="ppdev", OWNER="lp", GROUP="scanner"
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", GOTO="pid_test"
+SUBSYSTEM!="usb_device", GOTO="hpmud_rules_end"
+
+LABEL="pid_test"
+
+# Check for AiO products (0x03f0xx11).
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="??11", OWNER="lp", GROUP="scanner"
+# Check for Photosmart products (0x03f0xx02).
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="??02", OWNER="lp", GROUP="scanner"
+# Check for Business Inkjet products (0x03f0xx12).
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="??12", OWNER="lp", GROUP="scanner"
+# Check for Deskjet products (0x03f0xx04).
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="??04", OWNER="lp", GROUP="scanner"
+# Check for LaserJet products (0x03f0xx17).
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="??17", OWNER="lp", GROUP="scanner"
+
+LABEL="hpmud_rules_end"
