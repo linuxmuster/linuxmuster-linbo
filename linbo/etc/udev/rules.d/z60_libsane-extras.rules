@@ -1,0 +1,220 @@
+# udev rules file for scanners supported by libsane-extras
+#
+#
+# To add a USB device, add a rule to the list below between the
+# LABEL="libsane_extras_rules_begin" and LABEL="libsane_extras_rules_end" lines.
+#
+# To run a script when your scanner is plugged in, add RUN="/path/to/script"
+# to the appropriate rule.
+#
+
+ACTION!="add", GOTO="libsane_extras_rules_end"
+ENV{DEVTYPE}=="usb_device", GOTO="libsane_extras_create_usb_dev"
+SUBSYSTEM=="usb_device", GOTO="libsane_extras_rules_begin"
+SUBSYSTEM!="usb_device", GOTO="libsane_extras_rules_end"
+
+# Kernel >= 2.6.22 jumps here
+LABEL="libsane_extras_create_usb_dev"
+
+# For Linux >= 2.6.22 without CONFIG_USB_DEVICE_CLASS=y
+# If the following rule does not exist on your system yet, uncomment it
+# ENV{DEVTYPE}=="usb_device", NAME="bus/usb/$env{BUSNUM}/$env{DEVNUM}", MODE="0664", OWNER="root", GROUP="root"
+
+# Kernel < 2.6.22 jumps here
+LABEL="libsane_extras_rules_begin"
+
+## hp_rts88xx backend
+# Hewlett-Packard ScanJet 4400C
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="0705", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# Hewlett-Packard ScanJet 4470C
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="0805", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# Hewlett-Packard ScanJet 3530C/3570C
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="2005", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# Hewlett-Packard ScanJet 3500C
+SYSFS{idVendor}=="03f0", SYSFS{idProduct}=="2205", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+
+## epkowa backend
+# EPSON GT-7000U | EPSON Perfection 636U
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0101", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-2200
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0102", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-6600U | EPSON Perfection 610
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0103", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-7600U | EPSON GT-7600UF | EPSON Perfection 1200U
+# EPSON Perfection 1200U PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0104", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus Scan 2000
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0105", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus Scan 2500
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0106", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ES-2000 | EPSON Expression 1600
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0107", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON CC-700
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0108", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ES-8500 | EPSON Expression 1640XL
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0109", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-8700 | EPSON GT-8700F | EPSON Perfection 1640SU
+# EPSON Perfection 1640SU PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="010a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-7700U | EPSON Perfection 1240U
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="010b", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-6700U | EPSON Perfection 640U
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="010c", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON CC-500L
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="010d", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ES-2200 | EPSON Expression 1680
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="010e", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-7200U | EPSON Perfection 1250 | EPSON Perfection 1250 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="010f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-8200U | EPSON GT-8200UF | EPSON Perfection 1650
+# EPSON Perfection 1650 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0110", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-9700F | EPSON Perfection 2450 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0112", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Perfection 660
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0114", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-9400UF | EPSON Perfection 3170 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0116", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-F600 | EPSON Perfection 4180 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0118", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-X750 | EPSON Perfection 4490 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0119", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON CC-550L
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="011a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-9300UF | EPSON Perfection 2400 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="011b", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-9800F | EPSON Perfection 3200 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="011c", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-7300U | EPSON Perfection 1260 | EPSON Perfection 1260 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="011d", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-8300UF | EPSON Perfection 1660 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="011e", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-8400UF | EPSON Perfection 1670 | EPSON Perfection 1670 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="011f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-7400U | EPSON Perfection 1270
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0120", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-F500 | EPSON GT-F550 | EPSON Perfection 2480 PHOTO
+# EPSON Perfection 2580 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0121", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-F520 | EPSON GT-F570 | EPSON Perfection 3490 PHOTO
+# EPSON Perfection 3590 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0122", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ES-7000H | EPSON GT-15000
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0126", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-X700 | EPSON Perfection 4870 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0128", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ES-10000G | EPSON Expression 10000XL
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0129", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-X800 | EPSON Perfection 4990 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="012a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ES-H300 | EPSON GT-2500
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="012b", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-X900 | EPSON Perfection V700 | EPSON Perfection V750
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="012c", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-F650 | EPSON GT-S600 | EPSON Perfection V10
+# EPSON Perfection V100 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="012d", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-F670 | EPSON Perfection V200 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="012e", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON GT-F700 | EPSON Perfection V350 PHOTO
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="012f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON CC-600PX | EPSON Stylus CX5100 | EPSON Stylus CX5200
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0801", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON CC-570L | EPSON Stylus CX3100 | EPSON Stylus CX3200
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0802", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX6300 | EPSON Stylus CX6400
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0805", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A850 | EPSON Stylus Photo RX600
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0806", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus Photo RX500 | EPSON Stylus Photo RX510
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0807", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX5300 | EPSON Stylus CX5400
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0808", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON F-3200
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="080a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX1500
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="080c", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX4500 | EPSON Stylus CX4600
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="080d", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PX-A550 | EPSON Stylus CX3500 | EPSON Stylus CX3600
+# EPSON Stylus CX3650
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="080e", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus Photo RX420 | EPSON Stylus Photo RX425 | EPSON Stylus Photo RX430
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="080f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A900 | EPSON Stylus Photo RX700
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0810", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A870 | EPSON Stylus Photo RX620 | EPSON Stylus Photo RX630
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0811", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX6500 | EPSON Stylus CX6600
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0813", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A700
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0814", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON AcuLaser CX11 | EPSON AcuLaser CX11NF | EPSON LP-A500
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0815", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON LP-M5500 | EPSON LP-M5500F
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0817", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX3700 | EPSON Stylus CX3800 | EPSON Stylus DX3800
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0818", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PX-A650 | EPSON Stylus CX4700 | EPSON Stylus CX4800
+# EPSON Stylus DX4800 | EPSON Stylus DX4850
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0819", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A750 | EPSON Stylus Photo RX520 | EPSON Stylus Photo RX530
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="081a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A890 | EPSON Stylus Photo RX640 | EPSON Stylus Photo RX650
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="081c", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A950
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="081d", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX7700 | EPSON Stylus CX7800
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="081f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX4100 | EPSON Stylus CX4200 | EPSON Stylus DX4200
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0820", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX5700F | EPSON Stylus CX5800F
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0821", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A820 | EPSON Stylus Photo RX560 | EPSON Stylus Photo RX580
+# EPSON Stylus Photo RX590
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0827", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A970
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0828", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-T990
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0829", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A920
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="082a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX4900 | EPSON Stylus CX5000 | EPSON Stylus DX5000
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="082b", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PX-A720 | EPSON Stylus CX5900 | EPSON Stylus CX6000
+# EPSON Stylus DX6000
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="082e", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PX-A620 | EPSON Stylus CX3900 | EPSON Stylus DX4000
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="082f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON ME200 | EPSON Stylus CX2800 | EPSON Stylus CX2900
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0830", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX6900F | EPSON Stylus CX7000F | EPSON Stylus DX7000F
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0831", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON LP-M5600
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0833", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON AcuLaser CX21
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0835", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-T960
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0836", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A940 | EPSON Stylus Photo RX680 | EPSON Stylus Photo RX685
+# EPSON Stylus Photo RX690
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0837", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX7300 | EPSON Stylus CX7400 | EPSON Stylus DX7400
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0838", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PX-A740 | EPSON Stylus CX8300 | EPSON Stylus CX8400
+# EPSON Stylus DX8400
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="0839", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX9300F | EPSON Stylus CX9400Fax | EPSON Stylus DX9400F
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="083a", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON PM-A840 | EPSON Stylus Photo RX585 | EPSON Stylus Photo RX595
+# EPSON Stylus Photo RX610
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="083c", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+# EPSON Stylus CX4300 | EPSON Stylus CX4400 | EPSON Stylus CX5500
+# EPSON Stylus CX5600 | EPSON Stylus DX4400
+SYSFS{idVendor}=="04b8", SYSFS{idProduct}=="083f", MODE="0664", GROUP="scanner", ENV{libsane_matched}="yes"
+
+
+# The following rule will disable USB autosuspend for the device
+ENV{libsane_matched}=="yes", RUN+="/bin/sh -c 'test -e /sys/$env{DEVPATH}/power/level && echo on > /sys/$env{DEVPATH}/power/level'"
+
+LABEL="libsane_extras_rules_end"

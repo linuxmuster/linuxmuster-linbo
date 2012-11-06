@@ -1,0 +1,18 @@
+#
+# VMware SCSI devices Timeout adjustment
+#
+# Modify the timeout value for VMware SCSI devices so that
+# in the event of a failover, we don't time out.
+# See Bug 271286 for more information.
+#
+# Note: The Udev systems vary from distro to distro.  Hence all of the
+#       extra entries.
+
+# Redhat systems
+ACTION=="add", BUS=="scsi", SYSFS{vendor}=="VMware, " , SYSFS{model}=="VMware Virtual S",   RUN+="/bin/sh -c 'echo 180 >/sys$DEVPATH/device/timeout'"
+
+# Debian systems
+ACTION=="add", SUBSYSTEMS=="scsi", ATTRS{vendor}=="VMware  " , ATTRS{model}=="Virtual disk    ",   RUN+="/bin/sh -c 'echo 180 >/sys$DEVPATH/device/timeout'"
+
+# SuSE / Ubuntu systems
+ACTION=="add", SUBSYSTEMS=="scsi", ATTRS{vendor}=="VMware, " , ATTRS{model}=="VMware Virtual S",   RUN+="/bin/sh -c 'echo 180 >/sys$DEVPATH/device/timeout'"

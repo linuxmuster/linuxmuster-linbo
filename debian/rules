@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 #
-# tschmitt 20121029
+# Yannik Sembritzki 20121103 17:43:00
 #
 
 export DH_COMPAT=4
@@ -394,9 +394,6 @@ install: build
 	:> ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
-	echo "# udev" >> ../initramfs.conf ; \
-	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
 	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \

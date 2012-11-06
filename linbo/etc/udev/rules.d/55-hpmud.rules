@@ -1,0 +1,4 @@
+# Udev rules file for HP printer products.
+# This rule is superseded by 024_hpmud.rules
+# It maybe safely removed
+
