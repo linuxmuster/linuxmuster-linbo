@@ -5,10 +5,11 @@ for i in conf debian etc examples linbo share; do
 done
 
 rm -f debian/files
+rm -f kernel/modules
 
 fakeroot dpkg-buildpackage \
     -tc -sa -us -uc \
-    -I".svn" \
+    -I".git" \
     -I".directory" \
     -Icache \
     -Isrc \

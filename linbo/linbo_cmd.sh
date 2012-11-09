@@ -4,7 +4,11 @@
 # License: GPL V2
 #
 # paedML/openML modifications by Thomas Schmitt
-# $Id: linbo_cmd.sh 1275 2012-02-09 16:49:24Z tschmitt $
+#
+# ssd/4k/8k support - jonny@bzt.de 30.09.2012 alpha!
+# ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
+#
+# tschmitt 20121107
 #
 
 CLOOP_BLOCKSIZE="131072"
@@ -521,9 +525,15 @@ $(sfdisk -s "$disk")
   [ -n "$dev" ] || continue
   local csize=""
   if [ "$2" -gt 0 ] 2>/dev/null; then
-   # Cylinders = kilobytes * totalcylinders / totalkilobytes
-   csize="$(($2 * $cylinders / $disksize))"
-   [ "$(($csize * $disksize / $cylinders))" -lt "$2" ] && let csize++
+   # knopper begin
+   ## Cylinders = kilobytes * totalcylinders / totalkilobytes
+   #csize="$(($2 * $cylinders / $disksize))"
+   #[ "$(($csize * $disksize / $cylinders))" -lt "$2" ] && let csize++
+   # knopper end
+   # jonny begin
+   # sektoren = kilobytes * 2 
+   csize="$(($2 * 2))"
+   # jonny end
   fi
   if [ -n "$table" ]; then
    table="$table
@@ -542,15 +552,46 @@ $(sfdisk -s "$disk")
   fi
   # Insert table entry.
   bootable="$4"
-  [ "$bootable" = "-" ] && bootable=""
+  [ "$bootable" = "-" -o "$bootable" = " " ] && bootable=""
   fstype="$5"
   [ "$fstype" = "-" ] && fstype=""
-  table="$table,$csize,$3${bootable:+,*}"
+  # knopper begin
+  # table="$table,$csize,$3${bootable:+,*}"
+  # knopper end
+  # jonny begin
+  if [ "$pcount" -eq 1 ] >/dev/null 2>&1; then  
+   table="2048,$csize,$3${bootable:+,*}"
+   ts0="$csize"
+  fi
+  if [ "$pcount" -eq 2 ] >/dev/null 2>&1; then  
+   table="$table$(($ts0 + 2048)),$csize,$3${bootable:+,*}"
+   ts1="$csize"
+  fi
+  if [ "$pcount" -eq 3 ] >/dev/null 2>&1; then  
+   table="$table$(($ts0 + $ts1 + 2048)),$csize,$3${bootable:+,*}"
+   ts2="$csize"
+  fi
+  if [ "$pcount" -eq 4 ] >/dev/null 2>&1; then  
+   if [ "$3" -eq 5 ] >/dev/null 2>&1; then  
+    ts2=$(($ts2 + 2047))
+   fi
+   table="$table$(($ts0 + $ts1 + $ts2 + 2048)),$csize,$3${bootable:+,*}"
+   ts3="$csize"
+  fi
+  if [ "$pcount" -eq 5 ] >/dev/null 2>&1; then  
+   table="$table,$(($csize - 1)),$3${bootable:+,*}"
+  fi
+  if [ "$pcount" -gt 5 ] >/dev/null 2>&1; then  
+   table="$table,$csize,$3${bootable:+,*}"
+  fi
+  # jonny end
   [ -n "$fstype" ] && formats="$formats $dev,$fstype"
   shift 5
   # write partition table if last disk partition is reached
   if echo "$lastpartitions" | grep -q "$dev"; then
-   sfdisk -D -f "$disk" 2>&1 <<EOT
+   # sfdisk -D -f "$disk" 2>&1 <<EOT
+   # jonny 
+   sfdisk -uS -f "$disk" 2>&1 <<EOT
 $table
 EOT
    if [ "$?" = "0" -a -z "$NOFORMAT" ]; then
@@ -1056,19 +1097,13 @@ restore(){
    if [ "$force" != "force" ]; then
     check_status "$2" "$1" || force="force"
    fi
-   if [ "$fstype" = "ntfs" -a "$force" = "force" ]; then
+   if [ "$force" = "force" ]; then
     echo "[Komplette Partition]..."
-    cp_cloop "$1" "$2" ; RC="$?"
-   elif [ "$fstype" = "vfat" -a "$force" = "force" ]; then
-    echo "[Komplette Partition]..."
-    cp_cloop "$1" "$2" ; RC="$?"
+    format "$2" "$fstype" || return 1
    else
     echo "[Datei-Sync]..."
-    if [ "$force" = "force" ]; then
-      format "$2" "$fstype" || return 1
-    fi
-    sync_cloop "$1" "$2" ; RC="$?"
    fi
+   sync_cloop "$1" "$2" ; RC="$?"
    ;;
   *.[Rr][Ss][Yy]*)
    echo "[Datei-Sync]..."

@@ -83,7 +83,8 @@ init_setup(){
 
  # parse kernel cmdline
  CMDLINE="$(cat /proc/cmdline)"
- case "$CMDLINE" in *\ useide*) useide=yes;; esac
+ # deprecated
+ #case "$CMDLINE" in *\ useide*) useide=yes;; esac
  case "$CMDLINE" in *\ debug*) debug=yes;; esac
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
 
@@ -437,14 +438,15 @@ hwsetup(){
  rm -f /tmp/linbo-cache.done
  echo "## Hardware-Setup - Begin ##" >> /tmp/linbo.log
 
- if [ -n "$useide" ]; then
-  echo "Using ide modules ..."
-  rm -rf /lib/modules/`uname -r`/kernel/drivers/ata
- else
-  echo "Using pata/sata modules ..."
-  rm -rf /lib/modules/`uname -r`/kernel/drivers/ide
- fi
- depmod -a
+ # deprecated
+ #if [ -n "$useide" ]; then
+  #echo "Using ide modules ..."
+  #rm -rf /lib/modules/`uname -r`/kernel/drivers/ata
+ #else
+  #echo "Using pata/sata modules ..."
+  #rm -rf /lib/modules/`uname -r`/kernel/drivers/ide
+ #fi
+ #depmod -a
 
  #
  # Udev starten

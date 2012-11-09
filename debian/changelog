@@ -1,3 +1,15 @@
+linuxmuster-linbo (2.1.0-0) precise-testing; urgency=low
+
+  * Merged remote-tracking branches from Yannik, concerning to initramfs.conf:
+    removed duplicate and unnecessary lines.
+  * applied jonnys 4k-partitioning patch (closes #31).
+  * updated ms-sys to 2.3.0.
+  * full restore now uses format and rsync instead of extract_compressed_fs.
+  * Kernel 3.6.4, removed deprecated ide drivers.
+  * removed deprecated linbo kernel parameter useide.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Fri, 9 Nov 2012 13:14:00 +0100
+
 linuxmuster-linbo (2.0.13-0) precise; urgency=low
 
   * tschmitt:
