@@ -7,6 +7,7 @@ export QTDIR=`pwd`/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
 cd $QTDIR
 
 export CXX=g++-4.3
+make clean
 echo -e "yes\n" | ./configure \
  -embedded x86 \
  -prefix $QTDIR \
