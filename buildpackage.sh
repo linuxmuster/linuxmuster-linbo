@@ -15,4 +15,4 @@ fakeroot dpkg-buildpackage \
     -Isrc \
     -Ikernel \
     -Ilinbo_gui/linbo_gui \
-    -Ilinbo_gui/qt-embedded*
+    -Ilinbo_gui/qt-*
