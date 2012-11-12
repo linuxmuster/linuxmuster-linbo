@@ -5,7 +5,7 @@ for i in conf debian etc examples linbo share; do
 done
 
 rm -f debian/files
-rm -f kernel/modules
+rm -rf kernel/modules
 
 fakeroot dpkg-buildpackage \
     -tc -sa -us -uc \

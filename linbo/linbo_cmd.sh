@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 30.09.2012 alpha!
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
-# tschmitt 20121107
+# tschmitt 20121111
 #
 
 CLOOP_BLOCKSIZE="131072"
@@ -47,7 +47,7 @@ printargs(){
 }
 
 # test if variable is an integer
-isinteger () {
+isinteger() {
  [ $# -eq 1 ] || return 1
  case $1 in
  *[!0-9]*|"") return 1;;
@@ -654,15 +654,15 @@ mkgrldr(){
 start(){
  echo -n "start " ;  printargs "$@"
  local WINDOWS=""
+ local LOADED=""
+ local KERNEL="/mnt/$3"
+ local INITRD=""
+ local APPEND="$5"
  local i
  local cpunum=1
  local disk="${1%%[1-9]*}"
- if mountpart "$1" /mnt -w ; then
-  LOADED=""
-  KERNEL="/mnt/$3"
-  INITRD=""
+ if mountpart "$1" /mnt -w; then
   [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
-  APPEND="$5"
   # tschmitt: repairing grub mbr on every start
   if mountcache "$6" && cache_writable ; then
    mkgrub "$disk"
@@ -958,58 +958,99 @@ update_status(){
  return 0
 }
 
+# restore complete ntfs cloop image, which is assigned to /dev/cloop
+# cp_cloop_ntfs targetdev
+cp_cloop_ntfs(){
+ local RC=1
+ local targetdev="$1"
+ echo "Restauriere Partition $targetdev mit ntfsclone..." | tee -a /tmp/image.log
+ interruptible ntfsclone -f --overwrite "$targetdev" /dev/cloop ; RC="$?"
+ if [ "$RC" != "0" ]; then
+  echo 'FEHLER!' | tee -a /tmp/image.log
+  return "$RC"
+ fi
+ # check if resizing is necessary
+ echo "Pruefe ob Dateisystem vergroessert werden muss..." | tee -a /tmp/image.log
+ # save ntfs size infos in temp file
+ ntfsresize -f -i "$targetdev" > /tmp/ntfs.info
+ # get volume size in mb
+ local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
+ # test if volsizemb is an integer value
+ if ! isinteger "$volsizemb"; then
+  echo "Kann Dateisystemgroesse nicht bestimmen." | tee -a /tmp/image.log
+  return 1
+ fi  
+ echo "Dateisystem: $volsizemb MB" | tee -a /tmp/image.log
+ # get partition size in mb
+ local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
+ # test if devsizemb is an integer value
+ if ! isinteger "$devsizemb"; then
+  echo "Kann Partitionsgroesse nicht bestimmen." | tee -a /tmp/image.log
+  return 1
+ fi
+ echo "Partition  : $devsizemb MB" | tee -a /tmp/image.log
+ # test if partition is larger than filesystem and adjust filesystem size if necessary
+ if [ $devsizemb -gt $volsizemb ]; then
+  echo "Dateisystem wird auf $devsizemb MB vergroessert." | tee -a /tmp/image.log
+  # get partition size in bytes
+  local devsize="$(grep "Current device size" /tmp/ntfs.info | awk '{ print $4}')"
+  if ! isinteger "$devsize"; then
+   echo "Kann Partitionsgroesse nicht bestimmen." | tee -a /tmp/image.log
+   return 1
+  fi
+  # increase the filesystem size
+  ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
+  [ "$RC" = "0" ] || echo "Vergroesserung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
+ else
+  echo "Vergroesserung ist nicht notwendig." | tee -a /tmp/image.log
+  RC=0
+ fi # devsizemb gt volsizemb
+ return "$RC"
+} # cp_cloop_ntfs
+
 # INITIAL copy
 # cp_cloop imagefile targetdev
 cp_cloop(){
  echo "## $(date) : Starte Komplettrestore von $1." | tee -a /tmp/image.log
  echo -n "cp_cloop " ;  printargs "$@" | tee -a /tmp/image.log
  local RC=1
+ local imagefile="$1"
+ local targetdev="$2"
  rmmod cloop >/dev/null 2>&1
  # repair cloop link if vanished
  [ -e /dev/cloop ] || ln -s /dev/cloop0 /dev/cloop
-# echo "modprobe cloop file=/cache/$1"
- if test -s "$1" && modprobe cloop file=/cache/"$1"; then
-  local s1="$(get_partition_size /dev/cloop)"
-  local s2="$(get_partition_size $2)"
-  local block="$(($CLOOP_BLOCKSIZE / 1024))"
-  if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
-   echo "FEHLER: Cloop Image $1 (${s1}K) ist größer als Partition $2 (${s2}K)" >&2 | tee -a /tmp/image.log
-   echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
-   rmmod cloop >/dev/null 2>&1
-   return 1
+ if test -s "$imagefile" && modprobe cloop file=/cache/"$imagefile"; then
+  # restore ntfs partitions with ntfsclone
+  if [ "$(fstype $targetdev)" = "ntfs" ]; then
+   cp_cloop_ntfs "$targetdev" ; RC="$?"
+  else
+   # old cp_cloop stuff
+   local s1="$(get_partition_size /dev/cloop)"
+   local s2="$(get_partition_size $targetdev)"
+   local block="$(($CLOOP_BLOCKSIZE / 1024))"
+   if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
+    echo "FEHLER: Cloop Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
+    rmmod cloop >/dev/null 2>&1
+    return 1
+   fi
+   # Userspace program MAY be faster than kernel module (no kernel lock necessary)
+   # Forking an additional dd makes use of a second CPU and speeds up writing
+   ( interruptible extract_compressed_fs /cache/"$imagefile" - | dd of="$targetdev" bs=1M ) 2>&1 | tee -a /tmp/image.log
+   #interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
+   # interruptible dd if=/dev/cloop of="$2" bs=1024k
+   RC="$?"
   fi
-  # Userspace program MAY be faster than kernel module (no kernel lock necessary)
-  # Forking an additional dd makes use of a second CPU and speeds up writing
-  ( interruptible extract_compressed_fs /cache/"$1" - | dd of="$2" bs=1M ) 2>&1 | tee -a /tmp/image.log
-  #interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
-  # interruptible dd if=/dev/cloop of="$2" bs=1024k
-  RC="$?"
  else
+  # cloop file could not be mounted
   RC="$?"
   # DEBUG, REMOVEME
   dmesg | tail -5
-  echo "Fehler: Archiv \"$1\" nicht vorhanden oder defekt." >&2 | tee -a /tmp/image.log
+  echo "Fehler: Archiv \"$imagefile\" nicht vorhanden bzw. defekt oder Zielpartition \"$targetdev\" zu klein bzw. fehlerhaft." >&2 | tee -a /tmp/image.log
  fi
  rmmod cloop >/dev/null 2>&1
- if [ "$(fstype $2)" = "ntfs" ]; then
-  # Fix number of heads in NTFS, Windows boot insists that this
-  # is >= the number reported by BIOS
-  local heads=255
-#  local disk="${2%%[1-9]*}"
-#  local d
-#  local cylinders
-#  local c
-#  read d cylinders c heads relax <<.
-#$(sfdisk -g "$disk")
-#.
-  if [ "$heads" -gt 0 -a "$heads" -le 255 ] 2>/dev/null; then
-   heads="$(printf '\%o' $heads)"
-   # Number of heads at NTFS offset 0x1a (26)
-   echo -n -e "$heads" | dd seek=26 bs=1 count=1 of="$2" conv=notrunc | tee -a /tmp/image.log
-  fi
- fi
- [ "$RC" = "0" ] && update_status "$2" "$1"
- echo "## $(date) : Beende Komplettrestore von $1." | tee -a /tmp/image.log
+ [ "$RC" = "0" ] && update_status "$targetdev" "$imagefile"
+ echo "## $(date) : Beende Komplettrestore von $imagefile." | tee -a /tmp/image.log
  return "$RC"
 }
 
@@ -1103,7 +1144,11 @@ restore(){
    else
     echo "[Datei-Sync]..."
    fi
-   sync_cloop "$1" "$2" ; RC="$?"
+   if [ "$force" = "force" -a "$fstype" = "ntfs" ]; then
+    cp_cloop "$1" "$2" ; RC="$?"
+   else
+    sync_cloop "$1" "$2" ; RC="$?"
+   fi
    ;;
   *.[Rr][Ss][Yy]*)
    echo "[Datei-Sync]..."

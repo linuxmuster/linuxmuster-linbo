@@ -1,3 +1,14 @@
+linuxmuster-linbo (2.1.0-1) precise; urgency=low
+
+  * linbo_cmd.sh:
+    * cp_cloop(), cp_cloop_ntfs(): switched to ntfsclone for full restore of
+      ntfs partitions and added ntfsresize to expand ntfs filesystem to
+      partition size if necessary.
+    * start(): changed some variables to local ones.
+  * added vboxguest support (version 4.1.18-dfsg-1.1).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Mon, 11 Nov 2012 08:59:00 +0100
+
 linuxmuster-linbo (2.1.0-0) precise-testing; urgency=low
 
   * Merged remote-tracking branches from Yannik, concerning to initramfs.conf:
