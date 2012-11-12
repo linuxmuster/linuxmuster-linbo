@@ -27,7 +27,7 @@ linboConsoleImpl::linboConsoleImpl(  QWidget* parent ) : linboDialog()
   connect(input,SIGNAL(returnPressed()),this,SLOT(execute()));
 
   Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
   logConsole = new linboLogConsole(0);
