@@ -1,25 +1,20 @@
-linuxmuster-linbo (2.1.0-1) precise; urgency=low
-
-  * linbo_cmd.sh:
-    * cp_cloop(), cp_cloop_ntfs(): switched to ntfsclone for full restore of
-      ntfs partitions and added ntfsresize to expand ntfs filesystem to
-      partition size if necessary.
-    * start(): changed some variables to local ones.
-  * added vboxguest support (version 4.1.18-dfsg-1.1).
-
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Mon, 11 Nov 2012 08:59:00 +0100
-
-linuxmuster-linbo (2.1.0-0) precise-testing; urgency=low
+linuxmuster-linbo (2.1.0-0) precise; urgency=low
 
   * Merged remote-tracking branches from Yannik, concerning to initramfs.conf:
     removed duplicate and unnecessary lines.
-  * applied jonnys 4k-partitioning patch (closes #31).
   * updated ms-sys to 2.3.0.
-  * full restore now uses format and rsync instead of extract_compressed_fs.
-  * Kernel 3.6.4, removed deprecated ide drivers.
+  * Kernel 3.6.4 again, removed deprecated ide drivers.
   * removed deprecated linbo kernel parameter useide.
+  * linbo_cmd.sh:
+    * applied jonnys 4k-partitioning patch (closes #31).
+    * restore(), cp_cloop(): forced restore now uses format and rsync for fat 
+      and ntfsclone for ntfs filesystems instead of extract_compressed_fs.
+    * added cp_cloop_ntfs() function for full restore of ntfs partitions with
+      ntfsresize to expand filesystem to partition size if necessary.
+    * start(): changed some variables to local ones.
+  * added vboxguest support (version 4.1.18-dfsg-1.1).
 
- -- Thomas Schmitt <tschmitt@linuxmuster.de>  Fri, 9 Nov 2012 13:14:00 +0100
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Mon, 12 Nov 2012 15:04:00 +0100
 
 linuxmuster-linbo (2.0.13-0) precise; urgency=low
 
