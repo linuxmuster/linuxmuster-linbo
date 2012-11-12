@@ -10,7 +10,6 @@ RESOURCES = linbo.qrc
 HEADERS += image_description.hh \
            linboConsoleImpl.hh \
            linboCounterImpl.hh \
-           linboGUI.hh \
            linboGUIImpl.hh \
            linboImageSelectorImpl.hh \
            linboImageUploadImpl.hh \
