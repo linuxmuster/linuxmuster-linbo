@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 ### BEGIN INIT INFO
 # Provides:          linbo-bittorrent
@@ -12,9 +12,8 @@
 # Description:       Starts a complete bittorrent download for LINBO images
 ### END INIT INFO
 
-# schmitt@lmz-bw.de
 # GPL v3
-# $Id: linbo-bittorrent.init 1161 2011-11-16 15:58:02Z tschmitt $
+# tschmitt 20121119
 
 #set -e
 
@@ -99,6 +98,12 @@ start(){
 
  write_client_config > "$CLIENT_CONFIG"
 
+ # AG - 31.10.2012 - Tracker vor den Torrent-Seeders neu zu starten
+ # restart bittorrent service
+ /etc/init.d/bittorrent stop
+ killall bttrack.bittorrent &> /dev/null
+ /etc/init.d/bittorrent start
+
  local i=""
  for i in $images; do
 
@@ -154,11 +159,6 @@ start(){
    [ "$RC" = "0" ] && echo
   fi
  done
-
- # restart bittorrent service
- /etc/init.d/bittorrent stop
- killall bttrack.bittorrent &> /dev/null
- /etc/init.d/bittorrent start
 }
 
 stop(){

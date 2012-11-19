@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.1.1-0) precise; urgency=low
+
+  * Kernel downgrade to 3.2.34.
+  * Fix: bittorrent service has to start before seeders (closes #32).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Mon, 19 Nov 2012 16:10:00 +0100
+
 linuxmuster-linbo (2.1.0-0) precise; urgency=low
 
   * Merged remote-tracking branches from Yannik, concerning to initramfs.conf:
