@@ -1,9 +1,11 @@
 #!/usr/bin/make -f
 #
-# tschmitt 20121029
+# thomas@linuxmuster.net
+# 08.12.2013
+# GPL v3
 #
 
-export DH_COMPAT=4
+export DH_COMPAT=5
 
 CURDIR=$(shell pwd)
 
@@ -33,6 +35,11 @@ CLOOP_URL=http://debian-knoppix.alioth.debian.org/packages/cloop
 VBOX_ARCHIVE=$(shell grep virtualbox-guest- debian/md5sums.src | awk '{ print $$2 }')
 VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
 VBOX_URL=$(LML_URL)
+
+# compat wireless drivers (ethernet driver alx.ko needed)
+COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
+COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
+COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
 
 # qt
 QT_ARCHIVE=$(shell grep qt-embedded-linux-opensource-src- debian/md5sums.src | awk '{ print $$2 }')
@@ -242,6 +249,15 @@ configure-stamp:
 		ln -sf ../$(VBOX_DIR) kernel/virtualbox-guest; \
 	fi
 
+	# compat wireless
+	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
+		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
+		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
+		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
+	fi
+
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
 		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
@@ -375,6 +391,13 @@ build-stamp: configure-stamp
 	cd $(VBOX_DIR) && \
 	( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) )
 
+	# compat wireless alx module
+	@echo "[1mBuilding alx module...[0m" ; \
+	rm -rf kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true
+	cd $(COMPWLESS_DIR) && \
+	( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
+	  ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make )
+
 	touch build-stamp
 
 distclean: clean
@@ -408,6 +431,9 @@ install: build
 	# vboxguest module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
 	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
+	# alx module
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version

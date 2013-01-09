@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.1.2-0) precise; urgency=low
+
+  * added alx module stuff (closes #53).
+  * update-linbofs.sh, linbo-bittorrent.init: minor changements to console output.
+  * rsync-pre-upload.sh: Fix, stale image backup files on server were not removed (closes #47).
+  * linbo_cmd, upload(): Bugfix, return code was 0 on failed upload (closes #52).
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Wed, 9 Jan 2013 16:56:00 +0100
+
 linuxmuster-linbo (2.1.1-0) precise; urgency=low
 
   * Kernel downgrade to 3.2.34.

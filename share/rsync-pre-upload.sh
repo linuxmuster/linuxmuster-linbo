@@ -1,12 +1,13 @@
 #!/bin/bash
+#
 # (C) Klaus Knopper 2007
-# License: GPL V2
 # Pre-Upload script for rsync/LINBO:
 # Moves old version of file out of the way,
 # and installs a new version.
 #
-# later improvements by Thomas Schmitt
-# $Id: rsync-pre-upload.sh 1271 2012-02-08 12:28:01Z tschmitt $
+# thomas@linuxmuster.net
+# 09.01.2013
+# GPL v3
 #
 
 # read in paedml specific environment
@@ -29,6 +30,8 @@ echo "### rsync pre upload begin: $(date) ###"
 [ -n "$RSYNC_PID" ] || exit 0
 
 FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
+DIRNAME="$(dirname $FILE)"
+BASENAME="$(basename $FILE)"
 BACKUP="${FILE}.BAK"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 
@@ -47,9 +50,27 @@ if [ "$EXT" = ".new" ]; then
 fi
 
 # Bailout with error if backup file exists (another process is uploading)
-if [ -s "$BACKUP" ]; then
- echo "Backup file exists for ${FILE##*/}, another upload in progress?" >&2
- exit 1
+if [ -e "$BACKUP" ]; then
+ # check if there is another upload for the same file
+ TMPFILE="$(ls -t ${DIRNAME}/.${BASENAME}.* 2> /dev/null | head -1)"
+ if [ -n "$TMPFILE" ]; then
+  # check if file grows
+  size1="$(ls -l $TMPFILE | awk '{ print $5 }')"
+  sleep 5
+  size2="$(ls -l $TMPFILE | awk '{ print $5 }')"
+  # if file is not growing remove it
+  if [ "$size1" = "$size2" ]; then
+   echo "Removing stale temp file $TMPFILE!"
+   rm -f "$TMPFILE"
+  else
+   echo "Backup file exists for ${FILE##*/}, another upload in progress?" >&2
+   exit 1
+  fi
+ fi
+fi
+if [ -e "$BACKUP" ]; then
+ echo "Removing stale backup file $BACKUP!"
+ rm -f "$BACKUP"
 fi
 
 # Create backups, if file exists, otherwise save only the filename.

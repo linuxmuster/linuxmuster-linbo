@@ -1,14 +1,15 @@
 #!/bin/sh
 # linbo_cmd - Backend worker script for LINBO
 # (C) Klaus Knopper 2007-2010
-# License: GPL V2
 #
 # paedML/openML modifications by Thomas Schmitt
 #
 # ssd/4k/8k support - jonny@bzt.de 30.09.2012 alpha!
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
-# tschmitt 20121111
+# thomas@linuxmuster.net
+# 09.01.2013
+# GPL v3
 #
 
 CLOOP_BLOCKSIZE="131072"
@@ -1777,11 +1778,12 @@ upload(){
   done
   echo "Uploade $FILES auf $1..." | tee -a /tmp/linbo.log
   for file in $FILES; do
-   #rm -f "$TMP"
-   (interruptible rsync --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/$file" ; RC="$?") | tee -a /tmp/linbo.log
+   interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/$file"
+   # because return code is always 0 this is necessary
+   grep -q "rsync error" /tmp/rsync.log && RC=1
+   cat /tmp/rsync.log >> /tmp/linbo.log
+   rm /tmp/rsync.log
    if [ "$RC" != "0" ]; then
-    #cat "$TMP" >&2
-    #rm -f "$TMP"
     break
    else
     # start torrent service for image

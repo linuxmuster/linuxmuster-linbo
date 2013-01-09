@@ -12,8 +12,9 @@
 # Description:       Starts a complete bittorrent download for LINBO images
 ### END INIT INFO
 
+# thomas@linuxmuster.net
+# 09.01.2013
 # GPL v3
-# tschmitt 20121119
 
 #set -e
 
@@ -155,8 +156,8 @@ start(){
    echo -n " "
    log_failure_msg "failed!"
   else
-   echo -n "."
-   [ "$RC" = "0" ] && echo
+   RC=0
+   log_end_msg "$RC"
   fi
  done
 }

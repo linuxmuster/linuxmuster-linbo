@@ -126,7 +126,7 @@ touch var/log/lastlog
 
 if [ -z "$groups" ] || stringinstring default "$groups"; then
  # begin with default linbofs.gz
- echo -n "  * default ... "
+ echo -n " * default ... "
 
  # check and copy default start.conf
  set_serverip $LINBODIR/start.conf
@@ -152,7 +152,7 @@ for i in $groups; do
  [ -e "$LINBODIR/start.conf.$i" ] || continue
 
  # print group name
- echo -n "  * $i ... "
+ echo -n " * $i ... "
 
  # check and repair necessary conf files
  set_serverip $LINBODIR/start.conf.$i
