@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.1.2-1) precise; urgency=low
+
+  * added missing compat.ko module on which alx.ko depends.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Thu, 10 Jan 2013 10:11:00 +0100
+
 linuxmuster-linbo (2.1.2-0) precise; urgency=low
 
   * added alx module stuff (closes #53).
