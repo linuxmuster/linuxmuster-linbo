@@ -1,6 +1,8 @@
 #!/bin/bash
 # postinst script for linuxmuster
-# $Id: postinst 1271 2012-02-08 12:28:01Z tschmitt $
+#
+# thomas@linuxmuster.net
+# 14.02.2013
 #
 # see: dh_installdeb(1)
 
@@ -26,7 +28,7 @@ set -e
 
 LINBODIR=/var/linbo
 DISTCONF=/usr/share/linuxmuster/config/dist.conf
-[ -d /usr/share/doc/ubuntu-standard ] && UBUNTU=yes
+[ -d /usr/share/doc/ubuntu-keyring ] && UBUNTU=yes
 
 case "$1" in
 

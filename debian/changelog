@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.1.3-1) precise; urgency=low
+
+  * debian/postinst: improved recognition of a ubuntu system.
+
+ -- Thomas Schmitt <tschmitt@linuxmuster.de>  Thu, 14 Feb 2013 12:22:00 +0100
+
 linuxmuster-linbo (2.1.3-0) precise; urgency=low
 
   * upgraded compat-wireless driver to 2012-05-10.
