@@ -54,6 +54,8 @@
  -no-mouse-vr41xx \
  -no-mouse-tslib \
  -no-glib \
+ -nomake examples \
+ -nomake demos \
   )
 ( cd qt-embedded-linux-opensource-src-4.5.2
   export QTDIR=`pwd`
