@@ -8,8 +8,7 @@ b3ced2097ce3981abba38ceedc84f939  kexec-tools-2.0.3.tar.bz2
 a16ecee73774d4f73388870fb593d811  linux-3.2.34.tar.bz2
 46d186707c7767db664afe681f8eaad6  ms-sys-2.3.0.tar.gz
 341acae00a290cab9b00464db65015cc  ntfs-3g_ntfsprogs-2012.1.15.tgz
-083903f34a0c345a05931b43fe4aa7f0  qt-embedded-linux-opensource-src-4.5.2.tar.gz
-a663b6c875f8d7caa8ac9c30e4a4ec3b  qt-everywhere-opensource-src-4.8.3.tar.gz
+89c5ecba180cae74c66260ac732dc5cb  qt-everywhere-opensource-src-4.8.4.tar.gz
 5ee72266fe2c1822333c407e1761b92b  rsync-3.0.9.tar.gz
 257ac04e62ab7e3616e220333a1140cb  ssmtp_2.62.orig.tar.gz
 a7ca38a0a5786b6efae8fb01a1ae8070  syslinux-4.03.tar.bz2
