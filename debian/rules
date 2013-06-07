@@ -42,9 +42,9 @@ COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
 COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
 
 # qt
-QT_ARCHIVE=$(shell grep qt-embedded-linux-opensource-src- debian/md5sums.src | awk '{ print $$2 }')
+QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
-QT_URL=http://ftp.heanet.ie/mirrors/ftp.trolltech.com/pub/qt/source
+QT_URL=http://releases.qt-project.org/qt4/source/
 #QT_URL=$(LML_URL)
 
 # busybox
@@ -227,8 +227,6 @@ configure-stamp:
 		( cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ; \
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui; \
-		echo "[1mPatching qt4 sources...[0m" ; \
-		( cd $(QT_DIR) && for i in ../../patches/qt4/*; do patch -p1 <$$i; done ); \
 	fi
 
 	# cloop
