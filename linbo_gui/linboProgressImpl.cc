@@ -21,7 +21,7 @@ linboProgressImpl::linboProgressImpl(  QWidget* parent )
     myParent = parent;
 
   Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
   QRect qRect(QApplication::desktop()->screenGeometry());
