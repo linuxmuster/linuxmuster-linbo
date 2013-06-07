@@ -32,8 +32,6 @@
  -no-iconv \
  -no-dbus \
  -depths 4,8,16 \
- -no-mouse-yopy \
- -no-mouse-vr41xx \
  -no-largefile \
  -no-xinerama \
  -no-xrender \
