@@ -29,7 +29,7 @@ linboImageUploadImpl::linboImageUploadImpl(  QWidget* parent ) : linboDialog()
 
 
   Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
   progwindow = new linboProgressImpl(0);
