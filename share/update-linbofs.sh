@@ -85,7 +85,7 @@ bailout() {
 
 # grep linbo rsync password to sync it with linbo account
 [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
-linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | cut -d ":" -f2 | tr -d '\n'`
 if [ -z "$linbo_passwd" ]; then
  bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
 else
