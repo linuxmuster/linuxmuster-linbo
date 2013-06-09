@@ -24,6 +24,7 @@ private:
   QString line;
   QWidget *myMainApp,*myParent;
   QStringList myCommand;
+  void closeEvent(QCloseEvent *event);
 
 public:
   linboCounterImpl( QWidget* parent = 0 );
