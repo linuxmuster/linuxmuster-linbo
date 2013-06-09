@@ -72,3 +72,8 @@ void linboCounterImpl::processFinished( int retval,
                                              QProcess::ExitStatus status) {
   // nothing to do
 }
+
+void linboCounterImpl::closeEvent(QCloseEvent *event)
+	event->accept();
+	logoutButton->clicked();
+}
