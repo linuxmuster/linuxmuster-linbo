@@ -25,7 +25,7 @@ TMP="/tmp/linbo_cmd.$$.tmp"
 rm -f "$TMP"
 
 # Nur zum Debuggen
-# echo "»linbo_cmd«" "»$@«"
+# echo "ï¿½linbo_cmdï¿½" "ï¿½$@ï¿½"
 ps w | grep linbo_cmd | grep -v grep >"$TMP"
 if [ $(cat "$TMP" | wc -l) -gt 1 ]; then
 # echo "Possible Bug detected: linbo_cmd already running." >&2
@@ -42,7 +42,7 @@ printargs(){
  local arg
  local count=1
  for arg in "$@"; do
-  echo -n "$((count++)):»$arg« "
+  echo -n "$((count++)):ï¿½$argï¿½ "
  done
  echo ""
 }
@@ -69,7 +69,9 @@ local testfile="/cache/.write_test"
 
 # Check for "nonetwork" boot option or availability of linbo server
 localmode(){
- case "$(cat /proc/cmdline)" in *\ nonetwork*|*\ localmode*) return 0;; esac
+ for arg in $(cat /proc/cmdline); do
+   case $arg in nonetwork|localmode) return 0 ;; esac
+ done
  [ -e /tmp/network.ok ] && return 1
  return 0
 }
@@ -192,7 +194,7 @@ interruptible(){
 
 help(){
 echo "
- Invalid LINBO command: »$@«
+ Invalid LINBO command: ï¿½$@ï¿½
 
  Syntax: linbo_cmd command option1 option2 ...
 
@@ -446,7 +448,7 @@ mountcache(){
    fi
    ;;
    *) # Yet unknown
-   echo "Unbekannte Quelle für LINBO-Cache: $1" >&2
+   echo "Unbekannte Quelle fï¿½r LINBO-Cache: $1" >&2
    ;;
   esac
  [ "$RC" = "0" ] || echo "Kann $1 nicht als /cache einbinden." >&2
@@ -519,7 +521,7 @@ $(sfdisk -g "$disk")
    read disksize relax <<.
 $(sfdisk -s "$disk")
 .
-   [ -n "$cylinders" -a "$cylinders" -gt 0 -a -n "$disksize" -a "$disksize" -gt 0 ] >/dev/null 2>&1 || { echo "Festplatten-Geometrie von $disk lässt sich nicht lesen, cylinders=$cylinders, disksize=$disksize, Abbruch." >&2; return 1; }
+   [ -n "$cylinders" -a "$cylinders" -gt 0 -a -n "$disksize" -a "$disksize" -gt 0 ] >/dev/null 2>&1 || { echo "Festplatten-Geometrie von $disk lï¿½sst sich nicht lesen, cylinders=$cylinders, disksize=$disksize, Abbruch." >&2; return 1; }
   fi
   # compute partition table
   local dev="$1"
@@ -835,9 +837,9 @@ mk_cloop(){
  case "$1" in
   partition) # full partition dump
    if mountpart "$2" /mnt -w ; then
-    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
+    echo "Bereite Partition $2 (Grï¿½ï¿½e=${size}K) fï¿½r Komprimierung vor..." | tee -a /tmp/image.log
     prepare_fs /mnt "$2" | tee -a /tmp/image.log
-    echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
+    echo "Leeren Platz auffï¿½llen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
     while true; do
@@ -910,7 +912,7 @@ mk_cloop(){
      fi
     else
      echo "Image $4 kann nicht eingebunden werden," | tee -a /tmp/image.log
-     echo "ist aber für die differentielle Sicherung notwendig." | tee -a /tmp/image.log
+     echo "ist aber fï¿½r die differentielle Sicherung notwendig." | tee -a /tmp/image.log
      RC="$?"
     fi
     rmmod cloop >/dev/null 2>&1
@@ -941,7 +943,7 @@ check_status(){
  mountpart "$1" /mnt -r 2>/dev/null || return $?
  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$base*) RC=0 ;; esac
  umount /mnt || umount -l /mnt
-# [ "$RC" = "0" ] && echo "Enthält schon eine Version von $2."
+# [ "$RC" = "0" ] && echo "Enthï¿½lt schon eine Version von $2."
  return "$RC"
 }
 
@@ -1030,7 +1032,7 @@ cp_cloop(){
    local s2="$(get_partition_size $targetdev)"
    local block="$(($CLOOP_BLOCKSIZE / 1024))"
    if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
-    echo "FEHLER: Cloop Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    echo "FEHLER: Cloop Image $imagefile (${s1}K) ist grï¿½ï¿½er als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
     echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
     rmmod cloop >/dev/null 2>&1
     return 1
@@ -1521,7 +1523,7 @@ torrent_watchdog(){
   line="$(tail -1 "$logfile" | awk '{ print $3 }')"
   [ -z "$line_old" ] && line_old="$line"
   if [ "$line_old" = "$line" ]; then
-   [ $c -eq 0 ] || echo "Torrent-Überwachung: Download von $image hängt seit $c Sekunden." >&2 | tee -a /tmp/image.log
+   [ $c -eq 0 ] || echo "Torrent-ï¿½berwachung: Download von $image hï¿½ngt seit $c Sekunden." >&2 | tee -a /tmp/image.log
    c=$(($c+$int))
   else
    line_old="$line"
@@ -1529,7 +1531,7 @@ torrent_watchdog(){
   fi
  done
  if [ "$RC" = "1" ]; then
-  echo "Download von $image wurde wegen Zeitüberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
+  echo "Download von $image wurde wegen Zeitï¿½berschreitung abgebrochen." >&2 | tee -a /tmp/image.log
   pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
   [ -n "$pid" ] && kill "$pid"
  fi
@@ -1579,7 +1581,7 @@ download_torrent(){
  local OPTS="-e 10000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
- echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
+ echo "Starte Torrent-Dienst fï¿½r $image." | tee -a /tmp/image.log
  if [ -e "$complete" ]; then
   ctorrent -f -d $OPTS "$torrent"
  else
@@ -1633,10 +1635,10 @@ download_if_newer(){
    local fs2="$(get_filesize "$2")"
    if [ -n "$ts1" -a -n "$ts2" -a "$ts1" -gt "$ts2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Server enthält eine neuere ($ts2) Version von $2 ($ts1)."
+    echo "Server enthï¿½lt eine neuere ($ts2) Version von $2 ($ts1)."
    elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
+    echo "Dateigrï¿½ï¿½e von $2 ($fs1) im Cache ($fs2) stimmt nicht."
    fi
    rm -f "$2".info.old
   else
@@ -1686,11 +1688,11 @@ download_if_newer(){
       if [ -n "$MPORT" ]; then
        download_multicast "$1" "$MPORT" "$2" ; RC="$?"
       else
-       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download möglich." >&2
+       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download mï¿½glich." >&2
        RC=1
       fi
      else
-      echo "Datei multicast.list nicht gefunden, kein Multicast-Download möglich." >&2
+      echo "Datei multicast.list nicht gefunden, kein Multicast-Download mï¿½glich." >&2
       RC=1
      fi
      [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
@@ -1714,7 +1716,7 @@ download_if_newer(){
    [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
   fi
  else # download nothing, no newer file on server
-  echo "Keine neuere Version vorhanden, überspringe $2."
+  echo "Keine neuere Version vorhanden, ï¿½berspringe $2."
  fi
  return "$RC"
 }
@@ -1761,7 +1763,7 @@ upload(){
  local ext
  if remote_cache "$4"; then
   echo "Cache $4 ist nicht lokal, die Datei $5 befindet sich" | tee -a /tmp/linbo.log
-  echo "höchstwahrscheinlich bereits auf dem Server, daher kein Upload." | tee -a /tmp/linbo.log
+  echo "hï¿½chstwahrscheinlich bereits auf dem Server, daher kein Upload." | tee -a /tmp/linbo.log
   sendlog
   return 1
  fi
@@ -1813,7 +1815,7 @@ upload(){
 syncr(){
  echo -n "syncr " ; printargs "$@"
  if remote_cache "$2"; then
-  echo "Cache $2 ist nicht lokal, überspringe Aktualisierung der Images."
+  echo "Cache $2 ist nicht lokal, ï¿½berspringe Aktualisierung der Images."
  else
   mountcache "$2" || return "$?"
   cd /cache
@@ -1933,7 +1935,7 @@ initcache(){
    fi
   done
   if [ "$found" = "0" ]; then
-   echo "Entferne nicht mehr benötigte Imagedatei $i." | tee -a /tmp/image.log
+   echo "Entferne nicht mehr benï¿½tigte Imagedatei $i." | tee -a /tmp/image.log
    rm -f "$i" "$i".*
   fi
  done
@@ -2032,12 +2034,12 @@ register(){
  # Plausibility check
  if echo "$client" | grep -qi '[^a-z0-9-]'; then
   echo "Falscher Rechnername: '$client'," >&2
-  echo "Rechnernamen dürfen nur Buchstaben [a-z0-9-] enthalten." >&2
+  echo "Rechnernamen dï¿½rfen nur Buchstaben [a-z0-9-] enthalten." >&2
   return 1
  fi
  if echo "$group" | grep -qi '[^a-z0-9_]'; then
   echo "Falscher Gruppenname: '$group'," >&2
-  echo "Rechnergruppen dürfen nur Buchstaben [a-z0-9_] enthalten." >&2
+  echo "Rechnergruppen dï¿½rfen nur Buchstaben [a-z0-9_] enthalten." >&2
   return 1
  fi
  cd /tmp
