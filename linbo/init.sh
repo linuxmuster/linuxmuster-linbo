@@ -85,17 +85,17 @@ init_setup(){
  CMDLINE="$(cat /proc/cmdline)"
  # deprecated
  #case "$CMDLINE" in *\ useide*) useide=yes;; esac
- case "$CMDLINE" in *\ debug*) debug=yes;; esac
- case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
 
  # process parameters given on kernel command line
- for i in $CMDLINE; do
+ for arg in $CMDLINE; do
 
-  case "$i" in
-
+  case "$arg" in
+   debug) debug=yes;;
+   nonetwork|localmode) localmode=yes;;
+   
    # evalutate sata_nv options
    sata_nv.swnc=*)
-    value="$(echo $i | awk -F\= '{ print $2 }')"
+    value="$(echo $arg | awk -F\= '{ print $2 }')"
     echo "options sata_nv swnc=$value" > /etc/modprobe.d/sata_nv.conf
    ;;
 
