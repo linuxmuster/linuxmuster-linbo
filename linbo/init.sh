@@ -55,7 +55,9 @@ isinteger () {
 
 # DMA
 enable_dma(){
- case "$CMDLINE" in *\ nodma*) return 0 ;; esac
+ for arg in $CMDLINE; do
+   case $arg in nodma) return 0 ;; esac
+ done
  for d in $(cd /proc/ide 2>/dev/null && echo hd[a-z]); do
   if test -d /proc/ide/$d; then
    MODEL="$(cat /proc/ide/$d/model 2>/dev/null)"
