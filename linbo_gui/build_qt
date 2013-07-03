@@ -5,7 +5,6 @@
 ( QT_ARCHIVE=`grep qt- ../debian/md5sums.src | awk '{ print $2 }'`
   export QTDIR=`pwd`/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
   cd $QTDIR
-  export CXX=g++-4.3
   make clean
   echo -e "yes\n" | ./configure \
  -embedded x86 \
@@ -49,5 +48,4 @@
 ( QT_ARCHIVE=`grep qt- ../debian/md5sums.src | awk '{ print $2 }'`
   export QTDIR=`pwd`/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
   cd $QTDIR
-  export CXX=g++-4.3
   make -j 2 )

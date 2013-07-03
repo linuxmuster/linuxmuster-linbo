@@ -1,3 +1,34 @@
+linuxmuster-linbo (2.2.0-0) precise; urgency=low
+
+  * merged Yanniks qt upgrade (closes #35).
+  * removed ctorrent, ntfsprogs from build depends.
+  * added grub2 build dependencies.
+  * removed mbr and zip from depends.
+  * switched to Precise based build environment (closes #144).
+  * component updates:
+    - busybox 1.21.0
+    - kernel 3.2.46
+    - kexec-tools 2.0.4
+    - grub4dos-0.4.5c-2013-03-03
+  * using grub4dos binary distribution.
+  * implementing grub2 for local and pxeboot loader.
+  * reworked reboot handling due to grub2.
+  * linbo-cmd.sh:
+    - removed Win98 support.
+    - removed grldr stuff for Win7.
+    - moved custom menu.lst stuff to init.sh.
+    - mkgrub() rework due to grub2.
+  * init.sh: downloads custom group specific grub config if present on server
+    and copies it to cache.
+  * make-linbo-media.sh:
+    - removed usb media creation and direct cdrom write,
+    - consolidated cli params,
+    - switched from self shipped syslinux components to ones which are provided
+      by target distro.
+  * debian/rules: minor build process optimations.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 3 Jul 2013 17:02:00 +0200
+
 linuxmuster-linbo (2.1.3-1) precise; urgency=low
 
   * debian/postinst: improved recognition of a ubuntu system.

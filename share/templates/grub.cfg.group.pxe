@@ -1,0 +1,14 @@
+# group specific grub.cfg template for linbo net boot
+# thomas@linuxmuster.net
+# 02.07.2013
+#
+menuentry 'LINBO pxe @@group@@' {
+ set root=(pxe)
+ # you can try this for faster netboot with http (apache2 web server with 
+ # document root /var/www has to be installed)
+ #insmod http
+ #set root="(http,$pxe_default_server)"
+ set gfxpayload=800x600x16
+ linux /linbo initrd=linbofs.gz quiet
+ initrd /linbofs.gz
+}

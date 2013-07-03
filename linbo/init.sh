@@ -3,6 +3,10 @@
 # This is a busybox 1.1.3 init script
 # (C) Klaus Knopper 2007
 # License: GPL V2
+#
+# tschmitt@linuxmuster.net
+# 03.07.2013
+#
 
 # If you don't have a "standalone shell" busybox, enable this:
 # /bin/busybox --install
@@ -78,6 +82,7 @@ udev_extra_nodes() {
 
 # Setup
 init_setup(){
+ mkdir -p /proc
  mount -t proc /proc /proc
  echo 0 >/proc/sys/kernel/printk
 
@@ -113,6 +118,7 @@ init_setup(){
   extraconf="$(echo $conf | awk -F\: '{ print $2 }')"
  fi
 
+ mkdir -p /sys
  mount -t sysfs /sys /sys
  mount -n -o mode=0755 -t tmpfs tmpfs /dev
  if [ -e /etc/udev/links.conf ]; then
@@ -190,13 +196,15 @@ printcache(){
 copytocache(){
  # do not copy start.conf in remote control mode
  grep "$REMOTE_TAG" /start.conf && return 0
+ local extra="$1"
  local cachedev="$(printcache)"
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
     mount "$cachedev" /cache || return 1
    fi
-   cp -a /start.conf /cache
+   [ -z "$extra" ] && cp /start.conf /cache
+   [ -s /grub.cfg ] && cp /grub.cfg /cache
    mkdir -p /cache/icons
    rsync /icons/* /cache/icons
    # save hostname for offline use
@@ -298,28 +306,6 @@ $(route -n)
  return 1
 }
 
-# check if reboot is set in start.conf
-isreboot(){
- if [ -s /start.conf ]; then
-  grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
- fi
- return 1
-}
-
-# remove linbo reboot flag
-rmlinboreboot(){
- isreboot || return 0
- local device="" properties="" cachedev="$(printcache)"
- sfdisk -l | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
-  [ "$cachedev" = "$device" ] && continue
-  if mount "$device" /mnt; then
-   [ -e /mnt/.linbo.reboot ] && rm -f /mnt/.linbo.reboot
-   [ -e /mnt/.grub.reboot ] && rm -f /mnt/.grub.reboot
-   umount /mnt
-  fi
- done
-}
-
 # get DownloadType from start.conf
 downloadtype(){
  local RET=""
@@ -393,12 +379,12 @@ network(){
  [ -n "$hostname" ] && hostname "$hostname"
  [ -n "$server" ] || server="`get_server`"
  # Move away old start.conf and look for updates
- mv -f start.conf start.conf.dist
+ mv -f /start.conf /start.conf.dist
  if [ -n "$server" ]; then
   echo "linbo_server='$server'" >> /tmp/dhcp.log
   echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
   for i in "start.conf-$ipaddr" "start.conf"; do
-   rsync -L "$server::linbo/$i" "start.conf" >/dev/null 2>&1 && break
+   rsync -L "$server::linbo/$i" "/start.conf" >/dev/null 2>&1 && break
   done
   # also look for other needed files
   for i in "torrent-client.conf" "multicast.list"; do
@@ -415,19 +401,22 @@ network(){
   # No new version / no network available, look for cached copies of start.conf and icons folder.
   copyfromcache "start.conf icons"
  else
+  # get group from start.conf
+  local group="$(grep -iw ^group /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1)"
+  # if group is set look for specific grub.cfg
+  rm -f /grub.cfg
+  [ -n "$group" ] && rsync -L "$server::linbo/grub/${group}.cfg" /grub.cfg >/dev/null 2>&1
   # flag for network connection
   echo > /tmp/network.ok
-  # copy start.conf to cache if no extra start.conf was given on cmdline
-  [ -z "$extra" ] && copytocache
+  # copy downloaded stuff to cache, if extra was given on cmdline start.conf will not be copied
+  copytocache "$extra"
  fi
  # Still nothing new, revert to old version.
- [ -s start.conf ] || mv -f start.conf.dist start.conf
+ [ -s /start.conf ] || mv -f /start.conf.dist /start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  # set autostart if given on cmdline
  isinteger "$autostart" && set_autostart
- # remove reboot flag
- rmlinboreboot
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  echo > /tmp/linbo-network.done 
@@ -454,6 +443,7 @@ hwsetup(){
  udevd --daemon
  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
  udevadm trigger
+ mkdir -p /dev/pts
  mount /dev/pts
  udevadm settle || true
 

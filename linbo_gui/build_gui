@@ -9,5 +9,5 @@ export QTBIN=$QTDIR/bin/
 "$QTBIN"/qmake -makefile -spec "$QTDIR"/mkspecs/default linboGUI.pro
 
 make clean
-make CXX=g++-4.3
+make
 strip linbo_gui

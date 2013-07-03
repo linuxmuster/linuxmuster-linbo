@@ -73,7 +73,7 @@ void linboCounterImpl::processFinished( int retval,
   // nothing to do
 }
 
-void linboCounterImpl::closeEvent(QCloseEvent *event)
+void linboCounterImpl::closeEvent(QCloseEvent *event) {
 	event->accept();
 	logoutButton->click();
 }

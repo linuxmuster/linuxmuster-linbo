@@ -3,6 +3,9 @@
 # This is a busybox 1.1.3 script
 # (C) Klaus Knopper 2007
 # License: GPL V2
+# tschmitt@linuxmuster.net
+# 13.06.2013
+#
 
 # Reset fb color mode
 RESET="]R"
@@ -11,6 +14,8 @@ CLEAR="c"
 
 CMDLINE="$(cat /proc/cmdline)"
 REMOTE_TAG="### LINBO REMOTE ###"
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # echo "$CLEAR$RESET"
 

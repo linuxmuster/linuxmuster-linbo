@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 09.01.2013
+# 03.07.2013
 # GPL v3
 #
 
@@ -606,28 +606,58 @@ EOT
  done
 }
 
-# mkgrub disk
+# write grub stuff
+# mkgrub partition reboot
 mkgrub(){
- local disk="$1"
+ local reboot="$2"
+ local doneflag="/tmp/.mkgrub.done"
+ [ -e "$doneflag" -a -z "$reboot" ] && return 0
+ local partition="$1"
+ local disk="${partition%%[1-9]*}"
+ if [ ! -b "$disk" ]; then
+  echo "$disk ist kein Blockdevice!"
+  return 1
+ fi
  local grubdir="/cache/boot/grub"
+ local grubenv="$grubdir/grubenv"
+ local grublibdir="/usr/lib/grub/i386-pc"
+ local grubsharedir="/usr/share/grub"
+ local i
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
- if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
-  local append=""
-  local vga="vga=785"
-  local i
+ [ -e /boot ] || mkdir -p /boot
+ mount --bind /cache/boot /boot
+ if [ ! -e "$doneflag" ]; then
+  echo "Update Master-Bootrecord von $disk."
+  # write grub device.map file
+  echo "(hd0) $disk" > $grubdir/device.map
+  # get append params
   for i in $(cat /proc/cmdline); do
    case "$i" in
     BOOT_IMAGE=*|server=*|cache=*) true ;;
     *) append="$append $i" ;;
    esac
   done
-  sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+  # provide default grub.cfg with current append params
+  sed -e "s|linux /linbo .*|linux /linbo $append|" "$grublibdir/grub.cfg" > "$grubdir/grub.cfg"
+  # setup grub
+  grub-install "$disk"
+  # provide unicode font
+  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2"
+  # reset grubenv
+  if [ -s "$grubenv" ]; then
+   grub-editenv "$grubenv" unset reboot
+  else
+   grub-editenv "$grubenv" create
+  fi
+  touch "$doneflag"
  fi
- if [ ! -e /tmp/.mkgrub.done -a -b "$disk" ]; then
-  echo "(hd0) $disk" > /cache/boot/grub/device.map 
-  grub-install --root-directory=/cache "$disk"
-  touch /tmp/.mkgrub.done
+ # save reboot partition in grubenv
+ if [ -n "$reboot" ]; then
+  local root="$(grub-probe -d $partition -t drive)"
+  grub-editenv "$grubenv" set reboot="$root"
+  echo "Schreibe Reboot-Partition $root nach $grubenv."
  fi
+ umount /boot
 }
 
 # tschmitt: mkgrldr bootpart bootfile
@@ -639,10 +669,10 @@ mkgrldr(){
  local bootfile="$2"
  local driveid="0x80"
  case "$1" in
-  *[hsv]da) grubdisk=hd0; driveid="0x80" ;;
-  *[hsv]db) grubdisk=hd1; driveid="0x81" ;;
-  *[hsv]dc) grubdisk=hd2; driveid="0x82" ;;
-  *[hsv]dd) grubdisk=hd3; driveid="0x83" ;;
+  *[hsv]da*) grubdisk=hd0; driveid="0x80" ;;
+  *[hsv]db*) grubdisk=hd1; driveid="0x81" ;;
+  *[hsv]dc*) grubdisk=hd2; driveid="0x82" ;;
+  *[hsv]dd*) grubdisk=hd3; driveid="0x83" ;;
  esac
  local grubpart="${1##*[hsv]d[a-z]}"
  grubpart="$((grubpart - 1))"
@@ -654,7 +684,7 @@ mkgrldr(){
 # start boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
- local WINDOWS=""
+ local REBOOT=""
  local LOADED=""
  local KERNEL="/mnt/$3"
  local INITRD=""
@@ -664,10 +694,9 @@ start(){
  local disk="${1%%[1-9]*}"
  if mountpart "$1" /mnt -w; then
   [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
-  # tschmitt: repairing grub mbr on every start
-  if mountcache "$6" && cache_writable ; then
-   mkgrub "$disk"
-  fi
+  # mount cache writable
+  mountcache "$6"
+  cache_writable || mount -o remount,rw /cache
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
     # tschmitt: use builtin grub.exe in any case
@@ -677,34 +706,36 @@ start(){
     [ -z "$APPEND" ] && APPEND="--config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) $disk"
     ;;
    *[Rr][Ee][Bb][Oo][Oo][Tt]*)
-     # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
-     WINDOWS="yes"
+     # tschmitt: os has to be rebootet
+     REBOOT="yes"
      LOADED="true"
-     dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1
-     cp /mnt/.linbo.reboot /mnt/.grub.reboot
-     ;;
+    ;;
    *)
     if [ -n "$2" ]; then
      APPEND="root=$2 $APPEND"
     fi
     ;;
   esac
+  # tschmitt: repairing grub mbr on every start
+  mkgrub "$1" "$REBOOT"
   # provide a menu.lst for grldr on win2k/xp
   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
-   mkgrldr "$1" "/bootmgr"
+   # grldr for Win7 not necessary
+   #mkgrldr "$1" "/bootmgr"
    APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
   elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
    mkgrldr "$1" "/ntldr"
-  elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
-   # tschmitt: patch autoexec.bat (win98),
-   if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
-    echo "if exist C:\linbo.reg regedit C:\linbo.reg" >> /mnt/AUTOEXEC.BAT
-    unix2dos /mnt/AUTOEXEC.BAT
-   fi
-   # provide a menu.lst for grldr on win98
-   mkgrldr "$1" "/io.sys"
-   # change bootloader for win98 systems
-   APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
+  # win98 stuff is deprecated
+  #elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
+   ## tschmitt: patch autoexec.bat (win98),
+   #if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
+    #echo "if exist C:\linbo.reg regedit C:\linbo.reg" >> /mnt/AUTOEXEC.BAT
+    #unix2dos /mnt/AUTOEXEC.BAT
+   #fi
+   ## provide a menu.lst for grldr on win98
+   #mkgrldr "$1" "/io.sys"
+   ## change bootloader for win98 systems
+   #APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
   fi
  else
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
@@ -718,7 +749,7 @@ start(){
  # No more timer interrupts
  [ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
  [ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
- if [ -z "$WINDOWS" ]; then
+ if [ -z "$REBOOT" ]; then
   echo "kexec -l $INITRD --append=\"$APPEND\" $KERNEL"
   kexec -l $INITRD --append="$APPEND" $KERNEL && LOADED="true"
   sleep 3
@@ -741,16 +772,15 @@ start(){
   [ "$cpunum" -gt "1" ] && sleep 4
   # We basically do a quick shutdown here.
   killall5 -15
-  [ -z "$WINDOWS" ] && sleep 2
+  [ -z "$REBOOT" ] && sleep 2
   echo -n "c" >/dev/console
-  if [ -z "$WINDOWS" ]; then
+  if [ -z "$REBOOT" ]; then
    exec kexec -e --reset-vga
    # exec kexec -e
    sleep 10
   else
-   #sleep 2
+   # reboot to menu entry
    reboot -f
-   #sleep 10
   fi
  else
   echo "Betriebssystem konnte nicht geladen werden." >&2
@@ -1613,7 +1643,7 @@ download_all(){
 # download_if_newer server file downloadtype
 download_if_newer(){
  # do not execute in localmode
- localmode && return 0
+ localmode && return 1
  local DLTYPE="$3"
  [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
  [ -z "$DLTYPE" ] && DLTYPE="rsync"
@@ -1715,6 +1745,7 @@ download_if_newer(){
   fi
  else # download nothing, no newer file on server
   echo "Keine neuere Version vorhanden, überspringe $2."
+  RC="1"
  fi
  return "$RC"
 }
@@ -1840,52 +1871,22 @@ update(){
  local disk="${cachedev%%[1-9]*}"
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
- echo "Suche nach LINBO-Updates auf $1."
- #download_if_newer "$server" grub.exe
- local linbo_ts1="$(getinfo linbo.info timestamp)"
- local linbo_fs1="$(get_filesize linbo)"
- download_if_newer "$server" linbo
- local linbo_ts2="$(getinfo linbo.info timestamp)"
- local linbo_fs2="$(get_filesize linbo)"
- local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
- local linbofs_fs1="$(get_filesize linbofs.gz)"
- # tschmitt: download group specific linbofs
-# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
-# if [ -e "linbofs.$group.gz" ]; then
-#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
-#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
-# else
-  download_if_newer "$server" linbofs.gz
-# fi
- local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
- local linbofs_fs2="$(get_filesize linbofs.gz)"
- # tschmitt: update grub on every synced start not only if newer linbo is available
- # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
- #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
- #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
- if [ -b "$disk" -a -s "linbo" -a -s "linbofs.gz" ]; then
-  echo "Update Master-Bootrecord von $disk."
-  mkdir -p /cache/boot/grub
-  # only if online
-  if ! localmode; then
-   # fetch pxe kernel
-   download "$server" "gpxe.krn"
-   # tschmitt: provide custom local menu.lst
-   download "$server" "menu.lst.$group"
-   if [ -e "/cache/menu.lst.$group" ]; then
-    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
-    # flag for downloaded custom menu.lst
-    touch /cache/.custom.menu.lst
-   else
-    rm -f /cache/.custom.menu.lst
-   fi
-  fi # localmode
-  mkgrub "$disk"
+ echo "Suche nach LINBO-Updates auf $server."
+ download_if_newer "$server" linbo || RC="1"
+ download_if_newer "$server" linbofs.gz || RC="1"
+ # tschmitt: update grub if newer linbo was downloaded
+ if [ "$RC" = "0" ]; then
+  mkgrub "$disk" ; RC="$?"
+ else
+  RC="0"
  fi
- RC="$?"
  cd / ; sendlog
  #umount /cache
- [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+ if [ "$RC" = "0" ]; then
+  echo "LINBO update fertig."
+ else
+  echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+ fi
  return "$RC"
 }
 

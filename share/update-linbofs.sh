@@ -2,9 +2,10 @@
 #
 # creating/updating group specific linbofs.gz
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# tschmitt@linuxmuster.net
+# 02.07.2013
 # GPL V3
-# $Id: update-linbofs.sh 1083 2011-06-07 10:13:34Z tschmitt $
+#
 
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
@@ -40,17 +41,9 @@ Group = $group" -i $conf
 # sets pxe config file
 set_pxeconfig(){
  local group=$1
- local conf="$LINBODIR/pxelinux.cfg/$group"
- if [ -e "$conf" ]; then
-  sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
- else
-  # copy default pxelinux config for group
-  cp $PXELINUXCFG $conf
-  if grep -i ^kernel $LINBODIR/start.conf.$group | grep -qiw reboot; then
-   # sets default boot method for reboot workaround
-   grep -q ^"LABEL reboot" $conf && sed -e 's|^DEFAULT .*|DEFAULT reboot|' -i $conf
-  fi
- fi
+ local conf="$LINBODIR/grub/${group}.pxe"
+ # provide default pxegrub config for group
+ [ -s "$conf" ] || sed -e "s|@@group@@|$group|g" "$LINBOTPLDIR/grub.cfg.group.pxe" > "$conf"
 }
 
 # check & set lockfile
@@ -167,6 +160,13 @@ done
 for i in linbo-multicast linbo-bittorrent; do
  /etc/init.d/$i restart
 done
+
+# provide http links
+if [ -d /var/www ]; then
+ for i in linbo linbofs.gz; do
+  [ -L "$LINBODIR/$i" ] || ln -sf "$LINBODIR/$i" "/var/www/$i"
+ done
+fi
 
 # clean tmpdir
 cd "$curdir"

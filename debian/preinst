@@ -1,6 +1,9 @@
-#!/bin/sh -e
+#!/bin/bash
 #
-# $Id: preinst 1256 2012-01-24 13:11:19Z tschmitt $
+# preinst script for linuxmuster-base
+# thomas@linuxmuster.net
+# 02.07.2013
+#
 
 if [ "$1" = "upgrade" ]; then
 
@@ -8,9 +11,6 @@ if [ "$1" = "upgrade" ]; then
 
  # stopping multicast before package configuration
  [ -x /etc/init.d/linbo-multicast ] && /etc/init.d/linbo-multicast stop
-
- # saving default pxe config if it is not yet a link
- [ -L "$PXELINUXCFG" ] || cp "$PXELINUXCFG" "$PXELINUXCFG.dpkg-bak"
 
  # add bittorrent user if not present
  if ! id bittorrent &> /dev/null; then
@@ -20,6 +20,15 @@ if [ "$1" = "upgrade" ]; then
   chown bittorrent:nogroup /var/lib/bittorrent -R
   chown bittorrent:nogroup /var/log/bittorrent -R
  fi
+
+ # move deprecated syslinux stuff away
+ pxebkpdir="$LINBODIR/backup/pxelinux"
+ for i in boot.msg german.kbd logo.16 memdisk pxelinux.0 pxelinux.cfg vesamenu.c32; do
+  if [ -e "$LINBODIR/$i" ]; then
+   [ -d "$pxebkpdir" ] || mkdir -p "$pxebkpdir"
+   mv "$LINBODIR/$i" "$pxebkpdir"
+  fi
+ done
 
 fi
 

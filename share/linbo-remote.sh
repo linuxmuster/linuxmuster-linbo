@@ -1,12 +1,9 @@
 #!/bin/bash
 #
 # exec linbo commands remote per ssh
-#
-# Thomas Schmitt <schmitt@lmz-bw.de>
-#
+# thomas@linuxmuster.net
+# 15.06.2013
 # GPL V3
-#
-# tschmitt 20121025
 #
 
 # read linuxmuster environment

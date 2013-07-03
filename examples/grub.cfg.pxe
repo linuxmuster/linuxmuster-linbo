@@ -1,0 +1,73 @@
+#
+# default grub.cfg, pxe boot version (placed on server)
+# thomas@linuxmuster.net
+# 03.07.2013                                                                                                           
+#
+
+set default=0
+set fallback=1
+set timeout=0
+
+loadfont "$prefix/unicode.pf2"
+insmod biosdisk
+insmod chain
+insmod configfile
+insmod ext2
+insmod fat
+insmod ntfs
+insmod ntldr
+insmod linux
+insmod loadenv
+insmod part_msdos
+insmod part_gpt
+insmod reiserfs
+insmod search
+insmod test
+
+# try to proceed group specific global config from server if present
+set customcfg="$prefix/${net_pxe_extensionspath}.cfg"
+if [ -s "$customcfg" ] ; then
+ configfile "$customcfg"
+fi
+
+# try to boot OS directly if reboot method is set
+menuentry 'OS direkt' {
+
+  search --set root --file /linbofs.gz
+  set prefix=/boot/grub
+  if [ -s $prefix/grubenv ] ; then
+   load_env
+  fi
+
+  if [ "${reboot}" ] ; then
+
+   set tmproot="${reboot}"
+   set reboot=""
+   save_env reboot
+   set root="${tmproot}"
+
+   if [ -s /boot/grub/grub.cfg ] ; then
+    configfile /boot/grub/grub.cfg
+   elif [ -s /bootmgr ] ; then
+    ntldr /bootmgr
+   else
+    chainloader +1
+   fi
+
+  fi
+}
+
+# try to source group specific linbo pxe config from server if present
+set pxecfg="$prefix/${net_pxe_extensionspath}.pxe"
+if [ -s "$pxecfg" ] ; then
+ source "$pxecfg"
+else
+ # use default entry
+ menuentry 'LINBO pxe' {
+  set root=(pxe)
+  set gfxpayload=800x600x16
+  linux /linbo initrd=linbofs.gz quiet
+  initrd /linbofs.gz
+ }
+fi
+
