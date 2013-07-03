@@ -45,27 +45,12 @@ REMOTE_TAG="### LINBO REMOTE ###"
 # Utilities
 
 # test if variable is an integer
-isinteger () {
+isinteger() {
  [ $# -eq 1 ] || return 1
  case $1 in
  *[!0-9]*|"") return 1;;
            *) return 0;;
  esac
-}
-
-# DMA
-enable_dma(){
- for arg in $CMDLINE; do
-   case $arg in nodma) return 0 ;; esac
- done
- for d in $(cd /proc/ide 2>/dev/null && echo hd[a-z]); do
-  if test -d /proc/ide/$d; then
-   MODEL="$(cat /proc/ide/$d/model 2>/dev/null)"
-   test -z "$MODEL" && MODEL="[GENERIC IDE DEVICE]"
-   echo "${BLUE}Enabling DMA acceleration for: ${MAGENTA}$d      ${YELLOW}[${MODEL}]${NORMAL}"
-   echo "using_dma:1" >/proc/ide/$d/settings
-  fi
- done
 }
 
 # create device nodes
@@ -90,8 +75,6 @@ init_setup(){
 
  # parse kernel cmdline
  CMDLINE="$(cat /proc/cmdline)"
- # deprecated
- #case "$CMDLINE" in *\ useide*) useide=yes;; esac
  case "$CMDLINE" in *\ debug*) debug=yes;; esac
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
 
@@ -428,16 +411,6 @@ network(){
 hwsetup(){
  rm -f /tmp/linbo-cache.done
  echo "## Hardware-Setup - Begin ##" >> /tmp/linbo.log
-
- # deprecated
- #if [ -n "$useide" ]; then
-  #echo "Using ide modules ..."
-  #rm -rf /lib/modules/`uname -r`/kernel/drivers/ata
- #else
-  #echo "Using pata/sata modules ..."
-  #rm -rf /lib/modules/`uname -r`/kernel/drivers/ide
- #fi
- #depmod -a
 
  #
  # Udev starten
