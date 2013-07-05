@@ -3,7 +3,7 @@
 # creating/updating group specific linbofs.gz
 #
 # tschmitt@linuxmuster.net
-# 02.07.2013
+# 05.07.2013
 # GPL V3
 #
 
@@ -41,9 +41,9 @@ Group = $group" -i $conf
 # sets pxe config file
 set_pxeconfig(){
  local group=$1
- local conf="$LINBODIR/grub/${group}.pxe"
+ local conf="$LINBODIR/grub/${group}.cfg"
  # provide default pxegrub config for group
- [ -s "$conf" ] || sed -e "s|@@group@@|$group|g" "$LINBOTPLDIR/grub.cfg.group.pxe" > "$conf"
+ [ -s "$conf" ] || sed -e "s|@@group@@|$group|g" "$LINBOTPLDIR/grub.cfg.group" > "$conf"
 }
 
 # check & set lockfile

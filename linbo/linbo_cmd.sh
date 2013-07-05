@@ -1872,20 +1872,21 @@ update(){
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
  echo "Suche nach LINBO-Updates auf $server."
- download_if_newer "$server" linbo || RC="1"
- download_if_newer "$server" linbofs.gz || RC="1"
- # tschmitt: update grub if newer linbo was downloaded
- if [ "$RC" = "0" ]; then
-  mkgrub "$disk" ; RC="$?"
- else
-  RC="0"
- fi
+ download_if_newer "$server" linbo
+ download_if_newer "$server" linbofs.gz
+ # update grub in cache
+ mkgrub "$disk" || RC="1"
+ # get custom grub.cfg for local boot
+ rm -f grub.cfg
+ rsync -L "${server}::linbo/grub/${group}.local" grub.cfg &> /dev/null
+ # get gpxe image
+ rsync -L "${server}::linbo/grub/gpxe.lkrn" gpxe.lkrn &> /dev/null
  cd / ; sendlog
  #umount /cache
  if [ "$RC" = "0" ]; then
-  echo "LINBO update fertig."
+  echo "LINBO/Grub update fertig."
  else
-  echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+  echo "Lokale Installation von LINBO/Grub hat nicht geklappt." >&2
  fi
  return "$RC"
 }

@@ -1,7 +1,7 @@
 #
-# default grub.cfg, local boot version (placed in linbo cache)
+# default grub.cfg, pxe boot version (placed on server)
 # thomas@linuxmuster.net
-# 03.07.2013                                                                                                           
+# 05.07.2013                                                                                                           
 #
 
 set default=0
@@ -24,18 +24,17 @@ insmod reiserfs
 insmod search
 insmod test
 
-# find cache partition and set it as root
-search --set root --file /linbofs.gz
-# set prefix accordingly
-set prefix=/boot/grub
-
-# look for custom grub.cfg and use it if present
-if [ -s /grub.cfg ] ; then
- configfile /grub.cfg
+# try to proceed group specific global config from server if present
+set grubcfg="$prefix/${net_pxe_extensionspath}.pxe"
+if [ -s "$grubcfg" ] ; then
+ configfile "$grubcfg"
 fi
 
-# try to boot os directly if reboot is set
+# try to boot OS directly if reboot method is set
 menuentry 'OS direkt' {
+
+  search --set root --file /linbofs.gz
+  set prefix=/boot/grub
   if [ -s $prefix/grubenv ] ; then
    load_env
   fi
@@ -58,10 +57,17 @@ menuentry 'OS direkt' {
   fi
 }
 
-# boot linbo local from cache
-menuentry 'LINBO lokal' {
-  search --set root --file /linbofs.gz
+# try to source group specific linbo pxe config from server if present
+set grubcfg="$prefix/${net_pxe_extensionspath}.cfg"
+if [ -s "$grubcfg" ] ; then
+ source "$grubcfg"
+else
+ # use default entry
+ menuentry 'LINBO pxe' {
+  set root=(pxe)
   set gfxpayload=800x600x16
   linux /linbo initrd=linbofs.gz quiet
   initrd /linbofs.gz
-}
+ }
+fi
+

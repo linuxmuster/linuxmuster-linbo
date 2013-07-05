@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # tschmitt@linuxmuster.net
-# 03.07.2013
+# 05.07.2013
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -189,7 +189,6 @@ copytocache(){
     mount "$cachedev" /cache || return 1
    fi
    [ -z "$extra" ] && cp /start.conf /cache
-   [ -s /grub.cfg ] && cp /grub.cfg /cache
    mkdir -p /cache/icons
    rsync /icons/* /cache/icons
    # save hostname for offline use
@@ -390,7 +389,7 @@ network(){
   local group="$(grep -iw ^group /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1)"
   # if group is set look for specific grub.cfg
   rm -f /grub.cfg
-  [ -n "$group" ] && rsync -L "$server::linbo/grub/${group}.cfg" /grub.cfg >/dev/null 2>&1
+  [ -n "$group" ] && rsync -L "$server::linbo/grub/${group}.local" /grub.cfg >/dev/null 2>&1
   # flag for network connection
   echo > /tmp/network.ok
   # copy downloaded stuff to cache, if extra was given on cmdline start.conf will not be copied

@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.2.0-1) precise; urgency=low
+
+  * Merge pull request #24 from Yannik/patch-23.
+  * Merge pull request #26 from Yannik/remove-old-keyboard-patch.
+  * changed naming scheme of grub configs.
+  * added gpxe boot image for local pxe boot and added a menuentry to local grub.cfg.
+  * moved custom grub config download to linbo_cmd.sh,update() again.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Jul 2013 14:29:15 +0000
+
 linuxmuster-linbo (2.2.0-0) precise; urgency=low
 
   * merged Yanniks qt upgrade (closes #35).
