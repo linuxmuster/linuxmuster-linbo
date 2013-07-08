@@ -1,3 +1,17 @@
+linuxmuster-linbo (2.2.0-2) precise; urgency=low
+
+  * added missing libtinfo.s0.5 (needed by bvi) to linbofs.
+  * linbo_cmd.sh: remove win98 support from syncl().
+  * patch_registry.sh, linbo_cmd.sh: fixed awk -F argument with ticks.
+  * removed qt3-dev from build depends.
+  * added grub4dos build from source again, added upx-ucl to build deps.
+  * changed gpxe binary to ipxe build from source, added therefore syslinux to
+    build depends.
+  * make-linbo-media.sh: added pxeboot menuentry again using ipxe.lkrn as
+    bootimage, changed resolution of background image to 640x480.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 08 Jul 2013 14:49:09 +0000
+
 linuxmuster-linbo (2.2.0-1) precise; urgency=low
 
   * Merge pull request #24 from Yannik/patch-23.
@@ -6,7 +20,7 @@ linuxmuster-linbo (2.2.0-1) precise; urgency=low
   * added gpxe boot image for local pxe boot and added a menuentry to local grub.cfg.
   * moved custom grub config download to linbo_cmd.sh,update() again.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Jul 2013 14:29:15 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 06 Jul 2013 13:45:44 +0000
 
 linuxmuster-linbo (2.2.0-0) precise; urgency=low
 

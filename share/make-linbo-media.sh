@@ -3,7 +3,7 @@
 # create linbo live media
 #
 # tschmitt@linuxmuster.net
-# 03.07.2013
+# 08.07.2013
 # GPL V3
 #
 
@@ -138,7 +138,8 @@ ISOLINUXBIN=$SYSLINUXDIST/isolinux.bin
 REBOOTC32=$SYSLINUXDIST/reboot.c32
 VMENUC32=$SYSLINUXDIST/vesamenu.c32
 SYSLINUXCFG=$LINBOSHAREDIR/isolinux.cfg
-BACKGRND=$LINBOSHAREDIR/linbo_wallpaper.png
+IPXELKRN=$LINBODIR/grub/ipxe.lkrn
+BACKGRND=$LINBOSHAREDIR/linbo_media_bg.png
 VERSION="$(cat $LINBODIR/version)"
 if [ "$GRPS" = "all" ]; then
  OUTFILE="$OUTDIR/linbo_${GRPS}_${VERSION}.iso"
@@ -206,8 +207,12 @@ $append_linbo
 MENU LABEL ^$m. Von 1. Festplatte starten
 localboot 0x80
 
+LABEL pxeboot
+MENU LABEL ^$(($m +1)). PXE Boot
+KERNEL $sysdir/`basename $IPXELKRN`
+
 LABEL reboot
-MENU LABEL ^$(($m +1)). Neustart
+MENU LABEL ^$(($m +2)). Neustart
 KERNEL $sysdir/`basename $REBOOTC32`" >> $outfile
 }
 
@@ -266,6 +271,7 @@ writefiles() {
  cp $GERMANKBD $targetdir
  cp $REBOOTC32 $targetdir
  cp $VMENUC32 $targetdir
+ cp $IPXELKRN $targetdir
  cp $LINBODIR/linbo $MNTPNT
  create_linbofs
 }

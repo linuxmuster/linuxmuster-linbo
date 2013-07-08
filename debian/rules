@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 05.07.2013
+# 08.07.2013
 # GPL v3
 #
 
@@ -20,12 +20,10 @@ KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//
 KERNEL_DIR=kernel/linux-$(KVERS)
 KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v3.x/$(KERNEL_ARCHIVE)
 
-# gpxe
-GPXE_ARCHIVE=$(shell grep gpxe- debian/md5sums.src | awk '{ print $$2 }')
-GPXE_NAME=$(shell echo $(GPXE_ARCHIVE) | sed -e 's/.tar.xz//')
-GPXE_DIR=src/$(GPXE_NAME)
-GPXE_KERNEL=$(GPXE_DIR)/$(GPXE_NAME).lkrn
-GPXE_URL=$(LML_URL)/$(GPXE_ARCHIVE)
+# ipxe
+IPXE_ARCHIVE=$(shell grep ipxe- debian/md5sums.src | awk '{ print $$2 }')
+IPXE_DIR=src/$(shell echo $(IPXE_ARCHIVE) | sed -e 's/.tar.xz//')
+IPXE_URL=$(LML_URL)/$(IPXE_ARCHIVE)
 
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
@@ -66,9 +64,8 @@ KEXEC_URL=https://www.kernel.org/pub/linux/utils/kernel/kexec/$(KEXEC_ARCHIVE)
 
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
-GRUB4DOS_DIR=src/grub4dos-$(shell echo $(GRUB4DOS_ARCHIVE) | awk -F\- '{ print $$2 }')
-GRUB4DOS_URL=http://grub4dos-chenall.googlecode.com/files/$(GRUB4DOS_ARCHIVE)
-#GRUB4DOS_URL=$(LML_URL)/$(GRUB4DOS_ARCHIVE)
+GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.tar.xz//')
+GRUB4DOS_URL=$(LML_URL)/$(GRUB4DOS_ARCHIVE)
 
 # grub2
 GRUB2_ARCHIVE=$(shell grep grub- debian/md5sums.src | awk '{ print $$2 }')
@@ -126,7 +123,9 @@ configure-stamp:
 		( [ -e cache/$(GRUB4DOS_ARCHIVE) ] || ( cd cache && wget $(GRUB4DOS_URL) ) ); \
 		( cd cache && grep $(GRUB4DOS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(GRUB4DOS_ARCHIVE)...[0m" ; \
-		( cd src && p7zip -d ../cache/$(GRUB4DOS_ARCHIVE) ); \
+		tar xf cache/$(GRUB4DOS_ARCHIVE) -C src; \
+		echo "[1mPatching grub4dos sources...[0m" ; \
+		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
 		chmod 755 $(GRUB4DOS_DIR)/configure; \
 		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
 	fi
@@ -141,13 +140,13 @@ configure-stamp:
 		ln -sf ../$(GRUB2_DIR) src/grub; \
 	fi
 
-	# gpxe
-	-@if [ ! -d $(GPXE_DIR) ]; then \
-		( [ -e cache/$(GPXE_ARCHIVE) ] || ( cd cache && wget $(GPXE_URL) ) ); \
-		( cd cache && grep $(GPXE_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(GPXE_ARCHIVE)...[0m" ; \
-		tar xf cache/$(GPXE_ARCHIVE) -C src; \
-		ln -sf ../$(GPXE_DIR) src/gpxe; \
+	# ipxe
+	-@if [ ! -d $(IPXE_DIR) ]; then \
+		( [ -e cache/$(IPXE_ARCHIVE) ] || ( cd cache && wget $(IPXE_URL) ) ); \
+		( cd cache && grep $(IPXE_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(IPXE_ARCHIVE)...[0m" ; \
+		tar xf cache/$(IPXE_ARCHIVE) -C src; \
+		ln -sf ../$(IPXE_DIR) src/ipxe; \
 	fi
 
 	# chntpw
@@ -156,6 +155,7 @@ configure-stamp:
 		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CHNTPW_ARCHIVE)...[0m" ; \
 		( cd src && unzip ../cache/$(CHNTPW_ARCHIVE) ); \
+		rm -f $(CHNTPW_DIR)/reged ); \
 		ln -sf ../$(CHNTPW_DIR) src/chntpw; \
 	fi
 
@@ -282,6 +282,31 @@ build-stamp: configure-stamp
 
 	# grub2
 	( debian/mk-grub.sh "$(CURDIR)/$(GRUB2_DIR)" )
+
+	# grub4dos
+	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
+		echo "[1mBuilding grub4dos...[0m" ; \
+		( cd $(GRUB4DOS_DIR) && CFLAGS=-fno-stack-protector ./configure \
+			--prefix=/usr \
+			--enable-preset-menu=preset_menu.lst \
+			--disable-ffs \
+			--disable-minix \
+			--disable-vstafs \
+            --disable-jfs \
+			--disable-xfs \
+			--disable-ufs2 \
+			--disable-hercules \
+			--disable-pxe \
+			--disable-graphics \
+			--disable-gfxmenu \
+			--disable-serial && make && strip $(GRUB4DOS_DIR)/stage2/bootlace.com );\
+	fi
+
+	# ipxe
+	-@if [ ! -e $(IPXE_DIR)/src/bin/ipxe.lkrn ]; then \
+		echo "[1mBuilding ipxe...[0m" ; \
+		( cd $(IPXE_DIR)/src && make ); \
+	fi
 
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
@@ -439,7 +464,7 @@ install: build
 	install -m 644 $(GRUB2_DIR)/grub-core/*.[ml][os][dt] debian/linuxmuster-linbo/var/linbo/grub/i386-pc
 	install -m 644 $(GRUB2_DIR)/unicode.pf2 debian/linuxmuster-linbo/var/linbo/grub/unicode.pf2
 	install -m 644 $(GRUB2_DIR)/pxegrub.0 debian/linuxmuster-linbo/var/linbo/grub/pxegrub.0
-	install -m 644 $(GPXE_KERNEL) debian/linuxmuster-linbo/var/linbo/grub/gpxe.lkrn
+	install -m 644 $(IPXE_DIR)/src/bin/ipxe.lkrn debian/linuxmuster-linbo/var/linbo/grub/ipxe.lkrn
 	install -m 644 examples/grub.cfg.pxe-default debian/linuxmuster-linbo/var/linbo/grub/grub.cfg
 	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo

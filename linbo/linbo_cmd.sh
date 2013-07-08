@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 03.07.2013
+# 08.07.2013
 # GPL v3
 #
 
@@ -409,7 +409,7 @@ mountcache(){
    #mount $2 -t cifs -o username=linbo,nolock "$1" /cache 2>/dev/null
    # temporary workaround for password
    [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
-   [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
+   [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F'\:' '{ print $2 }' 2>/dev/null)"
    mount $2 -t cifs -o user=linbo,pass="$PASSWD",nolock "$1" /cache 2>/dev/null
    RC="$?"
    if [ "$RC" != "0" ]; then
@@ -492,11 +492,11 @@ partition(){
  fi
 
  # grep all disks from start.conf
- local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
+ local disks="$(grep -i ^dev /start.conf | awk -F'\=' '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
  # compute the last partition of each disk
  local i=""
  for i in $disks; do
-  local lastpartitions="$lastpartitions $(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -r | grep $i | head -1)"
+  local lastpartitions="$lastpartitions $(grep -i ^dev /start.conf | awk -F'\=' '{ print $2 }' | awk '{ print $1 }' | sort -r | grep $i | head -1)"
  done
 
  while [ "$#" -ge "5" ]; do
@@ -954,7 +954,7 @@ mk_cloop(){
  if [ "$RC" = "0" ]; then
   echo "Erstelle torrent Dateien ..." | tee -a /tmp/image.log
   touch "$3".complete
-  local serverip="$(grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  local serverip="$(grep -i ^server /start.conf | awk -F'\=' '{ print $2 }' | awk '{ print $1 }')"
   ctorrent -t -u http://"$serverip":6969/announce -s "$3".torrent "$3" | tee -a /tmp/image.log
  fi
  echo "## $(date) : Beende Erstellung von $3." | tee -a /tmp/image.log
@@ -1005,7 +1005,7 @@ cp_cloop_ntfs(){
  # save ntfs size infos in temp file
  ntfsresize -f -i "$targetdev" > /tmp/ntfs.info
  # get volume size in mb
- local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
+ local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F'\(' '{ print $2 }' | awk '{ print $1}')"
  # test if volsizemb is an integer value
  if ! isinteger "$volsizemb"; then
   echo "Kann Dateisystemgroesse nicht bestimmen." | tee -a /tmp/image.log
@@ -1013,7 +1013,7 @@ cp_cloop_ntfs(){
  fi  
  echo "Dateisystem: $volsizemb MB" | tee -a /tmp/image.log
  # get partition size in mb
- local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
+ local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F'\(' '{ print $2 }' | awk '{ print $1}')"
  # test if devsizemb is an integer value
  if ! isinteger "$devsizemb"; then
   echo "Kann Partitionsgroesse nicht bestimmen." | tee -a /tmp/image.log
@@ -1330,24 +1330,17 @@ syncl(){
    fi
    # do registry patching for windows systems
    if [ -r "$patchfile" ]; then
-    echo "Patche System mit $patchfile."
-    rm -f "$TMP"
-    sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
-    dos2unix "$TMP"
-    # tschmitt: different patching for different windows 
-    # WinXP, Win7
     if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
+     echo "Patche System mit $patchfile." | tee /tmp/patch.log
+     rm -f "$TMP"
+     sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
+     dos2unix "$TMP"
      # tschmitt: logging
-     echo -n "Patche System mit $patchfile." >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
-    # Win98
-    elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
-     cp -f "$TMP" /mnt/linbo.reg
-     unix2dos /mnt/linbo.reg
+     rm -f "$TMP"
     fi
-    rm -f "$TMP"
    fi
    # tweak newdev.dll (suppresses new hardware dialog)
    local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
@@ -1879,8 +1872,8 @@ update(){
  # get custom grub.cfg for local boot
  rm -f grub.cfg
  rsync -L "${server}::linbo/grub/${group}.local" grub.cfg &> /dev/null
- # get gpxe image
- rsync -L "${server}::linbo/grub/gpxe.lkrn" gpxe.lkrn &> /dev/null
+ # get ipxe image
+ rsync -L "${server}::linbo/grub/ipxe.lkrn" ipxe.lkrn &> /dev/null
  cd / ; sendlog
  #umount /cache
  if [ "$RC" = "0" ]; then
@@ -1923,8 +1916,8 @@ initcache(){
  rm -f linbofs[.a-zA-Z0-9_-]*.gz*
 
  # clean up obsolete image files
- used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
- used_images="$used_images $(grep -i ^image /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ used_images="$(grep -i ^baseimage /start.conf | awk -F'\=' '{ print $2 }' | awk '{ print $1 }')"
+ used_images="$used_images $(grep -i ^image /start.conf | awk -F'\=' '{ print $2 }' | awk '{ print $1 }')"
  for i in *.cloop *.rsync; do
   [ -e "$i" ] || continue
   found=0
@@ -2061,7 +2054,7 @@ ip(){
 clientname(){
  local clientname="$(hostname)"
  if localmode; then
-  local cachedev="$(grep ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  local cachedev="$(grep ^Cache /start.conf | awk -F'\=' '{ print $2 }' | awk '{ print $1 }')"
   if [ -b "$cachedev" ]; then
    if mountcache $cachedev -r &> /dev/null; then
     if [ -s /cache/hostname ]; then

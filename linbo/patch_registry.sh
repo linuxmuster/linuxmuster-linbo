@@ -5,7 +5,8 @@
 # $1 is the path to the patch file
 # $2 is the path to the windows system root
 #
-# tschmitt 20121029
+# thomas@linuxmuster.net
+# 08.07.2013
 #
 
 # trust in this code
@@ -26,7 +27,7 @@ leftchop(){
 } 
 
 leftget(){
-  echo "$1" | awk -F\\ '{print $1}' 
+  echo "$1" | awk -F'\\' '{print $1}' 
 }
 
 leftgetvalue(){
@@ -56,7 +57,7 @@ test_key() {
  else
   cmd="ls\nq\ny\n"
  fi
- echo -e "$cmd" | reged -e "$hive" | grep -i "<${2}>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }'
+ echo -e "$cmd" | reged -e "$hive" | grep -i "<${2}>" | awk -F'\<' '{ print $2 }' | awk -F'\>' '{ print $1 }'
 }
 
 # create_fullkey key (creates the full key path if necessary)
