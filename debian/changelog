@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.2.0-3) precise; urgency=low
+
+  * activated pae kernel to support more than 4gb if ram.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 09 Jul 2013 11:11:27 +0000
+
 linuxmuster-linbo (2.2.0-2) precise; urgency=low
 
   * added missing libtinfo.s0.5 (needed by bvi) to linbofs.

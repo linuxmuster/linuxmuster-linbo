@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 08.07.2013
+# 09.07.2013
 # GPL v3
 #
 
@@ -155,7 +155,7 @@ configure-stamp:
 		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CHNTPW_ARCHIVE)...[0m" ; \
 		( cd src && unzip ../cache/$(CHNTPW_ARCHIVE) ); \
-		rm -f $(CHNTPW_DIR)/reged ); \
+		rm -f $(CHNTPW_DIR)/reged || true ; \
 		ln -sf ../$(CHNTPW_DIR) src/chntpw; \
 	fi
 
