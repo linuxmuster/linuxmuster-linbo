@@ -2,25 +2,30 @@
 #
 # compiles and creates grub2 pxe boot environment
 # thomas@linuxmuster.net
-# 02.07.2013
+# 15.07.2013
 # GPL V3
 #
 
 GRUBDIR="$1"
 
-MODULES="net pxe tftp"
+#MODULES="net pxe tftp"
+MODULES="tftp"
 
 RC=0
 
 cd $GRUBDIR
 
 # compile
-if [ ! -s grub-bios-setup ]; then
+if [ ! -s grub-mkimage ]; then
  echo "[1mBuilding grub...[0m"
  HOST_CFLAGS="-g -Wall -Wno-error=unused-result -O0"
  CFLAGS=""
+ ./autogen.sh
  ./configure --prefix=/usr
  make || RC=1
+ for i in bios-setup editenv mkimage mkrelpath probe; do
+  strip grub-$i
+ done
 fi
 
 if [ ! -s pxegrub.0 ]; then

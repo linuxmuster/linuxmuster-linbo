@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server)
 # thomas@linuxmuster.net
-# 05.07.2013                                                                                                           
+# 15.07.2013                                                                                                           
 #
 
 set default=0
@@ -50,6 +50,10 @@ menuentry 'OS direkt' {
     configfile /boot/grub/grub.cfg
    elif [ -s /bootmgr ] ; then
     ntldr /bootmgr
+   elif [ -s /grldr ] ; then
+    ntldr /grldr
+   elif [ -s /ntldr ] ; then
+    ntldr /ntldr
    else
     chainloader +1
    fi

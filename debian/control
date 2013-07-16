@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 7.4.2~), build-essential, fakeroot, wget, udev, bvi
                sysvinit-utils, util-linux, libstdc++6, reiserfsprogs, e2fsprogs,
                dosfstools, p7zip, unzip, tar, gzip, zlib1g-dev, upx-ucl,
                libncurses5-dev, udpcast, perl, libpopt-dev, libacl1-dev,
-               libattr1-dev, gcc-4.6, g++-4.6, libxext-dev, syslinux,
+               libattr1-dev, gcc-4.4, gcc-4.6, g++-4.6, libxext-dev, syslinux,
                libxrandr-dev, libsm-dev, libxmu-dev, libice-dev, libx11-dev,
                libxt-dev, libxrender-dev, libxcursor-dev, libxinerama-dev,
                libxi-dev, libjpeg-dev, libmng-dev (>= 1.0.3), libpng12-dev,

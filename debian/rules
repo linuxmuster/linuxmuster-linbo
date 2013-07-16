@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 09.07.2013
+# 15.07.2013
 # GPL v3
 #
 
@@ -70,7 +70,7 @@ GRUB4DOS_URL=$(LML_URL)/$(GRUB4DOS_ARCHIVE)
 # grub2
 GRUB2_ARCHIVE=$(shell grep grub- debian/md5sums.src | awk '{ print $$2 }')
 GRUB2_DIR=src/$(shell echo $(GRUB2_ARCHIVE) | sed -e 's/.tar.xz//')
-GRUB2_URL=$(LML_URL)/$(GRUB2_ARCHIVE)
+GRUB2_URL=http://ftp.gnu.org/gnu/grub/$(GRUB2_ARCHIVE)
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
@@ -136,7 +136,6 @@ configure-stamp:
 		( cd cache && grep $(GRUB2_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(GRUB2_ARCHIVE)...[0m" ; \
 		tar xf cache/$(GRUB2_ARCHIVE) -C src; \
-		chmod 755 $(GRUB2_DIR)/configure; \
 		ln -sf ../$(GRUB2_DIR) src/grub; \
 	fi
 
@@ -286,13 +285,13 @@ build-stamp: configure-stamp
 	# grub4dos
 	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
 		echo "[1mBuilding grub4dos...[0m" ; \
-		( cd $(GRUB4DOS_DIR) && CFLAGS=-fno-stack-protector ./configure \
+		( cd $(GRUB4DOS_DIR) && CC=gcc-4.4 CFLAGS=-fno-stack-protector ./configure \
 			--prefix=/usr \
 			--enable-preset-menu=preset_menu.lst \
 			--disable-ffs \
 			--disable-minix \
 			--disable-vstafs \
-            --disable-jfs \
+            		--disable-jfs \
 			--disable-xfs \
 			--disable-ufs2 \
 			--disable-hercules \
