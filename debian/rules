@@ -37,9 +37,9 @@ VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
 VBOX_URL=$(LML_URL)/$(VBOX_ARCHIVE)
 
 # compat wireless drivers (ethernet driver alx.ko needed)
-COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
-COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
-COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6/$(COMPWLESS_ARCHIVE)
+#COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
+#COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
+#COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6/$(COMPWLESS_ARCHIVE)
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
@@ -70,7 +70,8 @@ GRUB4DOS_URL=$(LML_URL)/$(GRUB4DOS_ARCHIVE)
 # grub2
 GRUB2_ARCHIVE=$(shell grep grub- debian/md5sums.src | awk '{ print $$2 }')
 GRUB2_DIR=src/$(shell echo $(GRUB2_ARCHIVE) | sed -e 's/.tar.xz//')
-GRUB2_URL=http://ftp.gnu.org/gnu/grub/$(GRUB2_ARCHIVE)
+#GRUB2_URL=http://ftp.gnu.org/gnu/grub/$(GRUB2_ARCHIVE)
+GRUB2_URL=$(LML_URL)/$(GRUB2_ARCHIVE)
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
@@ -242,13 +243,13 @@ configure-stamp:
 	fi
 
 	# compat wireless
-	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
-		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
-		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
-		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
-	fi
+#	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
+#		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
+#		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
+#		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
+#	fi
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
@@ -393,13 +394,13 @@ build-stamp: configure-stamp
 	fi
 
 	# compat wireless alx module
-	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-		echo "[1mBuilding alx module...[0m" ; \
-		rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-		cd $(COMPWLESS_DIR) && \
-		( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
-		ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-	fi
+#	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+#		echo "[1mBuilding alx module...[0m" ; \
+#		rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+#		cd $(COMPWLESS_DIR) && \
+#		( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
+#		ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+#	fi
 
 	touch build-stamp
 
@@ -434,10 +435,10 @@ install: build
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
 	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
 	# alx module
-	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
-	-/sbin/depmod -a -b kernel/modules $(KVERS)
+#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+#	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding LINBOFS...[0m" ; \
