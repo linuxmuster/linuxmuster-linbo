@@ -1,23 +1,13 @@
 Source: linuxmuster-linbo
 Section: admin
 Priority: extra
-Maintainer: Thomas Schmitt <schmitt@lmz-bw.de>
-Build-Depends: debhelper (>=7.0.15), build-essential, fakeroot, wget, udev, ctorrent, bvi, ethtool (>= 2.6.34),
-               dropbear, nasm, ncurses-base, coreutils, sysvinit-utils, util-linux, ntfsprogs,
-               libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, unzip, tar, gzip, gettext, zlib1g-dev,
-               libncurses5-dev, udpcast, perl, libpopt-dev, libacl1-dev, libattr1-dev,
-               qt3-dev-tools, gcc-4.1, gcc-4.3, g++-4.3, flex, libxext-dev (>= 4.3.0.dfsg.1-4),
-               libxrandr-dev (>= 4.3.0.dfsg.1-4), libsm-dev (>= 4.3.0.dfsg.1-4), libxmu-dev (>= 4.3.0.dfsg.1-4),
-               libice-dev (>= 4.3.0.dfsg.1-4), libx11-dev (>= 4.3.0.dfsg.1-4), libxt-dev (>= 4.3.0.dfsg.1-4),
-               libxrender-dev, libxcursor-dev, libxinerama-dev, libxi-dev, zlib1g-dev, libjpeg62-dev,
-               libmng-dev (>= 1.0.3), libpng12-dev | libpng12-0-dev, libfontconfig1-dev, libfreetype6-dev,
-               libxft-dev, libiodbc2-dev (>= 3.51.2-4), libmysqlclient15-dev | libmysqlclient-dev, libpq-dev,
-               libaudio-dev, libcups2-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libsqlite3-dev
+Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
+Build-Depends: bison, build-essential, bvi, coreutils, debhelper, dosfstools, dpkg-dev, dropbear, e2fsprogs, ethtool, fakeroot, flex, g++, gcc, gettext, grep, gzip, libacl1-dev, libattr1-dev, libaudio-dev, libcups2-dev, libdevmapper-dev, libfontconfig1-dev, libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev, libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev, libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6, libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev, libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, nasm, ncurses-base, patchutils, perl, reiserfsprogs, sysvinit-utils, tar, udev, udpcast, unzip, util-linux, wget, zlib1g-dev
 
 Package: linuxmuster-linbo
 Architecture: all
 Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), tftpd-hpa, udpcast, zip, mbr, etherwake
-Suggests: dhcp-server | dhcp3-server
+Suggests: isc-dhcp-server | dhcp3-server
 Recommends: wodim, ldap-utils
 Description: LINBO PXE boot files
  This package contains the bootfiles and multicast startscripts

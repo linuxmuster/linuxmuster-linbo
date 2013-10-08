@@ -1,12 +1,13 @@
 #!/bin/bash
 
 HERE=`pwd`
-export QTDIR=$HERE/qt-embedded-linux-opensource-src-4.5.2
+QT_ARCHIVE=`grep qt- ../debian/md5sums.src | awk '{ print $2 }'`
+export QTDIR="$HERE"/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
 export QTLIB=$QTDIR/lib/
 export QTBIN=$QTDIR/bin/ 
 
-$HERE/qt-embedded-linux-opensource-src-4.5.2/bin/qmake -makefile -spec qt-embedded-linux-opensource-src-4.5.2/mkspecs/default linboGUI.pro
+"$QTBIN"/qmake -makefile -spec "$QTDIR"/mkspecs/default linboGUI.pro
 
 make clean
-make CXX=g++-4.3
+make
 strip linbo_gui

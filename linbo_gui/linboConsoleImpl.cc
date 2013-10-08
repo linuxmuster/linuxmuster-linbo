@@ -27,7 +27,7 @@ linboConsoleImpl::linboConsoleImpl(  QWidget* parent ) : linboDialog()
   connect(input,SIGNAL(returnPressed()),this,SLOT(execute()));
 
   Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
   logConsole = new linboLogConsole(0);
@@ -46,7 +46,7 @@ linboConsoleImpl::~linboConsoleImpl()
 
 void linboConsoleImpl::showOutput() { 
     QByteArray bytes = mysh->readAllStandardOutput();
-    QStringList lines = QString(bytes).split("\n");
+    QStringList lines = QString::fromUtf8(bytes).split("\n");
     foreach (QString line, lines) {
         output->append(line);
     }

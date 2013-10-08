@@ -2,11 +2,13 @@
 
 # Build QT embedded. This can be painful...
 
-( cd qt-embedded-linux-opensource-src-4.5.2
-  export QTDIR=`pwd`
-  export CXX=g++-4.3
+( QT_ARCHIVE=`grep qt- ../debian/md5sums.src | awk '{ print $2 }'`
+  export QTDIR=`pwd`/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
+  cd $QTDIR
   make clean
   echo -e "yes\n" | ./configure \
+ -platform qws/linux-x86-g++ \
+ -xplatform qws/linux-x86-g++ \
  -embedded x86 \
  -prefix $QTDIR \
  -opensource \
@@ -32,30 +34,20 @@
  -no-iconv \
  -no-dbus \
  -depths 4,8,16 \
- -no-mouse-yopy \
- -no-mouse-vr41xx \
  -no-largefile \
  -no-xinerama \
  -no-xrender \
  -no-freetype \
- -qt-gfx-linuxfb \
- -no-gfx-vnc \
- -no-gfx-multiscreen \
- -no-gfx-transformed \
- -no-gfx-qvfb \
  -no-opengl \
- -qt-decoration-default \
- -no-decoration-windows \
- -no-decoration-styled \
- -no-kbd-sl5000 \
- -no-kbd-yopy \
- -no-kbd-vr41xx \
- -no-mouse-yopy \
- -no-mouse-vr41xx \
- -no-mouse-tslib \
  -no-glib \
+ -nomake examples \
+ -nomake demos \
+ -no-libmng \
+ -no-glib \
+ -nomake examples \
+ -nomake demos \
   )
-( cd qt-embedded-linux-opensource-src-4.5.2
-  export QTDIR=`pwd`
-  export CXX=g++-4.3
+( QT_ARCHIVE=`grep qt- ../debian/md5sums.src | awk '{ print $2 }'`
+  export QTDIR=`pwd`/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
+  cd $QTDIR
   make -j 2 )

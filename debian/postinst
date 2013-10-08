@@ -1,10 +1,9 @@
 #!/bin/bash
+#
 # postinst script for linuxmuster
-#
 # thomas@linuxmuster.net
-# 14.02.2013
+# 07.10.2013
 #
-# see: dh_installdeb(1)
 
 set -e
 
@@ -33,10 +32,6 @@ DISTCONF=/usr/share/linuxmuster/config/dist.conf
 case "$1" in
 
  configure)
-
- # repair link to examples
- [ ! -L "$LINBODIR/examples" -a -e "$LINBODIR/examples" ] && rm -rf $LINBODIR/examples
- [ -e "$LINBODIR/examples" ] || ln -s /usr/share/doc/linuxmuster-linbo/examples $LINBODIR/examples
 
  # init script
  update-rc.d linbo-multicast defaults

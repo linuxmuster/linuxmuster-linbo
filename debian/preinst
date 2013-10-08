@@ -1,6 +1,9 @@
-#!/bin/sh -e
+#!/bin/bash
 #
-# $Id: preinst 1256 2012-01-24 13:11:19Z tschmitt $
+# preinst script for linuxmuster
+# thomas@linuxmuster.net
+# 07.10.2013
+#
 
 if [ "$1" = "upgrade" ]; then
 
@@ -11,6 +14,12 @@ if [ "$1" = "upgrade" ]; then
 
  # saving default pxe config if it is not yet a link
  [ -L "$PXELINUXCFG" ] || cp "$PXELINUXCFG" "$PXELINUXCFG.dpkg-bak"
+ 
+ # remove obsolete examples link
+ [ -L "$LINBODIR/examples" ] && rm "$LINBODIR/examples"
+ 
+ # remove obsolete examples dir
+ [ -d /usr/share/doc/linuxmuster-linbo/examples ] && rm -rf /usr/share/doc/linuxmuster-linbo/examples
 
  # add bittorrent user if not present
  if ! id bittorrent &> /dev/null; then

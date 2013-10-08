@@ -38,7 +38,7 @@ linboMulticastBoxImpl::linboMulticastBoxImpl(  QWidget* parent ) : linboDialog()
 
 
   Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
   QRect qRect(QApplication::desktop()->screenGeometry());

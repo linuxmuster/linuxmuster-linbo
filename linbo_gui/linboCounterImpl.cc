@@ -9,7 +9,7 @@ linboCounterImpl::linboCounterImpl(  QWidget* parent ) : linboDialog()
   Ui_linboCounter::setupUi((QDialog*)this);
 
   Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint;
+  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
   if( parent )
@@ -71,4 +71,9 @@ void linboCounterImpl::setCommand(const QStringList& arglist)
 void linboCounterImpl::processFinished( int retval,
                                              QProcess::ExitStatus status) {
   // nothing to do
+}
+
+void linboCounterImpl::closeEvent(QCloseEvent *event) {
+	event->accept();
+	logoutButton->click();
 }

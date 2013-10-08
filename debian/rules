@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 08.12.2013
+# 06.10.2013
 # GPL v3
 #
 
@@ -20,7 +20,7 @@ VESAMODE=785 # 640x480, 64k colors
 # VESAMODE=0 # VGA16
 # VESAMODE=791 # 1024x768, 64k colors # Currently not working
 KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
-KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.bz2//')
+KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
 KERNEL_DIR=kernel/linux-$(KVERS)
 KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v3.x
 #KERNEL_URL=$(LML_URL)
@@ -42,9 +42,9 @@ COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
 COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
 
 # qt
-QT_ARCHIVE=$(shell grep qt-embedded-linux-opensource-src- debian/md5sums.src | awk '{ print $$2 }')
+QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
-QT_URL=http://ftp.heanet.ie/mirrors/ftp.trolltech.com/pub/qt/source
+QT_URL=http://releases.qt-project.org/qt4/source/$(QT_ARCHIVE)
 #QT_URL=$(LML_URL)
 
 # busybox
@@ -66,11 +66,8 @@ KEXEC_URL=$(LML_URL)
 
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
-#GRUB4DOS_DIR=src/grub4dos-$(shell echo $(GRUB4DOS_ARCHIVE) | awk -F\- '{ print $$2 }')
-GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//')
-#GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.zip//' | awk -F\- '{ print $$1 "-" $$2 }')
-#GRUB4DOS_URL=http://nufans.net/grub4dos
-GRUB4DOS_URL=$(LML_URL)
+GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.tar.xz//')
+GRUB4DOS_URL=$(LML_URL)/$(GRUB4DOS_ARCHIVE)
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
@@ -95,7 +92,7 @@ SSMTP_URL=$(LML_URL)
 
 # syslinux
 SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }')
-SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.bz2//')
+SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.xz//')
 #SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
 SYSLINUX_URL=$(LML_URL)
 
@@ -127,13 +124,13 @@ configure-stamp:
 
 	# grub4dos
 	-@if [ ! -d $(GRUB4DOS_DIR) ]; then \
-		( [ -e cache/$(GRUB4DOS_ARCHIVE) ] || ( cd cache && wget $(GRUB4DOS_URL)/$(GRUB4DOS_ARCHIVE) ) ); \
+		( [ -e cache/$(GRUB4DOS_ARCHIVE) ] || ( cd cache && wget $(GRUB4DOS_URL) ) ); \
 		( cd cache && grep $(GRUB4DOS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(GRUB4DOS_ARCHIVE)...[0m" ; \
-		( cd src && unzip ../cache/$(GRUB4DOS_ARCHIVE) ); \
-		echo "[1mPatching grub4dos sources...[0m" ; \
-		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
-		chmod 755 $(GRUB4DOS_DIR)/configure; \
+		tar xf cache/$(GRUB4DOS_ARCHIVE) -C src; \
+#		echo "[1mPatching grub4dos sources...[0m" ; \
+#		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
+#		chmod 755 $(GRUB4DOS_DIR)/configure; \
 		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
 	fi
 
@@ -163,15 +160,6 @@ configure-stamp:
 		tar xf cache/$(MSSYS_ARCHIVE) -C src; \
 		ln -sf ../$(MSSYS_DIR) src/ms-sys; \
 	fi
-
-	# ntfsprogs
-#	-@if [ ! -d $(NTFSPROGS_DIR) ]; then \
-#		( [ -e cache/$(NTFSPROGS_ARCHIVE) ] || ( cd cache && wget $(NTFSPROGS_URL)/$(NTFSPROGS_ARCHIVE)?download ) ); \
-#		( cd cache && grep $(NTFSPROGS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(NTFSPROGS_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(NTFSPROGS_ARCHIVE) -C src; \
-#		ln -sf ../$(NTFSPROGS_DIR) src/ntfsprogs; \
-#	fi
 
 	# ntfs-3g
 	-@if [ ! -d $(NTFS3G_DIR) ]; then \
@@ -227,8 +215,6 @@ configure-stamp:
 		( cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ; \
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui; \
-		echo "[1mPatching qt4 sources...[0m" ; \
-		( cd $(QT_DIR) && for i in ../../patches/qt4/*; do patch -p1 <$$i; done ); \
 	fi
 
 	# cloop
@@ -287,26 +273,26 @@ build-stamp: configure-stamp
 		( cd $(CLOOP_DIR) && rm -rf bin || true && make utils && mkdir -p bin && mv *_compressed_fs bin ); \
 	fi
 
-	# grub4dos
-	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
-		echo "[1mBuilding grub4dos...[0m" ; \
-		( cd $(GRUB4DOS_DIR) && CC=gcc-4.1 CFLAGS=-fno-stack-protector ./configure \
-			--prefix=/usr \
-			--enable-preset-menu=preset_menu.lst \
-			--disable-ffs \
-			--disable-minix \
-			--disable-vstafs \
-                        --disable-jfs \
-			--disable-xfs \
-			--disable-ufs2 \
-			--disable-hercules \
-			--disable-serial && make && strip grub/grub );\
-	fi
+	# grub4dos (binary distribution)
+#	-@if [ ! -e $(GRUB4DOS_DIR)/stage2/grub.exe -o ! -e $(GRUB4DOS_DIR)/stage2/grldr -o ! -e $(GRUB4DOS_DIR)/stage2/bootlace.com ]; then \
+#		echo "[1mBuilding grub4dos...[0m" ; \
+#		( cd $(GRUB4DOS_DIR) && CC=gcc-4.1 CFLAGS=-fno-stack-protector ./configure \
+#			--prefix=/usr \
+#			--enable-preset-menu=preset_menu.lst \
+#			--disable-ffs \
+#			--disable-minix \
+#			--disable-vstafs \
+#                        --disable-jfs \
+#			--disable-xfs \
+#			--disable-ufs2 \
+#			--disable-hercules \
+#			--disable-serial && make && strip grub/grub );\
+#	fi
 
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && LDFLAGS=-static ./configure && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --target=i686-pc-linux-gnu --host=i686-pc-linux-gnu && make && strip build/sbin/kexec ); \
 	fi
 
 	# ms-sys
@@ -320,12 +306,6 @@ build-stamp: configure-stamp
  		echo "[1mBuilding reged...[0m"; \
 		( cd $(CHNTPW_DIR) && make reged && strip reged ); \
 	fi
-
-	# ntfsprogs
-#	-@if [ ! -e $(NTFSPROGS_DIR)/ntfsprogs/mkntfs ]; then \
-#		echo "[1mBuilding ntfsprogs...[0m" ; \
-#		( cd $(NTFSPROGS_DIR) && LDFLAGS=-static ./configure && make && strip ntfsprogs/mkntfs ); \
-#	fi
 
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
@@ -342,14 +322,14 @@ build-stamp: configure-stamp
 	# ssmtp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP_DIR) && ./configure --target=i686-pc-linux-gnu --host=i686-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# syslinux (binary distribution)
-	-@if [ ! -e $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn ]; then \
-		echo "[1mBuilding syslinux...[0m" ; \
-		( cd $(SYSLINUX_DIR)/gpxe/src && make bin/gpxe.lkrn ); \
-	fi
+#	-@if [ ! -e $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn ]; then \
+#		echo "[1mBuilding syslinux...[0m" ; \
+#		( cd $(SYSLINUX_DIR)/gpxe/src && make bin/gpxe.lkrn ); \
+#	fi
 
 	# ctorrent
 	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
@@ -423,7 +403,6 @@ install: build
 	( cd $(KERNEL_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking LINBO kernel to /var/linbo/linbo.[0m" ; \
 	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo ; \
-	/usr/sbin/rdev -v $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo $(VESAMODE) ; \
 	echo -e "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
 	# cloop module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
@@ -479,8 +458,8 @@ install: build
 	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
 	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png
 	install -m 644 graphics/linbo-usb.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-usb.png
-	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
-	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/menu.lst.default
+	install -m 644 examples/* debian/linuxmuster-linbo/var/linbo/examples/
+	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst.default
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
