@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.1.5-0) precise; urgency=low
+
+  * linbo.sh: fixed german keyboard (closes #215).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Oct 2013 18:00:00 +0200
+
 linuxmuster-linbo (2.1.4-0) precise; urgency=low
 
   * examples/win7-reactivate.bat: added 64bit program path detection (closes #168).
@@ -5,7 +11,7 @@ linuxmuster-linbo (2.1.4-0) precise; urgency=low
   * fixed path in linbo remote console (closes #171).
   * kernel updated to 3.2.51.
   * switched to grub4dos 0.4.4-2009-10-16 binary distribution.
-  * added gpxe.lkrn binary to syslinux 4.03 archive. 
+  * added gpxe.lkrn binary to syslinux 4.03 archive.
   * merged Yanniks qt upgrade (closes #35).
   * optimized qt build options for cross compiling.
   * switched to ubuntu precise based build environment (closes #144).
