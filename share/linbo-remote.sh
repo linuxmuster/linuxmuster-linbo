@@ -294,7 +294,7 @@ echo "###"
 # wake-on-lan stuff
 if [ -n "$WAIT" ]; then
  # check interface
- iface="$(route | grep ^default | awk '{ print $8 }')"
+ iface="$(route | grep ^default | awk '{ print $8 }'  | head -1)"
  if [ -z "$iface" ]; then
   echo "Default route not found. Cannot determine network interface!"
   exit 1
