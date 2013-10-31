@@ -3,6 +3,10 @@
 # This is a busybox 1.1.3 init script
 # (C) Klaus Knopper 2007
 # License: GPL V2
+#
+# thomas@linuxmuster.net
+# 31.10.2013
+#
 
 # If you don't have a "standalone shell" busybox, enable this:
 # /bin/busybox --install
@@ -454,6 +458,7 @@ hwsetup(){
  udevd --daemon
  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
  udevadm trigger
+ mkdir -p /dev/pts
  mount /dev/pts
  udevadm settle || true
 
