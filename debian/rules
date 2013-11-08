@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 06.10.2013
+# 08.10.2013
 # GPL v3
 #
 
@@ -44,7 +44,7 @@ COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
-QT_URL=http://releases.qt-project.org/qt4/source/$(QT_ARCHIVE)
+QT_URL=http://download.qt-project.org/official_releases/qt/4.8/4.8.5/$(QT_ARCHIVE)
 #QT_URL=$(LML_URL)
 
 # busybox
@@ -350,33 +350,44 @@ build-stamp: configure-stamp
 	fi
 
 	# linbo kernel
-	@echo "[1mBuilding LINBO kernel...[0m" ; \
-	rm -rf ../modules/* || true
-	cd $(KERNEL_DIR) ; \
-	ln -snf ../initramfs_kernel.conf . ; \
-	:> ../initramfs_kernel.conf ; \
-	rm -f usr/initramfs_data.cpio.gz || true ; \
-	cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	ARCH=i386 make bzImage modules
+	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
+	        echo "ESC[1mBuilding LINBO kernel...ESC[0m" ; \
+	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
+	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
+	        rm -f $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko || true ; \
+	        rm -rf ../modules/* || true ; \
+	        cd $(KERNEL_DIR) ; \
+	        ln -snf ../initramfs_kernel.conf . ; \
+	        :> ../initramfs_kernel.conf ; \
+	        rm -f usr/initramfs_data.cpio.gz || true ; \
+	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
+	        ARCH=i386 make bzImage modules ; \
+	fi
 
 	# cloop module
-	@echo "[1mBuilding cloop module...[0m" ; \
-	rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true
-	cd $(CLOOP_DIR) && \
-	( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko )
+	-@if [ ! -e $(CLOOP_DIR)/cloop.ko ]; then \
+	        echo "ESC[1mBuilding cloop module...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
+	        cd $(CLOOP_DIR) && \
+	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
+	fi
 
 	# vboxguest modules
-	@echo "[1mBuilding virtualbox-guest modules...[0m" ; \
-	rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true
-	cd $(VBOX_DIR) && \
-	( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) )
+	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
+	        echo "ESC[1mBuilding virtualbox-guest modules...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
+	        cd $(VBOX_DIR) && \
+	        ( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
+	fi
 
 	# compat wireless alx module
-	@echo "[1mBuilding alx module...[0m" ; \
-	rm -rf kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true
-	cd $(COMPWLESS_DIR) && \
-	( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
-	  ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make )
+	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+	        cd $(COMPWLESS_DIR) && \
+	        ( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
+	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	fi
 
 	touch build-stamp
 

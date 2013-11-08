@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.1.7-0) precise; urgency=low
+
+  * qt update to 4.8.5.
+  * debian/rules: minor build optimations concerning to kernel and modules.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 8 Nov 2013 17:36:00 +0100
+
 linuxmuster-linbo (2.1.6-0) precise; urgency=low
 
   * init.sh: fixed missing /dev/pts (closes #220).
