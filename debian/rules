@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 15.07.2013
+# 08.11.2013
 # GPL v3
 #
 
@@ -37,14 +37,14 @@ VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
 VBOX_URL=$(LML_URL)/$(VBOX_ARCHIVE)
 
 # compat wireless drivers (ethernet driver alx.ko needed)
-#COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
-#COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
-#COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6/$(COMPWLESS_ARCHIVE)
+COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
+COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
+COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6/$(COMPWLESS_ARCHIVE)
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
-QT_URL=http://releases.qt-project.org/qt4/source/$(QT_ARCHIVE)
+QT_URL=http://download.qt-project.org/official_releases/qt/4.8/4.8.5/$(QT_ARCHIVE)
 #QT_URL=$(LML_URL)
 
 # busybox
@@ -199,7 +199,7 @@ configure-stamp:
 
 	# ssmtp
 	-@if [ ! -d $(SSMTP_DIR) ]; then \
-		( [ -e cache/$(SSMTP_ARCHIVE) ] || ( cd cache && wget $(SSMTP_URL)/$(SSMTP_ARCHIVE) ) ); \
+		( [ -e cache/$(SSMTP_ARCHIVE) ] || ( cd cache && wget $(SSMTP_URL) ) ); \
 		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(SSMTP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SSMTP_ARCHIVE) -C src; \
@@ -209,7 +209,7 @@ configure-stamp:
 
 	# ctorrent
 	-@if [ ! -d $(CTORRENT_DIR) ]; then \
-		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL)/$(CTORRENT_ARCHIVE) ) ); \
+		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL) ) ); \
 		( cd cache && grep $(CTORRENT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CTORRENT_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CTORRENT_ARCHIVE) -C src; \
@@ -218,7 +218,7 @@ configure-stamp:
 
 	# qt
 	-@if [ ! -d $(QT_DIR) ]; then \
-		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL)/$(QT_ARCHIVE) ) ); \
+		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL) ) ); \
 		( cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ; \
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui; \
@@ -226,7 +226,7 @@ configure-stamp:
 
 	# cloop
 	-@if [ ! -d $(CLOOP_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL) ) ); \
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
@@ -235,7 +235,7 @@ configure-stamp:
 
 	# vboxguest
 	-@if [ ! -d $(VBOX_DIR) ]; then \
-		( [ -e cache/$(VBOX_ARCHIVE) ] || ( cd cache && wget $(VBOX_URL)/$(VBOX_ARCHIVE) ) ); \
+		( [ -e cache/$(VBOX_ARCHIVE) ] || ( cd cache && wget $(VBOX_URL) ) ); \
 		( cd cache && grep $(VBOX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(VBOX_ARCHIVE)...[0m" ; \
 		tar xf cache/$(VBOX_ARCHIVE) -C kernel; \
@@ -243,17 +243,17 @@ configure-stamp:
 	fi
 
 	# compat wireless
-#	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
-#		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
-#		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
-#		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
-#	fi
+	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
+		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL) ) ); \
+		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
+		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
+	fi
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
-		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
+		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL) ) ); \
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
@@ -394,13 +394,13 @@ build-stamp: configure-stamp
 	fi
 
 	# compat wireless alx module
-#	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-#		echo "[1mBuilding alx module...[0m" ; \
-#		rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-#		cd $(COMPWLESS_DIR) && \
-#		( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
-#		ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-#	fi
+	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+		echo "[1mBuilding alx module...[0m" ; \
+		rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+		cd $(COMPWLESS_DIR) && \
+		( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
+		ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	fi
 
 	touch build-stamp
 
@@ -435,10 +435,10 @@ install: build
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
 	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
 	# alx module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
-#	-/sbin/depmod -a -b kernel/modules $(KVERS)
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding LINBOFS...[0m" ; \
@@ -466,7 +466,7 @@ install: build
 	install -m 644 $(GRUB2_DIR)/pxegrub.0 debian/linuxmuster-linbo/var/linbo/grub/pxegrub.0
 	install -m 644 $(IPXE_DIR)/src/bin/ipxe.lkrn debian/linuxmuster-linbo/var/linbo/grub/ipxe.lkrn
 	install -m 644 examples/grub.cfg.pxe-default debian/linuxmuster-linbo/var/linbo/grub/grub.cfg
-	install -m 644 examples/* debian/linuxmuster-linbo/usr/share/doc/linuxmuster-linbo/examples/
+	install -m 644 examples/* debian/linuxmuster-linbo/var/linbo/examples/
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent

@@ -1,3 +1,21 @@
+linuxmuster-linbo (2.2.0-5) precise-unstable; urgency=low
+
+  * merged yannik's latest pull requests:
+    - default route fix for linbo-remote (closes #224).
+    - default user registry patch extension for patch_registry (see #225).
+  * linbo_wrapper:
+    - fixed broken format command (closes #221).
+    - fixed handling of lines with multiple comment chars (closes #155).
+  * kernel update to 3.2.52.
+  * qt update to 4.8.5.
+  * moved examples dir to /var/linbo.
+  * examples/win7-reactivate.bat: added 64bit program files path (closes #168).
+  * linbofs: added udev script /bin/vmmouse_detect hinzugefügt (closes #226).
+  * added autogen and libtool to build dependencies (needed by grub).
+  * fixed wget urls in rules.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 8 Nov 2013 16:57:00 +0100
+
 linuxmuster-linbo (2.2.0-4) precise; urgency=low
 
   * grub4dos compiled with gcc-4.4.

@@ -6,7 +6,7 @@
 # $2 is the path to the windows system root
 #
 # thomas@linuxmuster.net
-# 08.07.2013
+# 04.11.2013
 #
 
 # trust in this code
@@ -219,9 +219,20 @@ while read -r line; do
     *) key="" ;;
    esac
 
-  [ -n "$key" ] && create_key "$key"
-  continue
+   [ -n "$key" ] && create_key "$key"
+   continue
   ;;
+  \[HKEY_CURRENT_USER*) # yannik's pull request to patch default user's registry
+   tkey="$(leftchop "$line")"
+   [ -n "$DEBUG" ] && echo " 1 tkey=$tkey" | tee -a $logfile
+   hive="$(ls -1d $2/[Dd][Oo][Kk][Uu][Mm][Ee][Nn][Tt][Ee]" "[Uu][Nn][Dd]" "[Ee][Ii][Nn][Ss][Tt][Ee][Ll][Ll][Uu][Nn][Gg][Ee][Nn]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/null | tail -1)"
+   [ -z "$hive" ] && hive="$(ls -1d $2/[Dd][Oo][Cc][Uu][Mm][Ee][Nn][Tt][Ss]" "[Aa][Nn][Dd]" "[Ss][Ee][Tt][Tt][Ii][Nn][Gg][Ss]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/null | tail -1)"
+   key="$tkey"
+   [ -n "$DEBUG" ] && echo " 2 key=$key" | tee -a $logfile
+
+   [ -n "$key" ] && create_key "$key"
+   continue
+   ;;
  esac
 
  # check for valid line

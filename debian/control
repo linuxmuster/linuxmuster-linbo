@@ -2,20 +2,21 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: debhelper (>= 7.4.2~), build-essential, fakeroot, wget, udev, bvi,
-               ethtool (>= 2.6.34), dropbear, nasm, ncurses-base, coreutils,
-               grep, patchutils, python, flex (>= 2.5.35), bison, gettext,
-               sysvinit-utils, util-linux, libstdc++6, reiserfsprogs, e2fsprogs,
-               dosfstools, p7zip, unzip, tar, gzip, zlib1g-dev, upx-ucl,
-               libncurses5-dev, udpcast, perl, libpopt-dev, libacl1-dev,
-               libattr1-dev, gcc-4.4, gcc-4.6, g++-4.6, libxext-dev, syslinux,
-               libxrandr-dev, libsm-dev, libxmu-dev, libice-dev, libx11-dev,
-               libxt-dev, libxrender-dev, libxcursor-dev, libxinerama-dev,
-               libxi-dev, libjpeg-dev, libmng-dev (>= 1.0.3), libpng12-dev,
-               libfontconfig1-dev, libfreetype6-dev, libxft-dev,
-               libiodbc2-dev (>= 3.51.2-4), libmysqlclient-dev, libpq-dev,
-               libaudio-dev, libcups2-dev, libgl1-mesa-dev, libglu1-mesa-dev,
-               libsqlite3-dev, libdevmapper-dev, xorriso, qemu-kvm, libfuse-dev 
+Build-Depends: autogen, libtool, debhelper (>= 7.4.2~), build-essential,
+               fakeroot, wget, udev, bvi, ethtool (>= 2.6.34), dropbear,
+               nasm, ncurses-base, coreutils, grep, patchutils, python,
+               flex (>= 2.5.35), bison, gettext, sysvinit-utils, util-linux,
+               libstdc++6, reiserfsprogs, e2fsprogs, dosfstools, p7zip, unzip,
+               tar, gzip, zlib1g-dev, upx-ucl, libncurses5-dev, udpcast, perl,
+               libpopt-dev, libacl1-dev, libattr1-dev, gcc-4.4, gcc-4.6,
+               g++-4.6, libxext-dev, syslinux, libxrandr-dev, libsm-dev,
+               libxmu-dev, libice-dev, libx11-dev, libxt-dev, libxrender-dev,
+               libxcursor-dev, libxinerama-dev, libxi-dev, libjpeg-dev,
+               libmng-dev (>= 1.0.3), libpng12-dev, libfontconfig1-dev,
+               libfreetype6-dev, libxft-dev, libiodbc2-dev (>= 3.51.2-4),
+               libmysqlclient-dev, libpq-dev, libaudio-dev, libcups2-dev,
+               libgl1-mesa-dev, libglu1-mesa-dev, libsqlite3-dev,
+               libdevmapper-dev, xorriso, qemu-kvm, libfuse-dev 
 
 Package: linuxmuster-linbo
 Architecture: all

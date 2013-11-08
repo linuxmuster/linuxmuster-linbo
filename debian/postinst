@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 02.07.2013
+# 04.10.2013
 #
 # see: dh_installdeb(1)
 
@@ -47,10 +47,6 @@ case "$1" in
    exit 0
   fi
 
-  # repair link to examples
-  [ ! -L "$LINBODIR/examples" -a -e "$LINBODIR/examples" ] && rm -rf $LINBODIR/examples
-  [ -e "$LINBODIR/examples" ] || ln -s /usr/share/doc/linuxmuster-linbo/examples $LINBODIR/examples
-
   # check serverip in default start.confs
   for i in $LINBODEFAULTCONF $SYSCONFDIR/linbo/start.conf.default; do
    if ! grep ^Server $i | grep -q "$serverip"; then
@@ -59,73 +55,6 @@ case "$1" in
     sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
    fi
   done
-
- # updating start.confs (deprecated)
-# if ls $LINBODIR/start.conf.* &> /dev/null; then
-#  mkdir -p $LINBODIR/backup
-#  for i in $LINBODIR/start.conf.*; do
-#   ext="$(echo $i | grep -o '\.[^.]*$')"
-#   [ "$ext" = ".gz" ] && continue
-#   backed_up=""
-#   echo -n "Checking ${i/$LINBODIR\/}: "
-#   # RemoteSyncEnabled -> NewEnabled
-#   if grep -qi ^remotesyncenabled $i; then
-#    cp $i $LINBODIR/backup
-#    backed_up=yes
-#    sed -e 's/[Rr][Ee][Mm][Oo][Tt][Ee][Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd]/NewEnabled/g' -i $i
-#   fi
-   # pxegrub -> grub.exe
-#   if grep -qi pxegrub $i; then
-#    if [ -z "$backed_up" ]; then
-#     cp $i $LINBODIR/backup
-#     backed_up=yes
-#    fi
-#    sed -e 's/[Pp][Xx][Ee][Gg][Rr][Uu][Bb]/grub.exe/g' -i $i
-#   fi
-   # UseMultiCast -> DownloadType (#403)
-#   if grep -qi ^usemulticast $i; then
-#    if [ -z "$backed_up" ]; then
-#     cp $i $LINBODIR/backup
-#     backed_up=yes
-#    fi
-#    RET=`grep -i ^usemulticast $i | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
-#    if [ "$RET" = "yes" ]; then
-#     rstr="multicast"
-#    else
-#     rstr="rsync"
-#    fi
-#    sed -e "s|^[Uu][Ss][Ee][Mm][Uu][Ll][Tt][Ii][Cc][Aa][Ss][Tt].*|DownloadType = $rstr # Image-Download per torrent\|multicast\|rsync\, default ist rsync|" -i $i
-#   fi
-   # adding new options
-#   for t in "DownloadType rsync" "BackgroundFontColor white" "ConsoleFontColorStdout white" "ConsoleFontColorStderr red" "IconName default.png" "DefaultAction sync" "AutostartTimeout 5"; do
-#    option="$(echo "$t" | awk '{ print $1 }')"
-#    if ! grep -qi ^$option $i; then
-#     value="$(echo "$t" | awk '{ print $2 }')"
-#     if [ -z "$backed_up" ]; then
-#      cp $i $LINBODIR/backup
-#      backed_up=yes
-#     fi
-#     case $option in
-#      IconName|DefaultAction|AutostartTimeout)
-#       sed -e "/^\[[Oo][Ss]\]/a\
-#$option = $value" -i $i
-#      ;;
-#      *)
-#       sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
-#$option = $value" -i $i
-#      ;;
-#     esac
-#    fi
-#   done # DownloadType etc.
-#   if [ -n "$backed_up" ]; then
-#    backup_flag=yes
-#    echo "updated!"
-#   else
-#    echo "Ok."
-#   fi
-#  done
-#  [ -n "$backup_flag" ] && echo "Changed files were backed up to $LINBODIR/backup!"
-# fi # updating start.confs
 
  # check for linbo mail wrapper in /etc/aliases
  if ! grep -q ^linbo: /etc/aliases; then

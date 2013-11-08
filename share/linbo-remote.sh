@@ -1,8 +1,9 @@
 #!/bin/bash
 #
 # exec linbo commands remote per ssh
+#
 # thomas@linuxmuster.net
-# 15.06.2013
+# 31.10.2013
 # GPL V3
 #
 
@@ -290,8 +291,8 @@ echo "###"
 
 # wake-on-lan stuff
 if [ -n "$WAIT" ]; then
- # check interface
- iface="$(route | grep ^default | awk '{ print $8 }')"
+ # check interface (yannik's pull request to take only first default route)
+ iface="$(route | grep ^default | awk '{ print $8 }'  | head -1)"
  if [ -z "$iface" ]; then
   echo "Default route not found. Cannot determine network interface!"
   exit 1

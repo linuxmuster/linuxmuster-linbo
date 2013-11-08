@@ -6,12 +6,11 @@ b2a57e73835bdb256d512061716be948  compat-wireless-2012-05-10-p.tar.bz2
 c9b87c91760166698f9bb56b4b851634  grub-20130715.tar.xz
 70f0c233c857df71a9ee379605efc520  grub4dos-0.4.5c.tar.xz
 0fdde5bf6c961a3bf8ec13ac7dcaae8d  ipxe-20130708.tar.xz
-03b201afc91fcba0a7bd882f3143b9bf  kernels.zip
 05992bc8c0673fc55be7b6d27e48a8db  kexec-tools-2.0.4.tar.bz2
-8e2bf282b58b5ca0e2c9d5a1dbdbe193  linux-3.2.46.tar.xz
+0b5fe92cdee741c87fb6b23a2f30fa99  linux-3.2.52.tar.xz
 46d186707c7767db664afe681f8eaad6  ms-sys-2.3.0.tar.gz
 341acae00a290cab9b00464db65015cc  ntfs-3g_ntfsprogs-2012.1.15.tgz
-89c5ecba180cae74c66260ac732dc5cb  qt-everywhere-opensource-src-4.8.4.tar.gz
+1864987bdbb2f58f8ae8b350dfdbe133  qt-everywhere-opensource-src-4.8.5.tar.gz
 5ee72266fe2c1822333c407e1761b92b  rsync-3.0.9.tar.gz
 257ac04e62ab7e3616e220333a1140cb  ssmtp_2.62.orig.tar.gz
 9a0b22dac39a44dd7de376e56c686ed2  virtualbox-guest-4.1.18-dfsg-1.1.tar.bz2

@@ -2,11 +2,9 @@
 #
 # wrapper for linbo_cmd
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
-#
+# thomas@linuxmuster.net
+# 31.10.2013
 # GPL V3
-#
-# last change: 08.12.2009
 #
 
 ARGS="$@"
@@ -105,7 +103,7 @@ get_os(){
   # parse os definition
   if [ $c -eq $osnr ]; then
    param="$(echo $line | awk -F\= '{ print $1 }' | sed 's/[ \t]*$//')"
-   value="$(echo "$line" | sed "s/${param}//" | sed "s/^[ \t]*//" | sed "s/^=//" | sed "s/^[ \t]*//")"
+   value="$(echo "$line" | sed "s/$param//" | sed "s/^[ \t]*//" | sed "s/^=//" | sed "s/^[ \t]*//" | awk -F\# '{ print $1 }' | sed "s/ *$//g")"
    case "$param" in
     [Nn][Aa][Mm][Ee]) osname="$value" ;;
     [Ii][Mm][Aa][Gg][Ee]) image="$value" ;;
@@ -179,10 +177,6 @@ get_partitions() {
 format_partition(){
  local pos=$((((1))+$(($partnr-1))*((5))))
  local dev="$(echo $partitions | cut -d" " -f$pos)"
- if [ ! -b "$dev" ]; then
-  echo "Partition $dev not found!"
-  return 1
- fi
  pos=$(($partnr*5))
  local fstype="$(echo $partitions | cut -d" " -f$pos)"
  local fcmd=""
@@ -196,8 +190,25 @@ format_partition(){
      return 1 ;;
  esac
  if [ -n "$fcmd" ]; then
-  linbo_cmd partition_noformat $partitions
-  $fcmd
+  # abort if partitioning fails
+  if ! linbo_cmd partition_noformat $partitions; then
+   echo "Partitioning error ... aborting!"
+   return 1
+  fi
+  # test if device is present after partitioning, if not wait 3 secs
+  if [ ! -b "$dev" ]; then
+   echo "Partition $dev is not yet ready ... waiting 3 seconds ..."
+   sleep 3
+  fi
+  # test again, abort if device is not there
+  if [ ! -b "$dev" ]; then
+   echo "Partition $dev does not exist ... aborting!"
+   return 1
+  fi
+  if ! $fcmd; then
+   echo "Error on formatting $dev ... aborting!"
+   return 1
+  fi
  fi
 }
 
