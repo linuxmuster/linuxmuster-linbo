@@ -44,7 +44,7 @@ COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
-QT_URL=http://download.qt-project.org/official_releases/qt/4.8/4.8.5/$(QT_ARCHIVE)
+QT_URL=http://download.qt-project.org/official_releases/qt/4.8/4.8.5
 #QT_URL=$(LML_URL)
 
 # busybox
