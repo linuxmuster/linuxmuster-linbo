@@ -1,15 +1,13 @@
 8a5eb7f15d4077d18fa97bda7a4e5412  busybox-1.13.4.tar.bz2
 a3fb358d1adec589cd6bc8dedf68896c  chntpw-source-110511.zip
 458d7cc0c69646a2caaedec5c836cdcc  cloop_2.639-2.tar.gz
-b2a57e73835bdb256d512061716be948  compat-wireless-2012-05-10-p.tar.bz2
 59b23dd05ff70791cd6449effa7fc3b6  ctorrent-dnh3.3.2.tar.gz
 774e2505ea8a073c473a9247d09d047e  grub4dos-0.4.4-2009-10-16-src.tar.xz
 b3ced2097ce3981abba38ceedc84f939  kexec-tools-2.0.3.tar.bz2
-0b5fe92cdee741c87fb6b23a2f30fa99  linux-3.2.52.tar.xz
+f6f34baf553f278ff4637d8eaeff5dcd  linux-3.12.1.tar.xz
 46d186707c7767db664afe681f8eaad6  ms-sys-2.3.0.tar.gz
 341acae00a290cab9b00464db65015cc  ntfs-3g_ntfsprogs-2012.1.15.tgz
 1864987bdbb2f58f8ae8b350dfdbe133  qt-everywhere-opensource-src-4.8.5.tar.gz
 5ee72266fe2c1822333c407e1761b92b  rsync-3.0.9.tar.gz
 257ac04e62ab7e3616e220333a1140cb  ssmtp_2.62.orig.tar.gz
 0b69b3333f25a89412915fe19a902047  syslinux-4.03.tar.xz
-9a0b22dac39a44dd7de376e56c686ed2  virtualbox-guest-4.1.18-dfsg-1.1.tar.bz2

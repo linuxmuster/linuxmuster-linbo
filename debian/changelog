@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.1.8-0) precise; urgency=low
+
+  * kernel update to 3.12.1, added cloop-3.12.diff, removed virtualbox and compat wireless modules.
+  * minor fix for console output of linbo-multicast.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 29 Nov 2013 17:20:00 +0100
+
 linuxmuster-linbo (2.1.7-0) precise; urgency=low
 
   * qt update to 4.8.5.

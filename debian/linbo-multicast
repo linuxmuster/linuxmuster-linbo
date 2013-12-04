@@ -12,9 +12,9 @@
 # Description:       Starts a multicast session for each LINBO image
 ### END INIT INFO
 
-# schmitt@lmz-bw.de
+# thomas@linuxmuster.net
 # GPL v3
-# $Id: linbo-multicast 1101 2011-07-16 12:13:40Z tschmitt $
+# 29.11.2013
 
 #set -e
 
@@ -101,8 +101,8 @@ start() {
      echo -n " "
      log_failure_msg "failed!"
     else
-     echo -n "."
-     [ "$RC" = "0" ] && echo
+     RC=0
+     log_end_msg "$RC"
     fi
 
    fi
