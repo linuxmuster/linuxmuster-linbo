@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.1.8-1) precise; urgency=low
+
+  * kernel reverted to 3.2.53 (ubuntu's version 3.2.0-58.88).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 5 Dec 2013 13:27:00 +0100
+
 linuxmuster-linbo (2.1.8-0) precise; urgency=low
 
   * kernel update to 3.12.1, added cloop-3.12.diff, removed virtualbox and compat wireless modules.

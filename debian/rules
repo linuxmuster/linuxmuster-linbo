@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 30.11.2013
+# 05.12.2013
 # GPL v3
 #
 
@@ -22,8 +22,8 @@ VESAMODE=785 # 640x480, 64k colors
 KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
 KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
 KERNEL_DIR=kernel/linux-$(KVERS)
-KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v3.x
-#KERNEL_URL=$(LML_URL)
+#KERNEL_URL=http://www.kernel.org/pub/linux/kernel/v3.x
+KERNEL_URL=$(LML_URL)
 
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
@@ -32,14 +32,14 @@ CLOOP_URL=http://debian-knoppix.alioth.debian.org/packages/cloop
 #CLOOP_URL=$(LML_URL)
 
 # virtualbox-guest
-#VBOX_ARCHIVE=$(shell grep virtualbox-guest- debian/md5sums.src | awk '{ print $$2 }')
-#VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
-#VBOX_URL=$(LML_URL)
+VBOX_ARCHIVE=$(shell grep virtualbox-guest- debian/md5sums.src | awk '{ print $$2 }')
+VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
+VBOX_URL=$(LML_URL)
 
 # compat wireless drivers (ethernet driver alx.ko needed)
-#COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
-#COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
-#COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
+COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
+COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
+COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
@@ -223,28 +223,37 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		echo "[1mPatching cloop sources...[0m" ; \
-		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 	fi
 
-	# vboxguest
-#	-@if [ ! -d $(VBOX_DIR) ]; then \
-#		( [ -e cache/$(VBOX_ARCHIVE) ] || ( cd cache && wget $(VBOX_URL)/$(VBOX_ARCHIVE) ) ); \
-#		( cd cache && grep $(VBOX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(VBOX_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(VBOX_ARCHIVE) -C kernel; \
-#		ln -sf ../$(VBOX_DIR) kernel/virtualbox-guest; \
+	# cloop with patch
+#	-@if [ ! -d $(CLOOP_DIR) ]; then \
+#		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+#		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
+#		echo "[1mPatching cloop sources...[0m" ; \
+#		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
+#		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 #	fi
 
+	# vboxguest
+	-@if [ ! -d $(VBOX_DIR) ]; then \
+		( [ -e cache/$(VBOX_ARCHIVE) ] || ( cd cache && wget $(VBOX_URL)/$(VBOX_ARCHIVE) ) ); \
+		( cd cache && grep $(VBOX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(VBOX_ARCHIVE)...[0m" ; \
+		tar xf cache/$(VBOX_ARCHIVE) -C kernel; \
+		ln -sf ../$(VBOX_DIR) kernel/virtualbox-guest; \
+	fi
+
 	# compat wireless
-#	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
-#		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
-#		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
-#		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
-#	fi
+	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
+		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
+		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
+		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
+	fi
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
@@ -355,8 +364,8 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
 	        echo "ESC[1mBuilding LINBO kernel...ESC[0m" ; \
 	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
-#	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
-#	        rm -f $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko || true ; \
+	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
+	        rm -f $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko || true ; \
 	        rm -rf ../modules/* || true ; \
 	        cd $(KERNEL_DIR) ; \
 	        ln -snf ../initramfs_kernel.conf . ; \
@@ -375,21 +384,21 @@ build-stamp: configure-stamp
 	fi
 
 	# vboxguest modules
-#	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
-#	        echo "ESC[1mBuilding virtualbox-guest modules...ESC[0m" ; \
-#	        rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
-#	        cd $(VBOX_DIR) && \
-#	        ( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
-#	fi
+	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
+	        echo "ESC[1mBuilding virtualbox-guest modules...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
+	        cd $(VBOX_DIR) && \
+	        ( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
+	fi
 
 	# compat wireless alx module
-#	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-#	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
-#	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-#	        cd $(COMPWLESS_DIR) && \
-#	        ( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
-#	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-#	fi
+	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+	        cd $(COMPWLESS_DIR) && \
+	        ( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
+	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	fi
 
 	touch build-stamp
 
@@ -421,12 +430,12 @@ install: build
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
 	# vboxguest module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
-#	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
+	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
 	# alx module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
