@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.1.9-0) precise; urgency=low
+
+  * added intel's e1000e driver version 2.5.4 (closes #236).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Jan 2014 18:13:00 +0100
+
 linuxmuster-linbo (2.1.8-1) precise; urgency=low
 
   * kernel reverted to 3.2.53 (ubuntu's version 3.2.0-58.88).
