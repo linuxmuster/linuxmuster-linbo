@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 07.01.2014
+# 30.01.2014
 # GPL v3
 #
 
@@ -36,10 +36,10 @@ VBOX_ARCHIVE=$(shell grep virtualbox-guest- debian/md5sums.src | awk '{ print $$
 VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
 VBOX_URL=$(LML_URL)
 
-# compat wireless drivers (ethernet driver alx.ko needed)
-COMPWLESS_ARCHIVE=$(shell grep compat-wireless- debian/md5sums.src | awk '{ print $$2 }')
-COMPWLESS_DIR=kernel/$(shell echo $(COMPWLESS_ARCHIVE) | sed -e 's/.tar.bz2//')
-COMPWLESS_URL=http://linuxwireless.org/download/compat-wireless-2.6
+# backports
+BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
+BACKPORTS_DIR=kernel/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
+BACKPORTS_URL=http://www.kernel.org/pub/linux/kernel/projects/backports/stable/v3.13
 
 # intel e1000e driver
 E1000E_ARCHIVE=$(shell grep e1000e- debian/md5sums.src | awk '{ print $$2 }')
@@ -260,13 +260,13 @@ configure-stamp:
 		ln -sf ../$(VBOX_DIR) kernel/virtualbox-guest; \
 	fi
 
-	# compat wireless
-	-@if [ ! -d $(COMPWLESS_DIR) ]; then \
-		( [ -e cache/$(COMPWLESS_ARCHIVE) ] || ( cd cache && wget $(COMPWLESS_URL)/$(COMPWLESS_ARCHIVE) ) ); \
-		( cd cache && grep $(COMPWLESS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(COMPWLESS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(COMPWLESS_ARCHIVE) -C kernel; \
-		ln -sf ../$(COMPWLESS_DIR) kernel/compat-wireless; \
+	# backports
+	-@if [ ! -d $(BACKPORTS_DIR) ]; then \
+		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
+		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel; \
+		ln -sf ../$(BACKPORTS_DIR) kernel/backports; \
 	fi
 
 	# kernel
@@ -414,12 +414,12 @@ build-stamp: configure-stamp
 	        ( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
 	fi
 
-	# compat wireless alx module
-	-@if [ ! -e $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+	# backports
+	-@if [ ! -e $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
 	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-	        cd $(COMPWLESS_DIR) && \
-	        ( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) ./scripts/driver-select alx ; \
+	        cd $(BACKPORTS_DIR) && \
+	        ( make clean ; ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make defconfig-alx ; \
 	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
 	fi
 
@@ -460,8 +460,8 @@ install: build
 	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
 	# alx module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(COMPWLESS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+	cp $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(BACKPORTS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
