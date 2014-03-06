@@ -6,7 +6,7 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 09.01.2013
+# 10.02.2013
 # GPL v3
 #
 
@@ -38,6 +38,7 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 # Save filename for post-script and exit, if it is a new host data file
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
 
+echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "BACKUP: $BACKUP"

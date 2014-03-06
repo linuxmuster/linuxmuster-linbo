@@ -2,11 +2,11 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: bison, build-essential, bvi, coreutils, debhelper, dosfstools, dpkg-dev, dropbear, e2fsprogs, ethtool, fakeroot, flex, g++, gcc, gettext, grep, gzip, libacl1-dev, libattr1-dev, libaudio-dev, libcups2-dev, libdevmapper-dev, libfontconfig1-dev, libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev, libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev, libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6, libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev, libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, nasm, ncurses-base, patchutils, perl, reiserfsprogs, sysvinit-utils, tar, udev, udpcast, unzip, util-linux, wget, zlib1g-dev
+Build-Depends: bison, build-essential, bvi, coreutils, debhelper, dosfstools, dpkg-dev, dropbear, e2fsprogs, ethtool, fakeroot, flex, g++, gcc, gettext, grep, gzip, libacl1-dev, libattr1-dev, libaudio-dev, libcups2-dev, libdevmapper-dev, libfontconfig1-dev, libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev, libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev, libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6, libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev, libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, nasm, ncurses-base, patchutils, perl, reiserfsprogs, sysvinit-utils, tar, udev, udpcast, unzip, util-linux, wget, xz-lzma, zlib1g-dev
 
 Package: linuxmuster-linbo
 Architecture: all
-Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), tftpd-hpa, udpcast, zip, mbr, etherwake
+Depends: rsync (>= 2.6.9), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, linuxmuster-base (>= 1.4.36), atftpd (>= 0.7.dfsg-11.1), udpcast, xz-lzma, zip, mbr, etherwake
 Suggests: isc-dhcp-server | dhcp3-server
 Recommends: wodim, ldap-utils
 Description: LINBO PXE boot files

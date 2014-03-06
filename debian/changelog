@@ -1,3 +1,49 @@
+linuxmuster-linbo (2.2.0-0) precise-testing; urgency=low
+
+  * pxe boot extensions (closes #286):
+    - added linbo-wrapper commands as kernel parameter:
+      linbocmd=<cmd1>,<cmd2> (see help of linbo-remote).
+    - changed linbo wallpaper and boot logo.
+    - added fbcondecor patch to linbo kernel.
+    - implemented splash output for boot process, new splash kernel option.
+    - changed to atftpd as default tftp server so that we can use pipes.
+    - added -p parameter to linbo-remote to create a one time pxeboot configuration file
+      with commands which will be automatically executed on next client boot,
+      it is created as a pipe therefore it can be deleted once the client
+      has requested it.
+  * pxe boot configuration improvements (closes #288):
+    - added new global start.conf option "KernelOptions" for group
+      specific linbo kernel parameters.
+    - postinst invokes automatical update of existing start.conf files.
+  * opsi support (closes #282):
+    - new image.opsi file which contains the current opsi state of the imaged client.
+    - new rsync-post-download script to handle opsi status update for client.
+    - on image creation a image.opsi file which reflects the current opsi
+      state is added on post upload.
+    - linbo_cmd patches client-agent configuration with hostname and pckey.
+  * kernel, linbofs:
+    - changed to more effective lzma archive format, renamed
+      linbofs.gz to linbofs.lz (closes #287)
+    - recompiled with 64G RAM support.
+  * improved support for wlan clients (closes #66):
+    - removed -w suffix for hostnames if offline in linbo_cmd.
+  * machine passwort handling improvements (closes #289):
+    - moved invokation of machine password update from syncl() to start(),
+      so it happens on every os start.
+  * linbo_cmd enhancements:
+    - minor code cleanup, console output improvements.
+    - fixed restore of rsync image.
+    - reworked torrent download.
+  * update-linbofs.sh: code cleanup, removed unnecessary tasks.
+  * source package directory structure cleanup.
+  * preinst and postinst code cleanup.
+  * linbo-remote enhancements:
+    - standalone use of -w param added so that clients can only be waked up.
+    - added 3 sec. pause between multiple commands.
+  * init.sh: network detection optimations.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 06 Mar 2014 16:12:53 +0100
+
 linuxmuster-linbo (2.1.10-0) precise; urgency=low
 
   * added backports driver 3.13-1 and removed compat-wireless to update alx.

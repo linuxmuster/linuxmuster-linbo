@@ -1,57 +1,22 @@
 #!/bin/bash
 #
-# creating/updating group specific linbofs.gz
-#
-# Thomas Schmitt <schmitt@lmz-bw.de>
+# creating/updating linbofs.lz with linbo password and ssh keys
+# has to be invoked during linuxmuster-setup,  package upgrade or
+# linbo password change in /etc/rsyncd.secrets.
+# 
+# thomas@linuxmuster.net
 # GPL V3
-# $Id: update-linbofs.sh 1083 2011-06-07 10:13:34Z tschmitt $
+# 05.02.2014
+#
 
 # read linuxmuster environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
-groups="$@"
-
-# sets serverip in start.conf
-set_serverip(){
- local conf=$1
- grep -q ^"Server = $serverip" $conf && return 0
- if grep -q ^Server $conf; then
-  sed -e "s/^Server.*/Server = $serverip/" -i $conf
- else
-  sed -e "/^\[LINBO\]/a\
-Server = $serverip" -i $conf
- fi
-}
-
-# sets group in start.conf
-set_group(){
- local conf=$1
- local group=$2
- grep -q ^"Group = $group" $conf && return 0
- if grep -q ^Group $conf; then
-  sed -e "s/^Group.*/Group = $group/" -i $conf
- else
-  sed -e "/^Server/a\
-Group = $group" -i $conf
- fi
-}
-
-# sets pxe config file
-set_pxeconfig(){
- local group=$1
- local conf="$LINBODIR/pxelinux.cfg/$group"
- if [ -e "$conf" ]; then
-  sed -e "s|initrd=linbofs[.a-zA-Z0-9_-]*.gz|initrd=linbofs.gz|g" -i $conf
- else
-  # copy default pxelinux config for group
-  cp $PXELINUXCFG $conf
-  if grep -i ^kernel $LINBODIR/start.conf.$group | grep -qiw reboot; then
-   # sets default boot method for reboot workaround
-   grep -q ^"LABEL reboot" $conf && sed -e 's|^DEFAULT .*|DEFAULT reboot|' -i $conf
-  fi
- fi
-}
+if [ ! -e "$INSTALLED" ]; then
+ echo "linuxmuster.net is not configured! Aborting!"
+ exit 1
+fi
 
 # check & set lockfile
 locker=/tmp/.update-linbofs.lock
@@ -80,32 +45,30 @@ bailout() {
 # this script makes only sense if imaging=linbo
 [ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
 
-# check for default linbofs.gz
-[ ! -s "$LINBODIR/linbofs.gz" ] && bailout "Error: $LINBODIR/linbofs.gz not found!"
+# check for default linbofs.lz
+[ ! -s "$LINBODIR/linbofs.lz" ] && bailout "Error: $LINBODIR/linbofs.lz not found!"
 
 # grep linbo rsync password to sync it with linbo account
 [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
-linbo_passwd=`grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }'`
+linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
 if [ -z "$linbo_passwd" ]; then
  bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
 else
- sophomorix-passwd --user linbo --pass $linbo_passwd &> /dev/null ; RC=$?
- if [ $RC -ne 0 ]; then
-  bailout "Failed to set linbo password!"
- fi
+ sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
+ [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
  # md5sum of linbo password goes into ramdisk
  linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
 fi
 
-# begin to process linbofs.gz
-echo "Processing LINBO groups:"
+# begin to process linbofs.lz
+echo "Processing linbofs update ..."
 
 # create temp dir for linbofs content
 mkdir -p $tmpdir
 cd $tmpdir || bailout "Cannot change to $tmpdir!"
-# unpack linbofs.gz to tmpdir
-zcat $LINBODIR/linbofs.gz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
-[ $RC -ne 0 ] && bailout " Failed to unpack linbofs.gz!"
+# unpack linbofs.lz to tmpdir
+xzcat $LINBODIR/linbofs.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
+[ $RC -ne 0 ] && bailout " Failed to unpack linbofs.lz!"
 
 # store linbo md5 password
 [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
@@ -124,49 +87,14 @@ cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
 mkdir -p var/log
 touch var/log/lastlog
 
-if [ -z "$groups" ] || stringinstring default "$groups"; then
- # begin with default linbofs.gz
- echo -n " * default ... "
+# copy default start.conf
+cp -f $LINBODIR/start.conf .
 
- # check and copy default start.conf
- set_serverip $LINBODIR/start.conf
- cp -f $LINBODIR/start.conf .
-
- # pack default linbofs.gz again
- find . | cpio --quiet -o -H newc | gzip -9c > $LINBODIR/linbofs.gz ; RC="$?"
- [ $RC -ne 0 ] && bailout "failed!"
- echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.gz | awk '{print $5}'`" > $LINBODIR/linbofs.gz.info
- echo "Ok!"
-fi
-
-# if no groups are given on cmdline then take all groups from workstations file
-[ -z "$groups" ] && groups=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $3 " " $11 }' | grep -v -w 0 | awk '{ print $1 }' | sort -u`
-
-# now process all groups found in $WIMPORTDATA
-for i in $groups; do
-
- # skip group default
- [ "$group" = "default" ] && continue
-
- # do nothing if there is no start.conf for this group
- [ -e "$LINBODIR/start.conf.$i" ] || continue
-
- # print group name
- echo -n " * $i ... "
-
- # check and repair necessary conf files
- set_serverip $LINBODIR/start.conf.$i
- set_group $LINBODIR/start.conf.$i $i
- set_pxeconfig $i
-
- echo "Ok!"
-
-done
-
-# restart image services
-for i in linbo-multicast linbo-bittorrent; do
- /etc/init.d/$i restart
-done
+# pack default linbofs.lz again
+find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs.lz ; RC="$?"
+[ $RC -ne 0 ] && bailout "failed!"
+echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.lz | awk '{print $5}'`" > $LINBODIR/linbofs.lz.info
+echo "Ok!"
 
 # clean tmpdir
 cd "$curdir"

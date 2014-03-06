@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 30.01.2014
+# 12.02.2014
 # GPL v3
 #
 
@@ -275,6 +275,8 @@ configure-stamp:
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
+		echo "[1mPatching kernel sources...[0m" ; \
+		( cd $(KERNEL_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
 	fi
 
@@ -365,13 +367,13 @@ build-stamp: configure-stamp
 	# qt
 	-@if [ ! -e $(QT_DIR)/bin/moc ]; then \
 		echo "[1mBuilding QT...[0m" ; \
-		( cd linbo_gui && ./build_qt && rm linbo_gui ); \
+		( cd $(CURDIR)/linbo_gui && ./build_qt && rm linbo_gui ); \
 	fi
 
 	# linbo_gui
-	-@if [ ! -e linbo_gui/linbo_gui ]; then \
+	-@if [ ! -e $(CURDIR)/linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
-		( cd linbo_gui && ./build_gui ); \
+		( cd $(CURDIR)/linbo_gui && ./build_gui ); \
 	fi
 
 	# linbo kernel
@@ -448,7 +450,7 @@ install: build
 	( cd $(KERNEL_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking LINBO kernel to /var/linbo/linbo.[0m" ; \
 	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo ; \
-	echo -e "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
+	printf "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
 	# cloop module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
@@ -479,45 +481,40 @@ install: build
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	rm -f initramfs.gz ; ./usr/gen_init_cpio ../initramfs.conf | gzip -9cv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.gz
-	echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.gz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.gz.info
-	# supplemental server stuff
-	install -m 644 media/german.kbd debian/linuxmuster-linbo/var/linbo/german.kbd
-	install -m 644 graphics/linbo-pxe-bootscreen.16 debian/linuxmuster-linbo/var/linbo/logo.16
-	install -m 644 graphics/debian.png debian/linuxmuster-linbo/var/linbo/icons/debian.png
-	install -m 644 graphics/winxp.png debian/linuxmuster-linbo/var/linbo/icons/winxp.png
-	install -m 644 graphics/ubuntu.png debian/linuxmuster-linbo/var/linbo/icons/ubuntu.png
-	install -m 644 graphics/default.png debian/linuxmuster-linbo/var/linbo/icons/default.png
+	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
+	printf "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz.info
+	# package files
+	# /etc
+	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
+	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
+	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
+	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/
+	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
+	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
+	# /var/linbo
+	cp -a var/* debian/linuxmuster-linbo/var/linbo
+	sed -e 's|@@version@@|$(LVERS)|' -i debian/linuxmuster-linbo/var/linbo/boot.msg
+	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
+	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst
+	install -m 644 $(SYSLINUX_DIR)/core/pxelinux.0 debian/linuxmuster-linbo/var/linbo/pxelinux.0
+	install -m 644 $(SYSLINUX_DIR)/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/menu.c32
+	install -m 644 $(SYSLINUX_DIR)/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/vesamenu.c32
+	install -m 644 $(SYSLINUX_DIR)/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/memdisk
+	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/var/linbo/gpxe.krn
+	# /usr/share/linuxmuster-linbo
+	cp -a share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	install -m 644 linbo_gui/icons/linbo_wallpaper.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo_wallpaper.png
+	# /usr/lib/linuxmuster-linbo
 	install -m 644 $(SYSLINUX_DIR)/core/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
 	install -m 644 $(SYSLINUX_DIR)/core/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
 	install -m 644 $(SYSLINUX_DIR)/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
 	install -m 644 $(SYSLINUX_DIR)/com32/modules/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
 	install -m 644 $(SYSLINUX_DIR)/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxelinux.0
-	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 	install -m 755 $(SYSLINUX_DIR)/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
 	install -m 644 $(SYSLINUX_DIR)/memdisk/memdisk debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/memdisk
 	install -m 644 $(SYSLINUX_DIR)/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
 	install -m 644 $(SYSLINUX_DIR)/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
-	install -m 644 $(SYSLINUX_DIR)/core/pxelinux.0 debian/linuxmuster-linbo/var/linbo/pxelinux.0
-	install -m 644 $(SYSLINUX_DIR)/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/vesamenu.c32
-	install -m 644 $(SYSLINUX_DIR)/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/memdisk
-	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/var/linbo/gpxe.krn
-	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
-	install -m 644 media/german.kbd debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/german.kbd
-	install -m 644 graphics/linbo-cd.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-cd.png
-	install -m 644 graphics/linbo-usb.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo-usb.png
-	install -m 644 examples/* debian/linuxmuster-linbo/var/linbo/examples/
-	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst.default
-	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
-	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
-	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
-	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/
-	install -m 644 etc/pxelinux.cfg debian/linuxmuster-linbo/var/linbo/pxelinux.cfg/default
-	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
-	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
-	install -m 755 share/*.sh debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
-	install -m 644 share/templates/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
-	sed -e 's|@@version@@|$(LVERS)|' media/boot.msg > debian/linuxmuster-linbo/var/linbo/boot.msg
+	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -529,7 +526,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installdebconf	
 	dh_installdocs
-	dh_installexamples
+#	dh_installexamples
 #	dh_installmenu
 	dh_installlogrotate
 #	dh_installemacsen

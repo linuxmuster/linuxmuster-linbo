@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # tschmitt@linuxmuster.net
-# 15.10.2013
+# 01.02.2014
 #
 
 # Reset fb color mode
@@ -13,7 +13,6 @@ RESET="]R"
 CLEAR="c"
 
 CMDLINE="$(cat /proc/cmdline)"
-REMOTE_TAG="### LINBO REMOTE ###"
 
 # echo "$CLEAR$RESET"
 

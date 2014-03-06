@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
-# 07.10.2013
+# 10.02.2014
 #
 
 set -e
@@ -27,7 +27,6 @@ set -e
 
 LINBODIR=/var/linbo
 DISTCONF=/usr/share/linuxmuster/config/dist.conf
-[ -d /usr/share/doc/ubuntu-keyring ] && UBUNTU=yes
 
 case "$1" in
 
@@ -42,94 +41,58 @@ case "$1" in
   . $DISTCONF
   . $HELPERFUNCTIONS
   [ -e "$INSTALLED" ] || exit 0
-  [ "$imaging" = "linbo" ] || exit 0
   LINBOLOGDIR="$LOGDIR/linbo"
  else
   exit 0
  fi
 
- # check serverip in default pxelinux.cfg and start.conf
- for i in $LINBODEFAULTCONF $SYSCONFDIR/linbo/start.conf.default; do
-  if ! grep ^Server $i | grep -q "$serverip"; then
-   echo "Adjusting server ip in $i to $serverip ..."
-   cp $i $i.dpkg-old
-   sed -e "s/^Server = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i $i
-  fi
- done
- if grep -q "server=" $PXELINUXCFG; then
-  if ! grep -q "$serverip" $PXELINUXCFG; then
-   echo "Adjusting server ip in $PXELINUXCFG to $serverip ..."
-   cp $PXELINUXCFG $PXELINUXCFG.dpkg-old
-   sed -e "s/server=\([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/server=$serverip/g" -i $PXELINUXCFG
-  fi
+ # config file backup dir
+ mkdir -p "$LINBODIR/backup"
+
+ # backup pxelinux configfiles
+ [ -e "$LINBODIR/backup/$(basename $PXECFGDIR)" ] || cp -a "$PXECFGDIR" "$LINBODIR/backup"
+
+ # update serverip in start.conf
+ echo "Setting server ip in start.conf.default."
+ sed -e "s/^[Ss][Ee][Rr][Vv][Ee][Rr] = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i "$LINBODIR/start.conf"
+
+ # provide the default pxelinux configfile
+ conf="$PXECFGDIR/default"
+ if [ ! -s "$conf" -o -L "$conf" ]; then
+  echo "Creating default pxelinux configfile."
+  rm -f "$conf"
+  tpl="$PXETPLDIR/default"
+  sed -e "s|@@default@@|linbo|
+          s|@@kopts@@||g" "$tpl" > "$conf"
  fi
 
- # updating start.confs
+ # pxelinux configfiles and menu.lst update
+ for i in $PXECFGDIR/* $LINBODIR/menu.lst.*; do
+  [ -f "$i" ] || continue
+  grep -q linbofs.gz "$i" && sed -e 's|linbofs.gz|linbofs.lz|g' -i $i
+ done
+
+ # start.confs update
  if ls $LINBODIR/start.conf.* &> /dev/null; then
-  mkdir -p $LINBODIR/backup
-  for i in $LINBODIR/start.conf.*; do
-   ext="$(echo $i | grep -o '\.[^.]*$')"
-   [ "$ext" = ".gz" ] && continue
-   backed_up=""
-   echo -n "Checking ${i/$LINBODIR\/}: "
-   # RemoteSyncEnabled -> NewEnabled
-   if grep -qi ^remotesyncenabled $i; then
-    cp $i $LINBODIR/backup
-    backed_up=yes
-    sed -e 's/[Rr][Ee][Mm][Oo][Tt][Ee][Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd]/NewEnabled/g' -i $i
-   fi
-   # pxegrub -> grub.exe
-   if grep -qi pxegrub $i; then
-    if [ -z "$backed_up" ]; then
-     cp $i $LINBODIR/backup
-     backed_up=yes
-    fi
-    sed -e 's/[Pp][Xx][Ee][Gg][Rr][Uu][Bb]/grub.exe/g' -i $i
-   fi
-   # UseMultiCast -> DownloadType (#403)
-   if grep -qi ^usemulticast $i; then
-    if [ -z "$backed_up" ]; then
-     cp $i $LINBODIR/backup
-     backed_up=yes
-    fi
-    RET=`grep -i ^usemulticast $i | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
-    if [ "$RET" = "yes" ]; then
-     rstr="multicast"
+
+  # iterate over hostgroups
+  for i in $(grep -i ^[a-z0-9] /etc/linuxmuster/workstations | awk -F\; '{ print $3 }' | sort -u); do
+   conf="$LINBODIR/start.conf.$i"
+   [ -e "$conf" ] || continue
+   # add new KernelOptions option
+   if ! grep -wqi ^kerneloptions "$conf"; then
+    echo "Adding KernelOptions to start.conf.$i."
+    if [ -s "$PXECFGDIR/$i" ]; then
+     kopts="$(grep -i ^append "$PXECFGDIR/$i" | grep -i initrd=linbofs.lz | grep -i quiet | tail -1 | sed -e "s|append ||I" -e "s|splash||I" -e "s|initrd=linbofs.lz||I" -e "s|quiet||I" -e "s|vga=788||I" -e 's/^ *//g' -e 's/ *$//g')"
     else
-     rstr="rsync"
+     kopts=""
     fi
-    sed -e "s|^[Uu][Ss][Ee][Mm][Uu][Ll][Tt][Ii][Cc][Aa][Ss][Tt].*|DownloadType = $rstr # Image-Download per torrent\|multicast\|rsync\, default ist rsync|" -i $i
-   fi
-   # adding new options
-   for t in "DownloadType rsync" "BackgroundFontColor white" "ConsoleFontColorStdout white" "ConsoleFontColorStderr red" "IconName default.png" "DefaultAction sync" "AutostartTimeout 5"; do
-    option="$(echo "$t" | awk '{ print $1 }')"
-    if ! grep -qi ^$option $i; then
-     value="$(echo "$t" | awk '{ print $2 }')"
-     if [ -z "$backed_up" ]; then
-      cp $i $LINBODIR/backup
-      backed_up=yes
-     fi
-     case $option in
-      IconName|DefaultAction|AutostartTimeout)
-       sed -e "/^\[[Oo][Ss]\]/a\
-$option = $value" -i $i
-      ;;
-      *)
-       sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
-$option = $value" -i $i
-      ;;
-     esac
-    fi
-   done # DownloadType etc.
-   if [ -n "$backed_up" ]; then
-    backup_flag=yes
-    echo "updated!"
-   else
-    echo "Ok."
+    cp -f "$conf" "$LINBODIR/backup"
+    sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
+KernelOptions = $kopts" -i "$conf"
    fi
   done
-  [ -n "$backup_flag" ] && echo "Changed files were backed up to $LINBODIR/backup!"
- fi # updating start.confs
+ fi
 
  # check for linbo mail wrapper in /etc/aliases
  if ! grep -q ^linbo: /etc/aliases; then
@@ -163,47 +126,6 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
  [ -d /var/log/bittorrent ] || mkdir -p /var/log/bittorrent
  chown bittorrent /var/log/bittorrent -R
 
- # setting needed options in /etc/default/bittorrent
- if [ -s /etc/default/bittorrent ]; then
-  if ! grep -q ^REANNOUNCE_INTERVAL /etc/default/bittorrent; then
-   echo "Adding REANNOUNCE_INTERVAL=15 to /etc/default/bittorrent."
-   cp /etc/default/bittorrent /etc/default/bittorrent.dpkg-old && bt_backup=yes
-   echo >> /etc/default/bittorrent
-   echo "# seconds downloaders should wait between reannouncements (default 1800)" >> /etc/default/bittorrent
-   echo "# 15 seconds is recommended value for linuxmuster-linbo" >> /etc/default/bittorrent
-   echo "REANNOUNCE_INTERVAL=15" >> /etc/default/bittorrent
-  fi
-  if ! grep -q ^"DAEMONUSER=bittorrent" /etc/default/bittorrent; then
-   echo "Adding DAEMONUSER=bittorrent to /etc/default/bittorrent."
-   [ -z "$bt_backup" ] && cp /etc/default/bittorrent /etc/default/bittorrent.dpkg-old && bt_backup=yes
-   sed -e 's|^DAEMONUSER=|#DAEMONUSER=|' -i /etc/default/bittorrent
-   echo >> /etc/default/bittorrent
-   echo "# it is recommended for linuxmuster-linbo to run the service as bittorrent user" >> /etc/default/bittorrent
-   echo "DAEMONUSER=bittorrent" >> /etc/default/bittorrent
-  fi
-  if ! grep -q ^"ALLOWED_DIR=$LINBODIR" /etc/default/bittorrent; then
-   echo "Adding ALLOWED_DIR=$LINBODIR to /etc/default/bittorrent."
-   [ -z "$bt_backup" ] && cp /etc/default/bittorrent /etc/default/bittorrent.dpkg-old && bt_backup=yes
-   sed -e 's|^ALLOWED_DIR=|#ALLOWED_DIR=|' -i /etc/default/bittorrent
-   echo >> /etc/default/bittorrent
-   echo "# where the LINBO images live" >> /etc/default/bittorrent
-   echo "ALLOWED_DIR=$LINBODIR" >> /etc/default/bittorrent
-  fi
-  if ! grep -q ^"PORT=6969" /etc/default/bittorrent; then
-   echo "Adding PORT=6969 to /etc/default/bittorrent."
-   [ -z "$bt_backup" ] && cp /etc/default/bittorrent /etc/default/bittorrent.dpkg-old
-   sed -e 's|^PORT=|#PORT=|' -i /etc/default/bittorrent
-   echo >> /etc/default/bittorrent
-   echo "# port must be 6969 for linuxmuster-linbo" >> /etc/default/bittorrent
-   echo "PORT=6969" >> /etc/default/bittorrent
-  fi
-  # provide a logrotate file for bittorrent
-  if [ ! -e /etc/logrotate.d/bittorrent ]; then
-   echo "Creating /etc/logrotate.d/bittorrent."
-   sed -e 's|/var/log/linuxmuster/linbo/|/var/log/bittorrent/|' /etc/logrotate.d/linuxmuster-linbo > /etc/logrotate.d/bittorrent
-  fi
- fi # /etc/default/bittorrent
-
  # change owner of logdir to nobody
  [ -d "$LINBOLOGDIR" ] || mkdir -p $LINBOLOGDIR
  chown nobody $LINBOLOGDIR -R
@@ -220,35 +142,22 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
 
  # kill obsolete btdownloadheadless processes from old versions
  if ps ax | grep -v grep | grep -q btdownloadheadless; then
-  /etc/init.d/linbo-bittorrent stop
+  service linbo-bittorrent stop
   oldpids="$(ps ax | grep -v grep | grep btdownloadheadless | awk '{ print $1 }')"
   echo "Sending obsolete btdownloadheadless processes the TERM signal."
   kill $oldpids
-  /etc/init.d/linbo-bittorrent start
+  service linbo-bittorrent start
  fi
 
- # create tftpd-hpa configs if necessary
- tpldir="/usr/share/linuxmuster-linbo/templates"
- conf="/etc/default/tftpd-hpa"
- if [ -n "$UBUNTU" ]; then
-  tpl="$tpldir/tftpd-hpa.default.ubuntu"
-  grep -q ubuntu "$conf" || update_config=yes
- else
-  tpl="$tpldir/tftpd-hpa.default"
-  grep -q openML "$conf" || update_config=yes
- fi
+ # create atftpd configs if necessary
+ conf="/etc/default/atftpd"
+ tpl="$LINBOTPLDIR/atftpd.default"
  grep -q "$LINBODIR" "$conf" || update_config=yes
  if [ -n "$update_config" ]; then
   echo "Patching $conf."
   cp "$conf" "$conf".dpkg-bak
-  sed -e "s|@@linbodir@@|$LINBODIR|" "$tpl" > "$conf"
-  tftpd_restart=yes
- fi
- conf="/etc/tftp_remap.conf"
- tpl="$tpldir/$(basename $conf)"
- if [ ! -e "$conf" ]; then
-  echo "Providing $conf."
-  cp "$tpl" "$conf"
+  sed -e "s|@@linbodir@@|$LINBODIR|
+          s|@@serverip@@|$serverip|" "$tpl" > "$conf"
   tftpd_restart=yes
  fi
  if [ -n "$tftpd_restart" ]; then
@@ -257,26 +166,22 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
    echo "Deactivating tftp in /etc/inetd.conf."
    cp /etc/inetd.conf /etc/inetd.conf.dpkg-bak
    sed -e 's|^tftp|#tftp|' -i /etc/inetd.conf
-   /etc/init.d/openbsd-inetd restart
+   service openbsd-inetd restart
   fi
-  if [ -n "$UBUNTU" ]; then
-   restart tftpd-hpa
-  else
-   /etc/init.d/tftpd-hpa restart
-  fi
+  service atftpd restart
  fi
 
  # update rsyncd.conf
  conf=/etc/rsyncd.conf
- tpl="$tpldir/$(basename $conf)"
- if ! grep rsync-pre-download.sh "$conf" &> /dev/null; then
+ tpl="$LINBOTPLDIR/$(basename $conf)"
+ if ! grep rsync-post-download.sh "$conf" &> /dev/null; then
   echo "Updating $conf."
   [ -e "$conf" ] && cp "$conf" "$conf.dpkg-bak"
   sed -e "s|@@linbodir@@|$LINBODIR|g" "$tpl" > "$conf"
-  /etc/init.d/rsync restart
+  service rsync restart
  fi
 
- # update linbofs.gz
+ # update linbofs.lz
  $LINBOUPDATE
  ;;
 

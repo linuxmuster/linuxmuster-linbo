@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 31.10.2013
+# 04.03.2014
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -40,7 +40,6 @@ CYAN="[1;36m"
 WHITE="[1;37m"
 
 CMDLINE=""
-REMOTE_TAG="### LINBO REMOTE ###"
 
 # Utilities
 
@@ -80,16 +79,20 @@ udev_extra_nodes() {
   done
 }
 
-# Setup
-init_setup(){
+# read commandline parameters
+read_cmdline(){
  mount -t proc /proc /proc
  echo 0 >/proc/sys/kernel/printk
 
  # parse kernel cmdline
  CMDLINE="$(cat /proc/cmdline)"
- # deprecated
- #case "$CMDLINE" in *\ useide*) useide=yes;; esac
- case "$CMDLINE" in *\ debug*) debug=yes;; esac
+ 
+ case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
+ case "$CMDLINE" in *\ splash*) splash=yes;; esac
+}
+
+# initial setup
+init_setup(){
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
 
  # process parameters given on kernel command line
@@ -142,7 +145,7 @@ trycopyfromdevice(){
  local i=""
  local files="$2"
  if ! cat /proc/mounts | grep -q "$device /cache"; then
-  mount -r "$device" /cache >/dev/null 2>&1 || return 1
+  mount -r "$device" /cache &>/dev/null || return 1
  fi
  for i in $files; do
   if [ -e /cache/"$i" -a -s /cache/linbo ]; then
@@ -185,15 +188,14 @@ printcache(){
  if [ -n "$cache" ]; then
   cachedev="$cache"
  else
-  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' &> /dev/null)"
  fi
  [ -b "$cachedev" ] && echo "$cachedev"
 }
 
 # copytocache file - copies start.conf to local cache
 copytocache(){
- # do not copy start.conf in remote control mode
- grep "$REMOTE_TAG" /start.conf && return 0
+ echo "Copying start.conf to cache."
  local cachedev="$(printcache)"
  case "$cachedev" in
   /dev/*) # local cache
@@ -313,10 +315,11 @@ isreboot(){
 # remove linbo reboot flag
 rmlinboreboot(){
  isreboot || return 0
+ echo "Removing reboot flag."
  local device="" properties="" cachedev="$(printcache)"
- sfdisk -l | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
+ sfdisk -l 2> /dev/null | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
   [ "$cachedev" = "$device" ] && continue
-  if mount "$device" /mnt; then
+  if mount "$device" /mnt 2> /dev/null; then
    [ -e /mnt/.linbo.reboot ] && rm -f /mnt/.linbo.reboot
    [ -e /mnt/.grub.reboot ] && rm -f /mnt/.grub.reboot
    umount /mnt
@@ -324,28 +327,15 @@ rmlinboreboot(){
  done
 }
 
-# get DownloadType from start.conf
-downloadtype(){
- local RET=""
- if [ -s /start.conf ]; then
-  RET="$(grep -i ^downloadtype /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z)"
-  # get old option for compatibility issue
-  if [ -z "$RET" ]; then
-   RET="$(grep -i ^usemulticast /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z)"
-   [ "$RET" = "yes" ] && RET="multicast"
-  fi
- fi
- echo "$RET"
-}
-
 # handle autostart from cmdline
 set_autostart() {
- # do set autostart in remote control mode
- grep "$REMOTE_TAG" /start.conf && return 0
+ # do not set autostart if linbo commands are given on command line
+ [ -n "$linbocmd" ] && return 0
  # count [OS] entries
  local counts="$(grep -ci ^"\[OS\]" /start.conf)"
  # return if autostart shall be suppressed generally
  if [ "$autostart" = "0" ]; then
+  echo "Disabling autostart."
   # set all autostart parameters to no
   sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
   return
@@ -363,6 +353,7 @@ set_autostart() {
   echo "$line" | grep -qi ^autostart || echo "$line" >> /start.conf.new
   # write autostart line for specific OS
   if [ "$found" = "1" ]; then
+   echo "Enabling autostart for os nr. $c."
    echo "Autostart = yes" >> /start.conf.new
    found=0
   fi
@@ -371,23 +362,31 @@ set_autostart() {
 }
 
 network(){
- [ -n "$localmode" ] && { touch /tmp/linbo-network.done; return 0; }
+ echo
+ echo "Starting network configuration ..."
+ if [ -n "$localmode" ]; then
+  echo "Localmode configured, skipping network configuration."
+  touch /tmp/linbo-network.done
+  return 0
+ fi
  rm -f /tmp/linbo-network.done
  if [ -n "$ipaddr" ]; then
+  echo "Using static ip address $ipaddr."
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
-  ifconfig ${netdevice:-eth0} $ipaddr $nm
+  ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
  else
   # iterate over ethernet interfaces
+  echo "Requesting ip address per dhcp ..."
   for i in /sys/class/net/eth*; do
    dev="${i##*/}"
-   ifconfig "$dev" up >/dev/null 2>&1
+   ifconfig "$dev" up &> /dev/null
    # activate wol
-   ethtool -s "$dev" wol g >/dev/null 2>&1
+   ethtool -s "$dev" wol g &> /dev/null
    # dhcp retries
    [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dev" $dhcpretry >/dev/null 2>&1
+   udhcpc -n -i "$dev" $dhcpretry &> /dev/null
    # set mtu
-   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu >/dev/null 2>&1
+   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
   done
  fi
  # Network is up now, fetch a new start.conf
@@ -396,21 +395,23 @@ network(){
  [ -n "$hostname" ] || hostname="`get_hostname $ipaddr`"
  [ -n "$hostname" ] && hostname "$hostname"
  [ -n "$server" ] || server="`get_server`"
+ echo "IP: $ipaddr * Hostname: $hostname * Server: $server"
  # Move away old start.conf and look for updates
- mv -f start.conf start.conf.dist
+ mv start.conf start.conf.dist
  if [ -n "$server" ]; then
   echo "linbo_server='$server'" >> /tmp/dhcp.log
   echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
+  echo "Downloading configuration files from $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
-   rsync -L "$server::linbo/$i" "start.conf" >/dev/null 2>&1 && break
+   rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
   done
   # also look for other needed files
   for i in "torrent-client.conf" "multicast.list"; do
-   rsync -L "$server::linbo/$i" "/$i" >/dev/null 2>&1
+   rsync -L "$server::linbo/$i" "/$i" &> /dev/null
   done
   # and (optional) the GUI icons
-  for i in linbo_wallpaper.png `grep -i ^iconname /start.conf | awk -F\= '{ print $2 }'`; do
-   rsync -L "$server::linbo/icons/$i" /icons >/dev/null 2>&1
+  for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
+   rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
   done
  fi
  # copy start.conf optionally given on cmdline
@@ -420,6 +421,7 @@ network(){
   copyfromcache "start.conf icons"
  else
   # flag for network connection
+  echo "Network connection to $server successfully established."
   echo > /tmp/network.ok
   # copy start.conf to cache if no extra start.conf was given on cmdline
   [ -z "$extra" ] && copytocache
@@ -434,23 +436,19 @@ network(){
  rmlinboreboot
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
- echo > /tmp/linbo-network.done 
+ # start ssh server
+ echo "Starting ssh server."
+ /sbin/dropbear -s -g -E -p 2222 &> /dev/null
+ # done
+ echo > /tmp/linbo-network.done
+ echo "Done."
+ rm -f /outfifo
 }
 
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
  echo "## Hardware-Setup - Begin ##" >> /tmp/linbo.log
-
- # deprecated
- #if [ -n "$useide" ]; then
-  #echo "Using ide modules ..."
-  #rm -rf /lib/modules/`uname -r`/kernel/drivers/ata
- #else
-  #echo "Using pata/sata modules ..."
-  #rm -rf /lib/modules/`uname -r`/kernel/drivers/ide
- #fi
- #depmod -a
 
  #
  # Udev starten
@@ -490,22 +488,129 @@ echo '| |____  | | | |  \   | | |_| |  \ \___/ /'
 echo '|______| |_| |_|   \__| |____/    \_____/'
 echo
 
-# Initial setup
-if [ -n "$debug" ]; then
+# initial setup
+read_cmdline
+echo
+echo "Configuring hardware ..."
+echo
+if [ -n "$quiet" ]; then
+ init_setup &> /dev/null
+ hwsetup &> /dev/null
+else
  init_setup
-else
- init_setup >/dev/null 2>&1
-fi
-
-# BG processes (HD and Network detection can run in parallel)
-if [ -n "$debug" ]; then
  hwsetup
- network &
-else
- hwsetup >/dev/null 2>&1
- network >/dev/null 2>&1 &
 fi
 
-# start dropbear
-/sbin/dropbear -s -g -E -p 2222
+# console mode
+if [ -z  "$splash" ]; then
+ network
+ # execute linbo commands given on commandline
+ [ -n "$linbocmd" ] && /usr/bin/linbo_wrapper $(echo "$linbocmd" | sed -e 's|,| |g')
+ exit 0
+fi
 
+# splash mode
+
+# no kernel messages, no screen blanking
+setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0
+tput clear
+
+# create pipes for progress bar and output
+mkfifo /fbfifo
+mkfifo /outfifo
+
+# start fbsplash
+fbsplash -i /etc/splash.conf -f /fbfifo -s /etc/splash.pnm &
+fbsplash_pid="$!"
+
+# start network and grab output
+network > /outfifo &
+
+# defaults for console output
+YPOS=12
+COLS=62
+SEPLINE="$(for i in $(seq $COLS); do echo -n '-'; done)"
+XPOS=19
+MAXCOUNT=100
+COUNTSTEP=12
+
+# console output for network configuration
+count=$COUNTSTEP
+while read DATA; do
+ tput cup $YPOS $XPOS
+ printf "%${COLS}s"
+ tput cup $YPOS $XPOS
+ echo "$DATA"
+ [ $count -gt $MAXCOUNT ] && count=$MAXCOUNT
+ echo "$count" > /fbfifo
+ count=$(($count + $COUNTSTEP))
+done < /outfifo
+echo $MAXCOUNT > /fbfifo
+
+# wait for network
+while [ ! -e /tmp/linbo-network.done ]; do
+ sleep 1
+done
+
+# console output for linbo commands
+if [ -n "$linbocmd" ]; then
+
+ # start progress bar
+ ( count=0; while true; do sleep 1; echo $count > /fbfifo; count=$(($count + 10)); [ $count -gt $MAXCOUNT ] && count=0; done ) &
+ pb_pid="$!"
+
+ # iterate over on commandline given linbo commands
+ n=1
+ for cmd in ${linbocmd//,/ }; do
+
+  # pause between commands
+  [ $n -gt 1 ] && sleep 3
+
+  # create pipe for command output
+  mkfifo /outfifo
+  # filter password
+  if echo "$cmd" | grep -q ^linbo:; then
+   msg="linbo_wrapper linbo:*****"
+  else
+   msg="linbo_wrapper $cmd"
+  fi
+  ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
+
+  # read and print output
+  header=""
+  while read DATA; do
+   # print header once
+   if [ -z "$header" ]; then
+    tput cup $(($YPOS - 2)) $XPOS
+    printf "%${COLS}s"
+    tput cup $(($YPOS - 2)) $XPOS
+    echo "${DATA:0:$COLS}"
+    tput cup $(($YPOS - 1)) $XPOS
+    echo "$SEPLINE"
+    header=yes
+   else
+    tput cup $YPOS $XPOS
+    printf "%${COLS}s"
+    tput cup $YPOS $XPOS
+    echo "${DATA:0:$COLS}"
+   fi
+   tput cup $YPOS $XPOS
+  done < /outfifo
+
+  n=$(( $n + 1 ))
+
+ done
+fi
+echo $MAXCOUNT > /fbfifo
+
+# kill progress bar
+kill "$pb_pid"
+ps w | grep -q " $pb_pid " && kill -9 "$pb_pid"
+
+echo "exit\n" > /fbfifo
+clear
+setterm -default
+kill "$fbsplash_pid"
+rm -f /fbfifo
+
+exit 0

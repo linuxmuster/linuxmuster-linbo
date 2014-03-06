@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 31.10.2013
+# 05.02.2014
 # GPL V3
 #
 
@@ -283,12 +283,17 @@ while [ "$#" -gt "0" ]; do
  msg=`echo "$1" | awk -F\: '{ print $3 }'`
  customimage=`echo "$1" | awk -F\: '{ print $4 }'`
 
+ # do not print linbo password
  echo "command      : $cmd"
- [ -n "$param" ] && echo "parameter    : $param"
+ [ -n "$param" -a "$cmd" != "linbo" ] && echo "parameter    : $param"
  [ -n "$msg" ] && echo "comment      : $msg"
  [ -n "$customimage" ] && echo "custom image : $customimage"
 
  case "$cmd" in
+
+  linbo)
+   echo "${cmd}:${param}" > "$SECRETS"
+   ;;
 
   partition)
    get_partitions

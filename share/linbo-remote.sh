@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 31.10.2013
+# 13.02.2014
 # GPL V3
 #
 
@@ -16,7 +16,6 @@ DLTYPES="multicast rsync torrent"
 SSH=linbo-ssh
 SCP=linbo-scp
 WRAPPER=/usr/bin/linbo_wrapper
-REMOTE_TAG="### LINBO REMOTE ###"
 ETHERWAKE="$(which etherwake)"
 TMPDIR=/var/tmp
 
@@ -28,20 +27,22 @@ usage(){
  echo "Options:"
  echo
  echo " -h                 Show this help."
- echo " -b <sec>           Wait <sec> second(s) between the sending of wake-on-lan"
- echo "                    magic packets."
- echo "                    to the client(s). Implies -w to be set also."
- echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands to be transfered to"
- echo "                    the client(s)."
- echo " -g <group>         All members of this hostgroup will be processed."
- echo " -i <ip|hostname>   Only the client with this ip or hostname will be processed."
+ echo " -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic"
+ echo "                    packets to the particular hosts. Must be used in"
+ echo "                    conjunction with -w."
+ echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
+ echo "                    directly to the client(s)."
+ echo " -g <group>         All hosts of this hostgroup will be processed."
+ echo " -i <ip|hostname>   Ip or hostname of client to be processed."
  echo " -l                 List current linbo-remote screens."
- echo " -r <room>          All members of this room will be processed."
- echo " -w <sec>           Send wake-on-lan magic packets to the client(s) and wait"
- echo "                    <sec> seconds before executing the commands to be sure the"
- echo "                    clients have booted."
+ echo " -r <room>          All hosts of this room will be processed."
+ echo " -p <cmd1,cmd2,...> Pipe the command list into a one time pxeboot configfile"
+ echo "                    executed automatically next time the client boots."
+ echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
+ echo "                    and wait <sec> seconds before executing the"
+ echo "                    commands to be sure the clients have booted."
  echo
- echo "Important: Options -r, -g and -i exclude each other mutually."
+ echo "Important: Options -r, -g and -i exclude each other, -c and -p as well."
  echo
  echo "Supported commands for -c option are:"
  echo
@@ -65,7 +66,8 @@ usage(){
  echo
  echo "<\"msg\"> is an optional image comment."
  echo "The position numbers are related to the position in start.conf."
- echo "The commands were sent per ssh to the linbo_wrapper on the client and processed in the order given on the commandline."
+ echo "The commands were sent per ssh to the linbo_wrapper on the client and processed"
+ echo "in the order given on the commandline."
  echo "create_* and upload_* commands cannot be used with -r and -g options."
  exit 1
 }
@@ -92,14 +94,15 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:g:hi:lr:w:" opt; do
+while getopts ":b:c:g:hi:lp:r:w:" opt; do
  case $opt in
   l) list
      exit 0 ;;
   b) BETWEEN=$OPTARG ;;
-  c) CMDS=$OPTARG ;;
+  c) DIRECT=$OPTARG ;;
   i) IP=$OPTARG ;;
   g) GROUP=$OPTARG ;;
+  p) PIPE=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
   w) WAIT=$OPTARG ;;
   h) usage ;;
@@ -115,7 +118,8 @@ done
 [ -n "$GROUP" -a -n "$IP" ] && usage
 [ -n "$GROUP" -a -n "$ROOM" ] && usage
 [ -n "$IP" -a -n "$ROOM" ] && usage
-[ -z "$CMDS" ] && usage
+[ -n "$DIRECT" -a -n "$PIPE" ] && usage
+[ -z "$DIRECT" -a -z "$PIPE" -a -z "$WAIT" ] && usage
 if [ -n "$WAIT" ]; then
  isinteger "$WAIT" || usage
  if [ ! -x "$ETHERWAKE" ]; then
@@ -128,13 +132,23 @@ if [ -n "$BETWEEN" ]; then
  isinteger "$BETWEEN" || usage
 fi
 
-# no upload or create for groups/rooms
-case "$CMDS" in *upload*|*create*)
- [ -z "$IP" ] && usage
- # provide secrets file for upload
- SECRETS=/etc/rsyncd.secrets
- ;;
-esac
+if [ -n "$DIRECT" ]; then
+ CMDS="$DIRECT"
+ DIRECT="yes"
+elif [ -n "$PIPE" ]; then
+ CMDS="$PIPE"
+ PIPE="yes"
+ PXETPL="$LINBOTPLDIR/linbo-remote.pxe"
+fi
+
+
+if [ -n "$CMDS" ]; then
+ # no upload or create for groups/rooms
+ case "$CMDS" in *upload*|*create*) [ -z "$IP" ] && usage ;; esac
+
+ # provide secrets for upload
+ case "$CMDS" in *upload*) SECRETS=/etc/rsyncd.secrets ;; esac
+fi
 
 
 ## evaluate commands string - begin
@@ -222,67 +236,32 @@ while [ -n "$CMDS" ]; do
  c=$(( $c + 1 ))
 
 done
-nrofcmds=$c
+NR_OF_CMDS=$c
 ## evaluate commands string - end
 
 
 # evaluate ip / group / room
 if [ -n "$IP" ]; then
+ # get ip if hostname was given
  if ! validip "$IP"; then
-  HOSTNAME="$IP"
-  get_ip "$HOSTNAME"
+  get_ip "$IP"
+  [ -z "$RET" ] && usage
   IP="$RET"
-  [ -z "$IP" ] && usage
- else
-  get_hostname "$IP"
-  HOSTNAME="$RET"
-  [ -z "$HOSTNAME" ] && usage
  fi
-elif [ -n "$GROUP" ]; then # group
- IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
+ # filter out host with pxe flag
+ for i in $IP; do
+  pxe="$(grep ^[a-z0-9] $WIMPORTDATA | grep -w "$i" | awk -F\; '{ print $11 }')"
+  [ "$pxe" = "0" ] && IP="${IP/$i/}"
+ done
+ strip_spaces "$IP"
+ [ -z "$RET" ] && usage
+elif [ -n "$GROUP" ]; then # hosts in group with pxe flag set
+ IP="$(grep ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
  [ -z "$IP" ] && usage
-else # room
- IP="$(grep -v ^# $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
+else # hosts in room with pxe flag set
+ IP="$(grep ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
  [ -z "$IP" ] && usage
 fi
-
-# temporarily replace start.conf's in remote control mode
-replace_startconfs(){
- for i in $STARTCONF; do
-  # check if start.conf exists for remote tag
-  if [ ! -e "$i" ]; then
-   echo "Fatal: `basename $i` not found!"
-   exit 1
-  fi
-  # check for remote tag
-  if grep "$REMOTE_TAG" "$i"; then
-   echo "Remote tag in `basename $i` detected! Aborting!"
-   exit 1
-  fi
- done
- # start processing after checks
- echo "Replacing"
- local BACKUPCONF=""
- for i in $STARTCONF; do
-  echo " $(basename "$i") ..."
-  # move start.conf
-  BACKUPCONF="$i.$$"
-  [ -e "$BACKUPCONF" ] && rm -rf "$BACKUPCONF"
-  mv "$i" "$BACKUPCONF"
-  # set remote tag
-  echo "$REMOTE_TAG" > "$i"
-  # convert to utf8 and remove comments and empty lines
-  iconv -f latin1 -t utf-8 "$BACKUPCONF" | sed -e 's/#.*//' -e 's/[ ^I]*$//' -e '/^$/ d' >> "$i"
-  # disable start automatisms and buttons
-  sed -e 's|^[Aa][Uu][Tt][Oo][Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn].*|AutoPartition = no|g
-          s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g
-          s|^[Aa][Uu][Tt][Oo][Ii][Nn][Ii][Tt][Cc][Aa][Cc][Hh][Ee].*|AutoInitCache = no|g
-          s|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
-          s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
-          s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
-          s|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i "$i"
- done
-}
 
 # script header info
 echo "###"
@@ -297,16 +276,6 @@ if [ -n "$WAIT" ]; then
   echo "Default route not found. Cannot determine network interface!"
   exit 1
  fi
- # get start.conf's
- if [ -n "$GROUP" ]; then
-  STARTCONF="$LINBODIR/start.conf.$GROUP"
- else
-  for i in $IP; do
-   STARTCONF="$STARTCONF $LINBODIR/start.conf-$i"
-  done
- fi
- # replace start.conf's for remote control mode
- replace_startconfs
  # wake-on-lan
  echo "Waking up"
  for i in $IP; do
@@ -320,51 +289,119 @@ if [ -n "$WAIT" ]; then
  sleep "$WAIT"
 fi
 
-# send commands
-echo "Sending command(s) to"
-for i in $IP; do
- echo -n " $i ... "
- if $SSH $i ls /start.conf &> /dev/null; then
-  if [ -n "$SECRETS" ]; then
-   echo -n "uploading secrets ... "
-   $SCP $SECRETS ${i}:/tmp
+# send commands directly per linbo-ssh
+send_cmds(){
+ echo "Sending command(s) to"
+ for i in $IP; do
+  echo -n " $i ... "
+  if $SSH $i ls /start.conf &> /dev/null; then
+   if [ -n "$SECRETS" ]; then
+    echo -n "uploading secrets ... "
+    $SCP $SECRETS ${i}:/tmp
+   fi
+   get_hostname "$i"
+   HOSTNAME="$RET"
+   # create a temporary script with linbo remote commands
+   REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
+   echo "#!/bin/sh" > $REMOTESCRIPT
+   local c=0
+   while [ $c -lt $NR_OF_CMDS ]; do
+    # pause between commands
+    [ $c -gt 0 ] && echo "sleep 3" >> $REMOTESCRIPT
+    case ${command[$c]} in
+     start*|reboot|halt|poweroff)
+      START=yes
+      echo "$SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
+      echo "sleep 10" >> $REMOTESCRIPT ;;
+     *) echo "$SSH $i $WRAPPER ${command[$c]}" >> $REMOTESCRIPT ;;
+    esac
+    c=$(( $c + 1 ))
+   done
+   [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm /tmp/rsyncd.secrets" >> $REMOTESCRIPT
+   echo "rm $REMOTESCRIPT" >> $REMOTESCRIPT
+   echo "exit 0" >> $REMOTESCRIPT
+   chmod 755 $REMOTESCRIPT
+   screen -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
+   echo "Ok!"
+  else
+   echo "Failed!"
   fi
-  get_hostname "$i"
-  HOSTNAME="$RET"
-  # create a temporary script with linbo remote commands
-  REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
-  echo "#!/bin/sh" > $REMOTESCRIPT
-  c=0
-  while [ $c -lt $nrofcmds ]; do
-   case ${command[$c]} in
-    start*|reboot|halt|poweroff)
-     START=yes
-     echo "$SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
-     echo "sleep 10" >> $REMOTESCRIPT ;;
-    *) echo "$SSH $i $WRAPPER ${command[$c]}" >> $REMOTESCRIPT ;;
-   esac
-   c=$(( $c + 1 ))
-  done
-  [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm /tmp/rsyncd.secrets" >> $REMOTESCRIPT
-  echo "rm $REMOTESCRIPT" >> $REMOTESCRIPT
-  echo "exit 0" >> $REMOTESCRIPT
-  chmod 755 $REMOTESCRIPT
-  screen -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
-  echo "Ok!"
- else
-  echo "Failed!"
- fi
-done
-
-# restore start.conf
-if [ -n "$WAIT" ]; then
- echo "Restoring"
- for i in $STARTCONF; do
-  echo " $(basename "$i") ..."
-  BACKUPCONF="$i.$$"
-  mv "$BACKUPCONF" "$i"
  done
+}
+
+# compute pipename from mac address
+pxepipename(){
+ local ip="$1"
+ get_mac "$ip"
+ local mac="${RET:0:17}"
+ [ -z "$mac" ] && return
+ local pipe="01-${mac//:/-}"
+ echo "$pipe" | tr A-Z a-z
+}
+
+# write pipe which will function as a one time pxelinux config file
+write_pipe(){
+ local pxefile="$PXECFGDIR/$1"
+ local linbocmd="$2"
+ local kopts="$3"
+ if [ -p "$pxefile" ]; then
+  cat "$pxefile" &> /dev/null
+ elif [ -e "$pxefile" ]; then
+  rm -rf "$pxefile"
+ fi
+ mkfifo "$pxefile"
+ sed -e "s|@@kopts@@|$kopts|
+         s|@@linbocmd@@|$linbocmd|" "$PXETPL" > "$pxefile" && rm "$pxefile" &
+}
+
+# create pipes for all ips
+create_pipes(){
+ local cmdstr
+ # provide linbo password for upload
+ if [ -n "$SECRETS" ]; then
+  local pass="$(grep ^linbo "$SECRETS")"
+  echo $pass | grep -q "linbo:" && cmdstr="${pass},"
+ fi
+ # create command string
+ local c=0
+ while [ $c -lt $NR_OF_CMDS ]; do
+  if [ -n "$cmdstr" ]; then
+   cmdstr="${cmdstr},${command[$c]}"
+  else
+   cmdstr="${command[$c]}"
+  fi
+  c=$(( $c + 1 ))
+ done
+ # iterate over ips, get kernel options from start.conf and write pipe
+ local conf=""
+ local pxefile
+ echo "Writing pxe boot files ..."
+ for i in $IP; do
+  conf="$LINBODIR/start.conf-$i"
+  if [ ! -e "$conf" ]; then
+   echo " $i: No start.conf found!"
+   continue
+  fi
+  # read kernel options
+  kopts="$(linbo_kopts "$conf")"
+  # get pxe filename
+  pxefile="$(pxepipename "$i")"
+  if [ -z "$pxefile" ]; then
+   echo " $i: No mac address found!"
+   continue
+  fi
+  write_pipe "$pxefile" "$cmdstr" "$kopts"
+  echo " $i: OK."
+ done
+}
+
+
+if [ -n "$DIRECT" ]; then
+ send_cmds
+elif [ -n "$PIPE" ]; then
+ create_pipes
 fi
+
 
 # script footer info
 echo "###"

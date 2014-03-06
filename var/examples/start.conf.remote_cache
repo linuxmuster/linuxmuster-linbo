@@ -11,6 +11,8 @@ AutoPartition = no              # keine automatische Partitionsreparatur beim LI
 AutoFormat = no                 # kein automatisches Formatieren aller Partitionen beim LINBO-Start
 AutoInitCache = no              # kein automatisches Befüllen des Caches beim LINBO-Start
 DownloadType = multicast        # Image-Download per torrent|multicast|rsync, default ist rsync
+#KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
+KernelOptions =
 
 [Partition]                     # Start einer Partitionsdefinition, Windows XP
 Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
