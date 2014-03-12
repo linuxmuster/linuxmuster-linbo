@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
-# 10.02.2014
+# 12.03.2014
 #
 
 set -e
@@ -61,7 +61,7 @@ case "$1" in
  if [ ! -s "$conf" -o -L "$conf" ]; then
   echo "Creating default pxelinux configfile."
   rm -f "$conf"
-  tpl="$PXETPLDIR/default"
+  tpl="$LINBOTPLDIR/default.pxe"
   sed -e "s|@@default@@|linbo|
           s|@@kopts@@||g" "$tpl" > "$conf"
  fi
