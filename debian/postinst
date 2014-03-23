@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
-# 12.03.2014
+# 23.03.2014
 #
 
 set -e
@@ -48,6 +48,8 @@ case "$1" in
 
  # config file backup dir
  mkdir -p "$LINBODIR/backup"
+ # windows activation stuff
+ mkdir -p "$LINBODIR/winact"
 
  # backup pxelinux configfiles
  [ -e "$LINBODIR/backup/$(basename $PXECFGDIR)" ] || cp -a "$PXECFGDIR" "$LINBODIR/backup"
