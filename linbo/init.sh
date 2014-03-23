@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 04.03.2014
+# 23.03.2014
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -188,24 +188,30 @@ printcache(){
  if [ -n "$cache" ]; then
   cachedev="$cache"
  else
-  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' &> /dev/null)"
+  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
  fi
  [ -b "$cachedev" ] && echo "$cachedev"
 }
 
 # copytocache file - copies start.conf to local cache
 copytocache(){
- echo "Copying start.conf to cache."
  local cachedev="$(printcache)"
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
     mount "$cachedev" /cache || return 1
    fi
-   cp -a /start.conf /cache
-   mkdir -p /cache/icons
-   rsync /icons/* /cache/icons
+   if [ -s /start.conf ]; then
+    echo "Saving start.conf to cache."
+    cp -a /start.conf /cache
+   fi
+   if [ -d /icons ]; then
+    echo "Saving icons to cache."
+    mkdir -p /cache/icons
+    rsync /icons/* /cache/icons
+   fi
    # save hostname for offline use
+   echo "Saving hostname $(hostname) to cache."
    hostname > /cache/hostname
    [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
@@ -304,7 +310,7 @@ $(route -n)
  return 1
 }
 
-# check if reboot is set in start.conf
+# check if reboot is set in start.conf (deprecated)
 isreboot(){
  if [ -s /start.conf ]; then
   grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
@@ -312,19 +318,57 @@ isreboot(){
  return 1
 }
 
-# remove linbo reboot flag
-rmlinboreboot(){
- isreboot || return 0
- echo "Removing reboot flag."
+# save windows activation tokens
+save_winact(){
+ # fetch activation status
+ grep -i ^lizenzstatus: /mnt/linuxmuster-win/activation_status | grep -qi lizenziert && local activated=yes
+ rm -f /mnt/linuxmuster-win/activation_status
+ # if not activate yet do nothing
+ [ -z "$activated" ] && return
+ local mac="$(linbo_cmd mac | tr a-z A-Z)"
+ # do not save if no mac address is available
+ [ -z "$mac" -o "$mac" = "OFFLINE" ] && return
+ # get image name
+ [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
+ # if an image is not yet created do nothing
+ [ -z "$image" ] && return
+ # archive name contains mac address and image name
+ local archive="/cache/$mac.$image.winact.tar.gz"
+ # get tokens
+ local tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+ [ -z "$tokensdat" ] && return
+ local pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
+ echo "Sichere Windows-Aktivierungstokens."
+ tar czf "$archive" "$tokensdat" "$pkeyconfig" &> /dev/null
+ if [ ! -s "$archive" ]; then
+  echo "Fehler bei der Erstellung des Archivs!"
+  return 1
+ fi
+ # do not in offline mode
+ [ -e /tmp/linbo-network.done ] && return
+ # trigger upload
+ echo "Veranlasse Upload der Windows-Aktivierungstokens."
+ rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
+}
+
+# remove linbo reboot flag etc.
+do_housekeeping(){
  local device="" properties="" cachedev="$(printcache)"
  sfdisk -l 2> /dev/null | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
-  [ "$cachedev" = "$device" ] && continue
+  if [ "$cachedev" = "$device" ]; then
+   mount "$device" /cache
+   continue
+  fi
   if mount "$device" /mnt 2> /dev/null; then
-   [ -e /mnt/.linbo.reboot ] && rm -f /mnt/.linbo.reboot
-   [ -e /mnt/.grub.reboot ] && rm -f /mnt/.grub.reboot
+   if ls /mnt/.*.reboot &> /dev/null; then
+    echo "Entferne Reboot-Flag von $device."
+    rm -f /mnt/.*.reboot
+   fi
+   [ -s /mnt/linuxmuster-win/activation_status ] && save_winact
    umount /mnt
   fi
  done
+ mount | grep -v grep | grep -q /cache && umount /cache
 }
 
 # handle autostart from cmdline
@@ -366,6 +410,8 @@ network(){
  echo "Starting network configuration ..."
  if [ -n "$localmode" ]; then
   echo "Localmode configured, skipping network configuration."
+  copyfromcache "start.conf icons"
+  do_housekeeping
   touch /tmp/linbo-network.done
   return 0
  fi
@@ -399,6 +445,7 @@ network(){
  # Move away old start.conf and look for updates
  mv start.conf start.conf.dist
  if [ -n "$server" ]; then
+  export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
   echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
   echo "Downloading configuration files from $server ..."
@@ -413,6 +460,8 @@ network(){
   for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
   done
+  # save downloaded stuff to cache
+  copytocache
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
@@ -423,8 +472,6 @@ network(){
   # flag for network connection
   echo "Network connection to $server successfully established."
   echo > /tmp/network.ok
-  # copy start.conf to cache if no extra start.conf was given on cmdline
-  [ -z "$extra" ] && copytocache
  fi
  # Still nothing new, revert to old version.
  [ -s start.conf ] || mv -f start.conf.dist start.conf
@@ -432,13 +479,13 @@ network(){
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  # set autostart if given on cmdline
  isinteger "$autostart" && set_autostart
- # remove reboot flag
- rmlinboreboot
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  # start ssh server
  echo "Starting ssh server."
  /sbin/dropbear -s -g -E -p 2222 &> /dev/null
+ # remove reboot flag, save windows activation
+ do_housekeeping
  # done
  echo > /tmp/linbo-network.done
  echo "Done."

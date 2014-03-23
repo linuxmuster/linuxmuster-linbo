@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.2.1-0) precise-testing; urgency=low
+
+  * implemented win7 reactivation support (closes #297).
+  * init.sh fix: cache partition was not parsed correctly from start.conf.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 23 Mar 2014 16:57:28 +0000
+
 linuxmuster-linbo (2.2.0-1) precise-testing; urgency=low
 
   * postinst: fixed orphaned PXETPLDIR variable.

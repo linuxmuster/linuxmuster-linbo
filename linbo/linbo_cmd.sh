@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 04.03.2014
+# 23.03.2014
 # GPL v3
 #
 
@@ -1317,6 +1317,60 @@ do_opsi(){
  return "$RC"
 }
 
+# restore windows activation tokens
+restore_winact(){
+ # get image name
+ [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
+ # if an image is not yet created do nothing
+ if [ -z "$image" ]; then
+  echo "Überspringe Reaktivierung, System ist unsynchronisiert."
+  return
+ fi
+ local archive
+ local tarchive
+ local i
+ # get mac address
+ local mac="$(mac | tr a-z A-Z)"
+ # without linbo server
+ if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
+  tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
+  # get mac address from archive name
+  for i in $tarchive; do
+   mac="$(echo $i | awk -F\. '{ print $1 }')"
+   if ifconfig -a | grep -q "$mac"; then
+    archive="$i"
+    break
+   fi
+  done
+ else # with linbo server
+  archive="$mac.$image.winact.tar.gz"
+  # clean cache
+  rm -f /cache/*.$image.winact.tar.gz
+  rm -f /cache/$image.winact.cmd
+  # get token archive from linbo server
+  echo "Fordere Reaktivierungs-Daten von $serverip an."
+  # get server ip address
+  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
+  rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
+  # request windows productkey
+  local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
+  rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
+  [ -s "$keyfile" ] && echo "slmgr -ipk $(cat /cache/$keyfile)" > "/cache/$image.winact.cmd"
+  rm -f "$keyfile"
+ fi
+ # no data available
+ if [ ! -s "/cache/$archive" -a ! -s "/cache/$image.winact.cmd" ]; then
+  echo "Überspringe Reaktivierung, keine Daten."
+  return
+ fi
+ echo "Stelle Windows-Aktivierungstokens wieder her."
+ tar xf "$archive" -C / || return 1
+ # copy batchfile
+ local batchfile="/mnt/linuxmuster-win/winact.cmd"
+ echo "Schreibe Aktivierungs-Batchdatei nach $batchfile."
+ cp "/cache/$image.winact.cmd" "$batchfile"
+}
+
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC=1
@@ -1445,6 +1499,10 @@ syncl(){
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
    # do opsi stuff
    do_opsi "$2" "$3" || RC="1"
+   # restore windows activation if linuxmuster-win scripts are installed
+   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -a -d /mnt/linuxmuster-win ]; then
+    restore_winact || RC="1"
+   fi
    # source postsync script
    [ -s "/cache/$postsync" ] && . "/cache/$postsync"
    sync; sync; sleep 1

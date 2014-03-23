@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 12.02.2014
+# 21.03.2014
 #
 
 # read in paedml specific environment
@@ -74,10 +74,17 @@ case $EXT in
    rm -f "$origini" "$newini"
   fi
  ;;
- 
+
  *.opsikey)
   if [ -e "$FILE" ]; then
    echo "Removing opsi key file $FILE."
+   rm -f "$FILE"
+  fi
+ ;;
+
+ *.winkey)
+  if [ -e "$FILE" ]; then
+   echo "Removing windows product key file $FILE."
    rm -f "$FILE"
   fi
  ;;

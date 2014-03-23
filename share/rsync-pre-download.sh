@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 12.02.2014
+# 22.03.2014
 #
 
 # read in linuxmuster.net specific environment
@@ -26,6 +26,7 @@ FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
 EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
+stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
@@ -74,6 +75,23 @@ case $EXT in
   fi
  ;;
 
+ # handle windows product key request
+ *.winkey)
+  # get key from workstations and write it to temporary file
+  pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
+  [ -n "$pcname" ] && winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $pcname | awk '{ print $2 }')"
+  [ -n "$winkey" ] && echo "$winkey" > "$FILE"
+ ;;
+
+ # handle windows activation tokens archive
+ winact-upload)
+  FILE="${FILE%.upload}"
+  # fetch archive from client
+  echo "Upload request for windows activation tokens archive."
+  linbo-scp "${RSYNC_HOST_NAME}:/cache/$(basename $FILE)" "$FILE"
+  rm -f "$PIDFILE"
+ ;;
+
  *) ;;
 
 esac
@@ -82,4 +100,3 @@ echo "RC: $RSYNC_EXIT_STATUS"
 echo "### rsync pre download end: $(date) ###"
 
 exit $RSYNC_EXIT_STATUS
-
