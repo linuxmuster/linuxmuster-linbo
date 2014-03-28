@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.2.2-0) precise-testing; urgency=low
+
+  * kernel:
+    - update to 3.2.55,
+    - included bnx2x firmware.
+  * ntfs-3g update to 2014.2.15.
+  * rsync-pre-download.sh: changes win productkey to upper case.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 28 Mar 2014 18:53:15 +0000
+
 linuxmuster-linbo (2.2.1-0) precise-testing; urgency=low
 
   * implemented win7 reactivation support (closes #297).

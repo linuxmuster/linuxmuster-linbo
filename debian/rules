@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 12.02.2014
+# 28.03.2014
 # GPL v3
 #
 
@@ -382,7 +382,7 @@ build-stamp: configure-stamp
 	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
 	        rm -f $(E1000E_DIR)/src/e1000e.ko || true ; \
 	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
-	        rm -f $(COMPWLESS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko || true ; \
+	        rm -f $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko || true ; \
 	        rm -rf ../modules/* || true ; \
 	        cd $(KERNEL_DIR) ; \
 	        ln -snf ../initramfs_kernel.conf . ; \
@@ -477,7 +477,7 @@ install: build
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name vboxguest.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/bnx2x/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name vboxguest.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \

@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 22.03.2014
+# 28.03.2014
 #
 
 # read in linuxmuster.net specific environment
@@ -79,7 +79,7 @@ case $EXT in
  *.winkey)
   # get key from workstations and write it to temporary file
   pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
-  [ -n "$pcname" ] && winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $pcname | awk '{ print $2 }')"
+  [ -n "$pcname" ] && winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $pcname | awk '{ print $2 }' | tr a-z A-Z)"
   [ -n "$winkey" ] && echo "$winkey" > "$FILE"
  ;;
 
