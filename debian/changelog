@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.2.3-0) precise-testing; urgency=low
+
+  * kernel update to 3.2.55 (ubuntu version 3.2.0-61).
+  * backports modules update to 3.13.2.
+  * included bnx2 firmware.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 11 Apr 2014 14:29:07 +0000
+
 linuxmuster-linbo (2.2.2-0) precise-testing; urgency=low
 
   * kernel:
