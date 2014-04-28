@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 23.03.2014
+# 28.04.2014
 # GPL v3
 #
 
@@ -619,12 +619,13 @@ EOT
  done
 }
 
-# mkgrub disk
+# mkgrub - writes grub stuff for local boot
 mkgrub(){
- local disk="$1"
  local grubdir="/cache/boot/grub"
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
- if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
+ # create a standard menu.lst for local boot which contains current linbo kernel params
+ if [ ! -e /cache/.custom.menu.lst -a ! -e /tmp/.menulst.done -a -e /menu.lst ]; then
+  echo "Erstelle menu.lst fuer lokalen Boot."
   local append=""
   local vga="vga=785"
   local i
@@ -635,10 +636,33 @@ mkgrub(){
    esac
   done
   sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+  touch /tmp/.menulst.done
  fi
- if [ ! -e /tmp/.mkgrub.done -a -b "$disk" ]; then
-  echo "(hd0) $disk" > /cache/boot/grub/device.map 
-  grub-install --root-directory=/cache "$disk"
+ # return if grub-install is already done by earlier invokation
+ [ -e /tmp/.mkgrub.done ] && return 0
+ # grep all disks from start.conf
+ local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
+ if [ -z "$disks" ]; then
+  echo "Keine Festplatten zur Grub-Installation gefunden!"
+  return 1
+ fi
+ local d
+ local n=0
+ # create device.map which contains all disks
+ local devicemap="/cache/boot/grub/device.map"
+ rm -f "$devicemap"
+ touch "$devicemap"
+ for d in $disks; do
+  [ -b "$d" ] || continue
+  echo "(hd${n}) $d" >> "$devicemap"
+  n=$(( n + 1 ))
+ done
+ # finally write grub to the mbr of all disks
+ if [ -s "$devicemap" ]; then
+  for d in `awk '{ print $2 }' "$devicemap"`; do
+   echo "Installiere Grub in MBR auf $d."
+   grub-install --root-directory=/cache "$d" >> /tmp/linbo.log
+  done
   touch /tmp/.mkgrub.done
  fi
 }
@@ -715,9 +739,10 @@ start(){
  if mountpart "$1" /mnt -w 2>> /tmp/linbo.log; then
   [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
   # tschmitt: repairing grub mbr on every start
-  if mountcache "$6" && cache_writable ; then
-   mkgrub "$disk"
-  fi
+  #if mountcache "$6" && cache_writable ; then
+   #mkgrub "$disk"
+  #fi
+  (mountcache "$6" && cache_writable) && mkgrub
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
     # tschmitt: use builtin grub.exe in any case
@@ -1925,31 +1950,11 @@ update(){
  local disk="${cachedev%%[1-9]*}"
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
- echo "Suche nach LINBO-Updates auf $1."
- #download_if_newer "$server" grub.exe
- local linbo_ts1="$(getinfo linbo.info timestamp)"
- local linbo_fs1="$(get_filesize linbo)"
- download_if_newer "$server" linbo
- local linbo_ts2="$(getinfo linbo.info timestamp)"
- local linbo_fs2="$(get_filesize linbo)"
- local linbofs_ts1="$(getinfo linbofs.lz.info timestamp)"
- local linbofs_fs1="$(get_filesize linbofs.lz)"
- # tschmitt: download group specific linbofs
-# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
-# if [ -e "linbofs.$group.gz" ]; then
-#  rm -f linbofs.lz; ln linbofs.$group.gz linbofs.lz
-#  rm -f linbofs.lz.info; ln linbofs.$group.gz.info linbofs.lz.info
-# else
-  download_if_newer "$server" linbofs.lz
-# fi
- local linbofs_ts2="$(getinfo linbofs.lz.info timestamp)"
- local linbofs_fs2="$(get_filesize linbofs.lz)"
- # tschmitt: update grub on every synced start not only if newer linbo is available
- # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.lz" ] && \
- #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
- #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
- if [ -b "$disk" -a -s "linbo" -a -s "linbofs.lz" ]; then
-  echo "Update Master-Bootrecord von $disk."
+ echo "Aktualisiere LINBO-Kernel."
+ download "$server" linbo
+ download "$server" linbofs.lz
+ # grub update
+ if [ -s "linbo" -a -s "linbofs.lz" ]; then
   mkdir -p /cache/boot/grub
   # only if online
   if ! localmode; then
@@ -1965,7 +1970,7 @@ update(){
     rm -f /cache/.custom.menu.lst
    fi
   fi # localmode
-  mkgrub "$disk"
+  mkgrub
  fi
  RC="$?"
  cd / ; sendlog
@@ -2004,6 +2009,7 @@ initcache(){
 
  # clean up obsolete linbofs files
  rm -f linbofs[.a-zA-Z0-9_-]*.gz*
+ rm -f linbo*.info
 
  # clean up obsolete image files
  used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -2029,8 +2035,9 @@ initcache(){
    download_if_newer "$server" "$i" "$download_type"
   fi
  done
- sendlog
- cd / ; mountcache "$cachedev" -r
+ # obsolete, done in update() anyway
+ #sendlog
+ #cd / ; mountcache "$cachedev" -r
  update "$server" "$cachedev"
 }
 

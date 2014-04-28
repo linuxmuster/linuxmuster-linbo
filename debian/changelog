@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.2.4-0) precise-testing; urgency=low
+
+  * kernel downgrade to 3.2.53 (ubuntu's version 3.2.0-58.88).
+  * fixed grub-install with multiple disks (closes #305).
+  * removed info file handling for linbo/linbofs.lz because rsync handles
+    remote file update efficently anyway.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 11 Apr 2014 14:29:07 +0000
+
 linuxmuster-linbo (2.2.3-0) precise-testing; urgency=low
 
   * kernel update to 3.2.55 (ubuntu version 3.2.0-61).

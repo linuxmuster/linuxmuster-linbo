@@ -450,8 +450,9 @@ install: build
 	# kernel
 	( cd $(KERNEL_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking LINBO kernel to /var/linbo/linbo.[0m" ; \
-	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo ; \
-	printf "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
+	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo
+    # deprecated
+	#printf "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
 	# cloop module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
@@ -483,7 +484,8 @@ install: build
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
-	printf "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz.info
+    # deprecated
+	#printf "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz.info
 	# package files
 	# /etc
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo

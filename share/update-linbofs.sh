@@ -93,7 +93,8 @@ cp -f $LINBODIR/start.conf .
 # pack default linbofs.lz again
 find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs.lz ; RC="$?"
 [ $RC -ne 0 ] && bailout "failed!"
-echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.lz | awk '{print $5}'`" > $LINBODIR/linbofs.lz.info
+# deprecated
+#echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.lz | awk '{print $5}'`" > $LINBODIR/linbofs.lz.info
 echo "Ok!"
 
 # clean tmpdir
