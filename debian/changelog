@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.1.11-0) precise; urgency=low
+
+  * Updated e1000e driver to 3.0.4
+  * Updated ntfsprogs to 2014.2.15
+
+ -- Jan Weiher <jan@buksy.de>  Wed, 30 Apr 2014 14:15:27 +0200
+
 linuxmuster-linbo (2.1.10-0) precise; urgency=low
 
   * added backports driver 3.13-1 and removed compat-wireless to update alx.
