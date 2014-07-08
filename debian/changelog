@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.2.5-0) precise-testing; urgency=low
+
+  * package dependencies: changed xz-lzma to xz-utils.
+  * linbo_cmd: added swapfile to rsync excludes.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 Jul 2014 15:09:38 +0000
+
 linuxmuster-linbo (2.2.4-0) precise-testing; urgency=low
 
   * kernel downgrade to 3.2.53 (ubuntu's version 3.2.0-58.88).

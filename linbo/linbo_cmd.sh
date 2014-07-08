@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 28.04.2014
+# 03.07.2014
 # GPL v3
 #
 
@@ -133,6 +133,7 @@ Papierkorb/*
 [Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
+swapfile
 tmp/*
 var/log/ConsoleKit/history
 var/tmp/*'
