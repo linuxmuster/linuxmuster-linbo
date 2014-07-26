@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 13.02.2014
+# 26.07.2014
 # GPL V3
 #
 
@@ -29,7 +29,7 @@ usage(){
  echo " -h                 Show this help."
  echo " -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic"
  echo "                    packets to the particular hosts. Must be used in"
- echo "                    conjunction with -w."
+ echo "                    conjunction with \"-w\"."
  echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
  echo "                    directly to the client(s)."
  echo " -g <group>         All hosts of this hostgroup will be processed."
@@ -40,7 +40,9 @@ usage(){
  echo "                    executed automatically next time the client boots."
  echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
  echo "                    and wait <sec> seconds before executing the"
- echo "                    commands to be sure the clients have booted."
+ echo "                    commands given with \"-c\" to be sure the"
+ echo "                    clients have booted."
+ echo "                    Note: Use \"-w 0\" to have wol together with \"-p\"."
  echo
  echo "Important: Options -r, -g and -i exclude each other, -c and -p as well."
  echo
@@ -95,6 +97,9 @@ list(){
 
 # process cmdline
 while getopts ":b:c:g:hi:lp:r:w:" opt; do
+
+echo "### opt: $opt $OPTARG"
+
  case $opt in
   l) list
      exit 0 ;;
@@ -104,7 +109,8 @@ while getopts ":b:c:g:hi:lp:r:w:" opt; do
   g) GROUP=$OPTARG ;;
   p) PIPE=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
-  w) WAIT=$OPTARG ;;
+  w) WAIT=$OPTARG
+     isinteger "$WAIT" || usage ;;
   h) usage ;;
   \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
@@ -121,7 +127,7 @@ done
 [ -n "$DIRECT" -a -n "$PIPE" ] && usage
 [ -z "$DIRECT" -a -z "$PIPE" -a -z "$WAIT" ] && usage
 if [ -n "$WAIT" ]; then
- isinteger "$WAIT" || usage
+ [ -z "$DIRECT" -a -z "$PIPE" ] && usage
  if [ ! -x "$ETHERWAKE" ]; then
   echo "$ETHERWAKE not found!"
   exit 1
@@ -344,10 +350,9 @@ write_pipe(){
  local pxefile="$PXECFGDIR/$1"
  local linbocmd="$2"
  local kopts="$3"
- if [ -p "$pxefile" ]; then
+ if [ -e "$pxefile" ]; then
   cat "$pxefile" &> /dev/null
- elif [ -e "$pxefile" ]; then
-  rm -rf "$pxefile"
+  [ -e "$pxefile" ] && rm -rf "$pxefile"
  fi
  mkfifo "$pxefile"
  sed -e "s|@@kopts@@|$kopts|
@@ -409,4 +414,3 @@ echo "### linbo-remote ($$) end: $(date)"
 echo "###"
 
 exit 0
-
