@@ -1,8 +1,10 @@
 linuxmuster-linbo (2.2.6-0) babo; urgency=low
 
-  * linbo-remote: -w can now be used together with -p.
+  * linbo-remote: -w can now be used together with -p (closes #325).
+  * fixed local linbo update per initcache command (closes #326).
+  * changed linbo wallpaper to Frank's green one.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 Jul 2014 15:09:38 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 31 Jul 2014 09:37:04 +0000
 
 linuxmuster-linbo (2.2.5-0) precise-testing; urgency=low
 

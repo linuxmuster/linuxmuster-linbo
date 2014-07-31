@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 11.04.2014
+# 30.07.2014
 # GPL v3
 #
 
@@ -495,7 +495,7 @@ install: build
 	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
 	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	# /var/linbo
-	cp -a var/* debian/linuxmuster-linbo/var/linbo
+	cp -r var/* debian/linuxmuster-linbo/var/linbo
 	sed -e 's|@@version@@|$(LVERS)|' -i debian/linuxmuster-linbo/var/linbo/boot.msg
 	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
 	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst
@@ -505,7 +505,7 @@ install: build
 	install -m 644 $(SYSLINUX_DIR)/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/memdisk
 	install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/var/linbo/gpxe.krn
 	# /usr/share/linuxmuster-linbo
-	cp -a share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	install -m 644 linbo_gui/icons/linbo_wallpaper.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo_wallpaper.png
 	# /usr/lib/linuxmuster-linbo
 	install -m 644 $(SYSLINUX_DIR)/core/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin

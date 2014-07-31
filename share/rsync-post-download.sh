@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 21.03.2014
+# 31.07.2014
 #
 
 # read in paedml specific environment
@@ -89,7 +89,14 @@ case $EXT in
   fi
  ;;
 
- *) ;;
+ *.gz)
+  # repair old linbofs filename
+  if [ "$(basename "$FILE")" = "linbofs.gz" ]; then
+    linbo-scp "$LINBODIR/linbofs.lz" "${RSYNC_HOST_NAME}:/cache"
+    linbo-ssh "$RSYNC_HOST_NAME" /bin/sed -e \"s/linbofs.gz/linbofs.lz/g\" -i /cache/boot/grub/menu.lst
+    linbo-ssh "$RSYNC_HOST_NAME" /bin/rm /cache/linbofs.gz /cache/linbo*.info
+  fi
+ ;;
 
 esac
 
