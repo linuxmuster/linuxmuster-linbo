@@ -225,8 +225,8 @@ while read -r line; do
   \[HKEY_CURRENT_USER*) # yannik's pull request to patch default user's registry
    tkey="$(leftchop "$line")"
    [ -n "$DEBUG" ] && echo " 1 tkey=$tkey" | tee -a $logfile
-   hive="$(ls -1d $2/[Dd][Oo][Kk][Uu][Mm][Ee][Nn][Tt][Ee]" "[Uu][Nn][Dd]" "[Ee][Ii][Nn][Ss][Tt][Ee][Ll][Ll][Uu][Nn][Gg][Ee][Nn]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev
-   [ -f "$hive" ] || hive="$(ls -1d $2/[Dd][Oo][Cc][Uu][Mm][Ee][Nn][Tt][Ss]" "[Aa][Nn][Dd]" "[Ss][Ee][Tt][Tt][Ii][Nn][Gg][Ss]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/n
+   hive="$(ls -1d $2/[Dd][Oo][Kk][Uu][Mm][Ee][Nn][Tt][Ee]" "[Uu][Nn][Dd]" "[Ee][Ii][Nn][Ss][Tt][Ee][Ll][Ll][Uu][Nn][Gg][Ee][Nn]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/null | tail -1)"
+   [ -f "$hive" ] || hive="$(ls -1d $2/[Dd][Oo][Cc][Uu][Mm][Ee][Nn][Tt][Ss]" "[Aa][Nn][Dd]" "[Ss][Ee][Tt][Tt][Ii][Nn][Gg][Ss]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/null | tail -1)"
    [ -f "$hive" ] || hive="$(ls -1d $2/[Uu][Ss][Ee][Rr][Ss]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]" "[Uu][Ss][Ee][Rr]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/null | tail -1)"
    [ -f "$hive" ] || hive="$(ls -1d $2/[Uu][Ss][Ee][Rr][Ss]/[Dd][Ee][Ff][Aa][Uu][Ll][Tt]/[Nn][Tt][Uu][Ss][Ee][Rr].[Dd][Aa][Tt] 2>/dev/null | tail -1)"
    [ -n "$DEBUG" ] && echo " 2 hive=$hive" | tee -a $logfile
