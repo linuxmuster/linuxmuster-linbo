@@ -239,7 +239,6 @@ while read -r line; do
    ;;
   esac
 
-
  # check for valid line
  [ "${line:0:1}" = "\"" -a -n "$key" ] || continue
 
