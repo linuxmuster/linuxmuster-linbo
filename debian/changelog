@@ -1,8 +1,12 @@
 linuxmuster-linbo (2.2.7-0) babo; urgency=low
 
-  * fix default user HKCU registry patching on win7 (closes #362) 
+  * fixed torrent creation in linbo-bittorrent initscript (closes #335).
+  * added Yannik's fix for Default User HKCU regpatch (closes #362).
+  * added Yannik's busybox update to 1.22.1 which adds support for
+    xargs -I parameter (useful in postsync scripts) and other new
+    features and bugfixes (closes #363).
 
- -- Yannik Sembritzki <yannik@sembritzki.me>  Wed, 10 Sep 2014 13:22:07 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 19 Sep 2014 14:17:03 +0000
 
 linuxmuster-linbo (2.2.6-1) babo; urgency=low
 
