@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 26.07.2014
+# 06.10.2014
 # GPL V3
 #
 
@@ -18,6 +18,7 @@ SCP=linbo-scp
 WRAPPER=/usr/bin/linbo_wrapper
 ETHERWAKE="$(which etherwake)"
 TMPDIR=/var/tmp
+PXETPL="$LINBOTPLDIR/linbo-remote.pxe"
 
 # usage info
 usage(){
@@ -31,10 +32,14 @@ usage(){
  echo "                    packets to the particular hosts. Must be used in"
  echo "                    conjunction with \"-w\"."
  echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
- echo "                    directly to the client(s)."
+ echo "                    per ssh to the client(s)."
+ echo " -d                 Disables start, sync and new buttons on next boot."
+ echo "                    To be used together with option -p."
  echo " -g <group>         All hosts of this hostgroup will be processed."
  echo " -i <ip|hostname>   Ip or hostname of client to be processed."
  echo " -l                 List current linbo-remote screens."
+ echo " -n                 Bypasses a start.conf configured autostart on next boot."
+ echo "                    To be used together with option -p."
  echo " -r <room>          All hosts of this room will be processed."
  echo " -p <cmd1,cmd2,...> Pipe the command list into a one time pxeboot configfile"
  echo "                    executed automatically next time the client boots."
@@ -45,6 +50,8 @@ usage(){
  echo "                    Note: Use \"-w 0\" to have wol together with \"-p\"."
  echo
  echo "Important: Options -r, -g and -i exclude each other, -c and -p as well."
+ echo "           Option -c together with -w bypasses autostart and disables start,"
+ echo "           sync and new buttons on next boot automatically."
  echo
  echo "Supported commands for -c option are:"
  echo
@@ -96,7 +103,7 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:g:hi:lp:r:w:" opt; do
+while getopts ":b:c:dg:hi:lnp:r:w:" opt; do
 
 echo "### opt: $opt $OPTARG"
 
@@ -105,12 +112,14 @@ echo "### opt: $opt $OPTARG"
      exit 0 ;;
   b) BETWEEN=$OPTARG ;;
   c) DIRECT=$OPTARG ;;
+  d) NOBUTTONS=yes ;;
   i) IP=$OPTARG ;;
   g) GROUP=$OPTARG ;;
   p) PIPE=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
   w) WAIT=$OPTARG
      isinteger "$WAIT" || usage ;;
+  n) NOAUTO=yes ;;
   h) usage ;;
   \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
@@ -141,10 +150,11 @@ fi
 if [ -n "$DIRECT" ]; then
  CMDS="$DIRECT"
  DIRECT="yes"
+ NOAUTO="yes"
+ NOBUTTONS="yes"
 elif [ -n "$PIPE" ]; then
  CMDS="$PIPE"
  PIPE="yes"
- PXETPL="$LINBOTPLDIR/linbo-remote.pxe"
 fi
 
 
@@ -274,6 +284,32 @@ echo "###"
 echo "### linbo-remote ($$) start: $(date)"
 echo "###"
 
+# compute pipename from mac address
+pxepipename(){
+ local ip="$1"
+ get_mac "$ip"
+ local mac="${RET:0:17}"
+ [ -z "$mac" ] && return
+ local pipe="01-${mac//:/-}"
+ echo "$pipe" | tr A-Z a-z
+}
+
+# write pipe which will function as a one time pxelinux config file
+write_pipe(){
+ local pxefile="$PXECFGDIR/$1"
+ local linbocmd="$2"
+ [ -n "$NOAUTO" ] && linbocmd="$linbocmd autostart=0"
+ [ -n "$NOBUTTONS" ] && linbocmd="$linbocmd nobuttons"
+ local kopts="$3"
+ if [ -e "$pxefile" ]; then
+  cat "$pxefile" &> /dev/null
+  [ -e "$pxefile" ] && rm -rf "$pxefile"
+ fi
+ mkfifo "$pxefile"
+ sed -e "s|@@kopts@@|$kopts|
+         s|@@linbocmd@@|$linbocmd|" "$PXETPL" > "$pxefile" && rm "$pxefile" &
+}
+
 # wake-on-lan stuff
 if [ -n "$WAIT" ]; then
  # check interface (yannik's pull request to take only first default route)
@@ -286,6 +322,8 @@ if [ -n "$WAIT" ]; then
  echo "Waking up"
  for i in $IP; do
   echo " $i ..."
+  # disable autostart per one time pxe config
+  [ -n "$DIRECT" ] && write_pipe "$(pxepipename $i)" "" "$(linbo_kopts "$LINBODIR/start.conf-$i")"
   get_mac "$i"
   $ETHERWAKE -i "$iface" "$RET"
   [ -n "$BETWEEN" ] && sleep "$BETWEEN"
@@ -333,30 +371,6 @@ send_cmds(){
    echo "Failed!"
   fi
  done
-}
-
-# compute pipename from mac address
-pxepipename(){
- local ip="$1"
- get_mac "$ip"
- local mac="${RET:0:17}"
- [ -z "$mac" ] && return
- local pipe="01-${mac//:/-}"
- echo "$pipe" | tr A-Z a-z
-}
-
-# write pipe which will function as a one time pxelinux config file
-write_pipe(){
- local pxefile="$PXECFGDIR/$1"
- local linbocmd="$2"
- local kopts="$3"
- if [ -e "$pxefile" ]; then
-  cat "$pxefile" &> /dev/null
-  [ -e "$pxefile" ] && rm -rf "$pxefile"
- fi
- mkfifo "$pxefile"
- sed -e "s|@@kopts@@|$kopts|
-         s|@@linbocmd@@|$linbocmd|" "$PXETPL" > "$pxefile" && rm "$pxefile" &
 }
 
 # create pipes for all ips

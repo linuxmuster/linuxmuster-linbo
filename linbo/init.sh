@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 23.03.2014
+# 06.10.2014
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -89,6 +89,7 @@ read_cmdline(){
  
  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
  case "$CMDLINE" in *\ splash*) splash=yes;; esac
+ case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
 }
 
 # initial setup
@@ -373,17 +374,15 @@ do_housekeeping(){
 
 # handle autostart from cmdline
 set_autostart() {
- # do not set autostart if linbo commands are given on command line
- [ -n "$linbocmd" ] && return 0
- # count [OS] entries
- local counts="$(grep -ci ^"\[OS\]" /start.conf)"
  # return if autostart shall be suppressed generally
  if [ "$autostart" = "0" ]; then
-  echo "Disabling autostart."
+  echo "Disabling autostart generally."
   # set all autostart parameters to no
   sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
   return
  fi
+ # count [OS] entries
+ local counts="$(grep -ci ^"\[OS\]" /start.conf)"
  # autostart OS at start.conf position given by autostart parameter
  local c=0
  local found=0
@@ -403,6 +402,16 @@ set_autostart() {
   fi
  done </start.conf
  mv /start.conf.new /start.conf
+}
+
+# disable start, sync and new buttons
+disable_buttons(){
+ [ -s /start.conf ] || return
+ echo "Disabling buttons."
+ sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
+         s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
+         s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
+         s|^[Hh][Ii][Dd][Dd][Ee][Nn].*|Hidden = yes|g' -i /start.conf
 }
 
 network(){
@@ -479,6 +488,8 @@ network(){
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  # set autostart if given on cmdline
  isinteger "$autostart" && set_autostart
+ # disable buttons if nobuttons is given on cmdline
+ [ -n "$nobuttons" ] && disable_buttons 
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  # start ssh server
