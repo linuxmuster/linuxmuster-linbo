@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 03.07.2014
+# 07.10.2014
 # GPL v3
 #
 
@@ -560,11 +560,13 @@ $(sfdisk -s "$disk" 2>> /tmp/linbo.log)
     let pcount++
    done
   fi
-  # Insert table entry.
+  # handle bootable flag
   bootable="$4"
-  [ "$bootable" = "-" -o "$bootable" = " " ] && bootable=""
+  [ "$bootable" = "bootable" ] || bootable=""
+  # handle fstype
   fstype="$5"
   [ "$fstype" = "-" ] && fstype=""
+  # Insert table entry.
   # knopper begin
   # table="$table,$csize,$3${bootable:+,*}"
   # knopper end

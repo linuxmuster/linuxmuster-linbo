@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 05.02.2014
+# 07.10.2014
 # GPL V3
 #
 
@@ -118,6 +118,14 @@ get_os(){
  done < /start.conf
 } # get_os
 
+# print value of start.conf parameter
+stripvalue(){
+ local line="$1"
+ local ret="$(echo $line | awk -F\= '{ print $2 }')"
+ [ -z "$ret" ] && ret="-"
+ echo "$ret"
+}
+
 # get partition data
 get_partitions() {
  # check for valid start.conf
@@ -130,47 +138,36 @@ get_partitions() {
   return 1
  fi
  # define local variables
- partitions=""
  local dev=""
  local size=""
  local pid=""
  local fstype=""
  local bootable=""
  local line=""
- local param=""
- local value=""
- local c=0
- # parse start.conf
- while read line; do
-  line="${line%\#*}"
-  line="$(echo "$line" | sed 's/[ \t]*$//')"
-  [ "${line:0:1}" = "#" ] && continue
-  [ -z "$line" ] && continue
+ partitions=""
+ # parse start.conf and store partition definitions in /tmp/partitions
+ grep ^[DdSsIiBbFf][EeIiDdOoSs] /start.conf | tr A-Z a-z | sed 's/ //g' | sed -e 's/#.*$//' | while read line; do
+  if [ -n "$dev" -a -n "$size" -a -n "$pid" -a -n "$bootable" -a -n "$fstype" ]; then
+   partitions="$partitions $dev $size $pid $bootable $fstype"
+   dev=""; size=""; pid=""; bootable=""; fstype=""
+   echo "$partitions" > /tmp/partitions
+  fi
   case "$line" in
-   \[[Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn]\]|\[[Oo][Ss]\])
-    let c+=1
-    if [ $c -gt 1 ]; then
-     [ -z "$size" ] && size=0
-     [ "$bootable" != "[Yy][Ee][Ss]" ] && bootable="-"
-     [ -z "$fstype" ] && fstype="-"
-     partitions="$partitions $dev $size $pid $bootable $fstype"
-     dev="" ; size="" ; pid="" ; fstype="" ; bootable=""
-    fi
-    case "$line" in \[[Oo][Ss]\]) return 0 ;; esac
-    continue
+   dev=*) dev="$(stripvalue "$line")" ;;
+   size=*)
+    size="$(stripvalue "$line")"
+    isinteger "$size" || size=0
    ;;
-   \[[Ll][Ii][Nn][Bb][Oo]\]) continue ;;
+   id=*) pid="$(stripvalue "$line")" ;;
+   bootable=*)
+    bootable="$(stripvalue "$line")"
+    [ "$bootable" = "yes" ] && bootable="bootable"
+   ;;
+   fstype=*) fstype="$(stripvalue "$line")" ;;
+   *) ;;
   esac
-  param="$(echo $line | awk -F\= '{ print $1 }' | sed 's/[ \t]*$//')"
-  value="$(echo "$line" | sed "s/${param}//" | sed "s/^[ \t]*//" | sed "s/^=//" | sed "s/^[ \t]*//")"
-  case "$param" in
-   [Dd][Ee][Vv]) dev="$value" ;;
-   [Ss][Ii][Zz][Ee]) size="$value" ;;
-   [Ii][Dd]) pid="$value" ;;
-   [Bb][Oo][Oo][Tt][Aa][Bb][Ll][Ee]) bootable="$value" ;;
-   [Ff][Ss][Tt][Yy][Pp][Ee]) fstype="$value" ;;
-  esac
- done < /start.conf
+ done
+ partitions="$(cat /tmp/partitions)"
 } # get_partitions
 
 # format a specific partition
