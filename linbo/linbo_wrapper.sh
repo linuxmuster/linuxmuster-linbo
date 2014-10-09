@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 07.10.2014
+# 09.10.2014
 # GPL V3
 #
 
@@ -146,13 +146,18 @@ get_partitions() {
  local line=""
  partitions=""
  # parse start.conf and store partition definitions in /tmp/partitions
- grep ^[DdSsIiBbFf][EeIiDdOoSs] /start.conf | tr A-Z a-z | sed 's/ //g' | sed -e 's/#.*$//' | while read line; do
-  if [ -n "$dev" -a -n "$size" -a -n "$pid" -a -n "$bootable" -a -n "$fstype" ]; then
-   partitions="$partitions $dev $size $pid $bootable $fstype"
-   dev=""; size=""; pid=""; bootable=""; fstype=""
-   echo "$partitions" > /tmp/partitions
-  fi
+ grep ^[\[DdSsIiBbFf][PpEeIiDdOoSs] /start.conf | tr A-Z a-z | sed 's/ //g' | sed -e 's/#.*$//' | while read line; do
   case "$line" in
+   \[partition\]*|\[os\]*)
+    if [ -n "$dev" -a -n "$size" -a -n "$pid" ]; then
+     [ -z "$bootable" ] && bootable="-"
+     [ -z "$fstype" ] && fstype="-"
+     partitions="$partitions $dev $size $pid $bootable $fstype"
+     echo "$partitions" > /tmp/partitions
+    fi
+    [ "$line" = "\[os\]" ] && break
+    dev=""; size=""; pid=""; bootable=""; fstype=""
+   ;;
    dev=*) dev="$(stripvalue "$line")" ;;
    size=*)
     size="$(stripvalue "$line")"
