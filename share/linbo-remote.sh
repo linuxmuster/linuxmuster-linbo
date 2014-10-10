@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 06.10.2014
+# 10.10.2014
 # GPL V3
 #
 
@@ -45,15 +45,15 @@ usage(){
  echo "                    executed automatically next time the client boots."
  echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
  echo "                    and wait <sec> seconds before executing the"
- echo "                    commands given with \"-c\" to be sure the"
- echo "                    clients have booted."
- echo "                    Note: Use \"-w 0\" to have wol together with \"-p\"."
+ echo "                    commands given with \"-c\" or in case of \"-p\" after"
+ echo "                    the creation of the pxe boot files."
  echo
- echo "Important: Options -r, -g and -i exclude each other, -c and -p as well."
- echo "           Option -c together with -w bypasses autostart and disables start,"
- echo "           sync and new buttons on next boot automatically."
+ echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
+ echo "             \"-p\" as well."
+ echo "           * Option \"-c\" together with \"-w\" bypasses autostart and disables"
+ echo "             start, sync and new buttons on next boot automatically."
  echo
- echo "Supported commands for -c option are:"
+ echo "Supported commands for -c or -p options are:"
  echo
  echo "partition                : Writes the partition table."
  echo "format                   : Writes the partition table and formats all"
@@ -319,25 +319,43 @@ if [ -n "$WAIT" ]; then
   exit 1
  fi
  # wake-on-lan
- echo "Waking up"
+ echo "Trying to wake up:"
  for i in $IP; do
   echo " $i ..."
-  # disable autostart per one time pxe config
-  [ -n "$DIRECT" ] && write_pipe "$(pxepipename $i)" "" "$(linbo_kopts "$LINBODIR/start.conf-$i")"
+  # one time pxe config file
+  otpxefile="$(pxepipename $i)"
+  # collect all filenames and ips in one var
+  collection="$collection $otpxefile,$i"
+  [ -n "$DIRECT" ] && write_pipe "$otpxefile" "" "$(linbo_kopts "$LINBODIR/start.conf-$i")"
   get_mac "$i"
   $ETHERWAKE -i "$iface" "$RET"
   [ -n "$BETWEEN" ] && sleep "$BETWEEN"
  done
- # wait
- echo "Waiting $WAIT second(s) for client(s) to boot ..."
- sleep "$WAIT"
+ if [ -n "$DIRECT" ]; then
+  # wait for clients to boot
+  echo "Waiting $WAIT second(s) for client(s) to boot ..."
+  sleep "$WAIT"
+  # remove one time pxefiles of clients not waked up
+  for i in $collection; do
+   otpxefile="$(echo "$i" | sed -e 's|,.*$||')"
+   ip="$(echo "$i" | sed -e 's|.*,||')"
+   if [ -e "$otpxefile" ]; then
+    cat "$otpxefile" &> /dev/null
+    ips_not_waked_up="$ips_not_waked_up $ip"
+   fi
+  done
+ fi
 fi
 
 # send commands directly per linbo-ssh
 send_cmds(){
- echo "Sending command(s) to"
+ echo "Sending command(s):"
  for i in $IP; do
   echo -n " $i ... "
+  if echo "$ips_not_waked_up" | grep -qw "$i"; then
+   echo " Failed (OMG, removing pxe file!)"
+   continue
+  fi
   if $SSH $i ls /start.conf &> /dev/null; then
    if [ -n "$SECRETS" ]; then
     echo -n "uploading secrets ... "
@@ -394,11 +412,12 @@ create_pipes(){
  # iterate over ips, get kernel options from start.conf and write pipe
  local conf=""
  local pxefile
- echo "Writing pxe boot files ..."
+ echo "Writing pxe boot files:"
  for i in $IP; do
+  echo -n " $i ... "
   conf="$LINBODIR/start.conf-$i"
   if [ ! -e "$conf" ]; then
-   echo " $i: No start.conf found!"
+   echo " skipped (OMG, no start.conf found!)"
    continue
   fi
   # read kernel options
@@ -406,12 +425,35 @@ create_pipes(){
   # get pxe filename
   pxefile="$(pxepipename "$i")"
   if [ -z "$pxefile" ]; then
-   echo " $i: No mac address found!"
+   echo " skipped (OMG, no mac address found!)"
    continue
   fi
-  write_pipe "$pxefile" "$cmdstr" "$kopts"
-  echo " $i: OK."
+  if write_pipe "$pxefile" "$cmdstr" "$kopts"; then
+   echo "Ok!"
+  else
+   echo "Failed!"
+  fi
  done
+ # test for not waked up clients and remove one time pxe files
+ if [ -n "$WAIT" -a $WAIT -gt 0 ]; then
+  echo "Waiting $WAIT second(s) for client(s) to boot ..."
+  sleep "$WAIT"
+  # remove one time pxefiles of clients not waked up
+  echo "Looking for booted clients:"
+  for i in $collection; do
+   ip="$(echo "$i" | sed -e 's|.*,||')"
+   echo -n " $ip ... "
+   otpxefile="$(echo "$i" | sed -e 's|,.*$||')"
+   if [ -e "$otpxefile" ]; then
+    echo "Failed (OMG, removing pxe file!)"
+    cat "$otpxefile" &> /dev/null
+   else
+    echo "Ok!"
+   fi
+  done
+ elif [ -n "$WAIT" -a $WAIT -eq 0 ]; then
+  echo "Skipping test for booted clients."
+ fi
 }
 
 

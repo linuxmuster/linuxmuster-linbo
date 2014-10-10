@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.2.10-0) babo; urgency=low
+
+  * linbo-remote, wake-on-lan: added client boot success test and removement of 
+    pxe boot files of not booted clients (closes #390).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 10 Oct 2014 20:21:38 +0000
+
 linuxmuster-linbo (2.2.9-1) babo; urgency=low
 
   * linbo_wrapper, get_partitions(): improved start.conf parser.
