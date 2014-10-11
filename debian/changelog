@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.2.10-1) babo; urgency=low
+
+  * linbo-remote: fixed removement of pxe boot files.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 11 Oct 2014 19:17:54 +0000
+
 linuxmuster-linbo (2.2.10-0) babo; urgency=low
 
   * linbo-remote, wake-on-lan: added client boot success test and removement of 

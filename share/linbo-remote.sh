@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 10.10.2014
+# 11.10.2014
 # GPL V3
 #
 
@@ -339,8 +339,8 @@ if [ -n "$WAIT" ]; then
   for i in $collection; do
    otpxefile="$(echo "$i" | sed -e 's|,.*$||')"
    ip="$(echo "$i" | sed -e 's|.*,||')"
-   if [ -e "$otpxefile" ]; then
-    cat "$otpxefile" &> /dev/null
+   if [ -e "$PXECFGDIR/$otpxefile" ]; then
+    cat "$PXECFGDIR/$otpxefile" &> /dev/null
     ips_not_waked_up="$ips_not_waked_up $ip"
    fi
   done
@@ -353,7 +353,7 @@ send_cmds(){
  for i in $IP; do
   echo -n " $i ... "
   if echo "$ips_not_waked_up" | grep -qw "$i"; then
-   echo " Failed (OMG, removing pxe file!)"
+   echo "not booted, skipping."
    continue
   fi
   if $SSH $i ls /start.conf &> /dev/null; then
@@ -417,7 +417,7 @@ create_pipes(){
   echo -n " $i ... "
   conf="$LINBODIR/start.conf-$i"
   if [ ! -e "$conf" ]; then
-   echo " skipped (OMG, no start.conf found!)"
+   echo "skipped, no start.conf found!"
    continue
   fi
   # read kernel options
@@ -425,14 +425,11 @@ create_pipes(){
   # get pxe filename
   pxefile="$(pxepipename "$i")"
   if [ -z "$pxefile" ]; then
-   echo " skipped (OMG, no mac address found!)"
+   echo "skipped, no mac address found!"
    continue
   fi
-  if write_pipe "$pxefile" "$cmdstr" "$kopts"; then
-   echo "Ok!"
-  else
-   echo "Failed!"
-  fi
+  write_pipe "$pxefile" "$cmdstr" "$kopts"
+  echo "Done!"
  done
  # test for not waked up clients and remove one time pxe files
  if [ -n "$WAIT" -a $WAIT -gt 0 ]; then
@@ -444,9 +441,9 @@ create_pipes(){
    ip="$(echo "$i" | sed -e 's|.*,||')"
    echo -n " $ip ... "
    otpxefile="$(echo "$i" | sed -e 's|,.*$||')"
-   if [ -e "$otpxefile" ]; then
-    echo "Failed (OMG, removing pxe file!)"
-    cat "$otpxefile" &> /dev/null
+   if [ -e "$PXECFGDIR/$otpxefile" ]; then
+    echo "not booted, removing pxe file!"
+    cat "$PXECFGDIR/$otpxefile" &> /dev/null
    else
     echo "Ok!"
    fi
