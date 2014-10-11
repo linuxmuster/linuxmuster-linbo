@@ -1954,10 +1954,10 @@ update(){
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
  echo "Aktualisiere LINBO-Kernel."
- download "$server" linbo
- download "$server" linbofs.lz
+ download "$server" linbo64
+ download "$server" linbofs64.lz
  # grub update
- if [ -s "linbo" -a -s "linbofs.lz" ]; then
+ if [ -s "linbo64" -a -s "linbofs64.lz" ]; then
   mkdir -p /cache/boot/grub
   # only if online
   if ! localmode; then
@@ -2011,7 +2011,7 @@ initcache(){
  shift; shift; shift
 
  # clean up obsolete linbofs files
- rm -f linbofs[.a-zA-Z0-9_-]*.gz*
+ rm -f linbofs64[.a-zA-Z0-9_-]*.gz*
  rm -f linbo*.info
 
  # clean up obsolete image files
