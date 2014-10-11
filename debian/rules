@@ -130,9 +130,9 @@ configure-stamp:
 
 	# setup 64bit linbo dirs
 	cp -R linbo linbo64
-	patch -p0 <patches/linbo64.patch
+	(cd linbo64 && patch -p1 <$(CURDIR)/patches/linbo64.patch)
 	cp -R linbo_gui linbo_gui64
-	patch -p0 <patches/linbo_gui64.patch
+	(cd linbo_gui64 && patch -p1 <$(CURDIR)/patches/linbo_gui64.patch)
 
 	# download and unpack sources
 
