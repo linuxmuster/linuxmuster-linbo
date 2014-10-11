@@ -131,10 +131,16 @@ configure-stamp:
 	mkdir -p linbo_gui64 || true
 
 	# setup 64bit linbo dirs
-	cp -R linbo/* linbo64
-	(cd linbo64 && patch -p1 <$(CURDIR)/patches/linbo64.patch)
-	cp -R linbo_gui/* linbo_gui64
-	(cd linbo_gui64 && patch -p1 <$(CURDIR)/patches/linbo_gui64.patch)
+	-@if [ ! -e linbo64/init.sh ]; then \
+		echo "[1mCreating 64bit linbo...[0m" ; \
+		cp -R linbo/* linbo64 ; \
+		(cd linbo64 && patch -p1 <$(CURDIR)/patches/linbo64.patch); \
+	fi
+	-@if [ ! -e linbo_gui/build_gui ]; then \
+		echo "[1mCreating 64bit linbo_gui...[0m" ; \
+		cp -R linbo_gui/* linbo_gui64; \
+		(cd linbo_gui64 && patch -p1 <$(CURDIR)/patches/linbo_gui64.patch); \
+	fi
 
 	# download and unpack sources
 
@@ -376,7 +382,7 @@ build-stamp: configure-stamp
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --target=i686-pc-linux-gnu --host=i686-pc-linux-gnu && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --target=i686-pc-linux-gnu && make && strip build/sbin/kexec ); \
 	fi
 
 	# kexec-tools64
