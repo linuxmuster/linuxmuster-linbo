@@ -487,7 +487,7 @@ build-stamp: configure-stamp
 	        ln -snf ../initramfs_kernel.conf . ; \
 	        :> ../initramfs_kernel.conf ; \
 	        rm -f usr/initramfs_data.cpio.gz || true ; \
-	        cat $(CURDIR)/conf/initramfs_kernel64.conf > ../initramfs_kernel.conf ; \
+	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
 	        ARCH=x86_64 make bzImage modules ; \
 	fi
 
