@@ -136,7 +136,7 @@ configure-stamp:
 		cp -R linbo/* linbo64 ; \
 		(cd linbo64 && patch -p1 <$(CURDIR)/patches/linbo64.patch); \
 	fi
-	-@if [ ! -e linbo_gui/build_gui ]; then \
+	-@if [ ! -e linbo_gui64/build_gui ]; then \
 		echo "[1mCreating 64bit linbo_gui...[0m" ; \
 		cp -R linbo_gui/* linbo_gui64; \
 		(cd linbo_gui64 && patch -p1 <$(CURDIR)/patches/linbo_gui64.patch); \

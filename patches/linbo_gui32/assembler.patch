@@ -19,3 +19,12 @@ diff -up ./qt-everywhere-opensource-src-4.8.6/src/corelib/arch/qatomic_i386.h.or
                   : "=r" (newValue), "+m" (_q_value)
                   : "0" (newValue)
                   : "memory");
+@@ -191,7 +191,7 @@
+ Q_INLINE_TEMPLATE T *QBasicAtomicPointer<T>::fetchAndAddOrdered(qptrdiff valueToAdd)
+ {
+     asm volatile("lock\n"
+-                 "xaddl %0,%1"
++                 "xaddl %k0,%1"
+                  : "=r" (valueToAdd), "+m" (_q_value)
+                  : "0" (valueToAdd * sizeof(T))
+                  : "memory");
