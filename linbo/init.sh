@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 06.10.2014
+# 12.10.2014
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -86,9 +86,10 @@ read_cmdline(){
 
  # parse kernel cmdline
  CMDLINE="$(cat /proc/cmdline)"
- 
+
  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
  case "$CMDLINE" in *\ splash*) splash=yes;; esac
+ case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
  case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
 }
 
@@ -372,6 +373,12 @@ do_housekeeping(){
  mount | grep -v grep | grep -q /cache && umount /cache
 }
 
+# disable auto functions from cmdline
+disable_auto(){
+ sed -e 's|^[Aa][Uu][Tt][Oo][Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn].*|AutoPartition = no|g
+         s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g' -i /start.conf
+}
+
 # handle autostart from cmdline
 set_autostart() {
  # return if autostart shall be suppressed generally
@@ -465,6 +472,15 @@ network(){
   for i in "torrent-client.conf" "multicast.list"; do
    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
   done
+  # get optional onboot linbo-remote commands
+  rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
+  if [ -s "/linbocmd" ]; then
+   for i in noauto nobuttons; do
+    grep -q "$i" /linbocmd && eval "$i"=yes
+    sed -e "s|$i||" -i /linbocmd
+   done
+   linbocmd="$(sed -e 's| ||g' /linbocmd)"
+  fi
   # and (optional) the GUI icons
   for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
@@ -486,6 +502,11 @@ network(){
  [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # disable auto functions if noauto is given
+ if [ -n "$noauto" ]; then
+  autostart=0
+  disable_auto
+ fi
  # set autostart if given on cmdline
  isinteger "$autostart" && set_autostart
  # disable buttons if nobuttons is given on cmdline
@@ -563,7 +584,7 @@ fi
 if [ -z  "$splash" ]; then
  network
  # execute linbo commands given on commandline
- [ -n "$linbocmd" ] && /usr/bin/linbo_wrapper $(echo "$linbocmd" | sed -e 's|,| |g')
+ [ -n "$linbocmd" ] && /usr/bin/linbo_wrapper ${linbocmd//,/ }
  exit 0
 fi
 
@@ -610,6 +631,9 @@ while [ ! -e /tmp/linbo-network.done ]; do
  sleep 1
 done
 
+# read downloaded onboot linbocmds
+[ -s /linbocmd ] && linbocmd="$(cat /linbocmd)"
+
 # console output for linbo commands
 if [ -n "$linbocmd" ]; then
 
@@ -632,6 +656,7 @@ if [ -n "$linbocmd" ]; then
   else
    msg="linbo_wrapper $cmd"
   fi
+  
   ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
 
   # read and print output
