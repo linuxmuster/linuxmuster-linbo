@@ -392,6 +392,8 @@ create_onboot(){
   # get onboot linbocmd filename
   otlcmdfile="$LINBODIR/linbocmd/$i.cmd"
   echo "$cmdstr" > "$otlcmdfile"
+  chown nobody:root "$otlcmdfile"
+  chmod 660 "$otlcmdfile"
   echo "Done!"
  done
  # test for not waked up clients and remove not used onboot linbocmd files
