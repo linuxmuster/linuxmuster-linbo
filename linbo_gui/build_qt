@@ -7,6 +7,7 @@
   cd $QTDIR
   make clean
   echo -e "yes\n" | ./configure \
+ -platform linux-g++-32 \
  -embedded x86 \
  -prefix $QTDIR \
  -opensource \

@@ -430,7 +430,7 @@ build-stamp: configure-stamp
 	# ssmtp64
 	-@if [ ! -e $(SSMTP64_DIR)/ssmtp ]; then \
 		echo "[1mBuilding 64bit ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ./configure --target=x86_64-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP64_DIR) && ./configure --target=x86_64-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ctorrent
