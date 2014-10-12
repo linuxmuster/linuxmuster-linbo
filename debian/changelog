@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.2.10-0fschuett) UNRELEASED; urgency=low
+
+  * added 64bit boot
+
+ -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Sun, 12 Oct 2014 16:55:41 +0200
+
 linuxmuster-linbo (2.2.10-0) babo; urgency=low
 
   * linbo-remote, wake-on-lan: added client boot success test and removement of 

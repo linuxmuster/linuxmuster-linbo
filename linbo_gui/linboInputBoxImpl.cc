@@ -1,4 +1,5 @@
 #include "linboInputBoxImpl.hh"
+#include <unistd.h>
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <QtGui>
