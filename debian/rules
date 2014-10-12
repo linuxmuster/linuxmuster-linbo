@@ -279,6 +279,8 @@ configure-stamp:
 		( cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ; \
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui; \
+		echo "[1mPatching 32bit qt sources...[0m" ; \
+		( cd $(QT_DIR) && for i in ../../patches/linbo_gui32/*; do patch -p2 <$$i; done ); \
 	fi
 
 	# qt64
@@ -630,7 +632,7 @@ install: build
 	cd $(KERNEL64_DIR) ; \
 	ln -snf ../initramfs.conf ./initramfs.conf ; \
 	:> ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
+	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
