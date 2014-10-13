@@ -59,6 +59,9 @@ BB_ARCHIVE=$(shell grep busybox- debian/md5sums.src | awk '{ print $$2 }')
 BB_DIR=src/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
 BB_URL=http://busybox.net/downloads
 
+#busybox64
+BB64_DIR=src64/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
+
 # chntpw
 CHNTPW_ARCHIVE=$(shell grep chntpw- debian/md5sums.src | awk '{ print $$2 }')
 CHNTPW_DIR=src/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
@@ -117,6 +120,9 @@ CTORRENT_ARCHIVE=$(shell grep ctorrent- debian/md5sums.src | awk '{ print $$2 }'
 CTORRENT_DIR=src/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
 CTORRENT_URL=http://www.rahul.net/dholmes/ctorrent
 
+#ctorrent64
+CTORRENT64_DIR=src64/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -154,6 +160,18 @@ configure-stamp:
 		( cd $(BB_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
 		cp conf/busybox.conf $(BB_DIR)/.config; \
 		ln -sf ../$(BB_DIR) src/busybox; \
+	fi
+
+	# busybox64
+	-@if [ ! -d $(BB64_DIR) ]; then \
+		( [ -e cache/$(BB_ARCHIVE) ] || ( cd cache && wget $(BB_URL)/$(BB_ARCHIVE) ) ); \
+		( cd cache && grep $(BB_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(BB_ARCHIVE)...[0m" ; \
+		tar xf cache/$(BB_ARCHIVE) -C src64; \
+		echo "[1mPatching 64bit busybox sources...[0m" ; \
+		( cd $(BB64_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
+		cp conf/busybox.conf $(BB64_DIR)/.config; \
+		ln -sf ../$(BB64_DIR) src64/busybox; \
 	fi
 
 	# grub4dos
@@ -273,6 +291,15 @@ configure-stamp:
 		ln -sf ../$(CTORRENT_DIR) src/ctorrent; \
 	fi
 
+	# ctorrent64
+	-@if [ ! -d $(CTORRENT64_DIR) ]; then \
+		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL)/$(CTORRENT_ARCHIVE) ) ); \
+		( cd cache && grep $(CTORRENT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(CTORRENT_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CTORRENT_ARCHIVE) -C src64; \
+		ln -sf ../$(CTORRENT64_DIR) src64/ctorrent; \
+	fi
+
 	# qt
 	-@if [ ! -d $(QT_DIR) ]; then \
 		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL)/$(QT_ARCHIVE) ) ); \
@@ -299,6 +326,10 @@ configure-stamp:
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
 		echo "[1mPatching cloop sources...[0m" ; \
 		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
+		( cd $(CLOOP_DIR) && patch -p0 <../../patches/cloop32.patch ); \
+		if [ ! -e /usr/include/zconf.h ]; then \
+			( cd /usr/include; ln -s x86_64-linux-gnu/zconf.h ); \
+		fi; \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 	fi
 
@@ -366,7 +397,13 @@ build-stamp: configure-stamp
 	# busybox
 	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \
 		echo "[1mBuilding busybox...[0m" ; \
-		( cd $(BB_DIR) && make install ); \
+		( cd $(BB_DIR) && ARCH=i386 CROSS_COMPILE=i686-linux-gnu- make install ); \
+	fi
+
+	# busybox64
+	-@if [ ! -e $(BB64_DIR)/_install/bin/busybox ]; then \
+		echo "[1mBuilding 64bit busybox...[0m" ; \
+		( cd $(BB64_DIR) && make install ); \
 	fi
 
 	# cloop
@@ -426,7 +463,7 @@ build-stamp: configure-stamp
 	# ssmtp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ./configure --target=i686-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP_DIR) && ARCH=i386 ./configure --host=i686-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ssmtp64
@@ -438,7 +475,13 @@ build-stamp: configure-stamp
 	# ctorrent
 	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
 		echo "[1mBuilding ctorrent...[0m" ; \
-		( cd $(CTORRENT_DIR) && ./configure --with-ssl=no && make && strip ctorrent ); \
+		( cd $(CTORRENT_DIR) && ARCH=i386 ./configure --with-ssl=no --host=i686-linux-gnu && make && strip ctorrent ); \
+	fi
+
+	# ctorrent64
+	-@if [ ! -e $(CTORRENT64_DIR)/ctorrent ]; then \
+		echo "[1mBuilding 64bit ctorrent...[0m" ; \
+		( cd $(CTORRENT64_DIR) && ./configure --with-ssl=no && make && strip ctorrent ); \
 	fi
 
 	# qt
@@ -641,7 +684,7 @@ install: build
 	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/bnx2/\* -o -path \*/firmware/bnx2x/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name vboxguest.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
+	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
 	install -m 644 graphics/grub-pxe-logo.png debian/linuxmuster-linbo/var/linbo/logo.png
 	install -m 644 grub/grub.cfg debian/linuxmuster-linbo/var/linbo/grub.cfg
