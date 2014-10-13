@@ -90,15 +90,24 @@ MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
 MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
 MSSYS_URL=$(LML_URL)
 
+# ms-sys
+MSSYS64_DIR=src64/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
+
 # ntfs-3g
 NTFS3G_ARCHIVE=$(shell grep ntfs-3g_ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
 NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
 NTFS3G_URL=http://tuxera.com/opensource
 
+# ntfs-3g64
+NTFS3G64_DIR=src64/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
+
 # rsync
 RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
 RSYNC_DIR=src/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
 RSYNC_URL=http://rsync.samba.org/ftp/rsync/src
+
+# rsync64
+RSYNC64_DIR=src64/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
 
 # ssmtp
 SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
@@ -230,7 +239,18 @@ configure-stamp:
 		( cd cache && grep $(MSSYS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(MSSYS_ARCHIVE)...[0m" ; \
 		tar xf cache/$(MSSYS_ARCHIVE) -C src; \
+		echo "[1mPatching $(MSSYS_ARCHIVE)...[0m" ; \
+		( cd $(MSSYS_DIR) && patch -p0 <../../patches/ms-sys32.patch ); \
 		ln -sf ../$(MSSYS_DIR) src/ms-sys; \
+	fi
+
+	# ms-sys64
+	-@if [ ! -d $(MSSYS64_DIR) ]; then \
+		( [ -e cache/$(MSSYS_ARCHIVE) ] || ( cd cache && wget $(MSSYS_URL)/$(MSSYS_ARCHIVE) ) ); \
+		( cd cache && grep $(MSSYS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(MSSYS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(MSSYS_ARCHIVE) -C src64; \
+		ln -sf ../$(MSSYS64_DIR) src64/ms-sys; \
 	fi
 
 	# ntfs-3g
@@ -240,6 +260,15 @@ configure-stamp:
 		echo "[1mUnpacking $(NTFS3G_ARCHIVE)...[0m" ; \
 		tar xf cache/$(NTFS3G_ARCHIVE) -C src; \
 		ln -sf ../$(NTFS3G_DIR) src/ntfs-3g; \
+	fi
+
+	# ntfs-3g64
+	-@if [ ! -d $(NTFS3G64_DIR) ]; then \
+		( [ -e cache/$(NTFS3G_ARCHIVE) ] || ( cd cache && wget $(NTFS3G_URL)/$(NTFS3G_ARCHIVE) ) ); \
+		( cd cache && grep $(NTFS3G_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(NTFS3G_ARCHIVE)...[0m" ; \
+		tar xf cache/$(NTFS3G_ARCHIVE) -C src64; \
+		ln -sf ../$(NTFS3G64_DIR) src64/ntfs-3g; \
 	fi
 
 	# rsync
@@ -253,6 +282,17 @@ configure-stamp:
 		ln -sf ../$(RSYNC_DIR) src/rsync; \
 	fi
 
+	# rsync64
+	-@if [ ! -d $(RSYNC64_DIR) ]; then \
+		( [ -e cache/$(RSYNC_ARCHIVE) ] || ( cd cache && wget $(RSYNC_URL)/$(RSYNC_ARCHIVE) ) ); \
+		( cd cache && grep $(RSYNC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(RSYNC_ARCHIVE)...[0m" ; \
+		tar xf cache/$(RSYNC_ARCHIVE) -C src64; \
+		echo "[1mPatching 64bit rsync sources...[0m" ; \
+		( cd $(RSYNC64_DIR) && for i in ../../patches/rsync/*; do patch -p1 <$$i; done ); \
+		ln -sf ../$(RSYNC64_DIR) src64/rsync; \
+	fi
+
 	# ssmtp
 	-@if [ ! -d $(SSMTP_DIR) ]; then \
 		( [ -e cache/$(SSMTP_ARCHIVE) ] || ( cd cache && wget $(SSMTP_URL)/$(SSMTP_ARCHIVE) ) ); \
@@ -261,6 +301,7 @@ configure-stamp:
 		tar xf cache/$(SSMTP_ARCHIVE) -C src; \
 		echo "[1mPatching ssmtp sources...[0m" ; \
 		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
+		( cd $(SSMTP_DIR) && patch -p0 <../../patches/ssmtp32.patch ); \
 	fi
 
 	# ssmtp64
@@ -421,7 +462,7 @@ build-stamp: configure-stamp
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && LDFLAGS=-static ./configure --host=i686-linux-gnu && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --host=i686-linux-gnu && make && strip build/sbin/kexec ); \
 	fi
 
 	# kexec-tools64
@@ -434,6 +475,12 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(MSSYS_DIR)/bin/ms-sys ]; then \
 		echo "[1mBuilding ms-sys...[0m" ; \
 		( cd $(MSSYS_DIR) && make && strip bin/ms-sys ); \
+	fi
+
+	# ms-sys64
+	-@if [ ! -e $(MSSYS64_DIR)/bin/ms-sys ]; then \
+		echo "[1mBuilding 64bit ms-sys...[0m" ; \
+		( cd $(MSSYS64_DIR) && make && strip bin/ms-sys ); \
 	fi
 
 	# chntpw
@@ -451,25 +498,37 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
+		( cd $(NTFS3G_DIR) && ARCH=i386 ./configure --host=i686-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
+	fi
+
+	# ntfs-3g64
+	-@if [ ! -e $(NTFS3G64_DIR)/src/ntfs-3g ]; then \
+		echo "[1mBuilding 64bit ntfs-3g...[0m" ; \
+		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
 	fi
 
 	# rsync
 	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
 		echo "[1mBuilding rsync...[0m" ; \
-		( cd $(RSYNC_DIR) && ./configure --prefix=/usr && make && strip rsync ); \
+		( cd $(RSYNC_DIR) && ARCH=i386 ./configure --prefix=/usr --host=i686-linux-gnu && make && strip rsync ); \
+	fi
+
+	# rsync64
+	-@if [ ! -e $(RSYNC64_DIR)/rsync ]; then \
+		echo "[1mBuilding 64bit rsync...[0m" ; \
+		( cd $(RSYNC64_DIR) && ./configure --prefix=/usr && make && strip rsync ); \
 	fi
 
 	# ssmtp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ARCH=i386 ./configure --host=i686-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP_DIR) && ARCH=i386 ./configure --host=i686-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ssmtp64
 	-@if [ ! -e $(SSMTP64_DIR)/ssmtp ]; then \
 		echo "[1mBuilding 64bit ssmtp...[0m" ; \
-		( cd $(SSMTP64_DIR) && ./configure --target=x86_64-pc-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP64_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ctorrent
