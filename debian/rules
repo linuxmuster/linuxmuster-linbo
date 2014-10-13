@@ -139,7 +139,7 @@ configure-stamp:
 	-@if [ ! -e linbo_gui64/build_gui ]; then \
 		echo "[1mCreating 64bit linbo_gui...[0m" ; \
 		cp -R linbo_gui/* linbo_gui64; \
-		(cd linbo_gui64 && patch -p1 <$(CURDIR)/patches/linbo_gui64.patch); \
+		(cd linbo_gui64 && patch -p2 <$(CURDIR)/patches/linbo_gui64.patch); \
 	fi
 
 	# download and unpack sources
@@ -467,7 +467,7 @@ build-stamp: configure-stamp
 
 	# linbo kernel
 	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
-	        echo "ESC[1mBuilding LINBO kernel...ESC[0m" ; \
+	        echo "[1mBuilding LINBO kernel...[0m" ; \
 	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
 	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -rf ../modules/* || true ; \
@@ -481,7 +481,7 @@ build-stamp: configure-stamp
 
 	# linbo kernel64
 	-@if [ ! -e $(KERNEL64_DIR)/vmlinux ]; then \
-	        echo "ESC[1mBuilding 64bit LINBO kernel...ESC[0m" ; \
+	        echo "[1mBuilding 64bit LINBO kernel...[0m" ; \
 	        rm -f $(CLOOP64_DIR)/cloop.ko || true ; \
 	        rm -f $(VBOX64_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -rf ../modules/* || true ; \
@@ -495,7 +495,7 @@ build-stamp: configure-stamp
 
 	# cloop module
 	-@if [ ! -e $(CLOOP_DIR)/cloop.ko ]; then \
-	        echo "ESC[1mBuilding cloop module...ESC[0m" ; \
+	        echo "[1mBuilding cloop module...[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP_DIR) && \
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
@@ -503,7 +503,7 @@ build-stamp: configure-stamp
 
 	# cloop64 module
 	-@if [ ! -e $(CLOOP64_DIR)/cloop.ko ]; then \
-	        echo "ESC[1mBuilding 64bit cloop module...ESC[0m" ; \
+	        echo "[1mBuilding 64bit cloop module...[0m" ; \
 	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP64_DIR) && \
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
@@ -511,7 +511,7 @@ build-stamp: configure-stamp
 
 	# vboxguest modules
 	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
-	        echo "ESC[1mBuilding virtualbox-guest modules...ESC[0m" ; \
+	        echo "[1mBuilding virtualbox-guest modules...[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
 	        cd $(VBOX_DIR) && \
 	        ( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
@@ -519,7 +519,7 @@ build-stamp: configure-stamp
 
 	# vboxguest64 modules
 	-@if [ ! -e $(VBOX64_DIR)/vboxguest/vboxguest.ko ]; then \
-	        echo "ESC[1mBuilding 64bit virtualbox-guest modules...ESC[0m" ; \
+	        echo "[1mBuilding 64bit virtualbox-guest modules...[0m" ; \
 	        rm -f kernel64/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
 	        cd $(VBOX64_DIR) && \
 	        ( make -C vboxguest clean ; ARCH=x86_64 make -C $(CURDIR)/$(KERNEL64_DIR) M=$(CURDIR)/$(VBOX64_DIR) ) ; \
@@ -632,7 +632,7 @@ install: build
 	cd $(KERNEL64_DIR) ; \
 	ln -snf ../initramfs.conf ./initramfs.conf ; \
 	:> ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
+	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
