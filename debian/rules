@@ -139,6 +139,15 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 
+	# setup 32bit build tool chain
+	-@if [ ! -e /usr/local/bin/i686-linux-gnu-gcc ]; then \
+		echo "[1mSetting up 32bit toolchain...[0m" ; \
+		install -o root -g root -m 755 toolchain/i686-linux-gnu-gcc /usr/local/bin/i686-linux-gnu-gcc ; \
+		install -o root -g root -m 755 toolchain/i686-linux-gnu-g++ /usr/local/bin/i686-linux-gnu-g++ ; \
+		install -o root -g root -m 755 toolchain/i686-linux-gnu-c++ /usr/local/bin/i686-linux-gnu-c++ ; \
+		( cd /usr/local/bin && ln -s /usr/bin/ar i686-linux-gnu-ar && ln -s /usr/bin/strip i686-linux-gnu-strip ) ; \
+	fi
+	
 	# make necessary build dirs
 	mkdir -p cache || true
 	mkdir -p kernel || true
