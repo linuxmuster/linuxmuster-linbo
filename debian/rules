@@ -129,8 +129,11 @@ CTORRENT_ARCHIVE=$(shell grep ctorrent- debian/md5sums.src | awk '{ print $$2 }'
 CTORRENT_DIR=src/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
 CTORRENT_URL=http://www.rahul.net/dholmes/ctorrent
 
-#ctorrent64
+# ctorrent64
 CTORRENT64_DIR=src64/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
+
+# 32bit binaries
+BIN32_DIR=src/bin32
 
 configure: configure-stamp
 configure-stamp:
@@ -427,6 +430,15 @@ configure-stamp:
 		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
 	fi
 
+	# 32bit binaries
+	-@if [ ! -d $(BIN32_DIR) ]; then \
+		echo "[1mCreating $(BIN32_DIR)...[0m" ; \
+		while read deb file ; do \
+			( [ -e cache/$$deb ] || ( cd cache && apt-get download $$deb ) ); \
+			echo "[1mUnpacking $$deb...[0m" ; \
+			dpkg -x cache/$$file $(BIN32_DIR); \
+		done < conf/bin32_deb.conf; \
+	fi
 	touch configure-stamp
 
 build: build-stamp
