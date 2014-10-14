@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 31.07.2014
+# 12.10.2014
 #
 
 # read in paedml specific environment
@@ -37,6 +37,12 @@ echo "EXT: $EXT"
 pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
 
 case $EXT in
+
+ # remove linbocmd file after download
+ *.cmd)
+  echo "Removing onboot linbocmd file $FILE."
+  rm -f "$FILE"
+ ;;
 
  # update host's opsi ini, invoked by linbo_cmd on postsync
  *.opsi)

@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 10.10.2014
+# 12.10.2014
 # GPL V3
 #
 
@@ -32,17 +32,18 @@ usage(){
  echo "                    packets to the particular hosts. Must be used in"
  echo "                    conjunction with \"-w\"."
  echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
- echo "                    per ssh to the client(s)."
+ echo "                    per ssh direct to the client(s)."
  echo " -d                 Disables start, sync and new buttons on next boot."
  echo "                    To be used together with option -p."
  echo " -g <group>         All hosts of this hostgroup will be processed."
  echo " -i <ip|hostname>   Ip or hostname of client to be processed."
  echo " -l                 List current linbo-remote screens."
- echo " -n                 Bypasses a start.conf configured autostart on next boot."
+ echo " -n                 Bypasses a start.conf configured auto functions"
+ echo "                    (partition, format, start) on next boot."
  echo "                    To be used together with option -p."
  echo " -r <room>          All hosts of this room will be processed."
- echo " -p <cmd1,cmd2,...> Pipe the command list into a one time pxeboot configfile"
- echo "                    executed automatically next time the client boots."
+ echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
+ echo "                    once next time the client boots."
  echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
  echo "                    and wait <sec> seconds before executing the"
  echo "                    commands given with \"-c\" or in case of \"-p\" after"
@@ -115,7 +116,7 @@ echo "### opt: $opt $OPTARG"
   d) NOBUTTONS=yes ;;
   i) IP=$OPTARG ;;
   g) GROUP=$OPTARG ;;
-  p) PIPE=$OPTARG  ;;
+  p) ONBOOT=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
   w) WAIT=$OPTARG
      isinteger "$WAIT" || usage ;;
@@ -133,10 +134,10 @@ done
 [ -n "$GROUP" -a -n "$IP" ] && usage
 [ -n "$GROUP" -a -n "$ROOM" ] && usage
 [ -n "$IP" -a -n "$ROOM" ] && usage
-[ -n "$DIRECT" -a -n "$PIPE" ] && usage
-[ -z "$DIRECT" -a -z "$PIPE" -a -z "$WAIT" ] && usage
+[ -n "$DIRECT" -a -n "$ONBOOT" ] && usage
+[ -z "$DIRECT" -a -z "$ONBOOT" -a -z "$WAIT" ] && usage
 if [ -n "$WAIT" ]; then
- [ -z "$DIRECT" -a -z "$PIPE" ] && usage
+ [ -z "$DIRECT" -a -z "$ONBOOT" ] && usage
  if [ ! -x "$ETHERWAKE" ]; then
   echo "$ETHERWAKE not found!"
   exit 1
@@ -152,9 +153,9 @@ if [ -n "$DIRECT" ]; then
  DIRECT="yes"
  NOAUTO="yes"
  NOBUTTONS="yes"
-elif [ -n "$PIPE" ]; then
- CMDS="$PIPE"
- PIPE="yes"
+elif [ -n "$ONBOOT" ]; then
+ CMDS="$ONBOOT"
+ ONBOOT="yes"
 fi
 
 
@@ -284,32 +285,6 @@ echo "###"
 echo "### linbo-remote ($$) start: $(date)"
 echo "###"
 
-# compute pipename from mac address
-pxepipename(){
- local ip="$1"
- get_mac "$ip"
- local mac="${RET:0:17}"
- [ -z "$mac" ] && return
- local pipe="01-${mac//:/-}"
- echo "$pipe" | tr A-Z a-z
-}
-
-# write pipe which will function as a one time pxelinux config file
-write_pipe(){
- local pxefile="$PXECFGDIR/$1"
- local linbocmd="$2"
- [ -n "$NOAUTO" ] && linbocmd="$linbocmd autostart=0"
- [ -n "$NOBUTTONS" ] && linbocmd="$linbocmd nobuttons"
- local kopts="$3"
- if [ -e "$pxefile" ]; then
-  cat "$pxefile" &> /dev/null
-  [ -e "$pxefile" ] && rm -rf "$pxefile"
- fi
- mkfifo "$pxefile"
- sed -e "s|@@kopts@@|$kopts|
-         s|@@linbocmd@@|$linbocmd|" "$PXETPL" > "$pxefile" && rm "$pxefile" &
-}
-
 # wake-on-lan stuff
 if [ -n "$WAIT" ]; then
  # check interface (yannik's pull request to take only first default route)
@@ -322,11 +297,11 @@ if [ -n "$WAIT" ]; then
  echo "Trying to wake up:"
  for i in $IP; do
   echo " $i ..."
-  # one time pxe config file
-  otpxefile="$(pxepipename $i)"
-  # collect all filenames and ips in one var
-  collection="$collection $otpxefile,$i"
-  [ -n "$DIRECT" ] && write_pipe "$otpxefile" "" "$(linbo_kopts "$LINBODIR/start.conf-$i")"
+  # one time linbocmd file
+  otlcmdfile="$LINBODIR/linbocmd/$i.cmd"
+  # collect all ips
+  collection="$collection $i"
+  [ -n "$DIRECT" ] && echo "noauto nobuttons" > "$otlcmdfile"
   get_mac "$i"
   $ETHERWAKE -i "$iface" "$RET"
   [ -n "$BETWEEN" ] && sleep "$BETWEEN"
@@ -337,11 +312,10 @@ if [ -n "$WAIT" ]; then
   sleep "$WAIT"
   # remove one time pxefiles of clients not waked up
   for i in $collection; do
-   otpxefile="$(echo "$i" | sed -e 's|,.*$||')"
-   ip="$(echo "$i" | sed -e 's|.*,||')"
-   if [ -e "$otpxefile" ]; then
-    cat "$otpxefile" &> /dev/null
-    ips_not_waked_up="$ips_not_waked_up $ip"
+   otlcmdfile="$LINBODIR/linbocmd/$i.cmd"
+   if [ -e "$otlcmdfile" ]; then
+    rm -f "$otlcmdfile"
+    ips_not_waked_up="$ips_not_waked_up $i"
    fi
   done
  fi
@@ -353,7 +327,7 @@ send_cmds(){
  for i in $IP; do
   echo -n " $i ... "
   if echo "$ips_not_waked_up" | grep -qw "$i"; then
-   echo " Failed (OMG, removing pxe file!)"
+   echo "not booted, skipping."
    continue
   fi
   if $SSH $i ls /start.conf &> /dev/null; then
@@ -391,8 +365,8 @@ send_cmds(){
  done
 }
 
-# create pipes for all ips
-create_pipes(){
+# create onboot linbocmd files for all ips
+create_onboot(){
  local cmdstr
  # provide linbo password for upload
  if [ -n "$SECRETS" ]; then
@@ -409,58 +383,45 @@ create_pipes(){
   fi
   c=$(( $c + 1 ))
  done
- # iterate over ips, get kernel options from start.conf and write pipe
- local conf=""
- local pxefile
- echo "Writing pxe boot files:"
+ [ -n "$NOAUTO" ] && cmdstr="$cmdstr noauto"
+ [ -n "$NOBUTTONS" ] && cmdstr="$cmdstr nobuttons"
+ local otlcmdfile
+ echo "Writing onboot linbocmd files:"
  for i in $IP; do
   echo -n " $i ... "
-  conf="$LINBODIR/start.conf-$i"
-  if [ ! -e "$conf" ]; then
-   echo " skipped (OMG, no start.conf found!)"
-   continue
-  fi
-  # read kernel options
-  kopts="$(linbo_kopts "$conf")"
-  # get pxe filename
-  pxefile="$(pxepipename "$i")"
-  if [ -z "$pxefile" ]; then
-   echo " skipped (OMG, no mac address found!)"
-   continue
-  fi
-  if write_pipe "$pxefile" "$cmdstr" "$kopts"; then
-   echo "Ok!"
-  else
-   echo "Failed!"
-  fi
+  # get onboot linbocmd filename
+  otlcmdfile="$LINBODIR/linbocmd/$i.cmd"
+  echo "$cmdstr" > "$otlcmdfile"
+  chown nobody:root "$otlcmdfile"
+  chmod 660 "$otlcmdfile"
+  echo "Done!"
  done
- # test for not waked up clients and remove one time pxe files
- if [ -n "$WAIT" -a $WAIT -gt 0 ]; then
-  echo "Waiting $WAIT second(s) for client(s) to boot ..."
-  sleep "$WAIT"
-  # remove one time pxefiles of clients not waked up
-  echo "Looking for booted clients:"
-  for i in $collection; do
-   ip="$(echo "$i" | sed -e 's|.*,||')"
-   echo -n " $ip ... "
-   otpxefile="$(echo "$i" | sed -e 's|,.*$||')"
-   if [ -e "$otpxefile" ]; then
-    echo "Failed (OMG, removing pxe file!)"
-    cat "$otpxefile" &> /dev/null
-   else
-    echo "Ok!"
-   fi
-  done
- elif [ -n "$WAIT" -a $WAIT -eq 0 ]; then
-  echo "Skipping test for booted clients."
+ # test for not waked up clients and remove not used onboot linbocmd files
+ if [ -n "$WAIT" ]; then
+  if [ $WAIT -gt 0 ]; then
+   echo "Waiting $WAIT second(s) for client(s) to boot ..."
+   sleep "$WAIT"
+   # remove one time pxefiles of clients not waked up
+   echo "Looking for booted clients:"
+   for i in $collection; do
+    echo -n " $i ... "
+    otlcmdfile="$LINBODIR/linbocmd/$i.cmd"
+    if [ -e "$otlcmdfile" ]; then
+     echo "not booted, removing onboot linbocmd file!"
+     rm -f "$otlcmdfile"
+    else
+     echo "Ok!"
+    fi
+   done
+  fi
  fi
 }
 
 
 if [ -n "$DIRECT" ]; then
  send_cmds
-elif [ -n "$PIPE" ]; then
- create_pipes
+elif [ -n "$ONBOOT" ]; then
+ create_onboot
 fi
 
 
