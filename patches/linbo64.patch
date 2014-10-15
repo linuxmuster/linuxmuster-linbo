@@ -12,7 +12,7 @@ diff -pruN linbo/etc/splash.pnm linbo64/etc/splash.pnm
 diff -pruN linbo/init.sh linbo64/init.sh
 --- linbo/init.sh	2014-10-11 09:29:50.508403553 +0200
 +++ linbo64/init.sh	2014-10-11 09:52:57.360449089 +0200
-@@ -149,7 +149,7 @@ trycopyfromdevice(){
+@@ -150,7 +150,7 @@ trycopyfromdevice(){
    mount -r "$device" /cache &>/dev/null || return 1
   fi
   for i in $files; do
