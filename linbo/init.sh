@@ -123,7 +123,7 @@ init_setup(){
  fi
 
  mount -t sysfs /sys /sys
- mount -n -o mode=0755 -t tmpfs tmpfs /dev
+ mount -t devtmpfs devtmpfs /dev
  if [ -e /etc/udev/links.conf ]; then
   udev_extra_nodes
  fi
@@ -532,6 +532,7 @@ hwsetup(){
  #
  # Udev starten
  echo > /sys/kernel/uevent_helper
+ mkdir -p /run/udev
  udevd --daemon
  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
  udevadm trigger
