@@ -7,6 +7,9 @@
 /var/linbo/linbocmd
 /var/linbo/winact
 /var/linbo/pxelinux.cfg/templates
+/var/linbo/bios
+/var/linbo/efi32
+/var/linbo/efi64
 /var/log/linuxmuster/linbo
 /usr/lib/linuxmuster-linbo
 /usr/sbin
