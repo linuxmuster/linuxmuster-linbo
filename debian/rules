@@ -118,9 +118,9 @@ SSMTP_URL=$(LML_URL)
 # ssmtp64
 SSMTP64_DIR=src64/ssmtp
 
-# syslinux64
+# syslinux 32/64
 SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }')
-SYSLINUX_DIR=src64/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.xz//')
+SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.xz//')
 SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
 
 # ctorrent
@@ -325,13 +325,13 @@ configure-stamp:
 		( cd $(SSMTP64_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 	fi
 
-	# syslinux64
+	# syslinux 32/64
 	-@if [ ! -d $(SYSLINUX_DIR) ]; then \
 		( [ -e cache/$(SYSLINUX_ARCHIVE) ] || ( cd cache && wget $(SYSLINUX_URL)/$(SYSLINUX_ARCHIVE) ) ); \
 		( cd cache && grep $(SYSLINUX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(SYSLINUX_ARCHIVE)...[0m" ; \
-		tar xf cache/$(SYSLINUX_ARCHIVE) -C src64; \
-		ln -sf ../$(SYSLINUX_DIR) src64/syslinux; \
+		echo "[1mUnpacking 32bit/64bit $(SYSLINUX_ARCHIVE)...[0m" ; \
+		tar xf cache/$(SYSLINUX_ARCHIVE) -C src; \
+		ln -sf ../$(SYSLINUX_DIR) src/syslinux; \
 	fi
 
 	# ctorrent
@@ -751,9 +751,9 @@ install: build
 	install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxelinux.0
 	install -m 755 $(SYSLINUX_DIR)/bios/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
 	install -m 644 $(SYSLINUX_DIR)/bios/memdisk/memdisk debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/memdisk
-	# install -m 644 $(SYSLINUX_DIR)/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
-	# install -m 644 $(SYSLINUX_DIR)/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
-	# install -m 644 $(SYSLINUX_DIR)/gpxe/src/bin/gpxe.lkrn debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
+	install -m 644 $(SYSLINUX_DIR)/bios/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
+	install -m 644 $(SYSLINUX_DIR)/bios/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
+	install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 	# initrd 64bit
 	echo "LINBO $(LVERS)" > linbo64/etc/linbo-version
 	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
@@ -771,9 +771,6 @@ install: build
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
-	install -m 644 graphics/grub-pxe-logo.png debian/linuxmuster-linbo/var/linbo/logo.png
-	install -m 644 grub/grub.cfg debian/linuxmuster-linbo/var/linbo/grub.cfg
-	install -m 755 grub/grub.efi debian/linuxmuster-linbo/var/linbo/grub.efi
 
 # Build architecture-independent files here.
 binary-indep: build install
