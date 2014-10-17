@@ -3,7 +3,7 @@ linuxmuster-linbo (2.2.11-0fschuett1) UNRELEASED; urgency=low
   * added 64bit boot
   * syslinux update to 6.03
   * efi boot with syslinux
-  * added start.conf variable system=bios|efi32|efi64
+  * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
 
  -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Thu, 16 Oct 2014 08:27:38 +0200
 

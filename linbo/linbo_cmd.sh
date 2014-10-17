@@ -253,6 +253,41 @@ hostgroup(){
  echo "$hostgroup"
 }
 
+# fschuett
+# fetch SystemType from start.conf
+systemtype(){
+ local systemtype="bios"
+ [ -s /start.conf || return 1
+ systemtype=`grep -i ^SystemType /start.conf | tail -1 | awk -F='{ print $2 }' | awk '{ print $1 }'`
+ echo "$systemtype"
+}
+
+kerneltype(){
+ local kerneltype="linbo"
+ local systemtype="$(systemtype())"
+ case $systemtype in
+   bios64|efi64)
+       kerneltype="linbo64"
+   ;;
+   *)
+   ;;
+ esac
+ echo "$kerneltype"
+}
+
+kernelfstype(){
+ local kernelfstype="linbofs.lz"
+ local systemtype="$(systemtype())"
+ case $systemtype in
+   bios64|efi64)
+       kernelfstype="linbofs64.lz"
+   ;;
+   *)
+   ;;
+ esac
+ echo "$kernelfstype"
+}
+
 # tschmitt
 # fetch fstype from start.conf
 # fstype_startconf dev
@@ -631,6 +666,7 @@ mkgrub(){
   echo "Erstelle menu.lst fuer lokalen Boot."
   local append=""
   local vga="vga=785"
+  local kernel="$(kerneltype())"
   local i
   for i in $(cat /proc/cmdline); do
    case "$i" in
@@ -638,7 +674,7 @@ mkgrub(){
     *) append="$append $i" ;;
    esac
   done
-  sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+  sed -e "s|^kernel /$kernel .*|kernel /$kernel $append|" /menu.lst > /cache/boot/grub/menu.lst
   touch /tmp/.menulst.done
  fi
  # return if grub-install is already done by earlier invokation
@@ -1953,11 +1989,14 @@ update(){
  local disk="${cachedev%%[1-9]*}"
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
- echo "Aktualisiere LINBO-Kernel."
- download "$server" linbo
- download "$server" linbofs.lz
+ local kernel="$(kerneltype())"
+ local kernelfs="$(kernelfstype)"
+
+ echo "Aktualisiere LINBO-Kernel($kernel,$kernelfs)."
+ download "$server" $kernel
+ download "$server" $kernelfs
  # grub update
- if [ -s "linbo" -a -s "linbofs.lz" ]; then
+ if [ -s "$kernel" -a -s "$kernelfs" ]; then
   mkdir -p /cache/boot/grub
   # only if online
   if ! localmode; then

@@ -150,7 +150,7 @@ trycopyfromdevice(){
   mount -r "$device" /cache &>/dev/null || return 1
  fi
  for i in $files; do
-  if [ -e /cache/"$i" -a -s /cache/linbo ]; then
+  if [ -e /cache/"$i" -a ( -s /cache/linbo -o -s /cache/linbo64 ) ]; then
    RC=0
    cp -af /cache/"$i" . >/dev/null 2>&1
   fi
