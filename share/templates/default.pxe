@@ -31,5 +31,5 @@ APPEND keeppxe --config-file=pxe basedir /; default 0; timeout 0; hiddenmenu; ti
 
 # to boot LINBO in debug mode simply type "debug" on boot prompt and press ENTER
 LABEL debug
-KERNEL linbo
-APPEND initrd=linbofs.lz vga=788 debug @@kopts@@
+KERNEL @@kernel@@
+APPEND initrd=@@kernelfs@@ vga=788 debug @@kopts@@

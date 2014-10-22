@@ -17,3 +17,5 @@ var/linbo/linbofs.lz				var/linbo/efi32/linbofs.lz
 var/linbo/pxelinux.cfg				var/linbo/efi64/pxelinux.cfg
 var/linbo/linbo64				var/linbo/efi64/linbo64
 var/linbo/linbofs64.lz				var/linbo/efi64/linbofs64.lz
+var/linbo/linbo64				var/linbo/efi64/linbo
+var/linbo/linbofs64.lz				var/linbo/efi64/linbofs.lz

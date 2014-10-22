@@ -1,4 +1,4 @@
-linuxmuster-linbo (2.2.11-0fschuett1) UNRELEASED; urgency=low
+linuxmuster-linbo (2.2.11-0fschuett2) UNRELEASED; urgency=low
 
   * added 64bit boot
   * syslinux update to 6.03
