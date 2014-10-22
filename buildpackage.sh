@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in conf debian etc graphics grub linbo share var; do
+for i in conf debian etc graphics linbo share var; do
  find ${i}/ -type f -name \*~ -exec rm '{}' \;
 done
 

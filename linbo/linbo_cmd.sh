@@ -264,7 +264,7 @@ systemtype(){
 
 kerneltype(){
  local kerneltype="linbo"
- local systemtype="$(systemtype())"
+ local systemtype=$(systemtype)
  case $systemtype in
    bios64|efi64)
        kerneltype="linbo64"
@@ -277,7 +277,7 @@ kerneltype(){
 
 kernelfstype(){
  local kernelfstype="linbofs.lz"
- local systemtype="$(systemtype())"
+ local systemtype=$(systemtype)
  case $systemtype in
    bios64|efi64)
        kernelfstype="linbofs64.lz"
@@ -666,7 +666,7 @@ mkgrub(){
   echo "Erstelle menu.lst fuer lokalen Boot."
   local append=""
   local vga="vga=785"
-  local kernel="$(kerneltype())"
+  local kernel="$(kerneltype)"
   local i
   for i in $(cat /proc/cmdline); do
    case "$i" in
@@ -732,7 +732,7 @@ download(){
  local RC=1
  [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
  rm -f "$TMP"
- interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
+ interruptible rsync -HaLz --partial "$1::linbo/linbo/$2" "$2" 2>"$TMP"; RC="$?"
  if [ "$RC" != "0" ]; then
   # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
   rm -f "$2" 2>/dev/null
@@ -1415,10 +1415,10 @@ restore_winact(){
   echo "Fordere Reaktivierungs-Daten von $serverip an."
   # get server ip address
   local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
-  rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
+  rsync "$serverip"::linbo/linbo/winact/"$archive" /cache &> /dev/null
   # request windows productkey
   local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-  rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
+  rsync "$serverip"::linbo/linbo/winact/"$keyfile" /cache &> /dev/null
   [ -s "$keyfile" ] && echo "slmgr -ipk $(cat /cache/$keyfile)" > "/cache/$image.winact.cmd"
   rm -f "$keyfile"
  fi
@@ -1927,7 +1927,7 @@ upload(){
   done
   echo "Uploade $FILES auf $1..." | tee -a /tmp/linbo.log
   for file in $FILES; do
-   interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/$file"
+   interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/linbo/$file"
    # because return code is always 0 this is necessary
    grep -q "rsync error" /tmp/rsync.log && RC=1
    cat /tmp/rsync.log >> /tmp/linbo.log
@@ -1989,12 +1989,12 @@ update(){
  local disk="${cachedev%%[1-9]*}"
  mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
- local kernel="$(kerneltype())"
+ local kernel="$(kerneltype)"
  local kernelfs="$(kernelfstype)"
 
  echo "Aktualisiere LINBO-Kernel($kernel,$kernelfs)."
- download "$server" $kernel
- download "$server" $kernelfs
+ download "$server" "$kernel"
+ download "$server" "$kernelfs"
  # grub update
  if [ -s "$kernel" -a -s "$kernelfs" ]; then
   mkdir -p /cache/boot/grub

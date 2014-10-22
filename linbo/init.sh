@@ -150,7 +150,7 @@ trycopyfromdevice(){
   mount -r "$device" /cache &>/dev/null || return 1
  fi
  for i in $files; do
-  if [ -e /cache/"$i" -a ( -s /cache/linbo -o -s /cache/linbo64 ) ]; then
+  if [ -e /cache/"$i" ] && [ -s /cache/linbo -o -s /cache/linbo64 ]; then
    RC=0
    cp -af /cache/"$i" . >/dev/null 2>&1
   fi
@@ -350,7 +350,7 @@ save_winact(){
  [ -e /tmp/linbo-network.done ] && return
  # trigger upload
  echo "Veranlasse Upload der Windows-Aktivierungstokens."
- rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
+ rsync "$server::linbo/linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
 }
 
 # remove linbo reboot flag etc.
@@ -466,14 +466,14 @@ network(){
   echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
   echo "Downloading configuration files from $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
-   rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
+   rsync -L "$server::linbo/linbo/$i" "start.conf" &> /dev/null && break
   done
   # also look for other needed files
   for i in "torrent-client.conf" "multicast.list"; do
-   rsync -L "$server::linbo/$i" "/$i" &> /dev/null
+   rsync -L "$server::linbo/linbo/$i" "/$i" &> /dev/null
   done
   # get optional onboot linbo-remote commands
-  rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
+  rsync -L "$server::linbo/linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
   if [ -s "/linbocmd" ]; then
    for i in noauto nobuttons; do
     grep -q "$i" /linbocmd && eval "$i"=yes
@@ -483,7 +483,7 @@ network(){
   fi
   # and (optional) the GUI icons
   for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
-   rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
+   rsync -L "$server::linbo/linbo/icons/$i" /icons &> /dev/null
   done
   # save downloaded stuff to cache
   copytocache
