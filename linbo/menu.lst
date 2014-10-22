@@ -29,4 +29,3 @@ title LINBO LOCAL
 find --ignore-floppies --ignore-cd --set-root /linbofs.lz
 kernel /linbo vga=788 quiet
 initrd /linbofs.lz
-

@@ -1361,7 +1361,7 @@ do_opsi(){
   image="$1"
  fi
  # request opsikey
- rsync "$serverip"::linbo/"$ip.opsikey" /cache/opsikey
+ rsync "$serverip"::linbo/linbo/"$ip.opsikey" /cache/opsikey
  [ -s /cache/opsikey ] && local key="$(cat /cache/opsikey)"
  if [ -n "$key" ]; then
   echo "Opsi-Host-Key heruntergeladen."
@@ -1377,7 +1377,7 @@ do_opsi(){
  fi
  rm -f /cache/opsikey
  # request opsi host ini update
- rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
+ rsync "$serverip"::linbo/linbo/"$image.opsi" /cache &> /dev/null || true
  return "$RC"
 }
 
@@ -2179,7 +2179,7 @@ register(){
  echo "$info" >"$client.new"
  echo "Uploade $client.new auf $1..."
  export RSYNC_PASSWORD="$3"
- interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
+ interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/linbo/$client.new" ; RC="$?"
  cd /
  return "$RC"
 }
