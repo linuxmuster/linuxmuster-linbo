@@ -732,7 +732,7 @@ download(){
  local RC=1
  [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
  rm -f "$TMP"
- interruptible rsync -HaLz --partial "$1::linbo/linbo/$2" "$2" 2>"$TMP"; RC="$?"
+ interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
  if [ "$RC" != "0" ]; then
   # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
   rm -f "$2" 2>/dev/null
@@ -1361,7 +1361,7 @@ do_opsi(){
   image="$1"
  fi
  # request opsikey
- rsync "$serverip"::linbo/linbo/"$ip.opsikey" /cache/opsikey
+ rsync "$serverip"::linbo/"$ip.opsikey" /cache/opsikey
  [ -s /cache/opsikey ] && local key="$(cat /cache/opsikey)"
  if [ -n "$key" ]; then
   echo "Opsi-Host-Key heruntergeladen."
@@ -1377,7 +1377,7 @@ do_opsi(){
  fi
  rm -f /cache/opsikey
  # request opsi host ini update
- rsync "$serverip"::linbo/linbo/"$image.opsi" /cache &> /dev/null || true
+ rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
  return "$RC"
 }
 
@@ -1415,10 +1415,10 @@ restore_winact(){
   echo "Fordere Reaktivierungs-Daten von $serverip an."
   # get server ip address
   local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
-  rsync "$serverip"::linbo/linbo/winact/"$archive" /cache &> /dev/null
+  rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
   # request windows productkey
   local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-  rsync "$serverip"::linbo/linbo/winact/"$keyfile" /cache &> /dev/null
+  rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
   [ -s "$keyfile" ] && echo "slmgr -ipk $(cat /cache/$keyfile)" > "/cache/$image.winact.cmd"
   rm -f "$keyfile"
  fi
@@ -1927,7 +1927,7 @@ upload(){
   done
   echo "Uploade $FILES auf $1..." | tee -a /tmp/linbo.log
   for file in $FILES; do
-   interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/linbo/$file"
+   interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/$file"
    # because return code is always 0 this is necessary
    grep -q "rsync error" /tmp/rsync.log && RC=1
    cat /tmp/rsync.log >> /tmp/linbo.log
@@ -2179,7 +2179,7 @@ register(){
  echo "$info" >"$client.new"
  echo "Uploade $client.new auf $1..."
  export RSYNC_PASSWORD="$3"
- interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/linbo/$client.new" ; RC="$?"
+ interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
  cd /
  return "$RC"
 }
