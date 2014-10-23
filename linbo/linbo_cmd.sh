@@ -1005,7 +1005,7 @@ mk_cloop(){
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
       case $type in
-       *ntfs*) ROPTS="-HazX" ;;
+       *ntfs*) ROPTS="-HazAX" ;;
        *vfat*) ROPTS="-rtz" ;;
        *) ROPTS="-az" ;;
       esac
@@ -1178,7 +1178,7 @@ sync_cloop(){
  echo "## $(date) : Starte Synchronisation von $1." | tee -a /tmp/image.log
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
- local ROPTS="-HaX"
+ local ROPTS="-HaAX"
  #local TMP=/tmp/sync_tmp.log
  #local ROPTS="-a"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
