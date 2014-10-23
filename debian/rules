@@ -45,6 +45,22 @@ VBOX_URL=$(LML_URL)
 # virtualbox-guest64
 VBOX64_DIR=kernel64/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
 
+# backports
+BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
+BACKPORTS_DIR=kernel/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
+BACKPORTS_URL=http://www.kernel.org/pub/linux/kernel/projects/backports/stable/v3.13.2
+
+# backports64
+BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
+
+# intel e1000e driver
+E1000E_ARCHIVE=$(shell grep e1000e- debian/md5sums.src | awk '{ print $$2 }')
+E1000E_DIR=kernel/$(shell echo $(E1000E_ARCHIVE) | sed -e 's/.tar.gz//')
+E1000E_URL=http://downloadmirror.intel.com/15817/eng
+
+# intel e1000e driver 64
+E1000E64_DIR=kernel64/$(shell echo $(E1000E_ARCHIVE) | sed -e 's/.tar.gz//')
+
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
@@ -362,6 +378,22 @@ configure-stamp:
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui64; \
 	fi
 
+	# e1000e
+	-@if [ ! -d $(E1000E_DIR) ]; then \
+		( [ -e cache/$(E1000E_ARCHIVE) ] || ( cd cache && wget $(E1000E_URL)/$(E1000E_ARCHIVE) ) ); \
+		( cd cache && grep $(E1000E_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(E1000E_ARCHIVE)...[0m" ; \
+		tar xf cache/$(E1000E_ARCHIVE) -C kernel; \
+		ln -sf ../$(E1000E_DIR) kernel/e1000e; \
+
+	# e1000e64
+	-@if [ ! -d $(E1000E64_DIR) ]; then \
+		( [ -e cache/$(E1000E_ARCHIVE) ] || ( cd cache && wget $(E1000E_URL)/$(E1000E_ARCHIVE) ) ); \
+		( cd cache && grep $(E1000E_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(E1000E_ARCHIVE)...[0m" ; \
+		tar xf cache/$(E1000E_ARCHIVE) -C kernel64; \
+		ln -sf ../$(E1000E64_DIR) kernel64/e1000e; \
+
 	# cloop with patch
 	-@if [ ! -d $(CLOOP_DIR) ]; then \
 		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
@@ -405,6 +437,22 @@ configure-stamp:
 		tar xf cache/$(VBOX_ARCHIVE) -C kernel64; \
 		ln -sf ../$(VBOX64_DIR) kernel64/virtualbox-guest; \
 	fi
+
+	# backports
+	-@if [ ! -d $(BACKPORTS_DIR) ]; then \
+		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
+		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel; \
+		ln -sf ../$(BACKPORTS_DIR) kernel/backports; \
+
+	# backports64
+	-@if [ ! -d $(BACKPORTS64_DIR) ]; then \
+		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
+		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(BACKPORTS_ARCHIVE)...[0m" ; \
+		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel64; \
+		ln -sf ../$(BACKPORTS64_DIR) kernel64/backports; \
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
@@ -623,6 +671,20 @@ build-stamp: configure-stamp
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
 	fi
 
+	# e10001 module
+	-@if [ ! -e $(E1000E_DIR)/src/e1000e.ko ]; then \
+	        echo "ESC[1mBuilding e1000e module...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
+	        cd $(E1000E_DIR)/src && \
+	        ( KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+
+	# e1000164 module
+	-@if [ ! -e $(E1000E64_DIR)/src/e1000e.ko ]; then \
+	        echo "ESC[1mBuilding 64bit e1000e module...ESC[0m" ; \
+	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
+	        cd $(E1000E64_DIR)/src && \
+	        ( KSRC=$(CURDIR)/$(KERNEL64_DIR) make clean ; ARCH=x86_64 KSRC=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
+
 	# vboxguest modules
 	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
 	        echo "[1mBuilding virtualbox-guest modules...[0m" ; \
@@ -638,6 +700,24 @@ build-stamp: configure-stamp
 	        cd $(VBOX64_DIR) && \
 	        ( make -C vboxguest clean ; ARCH=x86_64 make -C $(CURDIR)/$(KERNEL64_DIR) M=$(CURDIR)/$(VBOX64_DIR) ) ; \
 	fi
+
+	# backports
+	-@if [ ! -e $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+	        cd $(BACKPORTS_DIR) && \
+	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make clean ; \
+	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make defconfig-alx ; \
+	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+
+	# backports64
+	-@if [ ! -e $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+	        echo "ESC[1mBuilding 64bit alx module...ESC[0m" ; \
+	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+	        cd $(BACKPORTS64_DIR) && \
+	        ( ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make clean ; \
+	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make defconfig-alx ; \
+	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
 
 	touch build-stamp
 
@@ -686,6 +766,20 @@ install: build
 #	# vboxguest64 module
 #	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/misc && \
 #	cp $(VBOX64_DIR)/vboxguest/vboxguest.ko kernel64/modules/lib/modules/$(KVERS)/kernel/misc/
+	# e1000e module
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e && \
+	cp $(E1000E_DIR)/src/e1000e.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e/
+	# e1000e 64 module
+	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e && \
+	cp $(E1000E64_DIR)/src/e1000e.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e/
+	# alx module
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(BACKPORTS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+	# alx 64 module
+	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+	cp $(BACKPORTS64_DIR)/compat/compat.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	-/sbin/depmod -a -b kernel64/modules $(KVERS)
 	# initrd
