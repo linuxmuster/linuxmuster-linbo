@@ -257,8 +257,8 @@ hostgroup(){
 # fetch SystemType from start.conf
 systemtype(){
  local systemtype="bios"
- [ -s /start.conf || return 1
- systemtype=`grep -i ^SystemType /start.conf | tail -1 | awk -F='{ print $2 }' | awk '{ print $1 }'`
+ [ -s /start.conf ] || return 1
+ systemtype=`grep -i ^SystemType /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
  echo "$systemtype"
 }
 
