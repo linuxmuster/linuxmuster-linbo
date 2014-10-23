@@ -522,7 +522,7 @@ build-stamp: configure-stamp
 	# rsync
 	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
 		echo "[1mBuilding rsync...[0m" ; \
-		( cd $(RSYNC_DIR) && ARCH=i386 ./configure --prefix=/usr --host=i686-linux-gnu && make && strip rsync ); \
+		( cd $(RSYNC_DIR) && ARCH=i386 ./configure --prefix=/usr --host=i386-linux-gnu && make && strip rsync ); \
 	fi
 
 	# rsync64
@@ -707,6 +707,22 @@ install: build
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
 	# deprecated
 	#printf "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz.info
+	# initrd 64bit
+	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
+	cd $(KERNEL64_DIR) ; \
+	ln -snf ../initramfs.conf ./initramfs.conf ; \
+	:> ../initramfs.conf ; \
+	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
+	echo >> ../initramfs.conf ; \
+	echo "# udev" >> ../initramfs.conf ; \
+	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
+	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
+	echo "# modules" >> ../initramfs.conf ; \
+	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/bnx2/\* -o -path \*/firmware/bnx2x/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name vboxguest.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
+	echo >> ../initramfs.conf ; \
+	echo "# busybox applets" >> ../initramfs.conf ; \
+	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
+	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
 	# package files
 	# /etc
 	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
@@ -747,22 +763,6 @@ install: build
 	install -m 644 $(SYSLINUX_DIR)/bios/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
 	install -m 644 $(SYSLINUX_DIR)/bios/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
 	install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
-	# initrd 64bit
-	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
-	cd $(KERNEL64_DIR) ; \
-	ln -snf ../initramfs.conf ./initramfs.conf ; \
-	:> ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# udev" >> ../initramfs.conf ; \
-	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/bnx2/\* -o -path \*/firmware/bnx2x/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name vboxguest.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
 
 # Build architecture-independent files here.
 binary-indep: build install
