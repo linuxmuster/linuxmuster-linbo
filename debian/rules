@@ -155,12 +155,12 @@ configure-stamp:
 	dh_testdir
 
 	# setup 32bit build tool chain
-	-@if [ ! -e /usr/local/bin/i686-linux-gnu-gcc ]; then \
+	-@if [ ! -e /usr/local/bin/i386-linux-gnu-gcc ]; then \
 		echo "[1mSetting up 32bit toolchain...[0m" ; \
-		install -o root -g root -m 755 toolchain/i686-linux-gnu-gcc /usr/local/bin/i686-linux-gnu-gcc ; \
-		install -o root -g root -m 755 toolchain/i686-linux-gnu-g++ /usr/local/bin/i686-linux-gnu-g++ ; \
-		install -o root -g root -m 755 toolchain/i686-linux-gnu-c++ /usr/local/bin/i686-linux-gnu-c++ ; \
-		( cd /usr/local/bin && ln -s /usr/bin/ar i686-linux-gnu-ar && ln -s /usr/bin/strip i686-linux-gnu-strip ) ; \
+		install -o root -g root -m 755 toolchain/i386-linux-gnu-gcc /usr/local/bin/i386-linux-gnu-gcc ; \
+		install -o root -g root -m 755 toolchain/i386-linux-gnu-g++ /usr/local/bin/i386-linux-gnu-g++ ; \
+		install -o root -g root -m 755 toolchain/i386-linux-gnu-c++ /usr/local/bin/i386-linux-gnu-c++ ; \
+		( cd /usr/local/bin && ln -s /usr/bin/ar i386-linux-gnu-ar && ln -s /usr/bin/strip i386-linux-gnu-strip ) ; \
 	fi
 	
 	# make necessary build dirs
@@ -384,7 +384,10 @@ configure-stamp:
 		( cd cache && grep $(E1000E_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(E1000E_ARCHIVE)...[0m" ; \
 		tar xf cache/$(E1000E_ARCHIVE) -C kernel; \
+		echo "[1mPatching 32bit e1000e sources...[0m" ; \
+		( cd $(E1000E_DIR)/src && patch -p0 <../../../patches/e1000e32.patch ); \
 		ln -sf ../$(E1000E_DIR) kernel/e1000e; \
+	fi
 
 	# e1000e64
 	-@if [ ! -d $(E1000E64_DIR) ]; then \
@@ -393,6 +396,7 @@ configure-stamp:
 		echo "[1mUnpacking 64bit $(E1000E_ARCHIVE)...[0m" ; \
 		tar xf cache/$(E1000E_ARCHIVE) -C kernel64; \
 		ln -sf ../$(E1000E64_DIR) kernel64/e1000e; \
+	fi
 
 	# cloop with patch
 	-@if [ ! -d $(CLOOP_DIR) ]; then \
@@ -445,6 +449,7 @@ configure-stamp:
 		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
 		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel; \
 		ln -sf ../$(BACKPORTS_DIR) kernel/backports; \
+	fi
 
 	# backports64
 	-@if [ ! -d $(BACKPORTS64_DIR) ]; then \
@@ -453,6 +458,7 @@ configure-stamp:
 		echo "[1mUnpacking 64bit $(BACKPORTS_ARCHIVE)...[0m" ; \
 		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel64; \
 		ln -sf ../$(BACKPORTS64_DIR) kernel64/backports; \
+	fi
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \
@@ -482,7 +488,7 @@ configure-stamp:
 	-@if [ ! -d $(BIN32_DIR) ]; then \
 		echo "[1mCreating $(BIN32_DIR)...[0m" ; \
 		while read deb file ; do \
-			( [ -e cache/$$deb ] || ( cd cache && apt-get download $$deb ) ); \
+			( [ -e cache/$$file ] || ( cd cache && apt-get download $$deb ) ); \
 			echo "[1mUnpacking $$deb...[0m" ; \
 			dpkg -x cache/$$file $(BIN32_DIR); \
 		done < conf/bin32_deb.conf; \
@@ -498,7 +504,7 @@ build-stamp: configure-stamp
 	# busybox
 	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \
 		echo "[1mBuilding busybox...[0m" ; \
-		( cd $(BB_DIR) && ARCH=i386 CROSS_COMPILE=i686-linux-gnu- make install ); \
+		( cd $(BB_DIR) && ARCH=i386 CROSS_COMPILE=i386-linux-gnu- make install ); \
 	fi
 
 	# busybox64
@@ -522,7 +528,7 @@ build-stamp: configure-stamp
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --host=i686-linux-gnu && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --host=i386-linux-gnu && make && strip build/sbin/kexec ); \
 	fi
 
 	# kexec-tools64
@@ -558,7 +564,7 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ARCH=i386 ./configure --host=i686-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
+		( cd $(NTFS3G_DIR) && ARCH=i386 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
 	fi
 
 	# ntfs-3g64
@@ -582,7 +588,7 @@ build-stamp: configure-stamp
 	# ssmtp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ARCH=i386 ./configure --host=i686-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP_DIR) && ARCH=i386 ./configure --host=i386-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ssmtp64
@@ -594,7 +600,7 @@ build-stamp: configure-stamp
 	# ctorrent
 	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
 		echo "[1mBuilding ctorrent...[0m" ; \
-		( cd $(CTORRENT_DIR) && ARCH=i386 ./configure --with-ssl=no --host=i686-linux-gnu && make && strip ctorrent ); \
+		( cd $(CTORRENT_DIR) && ARCH=i386 ./configure --with-ssl=no --host=i386-linux-gnu && make && strip ctorrent ); \
 	fi
 
 	# ctorrent64
@@ -671,19 +677,21 @@ build-stamp: configure-stamp
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
 	fi
 
-	# e10001 module
+	# e1000e module
 	-@if [ ! -e $(E1000E_DIR)/src/e1000e.ko ]; then \
 	        echo "ESC[1mBuilding e1000e module...ESC[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
 	        cd $(E1000E_DIR)/src && \
 	        ( KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	fi
 
-	# e1000164 module
+	# e1000e 64 module
 	-@if [ ! -e $(E1000E64_DIR)/src/e1000e.ko ]; then \
 	        echo "ESC[1mBuilding 64bit e1000e module...ESC[0m" ; \
 	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
 	        cd $(E1000E64_DIR)/src && \
 	        ( KSRC=$(CURDIR)/$(KERNEL64_DIR) make clean ; ARCH=x86_64 KSRC=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
+	fi
 
 	# vboxguest modules
 	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
@@ -709,6 +717,7 @@ build-stamp: configure-stamp
 	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make clean ; \
 	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make defconfig-alx ; \
 	        ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	fi
 
 	# backports64
 	-@if [ ! -e $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
@@ -718,6 +727,7 @@ build-stamp: configure-stamp
 	        ( ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make clean ; \
 	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make defconfig-alx ; \
 	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
+	fi
 
 	touch build-stamp
 
@@ -792,7 +802,7 @@ install: build
 	echo >> ../initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../../src/bin32 && find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p ../../src/bin32/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
 	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f \( -path \*/ide/\* -o -path \*/hid/\* -o -path \*/scsi/\* -o -path \*/ata/\* -o -path \*/net/\* -o -path \*/usb/\* -o -path \*/fs/\* -o -path \*/net/\* -o -path \*/staging/\* -o -path \*/block/\* -o -path \*/firmware/acenic/\* -o -path \*/firmware/bnx2/\* -o -path \*/firmware/bnx2x/\* -o -path \*/firmware/e100/\* -o -path \*/firmware/tigon/\* -o -name cloop.ko -o -name vboxguest.ko -o -name modules.\* \) -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
