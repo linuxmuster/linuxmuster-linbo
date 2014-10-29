@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 07.10.2014
+# 28.10.2014
 # GPL v3
 #
 
@@ -1372,9 +1372,6 @@ restore_winact(){
   done
  else # with linbo server
   archive="$mac.$image.winact.tar.gz"
-  # clean cache
-  rm -f /cache/*.$image.winact.tar.gz
-  rm -f /cache/$image.winact.cmd
   # get token archive from linbo server
   echo "Fordere Reaktivierungs-Daten von $serverip an."
   # get server ip address
@@ -1383,16 +1380,21 @@ restore_winact(){
   # request windows productkey
   local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
   rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
-  [ -s "$keyfile" ] && echo "slmgr -ipk $(cat /cache/$keyfile)" > "/cache/$image.winact.cmd"
+  [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
+  if [ -n "$winkey" ]; then
+   echo "cd C:\Windows\System32" > "/cache/$image.winact.cmd"
+   echo "cscript.exe slmgr.vbs -ipk $winkey" >> "/cache/$image.winact.cmd"
+  fi
+  dos2unix "/cache/$image.winact.cmd"
   rm -f "$keyfile"
  fi
  # no data available
- if [ ! -s "/cache/$archive" -a ! -s "/cache/$image.winact.cmd" ]; then
+ if [ ! -s "/cache/$archive" -o ! -s "/cache/$image.winact.cmd" ]; then
   echo "Überspringe Reaktivierung, keine Daten."
   return
  fi
  echo "Stelle Windows-Aktivierungstokens wieder her."
- tar xf "$archive" -C / || return 1
+ tar xf "/cache/$archive" -C / || return 1
  # copy batchfile
  local batchfile="/mnt/linuxmuster-win/winact.cmd"
  echo "Schreibe Aktivierungs-Batchdatei nach $batchfile."
