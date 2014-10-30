@@ -6,7 +6,7 @@ Build-Depends: bison, build-essential, binutils-multiarch, bvi, coreutils, debhe
 
 Package: linuxmuster-linbo
 Architecture: all
-Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, atftpd (>= 0.7.dfsg-11.1), udpcast, xz-utils, zip, mbr, etherwake
+Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, atftpd (>= 0.7.dfsg-11.1), udpcast, xz-utils, zip, mbr, wakeonlan
 Suggests: isc-dhcp-server | dhcp3-server
 Recommends: wodim, ldap-utils
 Description: LINBO PXE boot files

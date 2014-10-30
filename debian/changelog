@@ -1,4 +1,4 @@
-linuxmuster-linbo (2.2.11-0fschuett2) UNRELEASED; urgency=low
+linuxmuster-linbo (2.2.12-0fschuett) UNRELEASED; urgency=low
 
   * added 64bit boot
   * syslinux update to 6.03
@@ -7,9 +7,25 @@ linuxmuster-linbo (2.2.11-0fschuett2) UNRELEASED; urgency=low
 
  -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Thu, 16 Oct 2014 08:27:38 +0200
 
+linuxmuster-linbo (2.2.12-0) babo; urgency=low
+
+  * linbo-remote:
+    - using wakeonlan instead of etherwake for linbo-remote's wol functions (closes #399).
+    - added handling of linbo-clients which are already online (see #391).
+    - fixed standalone usage of -w (closes #400). 
+  * init.sh: added disabling of AutoInitCache to noauto kernel option (see #391).
+  * rsync-pre-download.sh: fixed machine account password update (closes #396).
+  * linbo_cmd (restore_winact), rsync-pre-download.sh:
+    - fixed windows 7 reactivation (closes #394).
+    - prepared usage of office activation keys (see #297).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 29 Oct 2014 12:42:03 +0000
+
 linuxmuster-linbo (2.2.11-0) babo; urgency=low
 
   * reworked onboot linbocmd handling to support local booted clients (closes #391).
+  * added noauto kernel option which disables AutoPartition and AutoFormat
+    (used by linbo-remote -c).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 12 Oct 2014 14:48:17 +0000
 

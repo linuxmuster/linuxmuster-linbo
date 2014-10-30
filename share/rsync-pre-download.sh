@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 28.03.2014
+# 25.10.2014
 #
 
 # read in linuxmuster.net specific environment
@@ -34,7 +34,7 @@ echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
 
-pcname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
+compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
 
 case $EXT in
 
@@ -47,15 +47,15 @@ case $EXT in
   # upload samba machine password hashes to host's machine account
   if [ -s "$imagemacct" -a -n "$basedn" ]; then
    echo "Machine account file: $imagemacct"
-   echo "Host: $pcname"
+   echo "Host: $compname"
    echo "Writing samba machine password hashes to ldap account:"
-   sed -e "s|@@pcname@@|$pcname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
+   sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
    # check for success
-   sambaNTpwhash_cur="$("$LDAPSEARCH" -y "$ldapsec" -D cn=admin,$basedn -x -h localhost "(uid=$pcname$)" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
+   sambaNTpwhash_cur="$("$LDAPSEARCH" -y "$ldapsec" -D cn=admin,$basedn -x -h localhost "(uid=$compname$)" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
    sambaNTpwhash_new="$(grep ^sambaNTPassword: "$imagemacct" | awk '{ print $2 }')"
    if [ "$sambaNTpwhash_new" != "$sambaNTpwhash_cur" ]; then
     echo "Not successfull, once again:"
-    sed -e "s|@@pcname@@|$pcname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
+    sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
    fi
   fi
  ;;
@@ -64,7 +64,7 @@ case $EXT in
  *.opsikey)
   # invoked by linbo_cmd on postsync
   # if opsi server is configured and host is opsimanaged
-  if ([ -n "$opsiip" ] && opsimanaged "$pcname"); then
+  if ([ -n "$opsiip" ] && opsimanaged "$compname"); then
    echo "Opsi key file $(basename $FILE) requested."
    key="$(grep ^"$RSYNC_HOST_NAME" "$LINBOOPSIKEYS" | awk -F\: '{ print $2 }')"
    if [ -n "$key" ]; then
@@ -78,9 +78,13 @@ case $EXT in
  # handle windows product key request
  *.winkey)
   # get key from workstations and write it to temporary file
-  pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
-  [ -n "$pcname" ] && winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $pcname | awk '{ print $2 }' | tr a-z A-Z)"
-  [ -n "$winkey" ] && echo "$winkey" > "$FILE"
+  compname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
+  if [ -n "$compname" ]; then
+   winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+   officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+   [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
+   [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"
+  fi
  ;;
 
  # handle windows activation tokens archive

@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 12.10.2014
+# 13.10.2014
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -376,7 +376,8 @@ do_housekeeping(){
 # disable auto functions from cmdline
 disable_auto(){
  sed -e 's|^[Aa][Uu][Tt][Oo][Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn].*|AutoPartition = no|g
-         s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g' -i /start.conf
+         s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g
+         s|^[Aa][Uu][Tt][Oo][Ii][Nn][Ii][Tt][Cc][Aa][Cc][Hh][Ee].*|AutoInitCache = no|g' -i /start.conf
 }
 
 # handle autostart from cmdline
@@ -479,7 +480,9 @@ network(){
     grep -q "$i" /linbocmd && eval "$i"=yes
     sed -e "s|$i||" -i /linbocmd
    done
-   linbocmd="$(sed -e 's| ||g' /linbocmd)"
+   # strip leading and trailing spaces and escapes
+   linbocmd="$(awk '{$1=$1}1' /linbocmd)"
+   sed -e 's|\\||g' -i /linbocmd
   fi
   # and (optional) the GUI icons
   for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
@@ -585,7 +588,14 @@ fi
 if [ -z  "$splash" ]; then
  network
  # execute linbo commands given on commandline
- [ -n "$linbocmd" ] && /usr/bin/linbo_wrapper ${linbocmd//,/ }
+ if [ -n "$linbocmd" ]; then
+  OIFS="$IFS"
+  IFS=","
+  for cmd in $linbocmd; do
+   /usr/bin/linbo_wrapper "$cmd"
+  done
+  IFS="$OIFS"
+ fi
  exit 0
 fi
 
@@ -633,7 +643,7 @@ while [ ! -e /tmp/linbo-network.done ]; do
 done
 
 # read downloaded onboot linbocmds
-[ -s /linbocmd ] && linbocmd="$(cat /linbocmd)"
+[ -e /linbocmd ] && linbocmd="$(cat /linbocmd)"
 
 # console output for linbo commands
 if [ -n "$linbocmd" ]; then
@@ -643,8 +653,10 @@ if [ -n "$linbocmd" ]; then
  pb_pid="$!"
 
  # iterate over on commandline given linbo commands
+ OIFS="$IFS"
+ IFS=","
  n=1
- for cmd in ${linbocmd//,/ }; do
+ for cmd in $linbocmd; do
 
   # pause between commands
   [ $n -gt 1 ] && sleep 3
@@ -684,6 +696,7 @@ if [ -n "$linbocmd" ]; then
   n=$(( $n + 1 ))
 
  done
+ IFS="$OIFS"
 fi
 echo $MAXCOUNT > /fbfifo
 
