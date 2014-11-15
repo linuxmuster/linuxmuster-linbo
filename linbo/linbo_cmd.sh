@@ -253,12 +253,12 @@ hostgroup(){
  echo "$hostgroup"
 }
 
-# tschmitt
-# fetch fstype from start.conf
-# fstype_startconf dev
-fstype_startconf(){
- local dev="$1"
- local type=""
+# fetch partition option from start.conf
+# get_startconf_partition_option option dev
+get_startconf_partition_option(){
+ local option=`echo "$1" | tr A-Z a-z`
+ local dev="$2"
+ local value=""
  local section=""
  local param=""
  local tdev=""
@@ -279,14 +279,14 @@ fstype_startconf(){
      if [ "$tdev" = "$dev" ]; then
       dfound=1
      else
-      pfound=0; dfound=0; type=""
+      pfound=0; dfound=0; value=""
      fi
     fi
-    if [ "$param" = "fstype" ]; then
-     type=`echo $line | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
+    if [ "$param" = "$option" ]; then
+     value=`echo $line | sed -e 's/#.*$//' | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z`
     fi
-    if [ "$dfound" = 1 -a -n "$type" ]; then
-     echo "$type"
+    if [ "$dfound" = 1 -a -n "$value" ]; then
+     echo "$value"
      return 0
     fi
   fi
@@ -449,7 +449,7 @@ mountcache(){
 #    fi
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
-     local cachefs="$(fstype_startconf "$1")"
+     local cachefs="$(get_startconf_partition_option "fstype" "$1")"
      if [ -n "$cachefs" ]; then
       echo "Formatiere Cache-Partition..."
       format "$1" "$cachefs" 2>> /tmp/linbo.log
@@ -686,7 +686,7 @@ mkgrldr(){
  esac
  local grubpart="${1##*[hsv]d[a-z]}"
  grubpart="$((grubpart - 1))"
- bootlace.com --"$(fstype_startconf "$1")" --floppy="$driveid" "$1"
+ bootlace.com --"$(get_startconf_partition_option "fstype" "$1")" --floppy="$driveid" "$1"
  echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)$bootfile" > $menu
  cp /usr/lib/grub/grldr /mnt
 }
@@ -1214,7 +1214,7 @@ restore(){
  local RC=1
  local disk="${2%%[1-9]*}"
  local force="$3"
- local fstype="$(fstype_startconf "$2")"
+ local fstype="$(get_startconf_partition_option "fstype" "$2")"
  echo -n "Entpacke: $1 -> $2 "
  case "$1" in
   *.[Cc][Ll][Oo]*)
@@ -2002,7 +2002,7 @@ initcache(){
   return 1
  fi
  if [ -n "$FORCE_FORMAT" ]; then
-  local cachefs="$(fstype_startconf "$cachedev")"
+  local cachefs="$(get_startconf_partition_option "fstype" "$cachedev")"
   if [ -n "$cachefs" ]; then
    echo "Formatiere Cache-Partition $cachedev..."
    format "$cachedev" "$cachefs" 2>> /tmp/linbo.log
