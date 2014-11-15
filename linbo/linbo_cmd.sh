@@ -375,12 +375,13 @@ format(){
 # local part="${1#$dev}"
  local cmd
  local RC
+ local label=$(get_startconf_partition_option "label" "$1")
  case "$2" in
   swap) cmd="mkswap $1" ;;
-  reiserfs) cmd="mkreiserfs -f -f  $1" ;;
-  ext2|ext3|ext4) cmd="mkfs.$2 $1" ;;
-  [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $1" ;;
-  *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $1" ;;
+  reiserfs) cmd="mkreiserfs --label "$label" -f -f  $1" ;;
+  ext2|ext3|ext4) cmd="mkfs.$2 -L "$label" $1" ;;
+  [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs --label "$label" -Q $1" ;;
+  *[Ff][Aa][Tt]*) cmd="mkdosfs -n "$label" -F 32 $1" ;;
   *) return 1 ;;
  esac
  echo "Formatiere $1 mit $2."
