@@ -253,6 +253,15 @@ hostgroup(){
  echo "$hostgroup"
 }
 
+# fetch partition option from start.conf in lowercase
+# get_startconf_partition_option_lc option dev
+get_startconf_partition_option_lc(){
+ value=$(get_startconf_partition_option "$1" "$2")
+ RC=$?
+ echo $value | tr A-Z a-z
+ return $RC
+}
+
 # fetch partition option from start.conf
 # get_startconf_partition_option option dev
 get_startconf_partition_option(){
