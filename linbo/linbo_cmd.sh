@@ -292,7 +292,7 @@ get_startconf_partition_option(){
      fi
     fi
     if [ "$param" = "$option" ]; then
-     value=`echo $line | sed -e 's/#.*$//' | awk -F= '{ print $2 }' | awk '{ print $1 }'`
+     value=`echo $line | sed -e 's/#.*$//' | awk -F= '{ print $2 }' | sed 's/^[[:space:]]*//g' | sed 's/[[:space:]]*$//g'`
     fi
     if [ "$dfound" = 1 -a -n "$value" ]; then
      echo "$value"
