@@ -62,6 +62,7 @@ Size = 25000000          # Partitionsgroesse in kB (Bsp.: ca. 25G)
 Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ntfs            # Dateisystem auf der Partition
 Bootable = no            # Bootable-Flag
+Label = Lokale Daten     # (optional) Label, z.B. um Partition als Datenpartition "Lokale Daten" anzuzeigen
 
 [Partition]              # Definition der Cache-Partition
 Dev = /dev/sda7          # Device-Name der Partition (sda6 = sechste Partition auf erster Platte)
