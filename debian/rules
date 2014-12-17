@@ -38,12 +38,13 @@ CLOOP_URL=http://debian-knoppix.alioth.debian.org/packages/cloop
 CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-[0-9].tar.gz//')
 
 # virtualbox-guest
-VBOX_ARCHIVE=$(shell grep virtualbox-guest- debian/md5sums.src | awk '{ print $$2 }')
-VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
-VBOX_URL=$(LML_URL)
+VBOX_ARCHIVE=$(shell grep virtualbox_ debian/md5sums.src | awk '{ print $$2 }')
+VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.orig.tar.xz//' -e 's/_/-/' )
+#VBOX_URL=$(LML_URL)
+VBOX_URL=http://ftp.de.debian.org/debian/pool/contrib/v/virtualbox/virtualbox_4.3.14-dfsg.orig.tar.xz
 
 # virtualbox-guest64
-VBOX64_DIR=kernel64/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.tar.bz2//')
+VBOX64_DIR=kernel64/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.orig.tar.xz//' -e 's/_/-/' )
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
