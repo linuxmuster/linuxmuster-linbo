@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 30.07.2014
+# 12.12.2014
 # GPL v3
 #
 
@@ -512,13 +512,13 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ARCH=i386 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
+		( cd $(NTFS3G_DIR) && ARCH=i386 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
 	fi
 
 	# ntfs-3g64
 	-@if [ ! -e $(NTFS3G64_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding 64bit ntfs-3g...[0m" ; \
-		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs ); \
+		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
 	fi
 
 	# rsync
