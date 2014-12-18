@@ -400,12 +400,12 @@ build-stamp: configure-stamp
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
 	fi
 
-	# e10001 module
+	# e1000e module
 	-@if [ ! -e $(E1000E_DIR)/src/e1000e.ko ]; then \
 	        echo "ESC[1mBuilding e1000e module...ESC[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
 	        cd $(E1000E_DIR)/src && \
-	        ( KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
 	fi
 
 	# vboxguest modules

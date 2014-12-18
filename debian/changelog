@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.2.13-1) babo; urgency=low
+
+  * Back to kernel 3.2.53.
+  * Fixed build depends.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 18 Dec 2014 14:14:02 +0000
+
 linuxmuster-linbo (2.2.13-0) babo; urgency=low
 
   * Component updates:
@@ -8,7 +15,7 @@ linuxmuster-linbo (2.2.13-0) babo; urgency=low
   * Added e2label and ntfslabel to linbofs.
   * Stripped ntfsprogs binaries.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 Dec 2014 14:51:33 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 17 Dec 2014 09:02:50 +0000
 
 linuxmuster-linbo (2.2.12-0) babo; urgency=low
 
