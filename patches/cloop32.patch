@@ -5,7 +5,7 @@
  
  advancecomp-1.15/advfs:
 -	( cd advancecomp-1.15 ; ./configure && $(MAKE) advfs )
-+	( cd advancecomp-1.15 ; ARCH=i386 ./configure --host=i686-linux-gnu && $(MAKE) advfs )
++	( cd advancecomp-1.15 ; ARCH=i386 ./configure --host=i386-linux-gnu && $(MAKE) advfs )
  
  extract_compressed_fs: extract_compressed_fs.c
 -	$(CC) -Wall -O2 -s -o $@ $< -lz

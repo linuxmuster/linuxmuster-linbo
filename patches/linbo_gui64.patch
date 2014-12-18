@@ -5,7 +5,7 @@
    make clean
    echo -e "yes\n" | ./configure \
 - -xplatform linux-g++-32 \
-- -device-option CROSS_COMPILE=i686-linux-gnu- \
+- -device-option CROSS_COMPILE=i386-linux-gnu- \
 - -embedded x86 \
 + -embedded x86_64 \
   -prefix $QTDIR \
