@@ -2,11 +2,9 @@
 #
 # create linbo live media
 #
-# Thomas Schmitt <schmitt@lmz-bw.de>
-#
+# thomas@linuxmuster.net
+# 05.02.2014
 # GPL V3
-#
-# $Id: make-linbo-media.sh 986 2011-03-06 14:05:35Z tschmitt $
 #
 
 # read linuxmuster environment
@@ -154,13 +152,12 @@ REBOOTC32=$BINDIR/reboot.c32
 VMENUC32=$BINDIR/vesamenu.c32
 GPXEKRN=$BINDIR/gpxe.krn
 INSTALLMBR=/sbin/install-mbr
+BACKGRND=$SHAREDIR/linbo_wallpaper.png
 
 if [ -n "$USB" ]; then
  SYSLINUXCFG=$SHAREDIR/syslinux.cfg
- BACKGRND=$SHAREDIR/linbo-usb.png
 else
  SYSLINUXCFG=$SHAREDIR/isolinux.cfg
- BACKGRND=$SHAREDIR/linbo-cd.png
 fi
 VERSION=`grep ^Booting $LINBODIR/boot.msg | awk '{ print $3 }'`
 
@@ -171,7 +168,7 @@ OUTFILE="$OUTDIR/linbo_${GRPS_CHECKED// /-}_${VERSION}"
 MNTPNT=/var/tmp/mnt.$$
 TMPDIR=/var/tmp/linbofs.$$
 CURDIR=`pwd`
-LINBOFS=linbofs.gz
+LINBOFS=linbofs.lz
 
 # determine linbo append params from group's pxe configfile
 get_append_line() {
@@ -205,8 +202,8 @@ get_append_line() {
   params="vga=788"
   [ "$found" = "true" ] && echo "Warning: No LINBO parameters found in pxe config for group $i, using default values."
  fi
- append_linbo="APPEND initrd=/$i/linbofs.gz $params quiet"
- append_debug="APPEND initrd=/$i/linbofs.gz $params debug"
+ append_linbo="APPEND initrd=/$i/linbofs.lz $params quiet"
+ append_debug="APPEND initrd=/$i/linbofs.lz $params debug"
  echo "LINBO parameters for $i: $params"
 }
 
@@ -274,7 +271,7 @@ create_linbofs() {
  local curdir=`pwd`
  mkdir -p /var/tmp/linbofs.$$
  cd $TMPDIR
- zcat $LINBODIR/$LINBOFS | cpio -i -d -H newc --no-absolute-filenames &> /dev/null || exit 1
+ xzcat $LINBODIR/$LINBOFS | cpio -i -d -H newc --no-absolute-filenames &> /dev/null || exit 1
  # change passwords
  if [ -n "$PASSWORD" ]; then
   # root password
@@ -297,15 +294,15 @@ create_linbofs() {
   rm -f .ssh/authorized_keys
  fi
  for g in $GRPS_CHECKED; do
-  echo -n "Creating linbofs.gz for group $g ... "
+  echo -n "Creating linbofs.lz for group $g ... "
   if [ "$g" = "default" ]; then
    cp $LINBODIR/start.conf .
   else
    cp $LINBODIR/start.conf.$g start.conf || cp $LINBODIR/start.conf .
   fi
-  # pack linbofs.gz
+  # pack linbofs.lz
   mkdir -p $MNTPNT/$g
-  find . | cpio --quiet -o -H newc | gzip -9c > $MNTPNT/$g/linbofs.gz ; RC="$?" || exit 1
+  find . | cpio --quiet -o -H newc | lzma -zcv > $MNTPNT/$g/linbofs.lz ; RC="$?" || exit 1
   echo "Ok!"
  done
  cd $curdir

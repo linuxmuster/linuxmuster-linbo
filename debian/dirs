@@ -4,7 +4,9 @@
 /var/linbo
 /var/linbo/examples
 /var/linbo/icons
-/var/linbo/pxelinux.cfg
+/var/linbo/linbocmd
+/var/linbo/winact
+/var/linbo/pxelinux.cfg/templates
 /var/log/linuxmuster/linbo
 /usr/lib/linuxmuster-linbo
 /usr/sbin

@@ -1,5 +1,4 @@
 etc/linuxmuster/linbo/start.conf.default	var/linbo/start.conf
-var/linbo/pxelinux.cfg/default			etc/linuxmuster/linbo/pxelinux.cfg.default
 var/linbo/examples				usr/share/doc/linuxmuster-linbo/examples
 usr/share/linuxmuster-linbo/update-linbofs.sh 	usr/sbin/update-linbofs
 usr/share/linuxmuster-linbo/make-linbo-media.sh usr/sbin/make-linbo-media

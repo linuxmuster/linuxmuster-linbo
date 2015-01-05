@@ -2,18 +2,12 @@
 #
 # preinst script for linuxmuster
 # thomas@linuxmuster.net
-# 07.10.2013
+# 05.02.2014
 #
 
 if [ "$1" = "upgrade" ]; then
 
  . /usr/share/linuxmuster/config/dist.conf || exit 1
-
- # stopping multicast before package configuration
- [ -x /etc/init.d/linbo-multicast ] && /etc/init.d/linbo-multicast stop
-
- # saving default pxe config if it is not yet a link
- [ -L "$PXELINUXCFG" ] || cp "$PXELINUXCFG" "$PXELINUXCFG.dpkg-bak"
  
  # remove obsolete examples link
  [ -L "$LINBODIR/examples" ] && rm "$LINBODIR/examples"

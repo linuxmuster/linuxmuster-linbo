@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 # thomas@linuxmuster.net
-# 09.01.2013
+# 19.09.2014
 # GPL v3
 
 #set -e
@@ -94,20 +94,13 @@ start(){
  local c=0
 
  # read server ip
- [ -z "$LINBODEFAULTCONF" ] && LINBODEFAULTCONF="$LINBODIR/start.conf"
- serverip="$(grep ^Server "$LINBODEFAULTCONF" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ serverip="$(grep ^Server "$LINBODIR/start.conf" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
 
  write_client_config > "$CLIENT_CONFIG"
 
- # AG - 31.10.2012 - Tracker vor den Torrent-Seeders neu zu starten
- # restart bittorrent service
- /etc/init.d/bittorrent stop
- killall bttrack.bittorrent &> /dev/null
- /etc/init.d/bittorrent start
-
+ # check and create torrents first
  local i=""
  for i in $images; do
-
   # check torrent file and delete it if it does not match with image
   if [ -e "$i.torrent" ]; then
    if ! check_torrent "$i"; then
@@ -115,9 +108,17 @@ start(){
     rm -f "$i.torrent"
    fi
   fi
-
-  #  create torrent file
+  # create torrent files if necessary
   [ ! -e "$i.torrent" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+ done
+
+ # restart tracker
+ /etc/init.d/bittorrent stop
+ killall bttrack.bittorrent &> /dev/null
+ /etc/init.d/bittorrent start
+
+ # start torrents
+ for i in $images; do
 
   # start torrent daemon for image only if torrent file is present
   [ -e "$i.torrent" ] || continue

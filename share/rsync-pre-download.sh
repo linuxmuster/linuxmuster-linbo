@@ -1,10 +1,13 @@
 #!/bin/bash
 #
 # Pre-Download script for rsync/LINBO
-# $Id: rsync-pre-download.sh 1271 2012-02-08 12:28:01Z tschmitt $
+# thomas@linuxmuster.net
+# 25.10.2014
+#
 
-# read in paedml specific environment
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+# read in linuxmuster.net specific environment
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
 
 LOGFILE=rsync-pre-download.log
 if [ -n "$LINBODIR" ]; then
@@ -19,23 +22,30 @@ exec >>$LOGFILE 2>&1
 
 echo "### rsync pre download begin: $(date) ###"
 
+FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
 EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
+PIDFILE="/tmp/rsync.$RSYNC_PID"
+echo "$FILE" > "$PIDFILE"
+stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 
+echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
+echo "FILE: $FILE"
+echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
+
+compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
 
 case $EXT in
 
+ # write machine password hash to host's samba/ldap account
  *.macct)
   LDAPMODIFY="$(which ldapmodify)"
   LDAPSEARCH="$(which ldapsearch)"
   imagemacct="$LINBODIR/${RSYNC_REQUEST##*/}"
   ldapsec="/etc/ldap.secret"
   # upload samba machine password hashes to host's machine account
-  if [ -s "$imagemacct" -a -s "$NETWORKSETTINGS" -a -s "$ldapsec" -a -n "$LDAPMODIFY" ]; then
-   # read basedn
-   . $NETWORKSETTINGS
-   compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
+  if [ -s "$imagemacct" -a -n "$basedn" ]; then
    echo "Machine account file: $imagemacct"
    echo "Host: $compname"
    echo "Writing samba machine password hashes to ldap account:"
@@ -50,6 +60,42 @@ case $EXT in
   fi
  ;;
 
+ # provide host's opsi key for download
+ *.opsikey)
+  # invoked by linbo_cmd on postsync
+  # if opsi server is configured and host is opsimanaged
+  if ([ -n "$opsiip" ] && opsimanaged "$compname"); then
+   echo "Opsi key file $(basename $FILE) requested."
+   key="$(grep ^"$RSYNC_HOST_NAME" "$LINBOOPSIKEYS" | awk -F\: '{ print $2 }')"
+   if [ -n "$key" ]; then
+    echo "Opsi key for $RSYNC_HOST_NAME found, providing key file."
+    echo "$key" > "$FILE"
+    chmod 644 "$FILE"
+   fi
+  fi
+ ;;
+
+ # handle windows product key request
+ *.winkey)
+  # get key from workstations and write it to temporary file
+  compname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
+  if [ -n "$compname" ]; then
+   winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+   officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+   [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
+   [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"
+  fi
+ ;;
+
+ # handle windows activation tokens archive
+ winact-upload)
+  FILE="${FILE%.upload}"
+  # fetch archive from client
+  echo "Upload request for windows activation tokens archive."
+  linbo-scp "${RSYNC_HOST_NAME}:/cache/$(basename $FILE)" "$FILE"
+  rm -f "$PIDFILE"
+ ;;
+
  *) ;;
 
 esac
@@ -58,4 +104,3 @@ echo "RC: $RSYNC_EXIT_STATUS"
 echo "### rsync pre download end: $(date) ###"
 
 exit $RSYNC_EXIT_STATUS
-

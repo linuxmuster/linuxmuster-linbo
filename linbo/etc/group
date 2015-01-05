@@ -43,3 +43,5 @@ crontab:x:102:
 Debian-exim:x:103:
 mlocate:x:104:
 ssh:x:105:
+kvm:x:106:
+colord:x:107:

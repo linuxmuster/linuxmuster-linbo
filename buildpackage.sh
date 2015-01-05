@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in conf debian etc examples linbo share; do
+for i in conf debian etc linbo share var; do
  find ${i}/ -type f -name \*~ -exec rm '{}' \;
 done
 
