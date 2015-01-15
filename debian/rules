@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 12.12.2014
+# 19.12.2014
 # GPL v3
 #
 
@@ -105,6 +105,9 @@ SYSLINUX_URL=$(LML_URL)
 CTORRENT_ARCHIVE=$(shell grep ctorrent- debian/md5sums.src | awk '{ print $$2 }')
 CTORRENT_DIR=src/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
 CTORRENT_URL=http://www.rahul.net/dholmes/ctorrent
+
+# compiler flags
+export CFLAGS=-m32
 
 configure: configure-stamp
 configure-stamp:
@@ -287,6 +290,8 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# build src components
+
+	
 
 	# busybox
 	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \
