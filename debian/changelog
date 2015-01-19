@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.2.14-0) babo; urgency=low
+
+  * update(): restores start.conf in cache if partition was formatted before (closes #420).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 19 Jan 2015 17:54:00 +0100
+
 linuxmuster-linbo (2.2.13-2) babo; urgency=low
 
   * Rebuild.
