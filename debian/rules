@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 12.12.2014
+# 19.12.2014
 # GPL v3
 #
 
@@ -134,6 +134,9 @@ CTORRENT64_DIR=src64/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
 
 # 32bit binaries
 BIN32_DIR=src/bin32
+
+# compiler flags
+export CFLAGS=-m32
 
 configure: configure-stamp
 configure-stamp:
@@ -448,6 +451,8 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# build src components
+
+	
 
 	# busybox
 	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \

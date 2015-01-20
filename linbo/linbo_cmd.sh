@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 28.10.2014
+# 19.01.2015
 # GPL v3
 #
 
@@ -1989,14 +1989,16 @@ update(){
  local server="$1"
  local cachedev="$2"
  local disk="${cachedev%%[1-9]*}"
- mountcache "$cachedev" ; RC="$?" || return "$?"
+ mountcache "$cachedev" || return 1
  cd /cache
  local kernel="$(kerneltype)"
  local kernelfs="$(kernelfstype)"
 
+ # local restore of start.conf in cache (necessary if cache partition was formatted before)
+ [ -s start.conf ] || cp /start.conf .
  echo "Aktualisiere LINBO-Kernel($kernel,$kernelfs)."
- download "$server" "$kernel"
- download "$server" "$kernelfs"
+ download "$server" "$kernel" || RC=1
+ download "$server" "$kernelfs" || RC=1
  # grub update
  if [ -s "$kernel" -a -s "$kernelfs" ]; then
   mkdir -p /cache/boot/grub
@@ -2007,19 +2009,22 @@ update(){
    # tschmitt: provide custom local menu.lst
    download "$server" "menu.lst.$group"
    if [ -e "/cache/menu.lst.$group" ]; then
-    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
+    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst || RC=1
     # flag for downloaded custom menu.lst
     touch /cache/.custom.menu.lst
    else
     rm -f /cache/.custom.menu.lst
    fi
   fi # localmode
-  mkgrub
+  mkgrub || RC=1
  fi
- RC="$?"
  cd / ; sendlog
  #umount /cache
- [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+ if [ "$RC" = "0" ]; then
+  echo "LINBO update fertig."
+ else
+  echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+ fi
  return "$RC"
 }
 
