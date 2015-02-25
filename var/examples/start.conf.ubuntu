@@ -6,8 +6,10 @@
 # Festplatte 160G
 
 [LINBO]                             # Start der globalen Konfiguration
+Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhält
+Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
+# Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda2                   # lokale Cache Partition
-Server = 10.16.1.1                  # IP des TFTP-Servers, der Images vorhaelt
 RootTimeout = 600                   # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no                  # keine automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no                     # kein automatisches Formatieren aller Partitionen beim LINBO-Start
@@ -16,8 +18,10 @@ DownloadType = torrent              # Image-Download per torrent|multicast|rsync
 BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
 ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
 ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
+KernelOptions =          # Beispiele:
 #KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
-KernelOptions =
+#KernelOptions = server=10.16.1.5  # Abweichende Linbo-Server-IP als Kerneloption gesetzt
+                                   # falls gesetzt wird diese IP beim Workstationsimport verwendet 
 
 [Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Ubuntu)
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)

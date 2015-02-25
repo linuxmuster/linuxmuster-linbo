@@ -1,8 +1,14 @@
+linuxmuster-linbo (2.2.15-0) babo; urgency=low
+
+  * Added PAE in kernel again.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 13 Feb 2015 10:41:02 +0000
+
 linuxmuster-linbo (2.2.14-0) babo; urgency=low
 
   * update(): restores start.conf in cache if partition was formatted before (closes #420).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 19 Jan 2015 17:54:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Jan 2015 13:18:05 +0100
 
 linuxmuster-linbo (2.2.13-2) babo; urgency=low
 
