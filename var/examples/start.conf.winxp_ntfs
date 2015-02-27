@@ -5,8 +5,10 @@
 # Festplatte 20G
 
 [LINBO]                  # globale Konfiguration
+Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhält
+Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
+# Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda3        # lokale Cache Partition
-Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # keine automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
@@ -15,9 +17,11 @@ DownloadType = multicast # Image-Download per torrent|multicast|rsync, default i
 BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
 ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
 ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
-#KernelOptions = acpi=noirq irqpoll # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
-KernelOptions =
 SystemType = bios                   # moeglich ist bios|bios64|efi32|efi64 (Standard: bios fuer bios 32bit)
+KernelOptions =          # Beispiele:
+#KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
+#KernelOptions = server=10.16.1.5  # Abweichende Linbo-Server-IP als Kerneloption gesetzt
+                                   # falls gesetzt wird diese IP beim Workstationsimport verwendet 
 
 [Partition]              # Start einer Partitionsdefinition, Windows XP
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
