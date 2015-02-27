@@ -445,9 +445,16 @@ network(){
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
+   # check if using vlan
+   if [ -n "$vlanid" ]; then
+    vconfig add "$dev" "$vlanid" &> /dev/null
+    dhcpdev="$dev.$vlanid"
+   else
+    dhcpdev="$dev"
+   fi
    # dhcp retries
    [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dev" $dhcpretry &> /dev/null
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null
    # set mtu
    [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
   done
