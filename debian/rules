@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 19.12.2014
+# 14.03.2015
 # GPL v3
 #
 
@@ -9,7 +9,7 @@ export DH_COMPAT=5
 
 CURDIR=$(shell pwd)
 
-LML_URL=http://linuxmuster.de/linbo-build-cache
+LML_URL=http://pkg.linuxmuster.net/linbo-build-cache
 
 # linbo version
 LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
