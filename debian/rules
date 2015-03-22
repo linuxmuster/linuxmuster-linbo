@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 14.03.2015
+# 19.03.2015
 # GPL v3
 #
 
@@ -45,6 +45,11 @@ BACKPORTS_URL=http://www.kernel.org/pub/linux/kernel/projects/backports/stable/v
 E1000E_ARCHIVE=$(shell grep e1000e- debian/md5sums.src | awk '{ print $$2 }')
 E1000E_DIR=kernel/$(shell echo $(E1000E_ARCHIVE) | sed -e 's/.tar.gz//')
 E1000E_URL=http://downloadmirror.intel.com/15817/eng
+
+# broadcom tg3 driver
+TG3_ARCHIVE=$(shell grep tg3- debian/md5sums.src | awk '{ print $$2 }')
+TG3_DIR=kernel/$(shell echo $(TG3_ARCHIVE) | sed -e 's/.tar.gz//')
+TG3_URL=$(LML_URL)
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
@@ -234,6 +239,17 @@ configure-stamp:
 		ln -sf ../$(E1000E_DIR) kernel/e1000e; \
 	fi
 
+	# tg3
+	-@if [ ! -d $(TG3_DIR) ]; then \
+		( [ -e cache/$(TG3_ARCHIVE) ] || ( cd cache && wget $(TG3_URL)/$(TG3_ARCHIVE) ) ); \
+		( cd cache && grep $(TG3_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(TG3_ARCHIVE)...[0m" ; \
+		tar xf cache/$(TG3_ARCHIVE) -C kernel; \
+		echo "[1mPatching tg3 sources...[0m" ; \
+		( cd $(TG3_DIR) && for i in ../../patches/tg3/*; do patch -p1 <$$i; done ); \
+		ln -sf ../$(TG3_DIR) kernel/tg3; \
+	fi
+
 	# cloop
 	-@if [ ! -d $(CLOOP_DIR) ]; then \
 		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
@@ -386,6 +402,7 @@ build-stamp: configure-stamp
 	        echo "ESC[1mBuilding LINBO kernel...ESC[0m" ; \
 	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
 	        rm -f $(E1000E_DIR)/src/e1000e.ko || true ; \
+	        rm -f $(TG3_DIR)/src/tg3.ko || true ; \
 	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -f $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko || true ; \
 	        rm -rf ../modules/* || true ; \
@@ -410,6 +427,14 @@ build-stamp: configure-stamp
 	        echo "ESC[1mBuilding e1000e module...ESC[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
 	        cd $(E1000E_DIR)/src && \
+	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+	fi
+
+	# tg3 module
+	-@if [ ! -e $(TG3_DIR)/tg3.ko ]; then \
+	        echo "ESC[1mBuilding tg3 module...ESC[0m" ; \
+	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/broadcom/tg3.ko || true ; \
+	        cd $(TG3_DIR) && \
 	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
 	fi
 
@@ -464,6 +489,9 @@ install: build
 	# e1000e module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e && \
 	cp $(E1000E_DIR)/src/e1000e.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e/
+	# tg3 module
+	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom && \
+	cp $(TG3_DIR)/tg3.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
 	# vboxguest module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
 	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/

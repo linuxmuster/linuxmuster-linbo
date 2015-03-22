@@ -1,4 +1,9 @@
-# $Id: helperfunctions.sh 1083 2011-06-07 10:13:34Z tschmitt $
+#
+# helperfunctions for linbo scripts
+#
+# thomas@linuxmuster.net
+# 22.03.2015
+#
 
 # return active images
 active_images() {
@@ -32,6 +37,8 @@ check_torrent() {
  local image="$1"
  local torrent="$image.torrent"
  cd "$LINBODIR"
+ # in case of directory creation of torrent file will be forced
+ [ -d "$image" ] && return 1
  [ -s "$image" ] || return 1
  [ -s "$torrent" ] || return 1
  local tmpfile=/var/tmp/check_torrent.$$
@@ -39,7 +46,7 @@ check_torrent() {
  local filename="$(grep ^"file name" $tmpfile | awk '{ print $3 }')"
  local filesize="$(grep ^"file size" $tmpfile | awk '{ print $3 }')"
  rm $tmpfile
- [ "$filename" = "$image" ] || return 1
+ [ "$filename" = "$(basename $image)" ] || return 1
  local imagesize="$(ls -l $image | awk '{ print $5 }')"
  [ "$filesize" = "$imagesize" ] || return 1
  return 0
