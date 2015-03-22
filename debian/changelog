@@ -6,7 +6,7 @@ linuxmuster-linbo (2.2.16-0) babo; urgency=low
   * improved error handling in conjunction with windows/office reactivation.
   * added ability to share additional files and folders with linbo's torrent infrastructure (closes #456).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 22 Mar 2015 15:17:09 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 22 Mar 2015 16:27:34 +0000
 
 linuxmuster-linbo (2.2.15-0) babo; urgency=low
 
