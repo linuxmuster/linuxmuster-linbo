@@ -27,6 +27,7 @@ Size =                          # Datenpartition nimmt den Rest der Platte ein
 Id = c                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = vfat                   # Dateisystem auf der Partition
 Bootable = no                   # Bootable-Flag
+Label = Lokale Daten            # (optional) Label, z.B. um Partition als Datenpartition "Lokale Daten" anzuzeigen
 
 [OS]                                 # Beginn einer Betriebssystemdefinition
 Name = Windows XP                    # Name des Betriebssystems
