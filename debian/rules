@@ -670,6 +670,14 @@ build-stamp: configure-stamp
 	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
 	fi
 
+	# tg364 module
+	-@if [ ! -e $(TG364_DIR)/tg3.ko ]; then \
+	        echo "ESC[1mBuilding 64bit tg3 module...ESC[0m" ; \
+	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/ethernet/broadcom/tg3.ko || true ; \
+	        cd $(TG364_DIR) && \
+	        ( KSRC=$(CURDIR)/$(KERNEL64_DIR) make clean ; KSRC=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
+	fi
+
 	# vboxguest modules
 	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
 	        echo "[1mBuilding virtualbox-guest modules...[0m" ; \
@@ -732,7 +740,7 @@ install: build
 	cp $(TG3_DIR)/tg3.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
 	# tg364 module
 	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom && \
-	cp $(TG3_DIR)/tg3.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
+	cp $(TG364_DIR)/tg3.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
 #	# vboxguest module
 #	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
 #	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
