@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 19.01.2015
+# 11.03.2015
 # GPL v3
 #
 
@@ -1353,6 +1353,7 @@ do_opsi(){
  local domainname="$(grep ^domain /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1)"
  local fqdn="$(hostname).$domainname"
  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
+ local opsiip="${serverip/.1.1/.1.2}"
  local image
  local RC="0"
  if [ -n "$2" ]; then
@@ -1365,7 +1366,12 @@ do_opsi(){
  [ -s /cache/opsikey ] && local key="$(cat /cache/opsikey)"
  if [ -n "$key" ]; then
   echo "Opsi-Host-Key heruntergeladen."
+  # patch opsi host key
   sed -e "s|^host_id.*|host_id = $fqdn|" -e "s|^opsi_host_key.*|opsi_host_key = $key|" -i "$conf" || RC="1"
+  # patch changed opsi ip
+  if ! grep -q "$opsiip" "$conf"; then
+   sed -e "s|10.*.1.2|$opsiip|g" -i "$conf" || RC="1"
+  fi
   if [ "$RC" = "0" ]; then
    echo "Opsi-Clientkonfiguration aktualisiert."
   else
@@ -1413,13 +1419,27 @@ restore_winact(){
   # get server ip address
   local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
   rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
-  # request windows productkey
+  # request windows/office productkeys
   local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
   rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
   [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
+  # create windows key batchfile
   if [ -n "$winkey" ]; then
-   echo "cd C:\Windows\System32" > "/cache/$image.winact.cmd"
-   echo "cscript.exe slmgr.vbs -ipk $winkey" >> "/cache/$image.winact.cmd"
+   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "/cache/$image.winact.cmd"
+  fi
+  # add office key handling to batchfile if office token is in archive
+  if gunzip -c "/cache/$archive" | tar -t | grep -qi office; then
+   if [ -n "$officekey" ]; then
+    # get office installation dir
+    local office_dir="$(ls -d /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]\ \(x86\)/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]1[45] 2> /dev/null)"
+    if [ -n "$office_dir" ]; then
+     # compute windows path to office installation dir
+     local office_win_dir="$(echo "$office_dir" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
+     # write office activations commands to batchfile
+     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /inpkey:$officekey" >> "/cache/$image.winact.cmd"
+     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /act" >> "/cache/$image.winact.cmd"
+    fi
+   fi
   fi
   dos2unix "/cache/$image.winact.cmd"
   rm -f "$keyfile"
