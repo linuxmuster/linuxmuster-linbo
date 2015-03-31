@@ -4,6 +4,7 @@ linuxmuster-linbo (2.2.16-1fschuett) UNRELEASED; urgency=low
   * syslinux update to 6.03
   * efi boot with syslinux
   * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
+  * tg3 not needed, is already in kernel 3.11
 
  -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Wed, 17 Dec 2014 08:27:38 +0200
 

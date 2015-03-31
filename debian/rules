@@ -46,14 +46,6 @@ VBOX_URL=http://ftp.de.debian.org/debian/pool/contrib/v/virtualbox/virtualbox_4.
 # virtualbox-guest64
 VBOX64_DIR=kernel64/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.orig.tar.xz//' -e 's/_/-/' )
 
-# broadcom tg3 driver
-TG3_ARCHIVE=$(shell grep tg3- debian/md5sums.src | awk '{ print $$2 }')
-TG3_DIR=kernel/$(shell echo $(TG3_ARCHIVE) | sed -e 's/.tar.gz//')
-TG3_URL=$(LML_URL)
-
-# broadcom tg3 driver
-TG364_DIR=kernel64/$(shell echo $(TG3_ARCHIVE) | sed -e 's/.tar.gz//')
-
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
@@ -375,28 +367,6 @@ configure-stamp:
 		tar xf cache/$(QT_ARCHIVE) -C linbo_gui64; \
 	fi
 
-	# tg3
-	-@if [ ! -d $(TG3_DIR) ]; then \
-		( [ -e cache/$(TG3_ARCHIVE) ] || ( cd cache && wget $(TG3_URL)/$(TG3_ARCHIVE) ) ); \
-		( cd cache && grep $(TG3_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(TG3_ARCHIVE)...[0m" ; \
-		tar xf cache/$(TG3_ARCHIVE) -C kernel; \
-		echo "[1mPatching tg3 sources...[0m" ; \
-		( cd $(TG3_DIR) && for i in ../../patches/tg3/*; do patch -p1 <$$i; done ); \
-		ln -sf ../$(TG3_DIR) kernel/tg3; \
-	fi
-
-	# tg364
-	-@if [ ! -d $(TG364_DIR) ]; then \
-		( [ -e cache/$(TG3_ARCHIVE) ] || ( cd cache && wget $(TG3_URL)/$(TG3_ARCHIVE) ) ); \
-		( cd cache && grep $(TG3_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(TG3_ARCHIVE)...[0m" ; \
-		tar xf cache/$(TG3_ARCHIVE) -C kernel; \
-		echo "[1mPatching tg3 sources...[0m" ; \
-		( cd $(TG3_DIR) && for i in ../../patches/tg3/*; do patch -p1 <$$i; done ); \
-		ln -sf ../$(TG3_DIR) kernel/tg3; \
-	fi
-
 	# cloop with patch
 	-@if [ ! -d $(CLOOP_DIR) ]; then \
 		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
@@ -620,7 +590,6 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
 	        echo "[1mBuilding LINBO kernel...[0m" ; \
 	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
-	        rm -f $(TG3_DIR)/src/tg3.ko || true ; \
 	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -rf ../modules/* || true ; \
 	        cd $(KERNEL_DIR) ; \
@@ -635,7 +604,6 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(KERNEL64_DIR)/vmlinux ]; then \
 	        echo "[1mBuilding 64bit LINBO kernel...[0m" ; \
 	        rm -f $(CLOOP64_DIR)/cloop.ko || true ; \
-	        rm -f $(TG364_DIR)/src/tg3.ko || true ; \
 	        rm -f $(VBOX64_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -rf ../modules/* || true ; \
 	        cd $(KERNEL64_DIR) ; \
@@ -660,22 +628,6 @@ build-stamp: configure-stamp
 	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP64_DIR) && \
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
-	fi
-
-	# tg3 module
-	-@if [ ! -e $(TG3_DIR)/tg3.ko ]; then \
-	        echo "ESC[1mBuilding tg3 module...ESC[0m" ; \
-	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/broadcom/tg3.ko || true ; \
-	        cd $(TG3_DIR) && \
-	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-	fi
-
-	# tg364 module
-	-@if [ ! -e $(TG364_DIR)/tg3.ko ]; then \
-	        echo "ESC[1mBuilding 64bit tg3 module...ESC[0m" ; \
-	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/ethernet/broadcom/tg3.ko || true ; \
-	        cd $(TG364_DIR) && \
-	        ( KSRC=$(CURDIR)/$(KERNEL64_DIR) make clean ; KSRC=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
 	fi
 
 	# vboxguest modules
@@ -735,12 +687,6 @@ install: build
 	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
 	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP64_DIR)/cloop.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block/
-	# tg3 module
-	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom && \
-	cp $(TG3_DIR)/tg3.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
-	# tg364 module
-	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom && \
-	cp $(TG364_DIR)/tg3.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
 #	# vboxguest module
 #	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
 #	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
