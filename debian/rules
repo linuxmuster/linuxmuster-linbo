@@ -135,9 +135,6 @@ CTORRENT64_DIR=src64/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
 # 32bit binaries
 BIN32_DIR=src/bin32
 
-# compiler flags
-export CFLAGS=-m32
-
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -459,7 +456,7 @@ build-stamp: configure-stamp
 	# busybox
 	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \
 		echo "[1mBuilding busybox...[0m" ; \
-		( cd $(BB_DIR) && ARCH=i386 CROSS_COMPILE=i386-linux-gnu- make install ); \
+		( cd $(BB_DIR) && ARCH=i386 CFLAGS=-m32 CROSS_COMPILE=i386-linux-gnu- make install ); \
 	fi
 
 	# busybox64
@@ -471,7 +468,7 @@ build-stamp: configure-stamp
 	# cloop
 	-@if [ ! -e $(CLOOP_DIR)/bin/create_compressed_fs -o ! -e $(CLOOP_DIR)/bin/extract_compressed_fs ]; then \
 		echo "[1mBuilding cloop-utils...[0m" ; \
-		( cd $(CLOOP_DIR) && rm -rf bin || true && make utils && mkdir -p bin && mv *_compressed_fs bin ); \
+		( cd $(CLOOP_DIR) && rm -rf bin || true && CFLAGS=-m32 make utils && mkdir -p bin && mv *_compressed_fs bin ); \
 	fi
 
 	# cloop64
@@ -483,7 +480,7 @@ build-stamp: configure-stamp
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && ARCH=i386 LDFLAGS=-static ./configure --host=i386-linux-gnu && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && ARCH=i386 CFLAGS=-m32 LDFLAGS=-static ./configure --host=i386-linux-gnu && make && strip build/sbin/kexec ); \
 	fi
 
 	# kexec-tools64
@@ -495,7 +492,7 @@ build-stamp: configure-stamp
 	# ms-sys
 	-@if [ ! -e $(MSSYS_DIR)/bin/ms-sys ]; then \
 		echo "[1mBuilding ms-sys...[0m" ; \
-		( cd $(MSSYS_DIR) && make && strip bin/ms-sys ); \
+		( cd $(MSSYS_DIR) && CFLAGS=-m32 make && strip bin/ms-sys ); \
 	fi
 
 	# ms-sys64
@@ -507,7 +504,7 @@ build-stamp: configure-stamp
 	# chntpw
 	-@if [ ! -e $(CHNTPW_DIR)/reged ]; then \
  		echo "[1mBuilding reged...[0m"; \
-		( cd $(CHNTPW_DIR) && make reged && strip reged ); \
+		( cd $(CHNTPW_DIR) && CFLAGS=-m32 make reged && strip reged ); \
 	fi
 
 	# chntpw64
@@ -519,7 +516,7 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ARCH=i386 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
+		( cd $(NTFS3G_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
 	fi
 
 	# ntfs-3g64
@@ -531,7 +528,7 @@ build-stamp: configure-stamp
 	# rsync
 	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
 		echo "[1mBuilding rsync...[0m" ; \
-		( cd $(RSYNC_DIR) && ARCH=i386 ./configure --prefix=/usr --host=i386-linux-gnu && make && strip rsync ); \
+		( cd $(RSYNC_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --prefix=/usr --host=i386-linux-gnu && make && strip rsync ); \
 	fi
 
 	# rsync64
@@ -543,7 +540,7 @@ build-stamp: configure-stamp
 	# ssmtp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ARCH=i386 ./configure --host=i386-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ssmtp64
@@ -555,7 +552,7 @@ build-stamp: configure-stamp
 	# ctorrent
 	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
 		echo "[1mBuilding ctorrent...[0m" ; \
-		( cd $(CTORRENT_DIR) && ARCH=i386 ./configure --with-ssl=no --host=i386-linux-gnu && make && strip ctorrent ); \
+		( cd $(CTORRENT_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --with-ssl=no --host=i386-linux-gnu && make && strip ctorrent ); \
 	fi
 
 	# ctorrent64
@@ -567,7 +564,7 @@ build-stamp: configure-stamp
 	# qt
 	-@if [ ! -e $(QT_DIR)/bin/moc ]; then \
 		echo "[1mBuilding QT...[0m" ; \
-		( cd $(CURDIR)/linbo_gui && ./build_qt && rm linbo_gui ); \
+		( cd $(CURDIR)/linbo_gui && CFLAGS=-m32 ./build_qt && rm linbo_gui ); \
 	fi
 
 	# qt64
@@ -579,7 +576,7 @@ build-stamp: configure-stamp
 	# linbo_gui
 	-@if [ ! -e $(CURDIR)/linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
-		( cd linbo_gui && ./build_gui ); \
+		( cd linbo_gui && CFLAGS=-m32 ./build_gui ); \
 	fi
 
 	# linbo_gui64
@@ -599,7 +596,7 @@ build-stamp: configure-stamp
 	        :> ../initramfs_kernel.conf ; \
 	        rm -f usr/initramfs_data.cpio.gz || true ; \
 	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=i386 make bzImage modules ; \
+	        ARCH=i386 CFLAGS=-m32 make bzImage modules ; \
 	fi
 
 	# linbo kernel64
@@ -621,7 +618,7 @@ build-stamp: configure-stamp
 	        echo "[1mBuilding cloop module...[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
+	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
 	fi
 
 	# cloop64 module
@@ -637,7 +634,7 @@ build-stamp: configure-stamp
 	        echo "[1mBuilding virtualbox-guest modules...[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
 	        cd $(VBOX_DIR) && \
-	        ( make -C vboxguest clean ; ARCH=i386 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
+	        ( make -C vboxguest clean ; ARCH=i386 CFLAGS=-m32 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
 	fi
 
 	# vboxguest64 modules
