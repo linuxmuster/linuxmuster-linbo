@@ -148,7 +148,9 @@ configure-stamp:
 		install -o root -g root -m 755 toolchain/i386-linux-gnu-gcc /usr/local/bin/i386-linux-gnu-gcc ; \
 		install -o root -g root -m 755 toolchain/i386-linux-gnu-g++ /usr/local/bin/i386-linux-gnu-g++ ; \
 		install -o root -g root -m 755 toolchain/i386-linux-gnu-c++ /usr/local/bin/i386-linux-gnu-c++ ; \
-		( cd /usr/local/bin && ln -s /usr/bin/ar i386-linux-gnu-ar && ln -s /usr/bin/strip i386-linux-gnu-strip ) ; \
+		( cd /usr/local/bin && ln -s /usr/bin/ar i386-linux-gnu-ar \
+			    && ln -s /usr/bin/ld i386-linux-gnu-ld \
+			    && ln -s /usr/bin/strip i386-linux-gnu-strip ) ; \
 		[ -e /lib/i386-linux-gnu/libacl.so ] || ( cd /lib/i386-linux-gnu && ln -s libacl.so.1 libacl.so ) ; \
 	fi
 	
