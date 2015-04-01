@@ -563,7 +563,7 @@ build-stamp: configure-stamp
 	# qt
 	-@if [ ! -e $(QT_DIR)/bin/moc ]; then \
 		echo "[1mBuilding QT...[0m" ; \
-		( cd $(CURDIR)/linbo_gui && CFLAGS=-m32 ./build_qt && rm linbo_gui ); \
+		( cd $(CURDIR)/linbo_gui && ./build_qt && rm linbo_gui ); \
 	fi
 
 	# qt64
