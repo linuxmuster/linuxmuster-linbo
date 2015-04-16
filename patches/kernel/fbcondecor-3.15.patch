@@ -1,8 +1,8 @@
 diff --git a/Documentation/fb/00-INDEX b/Documentation/fb/00-INDEX
-index 30a7054..9b6a733 100644
+index fe85e7c..2230930 100644
 --- a/Documentation/fb/00-INDEX
 +++ b/Documentation/fb/00-INDEX
-@@ -21,6 +21,8 @@ ep93xx-fb.txt
+@@ -23,6 +23,8 @@ ep93xx-fb.txt
  	- info on the driver for EP93xx LCD controller.
  fbcon.txt
  	- intro to and usage guide for the framebuffer console (fbcon).
@@ -225,10 +225,10 @@ index 0000000..3388c61
 +  Michal Januszewski <michalj+fbcondecor@gmail.com>
 +
 diff --git a/drivers/Makefile b/drivers/Makefile
-index ab93de8..6e9b5f5 100644
+index 7183b6a..d576148 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -15,6 +15,10 @@ obj-y				+= pwm/
+@@ -17,6 +17,10 @@ obj-y				+= pwm/
  obj-$(CONFIG_PCI)		+= pci/
  obj-$(CONFIG_PARISC)		+= parisc/
  obj-$(CONFIG_RAPIDIO)		+= rapidio/
@@ -239,7 +239,7 @@ index ab93de8..6e9b5f5 100644
  obj-y				+= video/
  obj-y				+= idle/
  
-@@ -40,11 +44,6 @@ obj-$(CONFIG_REGULATOR)		+= regulator/
+@@ -42,11 +46,6 @@ obj-$(CONFIG_REGULATOR)		+= regulator/
  # reset controllers early, since gpu drivers might rely on them to initialize
  obj-$(CONFIG_RESET_CONTROLLER)	+= reset/
  
@@ -251,23 +251,11 @@ index ab93de8..6e9b5f5 100644
  # gpu/ comes after char for AGP vs DRM startup
  obj-y				+= gpu/
  
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 4cf1e1d..74c04b0 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -1229,7 +1229,6 @@ config FB_MATROX
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
--	select FB_TILEBLITTING
- 	select FB_MACMODES if PPC_PMAC
- 	---help---
- 	  Say Y here if you have a Matrox Millennium, Matrox Millennium II,
 diff --git a/drivers/video/console/Kconfig b/drivers/video/console/Kconfig
-index 8c30603..b50b7c6 100644
+index fe1cd01..6d2e87a 100644
 --- a/drivers/video/console/Kconfig
 +++ b/drivers/video/console/Kconfig
-@@ -124,6 +124,19 @@ config FRAMEBUFFER_CONSOLE_ROTATION
+@@ -126,6 +126,19 @@ config FRAMEBUFFER_CONSOLE_ROTATION
           such that other users of the framebuffer will remain normally
           oriented.
  
@@ -821,14 +809,14 @@ index 0000000..a2b4497
 +}
 +
 diff --git a/drivers/video/console/fbcon.c b/drivers/video/console/fbcon.c
-index cd8a802..04b775b 100644
+index f447734..da50d61 100644
 --- a/drivers/video/console/fbcon.c
 +++ b/drivers/video/console/fbcon.c
 @@ -79,6 +79,7 @@
  #include <asm/irq.h>
  
  #include "fbcon.h"
-+#include "fbcondecor.h"
++#include "../console/fbcondecor.h"
  
  #ifdef FBCONDEBUG
  #  define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __func__ , ## args)
@@ -1171,7 +1159,7 @@ index cd8a802..04b775b 100644
  	}
  
  	if (fg != -1)
-@@ -3570,6 +3697,7 @@ static void fbcon_exit(void)
+@@ -3596,6 +3723,7 @@ static void fbcon_exit(void)
  		}
  	}
  
@@ -1742,10 +1730,10 @@ index 0000000..babc8c5
 +EXPORT_SYMBOL(fbcon_decor_path);
 diff --git a/drivers/video/console/fbcondecor.h b/drivers/video/console/fbcondecor.h
 new file mode 100644
-index 0000000..1268ab8
+index 0000000..3b3724b
 --- /dev/null
 +++ b/drivers/video/console/fbcondecor.h
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,78 @@
 +/* 
 + *  linux/drivers/video/console/fbcondecor.h -- Framebuffer Console Decoration headers
 + *
@@ -1773,7 +1761,6 @@ index 0000000..1268ab8
 +int fbcon_decor_exit(void);
 +int fbcon_decor_call_helper(char* cmd, unsigned short cons);
 +int fbcon_decor_disable(struct vc_data *vc, unsigned char redraw);
-+void fbcon_decor_reset(void);
 +
 +/* cfbcondecor.c */
 +void fbcon_decor_putcs(struct vc_data *vc, struct fb_info *info, const unsigned short *s, int count, int yy, int xx);
@@ -1825,15 +1812,27 @@ index 0000000..1268ab8
 +#endif /* CONFIG_FB_CON_DECOR */
 +
 +#endif /* __FBCON_DECOR_H */
-diff --git a/drivers/video/fbcmap.c b/drivers/video/fbcmap.c
-index 5c3960d..162b5f4 100644
---- a/drivers/video/fbcmap.c
-+++ b/drivers/video/fbcmap.c
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index e1f4727..2952e33 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -1204,7 +1204,6 @@ config FB_MATROX
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-	select FB_TILEBLITTING
+ 	select FB_MACMODES if PPC_PMAC
+ 	---help---
+ 	  Say Y here if you have a Matrox Millennium, Matrox Millennium II,
+diff --git a/drivers/video/fbdev/core/fbcmap.c b/drivers/video/fbdev/core/fbcmap.c
+index f89245b..05e036c 100644
+--- a/drivers/video/fbdev/core/fbcmap.c
++++ b/drivers/video/fbdev/core/fbcmap.c
 @@ -17,6 +17,8 @@
  #include <linux/slab.h>
  #include <linux/uaccess.h>
  
-+#include "console/fbcondecor.h"
++#include "../../console/fbcondecor.h"
 +
  static u16 red2[] __read_mostly = {
      0x0000, 0xaaaa
@@ -1859,11 +1858,11 @@ index 5c3960d..162b5f4 100644
  	return rc;
  }
  
-diff --git a/drivers/video/fbmem.c b/drivers/video/fbmem.c
-index 36e1fe2..0f9dee0 100644
---- a/drivers/video/fbmem.c
-+++ b/drivers/video/fbmem.c
-@@ -1233,15 +1233,6 @@ struct fb_fix_screeninfo32 {
+diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
+index b6d5008..d6703f2 100644
+--- a/drivers/video/fbdev/core/fbmem.c
++++ b/drivers/video/fbdev/core/fbmem.c
+@@ -1250,15 +1250,6 @@ struct fb_fix_screeninfo32 {
  	u16			reserved[3];
  };
  
@@ -1953,7 +1952,7 @@ index 7f0c329..98f5d60 100644
  };
  
 diff --git a/include/linux/fb.h b/include/linux/fb.h
-index ffac70a..34a709f 100644
+index fe6ac95..1e36b03 100644
 --- a/include/linux/fb.h
 +++ b/include/linux/fb.h
 @@ -219,6 +219,34 @@ struct fb_deferred_io {
@@ -2088,12 +2087,12 @@ index fb795c3..dc77a03 100644
  	__u32 start;			/* First entry	*/
  	__u32 len;			/* Number of entries */
 diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index 07f6fc4..abca2fb 100644
+index 74f5b58..6386ab0 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
-@@ -143,6 +143,10 @@ static int min_percpu_pagelist_fract = 8;
- static int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
+@@ -146,6 +146,10 @@ static const int cap_last_cap = CAP_LAST_CAP;
+ static unsigned long hung_task_timeout_max = (LONG_MAX/HZ);
+ #endif
  
 +#ifdef CONFIG_FB_CON_DECOR
 +extern char fbcon_decor_path[];
@@ -2102,7 +2101,7 @@ index 07f6fc4..abca2fb 100644
  #ifdef CONFIG_INOTIFY_USER
  #include <linux/inotify.h>
  #endif
-@@ -252,6 +256,15 @@ static struct ctl_table sysctl_base_table[] = {
+@@ -255,6 +259,15 @@ static struct ctl_table sysctl_base_table[] = {
  		.mode		= 0555,
  		.child		= dev_table,
  	},
