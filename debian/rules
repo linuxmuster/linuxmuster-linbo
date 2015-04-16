@@ -30,12 +30,12 @@ KERNEL64_DIR=kernel64/linux-$(KVERS)
 
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-[0-9].tar.gz//')
-CLOOP_URL=http://debian-knoppix.alioth.debian.org/packages/cloop
+CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 #CLOOP_URL=$(LML_URL)
 
 # cloop64
-CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-[0-9].tar.gz//')
+CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
 
 # virtualbox-guest
 VBOX_ARCHIVE=$(shell grep virtualbox_ debian/md5sums.src | awk '{ print $$2 }')
@@ -371,8 +371,6 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		echo "[1mPatching cloop sources...[0m" ; \
-		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 		( cd $(CLOOP_DIR) && patch -p0 <../../patches/cloop32.patch ); \
 		if [ ! -e /usr/include/zconf.h ]; then \
 			( cd /usr/include; ln -s x86_64-linux-gnu/zconf.h ); \
@@ -386,8 +384,6 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
-		echo "[1mPatching 64bit cloop sources...[0m" ; \
-		( cd $(CLOOP64_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
 		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
 	fi
 
