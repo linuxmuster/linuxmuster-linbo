@@ -288,6 +288,38 @@ kernelfstype(){
  echo "$kernelfstype"
 }
 
+# fschuett
+# extract block device name for sd?,/dev/sd?,*blk?p?,/dev/*blk?p?
+# get_disk_from_partition partition
+get_disk_from_partition(){
+  local p="$1"
+  local disk=
+  expr "$p" : ".*p[[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%p[0-9]*}
+  expr "$p" : ".*sd[[:alpha:]][[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%[0-9]*}
+  if [[ -n "$disk" ]]; then
+    echo "$disk"
+    return 0
+  else
+    echo "$1"
+    return 1
+  fi
+}
+
+# fschuett
+# extract disk device names from start.conf partition definitions
+# get_disks
+get_disks(){
+  local parts="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' )"
+  local disks=
+  for p in $parts; do
+    disks="$disks $(get_disk_from_partition "$p")"
+  done;
+  disks="$(echo $disks|tr " " "\n"|sort -u)"
+  echo "$disks"
+  return 0
+}
+
+
 # tschmitt
 # fetch fstype from start.conf
 # fstype_startconf dev
@@ -536,7 +568,7 @@ partition(){
  fi
 
  # grep all disks from start.conf
- local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
+ local disks="$(get_disks)"
  # compute the last partition of each disk
  local i=""
  for i in $disks; do
