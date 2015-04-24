@@ -2244,7 +2244,7 @@ register(){
 }
 
 ip(){
- local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')"
+ local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')" # fix syntax highlighting "
  [ -z "$ip" ] && ip="OFFLINE"
  echo "$ip"
 }
