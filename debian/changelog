@@ -7,6 +7,7 @@ linuxmuster-linbo (2.2.16-2fschuett) baboo; urgency=low
   * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
   * tg3 not needed, is already in kernel 3.11
   * new kernel 3.16
+  * enable e1000e (32bit)
 
  -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Wed, 15 Apr 2015 20:00:30 +0200
 
