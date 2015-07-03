@@ -1,7 +1,7 @@
 linuxmuster-linbo 32/64 build instructions
 ==========================================
 
-Install 64bit Ubuntu 13.10 desktop.
+Install 64bit Ubuntu 14.04.2/3.16.0 desktop.
 
 Add 32bit Architecture:
 dpkg --add-architecture i386

@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 13.10.2014
+# 20.03.2015
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -322,30 +322,103 @@ isreboot(){
 
 # save windows activation tokens
 save_winact(){
- # fetch activation status
- grep -i ^lizenzstatus: /mnt/linuxmuster-win/activation_status | grep -qi lizenziert && local activated=yes
- rm -f /mnt/linuxmuster-win/activation_status
- # if not activate yet do nothing
- [ -z "$activated" ] && return
+ # rename obsolete activation status file
+ [ -e /mnt/linuxmuster-win/activation_status ] && mv /mnt/linuxmuster-win/activation_status /mnt/linuxmuster-win/win_activation_status
+ # get windows activation status
+ if [ -e /mnt/linuxmuster-win/win_activation_status ]; then
+  grep -i ^li[cz]en /mnt/linuxmuster-win/win_activation_status | grep -i status | grep -i li[cz]en[sz][ei][de] | grep -vqi not && local win_activated="yes"
+ fi
+ if [ -n "$win_activated" ]; then
+  echo "Windows ist aktiviert."
+ else
+  echo "Windows ist nicht aktiviert."
+ fi
+ # get msoffice activation status
+ if [ -e /mnt/linuxmuster-win/office_activation_status ]; then
+  grep -i ^li[cz]en /mnt/linuxmuster-win/office_activation_status | grep -i status | grep -i li[cz]en[sz][ei][de] | grep -vqi not && office_activated="yes"
+ fi
+ if [ -n "$office_activated" ]; then
+  echo "MS Office ist aktiviert."
+ else
+  echo "MS Office ist nicht aktiviert oder nicht installiert."
+ fi
+ # remove activation status files
+ rm -f /mnt/linuxmuster-win/*activation_status
+ # get activation token files
+ if [ -n "$win_activated" ]; then
+  local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+  local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
+ fi
+ [ -n "$office_activated" ] && local office_tokensdat="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+ # test if files exist
+ if [ -n "$win_activated" -a -z "$win_tokensdat" ]; then
+  echo "Windows-Aktivierungsdatei nicht vorhanden."
+  win_activated=""
+ fi
+ if [ -n "$office_activated" -a -z "$office_tokensdat" ]; then
+  echo "Office-Aktivierungsdatei nicht vorhanden."
+  office_activated=""
+ fi
+ # if no activation return
+ [ -z "$win_activated" -a -z "$office_activated" ] && return
+ # get local mac address
  local mac="$(linbo_cmd mac | tr a-z A-Z)"
  # do not save if no mac address is available
- [ -z "$mac" -o "$mac" = "OFFLINE" ] && return
+ if [ -z "$mac" -o "$mac" = "OFFLINE" ]; then
+  echo "Kann MAC-Adresse nicht bestimmen."
+  return
+ fi
  # get image name
  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
  # if an image is not yet created do nothing
- [ -z "$image" ] && return
+ if [ -z "$image" ]; then
+  echo "Keine Image-Datei vorhanden."
+  return
+ fi
+ echo -e "Sichere Aktivierungsdaten ... "
  # archive name contains mac address and image name
  local archive="/cache/$mac.$image.winact.tar.gz"
- # get tokens
- local tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
- [ -z "$tokensdat" ] && return
- local pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
- echo "Sichere Windows-Aktivierungstokens."
- tar czf "$archive" "$tokensdat" "$pkeyconfig" &> /dev/null
- if [ ! -s "$archive" ]; then
-  echo "Fehler bei der Erstellung des Archivs!"
+ local tmparchive="/cache/tokens.tar.gz"
+ # generate tar command
+ local tarcmd="tar czf $tmparchive"
+ [ -n "$win_tokensdat" ] && tarcmd="$tarcmd $win_tokensdat"
+ [ -n "$win_pkeyconfig" ] && tarcmd="$tarcmd $win_pkeyconfig"
+ [ -n "$office_tokensdat" ] && tarcmd="$tarcmd $office_tokensdat"
+ # create temporary archive
+ if ! $tarcmd &> /dev/null; then
+  echo "Sorry. Fehler beim Erstellen von $tmparchive."
   return 1
+ else
+  echo "OK."
  fi
+ # merge old and new if archive already exists
+ local RC=0
+ if [ -s "$archive" ]; then
+  echo -e "Aktualisiere $archive ... "
+  local tmpdir="/cache/tmp"
+  local curdir="$(pwd)"
+  [ -e "$tmpdir" ] && rm -rf "$tmpdir"
+  mkdir -p "$tmpdir"
+  tar xf "$archive" -C "$tmpdir" || RC="1"
+  tar xf "$tmparchive" -C "$tmpdir" || RC="1"
+  rm -f "$archive"
+  rm -f "$tmparchive"
+  cd "$tmpdir"
+  tar czf "$archive" * &> /dev/null || RC="1"
+  cd "$curdir"
+  rm -rf "$tmpdir"
+ else # use temporary archive if it does not exist already
+  echo -e "Erstelle $archive ... "
+  rm -f "$archive"
+  mv "$tmparchive" "$archive" || RC="1"
+ fi
+ # if error occured
+ if [ "$RC" = "1" -o ! -s "$archive" ]; then
+  echo "Fehlgeschlagen. Sorry."
+  return 1
+ else
+  echo "OK."
+ fi  
  # do not in offline mode
  [ -e /tmp/linbo-network.done ] && return
  # trigger upload
@@ -353,20 +426,21 @@ save_winact(){
  rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
 }
 
-# remove linbo reboot flag etc.
+# remove linbo reboot flag, save windows activation tokens
 do_housekeeping(){
  local device="" properties="" cachedev="$(printcache)"
- sfdisk -l 2> /dev/null | grep ^/dev | grep -v Extended | grep -v "Linux swap" | while read device properties; do
-  if [ "$cachedev" = "$device" ]; then
-   mount "$device" /cache
-   continue
-  fi
+ if ! mount "$cachedev" /cache; then
+  echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
+  return 1
+ fi
+ sfdisk -l 2> /dev/null | grep ^/dev | grep -v "$cachedev" | grep -v Extended | grep -v "Linux swap" | while read device properties; do
   if mount "$device" /mnt 2> /dev/null; then
    if ls /mnt/.*.reboot &> /dev/null; then
     echo "Entferne Reboot-Flag von $device."
     rm -f /mnt/.*.reboot
    fi
-   [ -s /mnt/linuxmuster-win/activation_status ] && save_winact
+   # save windows activation files
+   ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
    umount /mnt
   fi
  done

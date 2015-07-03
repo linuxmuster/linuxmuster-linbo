@@ -1,11 +1,25 @@
-linuxmuster-linbo (2.2.15-1fschuett) UNRELEASED; urgency=low
+linuxmuster-linbo (2.2.16-2fschuett) baboo; urgency=low
 
+  [ Frank Schütte ]
   * added 64bit boot
   * syslinux update to 6.03
   * efi boot with syslinux
   * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
+  * tg3 not needed, is already in kernel 3.11
+  * new kernel 3.16
+  * enable e1000e (32bit)
 
- -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Wed, 17 Dec 2014 08:27:38 +0200
+ -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Wed, 15 Apr 2015 20:00:30 +0200
+
+linuxmuster-linbo (2.2.16-0) babo; urgency=low
+
+  * added patching of opsi server ip in case of windows client sync (closes #449).
+  * added broadcom tg3 module update version 3.137h (closes #455).
+  * added handling of office key activation (closes #297).
+  * improved error handling in conjunction with windows/office reactivation.
+  * added ability to share additional files and folders with linbo's torrent infrastructure (closes #456).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 22 Mar 2015 16:27:34 +0000
 
 linuxmuster-linbo (2.2.15-0) babo; urgency=low
 

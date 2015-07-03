@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 25.10.2014
+# 22.03.2015
 #
 
 # read in linuxmuster.net specific environment
@@ -89,10 +89,42 @@ case $EXT in
 
  # handle windows activation tokens archive
  winact-upload)
+  RC=0
   FILE="${FILE%.upload}"
   # fetch archive from client
   echo "Upload request for windows activation tokens archive."
-  linbo-scp "${RSYNC_HOST_NAME}:/cache/$(basename $FILE)" "$FILE"
+  linbo-scp "${RSYNC_HOST_NAME}:/cache/$(basename $FILE)" "${FILE}.tmp" || RC="1"
+  # if archive file already exists try to merge old and new archives
+  if [ -s "$FILE" -a "$RC" = "0" ]; then
+   echo "Updating existing archive $FILE."
+   tmpdir="/var/tmp/winact-upload.$$"
+   curdir="$(pwd)"
+   mkdir -p "$tmpdir"
+   # extract old archive to tmpdir
+   tar xf "$FILE" -C "$tmpdir" || RC="1"
+   if [ "$RC" = "0" ]; then
+    # extract uploaded archive over old archive in tmpdir
+    tar xf "${FILE}.tmp" -C "$tmpdir" || RC="1"
+   fi
+   if [ "$RC" = "0" ]; then
+    rm -f "${FILE}.tmp"
+    cd "$tmpdir"
+    # pack content of tmpdir to temporary archive
+    tar czf "${FILE}.tmp" * || RC="1"
+    cd "$curdir"
+   fi
+   rm -rf "$tmpdir"
+  fi
+  # move uploaded file in place
+  if [ "$RC" = "0" ]; then
+   rm -f "$FILE"
+   mv "${FILE}.tmp" "$FILE" || RC="1"
+  fi
+  if [ "$RC" = "0" ]; then
+   echo "Upload of $FILE successfully finished."
+  else
+   echo "Sorry. Upload of $FILE failed."
+  fi
   rm -f "$PIDFILE"
  ;;
 

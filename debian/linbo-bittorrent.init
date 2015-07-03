@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 # thomas@linuxmuster.net
-# 19.09.2014
+# 22.03.2015
 # GPL v3
 
 #set -e
@@ -73,6 +73,9 @@ if [ -n "$images" -a "$images" != "all" ]; then
 else
  # get all active images from helperfunctions
  images="$(active_images)"
+ # add additional files and dirs placed below $LINBODIR/torrentadds
+ tadds="$(ls -1 torrentadds/ | grep -v .torrent | sed 's|^|torrentadds/|')"
+ [ -n "$tadds" ] && images="$images $tadds"
  if [ -z "$images" ]; then
   echo "There exist no images yet!"
   exit 0
@@ -100,16 +103,20 @@ start(){
 
  # check and create torrents first
  local i=""
+ local tfile=""
+ local tname=""
  for i in $images; do
+  tfile="$i.torrent"
+  tname="$(basename $tfile)"
   # check torrent file and delete it if it does not match with image
-  if [ -e "$i.torrent" ]; then
+  if [ -e "$tfile" ]; then
    if ! check_torrent "$i"; then
-    echo "$i and $i.torrent do not match!"
-    rm -f "$i.torrent"
+    echo "$i and $tfile do not match!"
+    rm -f "$tfile"
    fi
   fi
   # create torrent files if necessary
-  [ ! -e "$i.torrent" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+  [ ! -e "$tfile" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
  done
 
  # restart tracker
@@ -119,20 +126,22 @@ start(){
 
  # start torrents
  for i in $images; do
+  tfile="$i.torrent"
+  tname="$(basename $tfile)"
 
   # start torrent daemon for image only if torrent file is present
-  [ -e "$i.torrent" ] || continue
+  [ -e "$tfile" ] || continue
 
   # start daemon stuff
   log_daemon_msg "Starting $DESC" "$i"
 
-  if screen -list | grep -q "$i.torrent"; then
+  if screen -list | grep -q "$tname"; then
    echo
    log_failure_msg "Torrent for $i is already running. Skipped!"
    continue
   fi
 
-  OPTIONS="$i.torrent \
+  OPTIONS="$tfile \
            --minport $MINPORT \
            --max_uploads $MAX_UPLOADS \
            --max_upload_rate $MAX_UPLOAD_RATE \
@@ -151,9 +160,9 @@ start(){
            --max_slice_length $MAX_SLICE_LENGTH \
            --check_hashes 0 \
            --saveas $i"
-  screen -dmS "$i.torrent" $DAEMON $OPTIONS
+  screen -dmS "$tname" $DAEMON $OPTIONS
   sleep 1
-  if ! screen -list | grep -q "$i.torrent"; then
+  if ! screen -list | grep -q "$tname"; then
    echo -n " "
    log_failure_msg "failed!"
   else
@@ -168,9 +177,9 @@ stop(){
  local i=""
  local pid=""
  for i in $images; do
-  if screen -list | grep -q "$i.torrent"; then
+  if screen -list | grep -q "$(basename $i.torrent)"; then
     log_daemon_msg "Stopping $DESC" "$i"
-    pid="$(screen -list | grep "$i.torrent" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    pid="$(screen -list | grep "$(basename $i.torrent)" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"
     log_end_msg "$RC"
   fi
@@ -192,7 +201,7 @@ status(){
    local status=""
    local c=0
    local d=""
-   screen -wipe | grep [ioy][nos][cop].torrent | while read line; do
+   screen -wipe | grep -w .torrent | while read line; do
     let c+=1
     pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     screen="$(echo $line | awk '{ print $1 }')"

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# schmitt@lmz-bw.de
+# thomas@linuxmuster.net
 # GPL v3
 # 04.12.2009
 #
@@ -15,4 +15,3 @@ while true; do
  options="$(echo $options | sed -e 's|--check_hashes 1|--check_hashes 0|')"
  [ "$RC" = "0" ] || exit "$RC"
 done
-

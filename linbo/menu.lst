@@ -27,5 +27,5 @@ chainloader +1
 
 title LINBO LOCAL
 find --ignore-floppies --ignore-cd --set-root /linbofs.lz
-kernel /linbo vga=788 quiet
+kernel /linbo vga=788 quiet splash
 initrd /linbofs.lz
