@@ -523,6 +523,7 @@ network(){
    if [ -n "$vlanid" ]; then
     vconfig add "$dev" "$vlanid" &> /dev/null
     dhcpdev="$dev.$vlanid"
+    ip link set dev "$dhcpdev" up
    else
     dhcpdev="$dev"
    fi
