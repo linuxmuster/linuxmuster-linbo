@@ -7,6 +7,8 @@
   cd $QTDIR
   make clean
   echo -e "yes\n" | ./configure \
+ -xplatform linux-g++-32 \
+ -device-option CROSS_COMPILE=i386-linux-gnu- \
  -embedded x86 \
  -prefix $QTDIR \
  -opensource \

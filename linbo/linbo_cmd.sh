@@ -253,6 +253,73 @@ hostgroup(){
  echo "$hostgroup"
 }
 
+# fschuett
+# fetch SystemType from start.conf
+systemtype(){
+ local systemtype="bios"
+ [ -s /start.conf ] || return 1
+ systemtype=`grep -i ^SystemType /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
+ echo "$systemtype"
+}
+
+kerneltype(){
+ local kerneltype="linbo"
+ local systemtype=$(systemtype)
+ case $systemtype in
+   bios64|efi64)
+       kerneltype="linbo64"
+   ;;
+   *)
+   ;;
+ esac
+ echo "$kerneltype"
+}
+
+kernelfstype(){
+ local kernelfstype="linbofs.lz"
+ local systemtype=$(systemtype)
+ case $systemtype in
+   bios64|efi64)
+       kernelfstype="linbofs64.lz"
+   ;;
+   *)
+   ;;
+ esac
+ echo "$kernelfstype"
+}
+
+# fschuett
+# extract block device name for sd?,/dev/sd?,*blk?p?,/dev/*blk?p?
+# get_disk_from_partition partition
+get_disk_from_partition(){
+  local p="$1"
+  local disk=
+  expr "$p" : ".*p[[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%p[0-9]*}
+  expr "$p" : ".*sd[[:alpha:]][[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%[0-9]*}
+  if [[ -n "$disk" ]]; then
+    echo "$disk"
+    return 0
+  else
+    echo "$1"
+    return 1
+  fi
+}
+
+# fschuett
+# extract disk device names from start.conf partition definitions
+# get_disks
+get_disks(){
+  local parts="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' )"
+  local disks=
+  for p in $parts; do
+    disks="$disks $(get_disk_from_partition "$p")"
+  done;
+  disks="$(echo $disks|tr " " "\n"|sort -u)"
+  echo "$disks"
+  return 0
+}
+
+
 # tschmitt
 # fetch fstype from start.conf
 # fstype_startconf dev
@@ -501,7 +568,7 @@ partition(){
  fi
 
  # grep all disks from start.conf
- local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
+ local disks="$(get_disks)"
  # compute the last partition of each disk
  local i=""
  for i in $disks; do
@@ -510,7 +577,7 @@ partition(){
 
  while [ "$#" -ge "5" ]; do
   # support multiple disks
-  local disk="${1%%[1-9]*}"
+  local disk="$(get_disk_from_partition "$1")"
   if echo "$disks" | grep -q "$disk"; then
    disks="$(echo "$disks" | sed -e "s|$disk||")"
    local table=""
@@ -551,7 +618,7 @@ $(sfdisk -s "$disk" 2>> /tmp/linbo.log)
   fi
   let pcount++
   # Is this a primary partition?
-  local partno="${dev##?d?}"
+  local partno="$(expr "$dev" : ".*\([[:digit:]]\)")" # fix syntax highlighting: "
   if [ "$partno" -gt 4 ] >/dev/null 2>&1; then
    # Fill up unused partitions
    while [ "$pcount" < 5 ]; do
@@ -631,6 +698,7 @@ mkgrub(){
   echo "Erstelle menu.lst fuer lokalen Boot."
   local append=""
   local vga="vga=785"
+  local kernel="$(kerneltype)"
   local i
   for i in $(cat /proc/cmdline); do
    case "$i" in
@@ -638,7 +706,7 @@ mkgrub(){
     *) append="$append $i" ;;
    esac
   done
-  sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
+  sed -e "s|^kernel /$kernel .*|kernel /$kernel $append|" /menu.lst > /cache/boot/grub/menu.lst
   touch /tmp/.menulst.done
  fi
  # return if grub-install is already done by earlier invokation
@@ -1975,13 +2043,16 @@ update(){
  local disk="${cachedev%%[1-9]*}"
  mountcache "$cachedev" || return 1
  cd /cache
+ local kernel="$(kerneltype)"
+ local kernelfs="$(kernelfstype)"
+
  # local restore of start.conf in cache (necessary if cache partition was formatted before)
  [ -s start.conf ] || cp /start.conf .
- echo "Aktualisiere LINBO-Kernel."
- download "$server" linbo || RC=1
- download "$server" linbofs.lz || RC=1
+ echo "Aktualisiere LINBO-Kernel($kernel,$kernelfs)."
+ download "$server" "$kernel" || RC=1
+ download "$server" "$kernelfs" || RC=1
  # grub update
- if [ -s "linbo" -a -s "linbofs.lz" ]; then
+ if [ -s "$kernel" -a -s "$kernelfs" ]; then
   mkdir -p /cache/boot/grub
   # only if online
   if ! localmode; then
@@ -2173,7 +2244,7 @@ register(){
 }
 
 ip(){
- local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')"
+ local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')" # fix syntax highlighting "
  [ -z "$ip" ] && ip="OFFLINE"
  echo "$ip"
 }

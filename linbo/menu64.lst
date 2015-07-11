@@ -26,6 +26,6 @@ ls /menu.lst && configfile /menu.lst
 chainloader +1
 
 title LINBO LOCAL
-find --ignore-floppies --ignore-cd --set-root /linbofs.lz
-kernel /linbo vga=788 quiet splash
-initrd /linbofs.lz
+find --ignore-floppies --ignore-cd --set-root /linbofs64.lz
+kernel /linbo64 vga=788 quiet splash
+initrd /linbofs64.lz

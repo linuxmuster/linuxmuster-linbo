@@ -181,11 +181,13 @@ get_append_line() {
  local j=""
  local found=false
  local cfg=$LINBODIR/pxelinux.cfg/$i
+ local kernelfs=$(kernelfstype $i)
  if [ -e "$cfg" ]; then
   while read line; do
    opt="$(echo $line | tr A-Z a-z | awk '{ print $1 }')"
    val="$(echo $line | tr A-Z a-z | awk '{ print $2 }')"
    [ "$opt" = "kernel" -a "$val" = "linbo" ] && found=true
+   [ "$opt" = "kernel" -a "$val" = "linbo64" ] && found=true
    if [ "$found" = "true" -a "$opt" = "append" ]; then
     for j in $line; do
      case $j in
@@ -197,13 +199,13 @@ get_append_line() {
    fi
   done <$cfg
  fi
- [ "$found" = "false" ] && echo "Warning: KERNEL linbo not found in pxe config for group $i, using default values."
+ [ "$found" = "false" ] && echo "Warning: KERNEL linbo(64) not found in pxe config for group $i, using default values."
  if [ -z "$params" ]; then
   params="vga=788"
   [ "$found" = "true" ] && echo "Warning: No LINBO parameters found in pxe config for group $i, using default values."
  fi
- append_linbo="APPEND initrd=/$i/linbofs.lz $params quiet"
- append_debug="APPEND initrd=/$i/linbofs.lz $params debug"
+ append_linbo="APPEND initrd=/$i/$kernelfs $params quiet"
+ append_debug="APPEND initrd=/$i/$kernelfs $params debug"
  echo "LINBO parameters for $i: $params"
 }
 
@@ -230,18 +232,20 @@ menu color title                1;31;40    #90ffff00 #00000000
 " > $outfile
 
  m=1
+ local kernel=
  for i in $GRPS_CHECKED; do
   get_append_line
+  kernel=$(kerneltype $i)
   echo "LABEL menu$m
 MENU LABEL ^$m. LINBO: $i
-KERNEL /linbo
+KERNEL /$kernel
 $append_linbo
 " >> $outfile
 
   if [ -n "$DEBUG" ]; then
    echo "LABEL menu$(($m +1))
 MENU LABEL ^$(($m +1)). LINBO: $i (debug)
-KERNEL /linbo
+KERNEL /$kernel
 $append_debug
 " >> $outfile
 

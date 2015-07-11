@@ -1,4 +1,5 @@
 #include "linboImageSelectorImpl.hh"
+#include <unistd.h>
 #include <q3progressbar.h>
 #include <qapplication.h>
 #include <q3buttongroup.h>

@@ -261,6 +261,7 @@ help(){
  echo "create_rsync:<#>:<\"msg\"> : Creates a rsync image from operating system nr <#>."
  echo "upload_cloop:<#>         : Uploads the cloop image from operating system nr <#>."
  echo "upload_rsync:<#>         : Uploads the rsync image from operating system nr <#>."
+ echo "update                   : Update the kernel,initrd and install grub to MBR"
  echo "reboot                   : Reboots the client."
  echo "halt                     : Shuts the client down."
  echo "help                     : Shows this page."
@@ -449,6 +450,19 @@ while [ "$#" -gt "0" ]; do
    else
     echo "Failed! One or more necessary parameters are missing!"
     echo "Start command was: linbo_cmd start $bootdev $rootdev $kernel $initrd $append $cachedev"
+    exit 1
+   fi
+  ;;
+
+  update)
+   echo "Updating kernel,initrd and installing grub to MBR ..."
+   [ -z "$server" ] && get_server
+   [ -z "$cachedev" ] && get_cachedev
+   if [ -n "$server" -a -n "$cachedev" ]; then
+    linbo_cmd update "$server" "$cachedev"
+   else
+    echo "Failed! One or more necessary parameters are missing!"
+    echo "Update command was: linbo_cmd update $server $cachedev"
     exit 1
    fi
   ;;

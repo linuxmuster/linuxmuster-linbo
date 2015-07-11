@@ -102,6 +102,12 @@ case $EXT in
     linbo-ssh "$RSYNC_HOST_NAME" /bin/sed -e \"s/linbofs.gz/linbofs.lz/g\" -i /cache/boot/grub/menu.lst
     linbo-ssh "$RSYNC_HOST_NAME" /bin/rm /cache/linbofs.gz /cache/linbo*.info
   fi
+  # repair old linbofs64 filename
+  if [ "$(basename "$FILE")" = "linbofs64.gz" ]; then
+    linbo-scp "$LINBODIR/linbofs64.lz" "${RSYNC_HOST_NAME}:/cache"
+    linbo-ssh "$RSYNC_HOST_NAME" /bin/sed -e \"s/linbofs64.gz/linbofs64.lz/g\" -i /cache/boot/grub/menu.lst
+    linbo-ssh "$RSYNC_HOST_NAME" /bin/rm /cache/linbofs64.gz /cache/linbo64*.info
+  fi
  ;;
 
 esac

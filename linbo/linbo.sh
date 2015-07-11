@@ -34,6 +34,6 @@ esac
 
 # Start LINBO GUI
 DISPLAY=""
-case "$(fbset -i 2>/dev/null)" in *640\ 480\ 4*) DISPLAY="-display VGA16:0";; esac
+case "$(fbset 2>/dev/null)" in *640x480*) DISPLAY="-display VGA16:0";; esac
 export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
 exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1

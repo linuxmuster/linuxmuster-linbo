@@ -32,12 +32,15 @@ chmod 400 $locker
 curdir=`pwd`
 tmpdir="/var/tmp/linbofs.$$"
 [ -e "$tmpdir" ] && rm -rf $tmpdir
+tmpdir64="/var/tmp/linbofs64.$$"
+[ -e "$tmpdir64" ] && rm -rf $tmpdir64
 
 # clean tmpdir and exit with error
 bailout() {
  echo "$1"
  cd "$curdir"
  [ -n "$tmpdir" -a -e "$tmpdir" ] && rm -rf $tmpdir
+ [ -n "$tmpdir64" -a -e "$tmpdir64" ] && rm -rf $tmpdir64
  [ -n "$locker" -a -e "$locker" ] && rm -f $locker
  exit 1
 }
@@ -45,8 +48,11 @@ bailout() {
 # this script makes only sense if imaging=linbo
 [ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
 
-# check for default linbofs.lz
-[ ! -s "$LINBODIR/linbofs.lz" ] && bailout "Error: $LINBODIR/linbofs.lz not found!"
+update_linbofs() {
+local _64=$1
+
+# check for default linbofs${_64}.lz
+[ ! -s "$LINBODIR/linbofs${_64}.lz" ] && bailout "Error: $LINBODIR/linbofs${_64}.lz not found!"
 
 # grep linbo rsync password to sync it with linbo account
 [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
@@ -60,15 +66,20 @@ else
  linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
 fi
 
-# begin to process linbofs.lz
-echo "Processing linbofs update ..."
+# begin to process linbofs${_64}.lz
+echo "Processing linbofs${_64} update ..."
 
-# create temp dir for linbofs content
+# create temp dir for linbofs${_64} content
+if [ -n "${_64}" ]; then
+mkdir -p $tmpdir64
+cd $tmpdir64 || bailout "Cannot change to $tmpdir64!"
+else
 mkdir -p $tmpdir
 cd $tmpdir || bailout "Cannot change to $tmpdir!"
-# unpack linbofs.lz to tmpdir
-xzcat $LINBODIR/linbofs.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
-[ $RC -ne 0 ] && bailout " Failed to unpack linbofs.lz!"
+fi
+# unpack linbofs${_64}.lz to tmpdir${_64}
+xzcat $LINBODIR/linbofs${_64}.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
+[ $RC -ne 0 ] && bailout " Failed to unpack linbofs${_64}.lz!"
 
 # store linbo md5 password
 [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
@@ -90,15 +101,22 @@ touch var/log/lastlog
 # copy default start.conf
 cp -f $LINBODIR/start.conf .
 
-# pack default linbofs.lz again
-find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs.lz ; RC="$?"
+# pack default linbofs${_64}.lz again
+find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs${_64}.lz ; RC="$?"
 [ $RC -ne 0 ] && bailout "failed!"
 # deprecated
-#echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs.lz | awk '{print $5}'`" > $LINBODIR/linbofs.lz.info
+#echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs${_64}.lz | awk '{print $5}'`" > $LINBODIR/linbofs${_64}.lz.info
 echo "Ok!"
+
+}
+
+update_linbofs
+
+update_linbofs 64
 
 # clean tmpdir
 cd "$curdir"
 rm -rf $tmpdir
+rm -rf $tmpdir64
 rm -f $locker
 

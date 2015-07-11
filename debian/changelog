@@ -1,3 +1,22 @@
+linuxmuster-linbo (2.2.16-3fschuet) babo; urgency=medium
+
+  * vlan support
+
+ -- Frank Schütte <fschuett@gymhim.de>  Fri, 03 Jul 2015 09:21:13 +0200
+
+linuxmuster-linbo (2.2.16-2fschuett) babo; urgency=low
+
+  [ Frank Schütte ]
+  * added 64bit boot
+  * syslinux update to 6.03
+  * efi boot with syslinux
+  * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
+  * tg3 not needed, is already in kernel 3.11
+  * new kernel 3.16
+  * enable e1000e (32bit)
+
+ -- Frank Schütte <fschuett@gymnasium-himmelsthuer.de>  Wed, 15 Apr 2015 20:00:30 +0200
+
 linuxmuster-linbo (2.2.16-0) babo; urgency=low
 
   * added patching of opsi server ip in case of windows client sync (closes #449).
@@ -25,6 +44,7 @@ linuxmuster-linbo (2.2.13-2) babo; urgency=low
   * Rebuild.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Jan 2015 18:28:37 +0000
+>>>>>>> upstream/testing
 
 linuxmuster-linbo (2.2.13-1) babo; urgency=low
 

@@ -1,4 +1,5 @@
 #include "linboYesNoImpl.hh"
+#include <unistd.h>
 #include <QtGui>
 #include <q3progressbar.h>
 #include <qapplication.h>
