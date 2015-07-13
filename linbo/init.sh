@@ -123,7 +123,7 @@ init_setup(){
  fi
 
  mount -t sysfs /sys /sys
- mount -n -o mode=0755 -t tmpfs tmpfs /dev
+ mount -t devtmpfs devtmpfs /dev
  if [ -e /etc/udev/links.conf ]; then
   udev_extra_nodes
  fi
@@ -150,7 +150,7 @@ trycopyfromdevice(){
   mount -r "$device" /cache &>/dev/null || return 1
  fi
  for i in $files; do
-  if [ -e /cache/"$i" -a -s /cache/linbo ]; then
+  if [ -e /cache/"$i" ] && [ -s /cache/linbo -o -s /cache/linbo64 ]; then
    RC=0
    cp -af /cache/"$i" . >/dev/null 2>&1
   fi
@@ -519,9 +519,17 @@ network(){
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
+   # check if using vlan
+   if [ -n "$vlanid" ]; then
+    vconfig add "$dev" "$vlanid" &> /dev/null
+    dhcpdev="$dev.$vlanid"
+    ip link set dev "$dhcpdev" up
+   else
+    dhcpdev="$dev"
+   fi
    # dhcp retries
    [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dev" $dhcpretry &> /dev/null
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null
    # set mtu
    [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
   done
@@ -609,6 +617,7 @@ hwsetup(){
  #
  # Udev starten
  echo > /sys/kernel/uevent_helper
+ mkdir -p /run/udev
  udevd --daemon
  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
  udevadm trigger

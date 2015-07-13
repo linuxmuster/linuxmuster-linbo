@@ -16,20 +16,20 @@ DEFAULT @@default@@
 # 3 secs boot prompt timeout
 TIMEOUT 30
 
-KBDMAP /german.kbd
-DISPLAY /boot.msg
+KBDMAP german.kbd
+DISPLAY boot.msg
 
 # the default boot method, pxelinux boots linbo kernel directly
 LABEL linbo
-KERNEL linbo
-APPEND initrd=linbofs.lz vga=788 quiet splash @@kopts@@
+KERNEL @@kernel@@
+APPEND initrd=@@kernelfs@@ vga=788 quiet splash @@kopts@@
 
 # boot method to use with reboot workaround
 LABEL reboot
 KERNEL grub.exe
-APPEND keeppxe --config-file=pxe basedir /; default 0; timeout 0; hiddenmenu; title REBOOT; fallback 1; find --ignore-floppies --ignore-cd --set-root /.linbo.reboot; cmp /.linbo.reboot /.grub.reboot || ls FALLBACK; write /.grub.reboot DONE; ls /boot/grub/menu.lst && configfile /boot/grub/menu.lst; ls /menu.lst && configfile /menu.lst; chainloader +1; title LINBO PXE; kernel (pd)/linbo quiet splash vga=788 @@kopts@@; initrd (pd)/linbofs.lz;
+APPEND keeppxe --config-file=pxe basedir /; default 0; timeout 0; hiddenmenu; title REBOOT; fallback 1; find --ignore-floppies --ignore-cd --set-root /.linbo.reboot; cmp /.linbo.reboot /.grub.reboot || ls FALLBACK; write /.grub.reboot DONE; ls /boot/grub/menu.lst && configfile /boot/grub/menu.lst; ls /menu.lst && configfile /menu.lst; chainloader +1; title LINBO PXE; kernel (pd)/@@kernel@@ quiet splash vga=788 @@kopts@@; initrd (pd)/@@kernelfs@@;
 
 # to boot LINBO in debug mode simply type "debug" on boot prompt and press ENTER
 LABEL debug
-KERNEL linbo
-APPEND initrd=linbofs.lz vga=788 debug @@kopts@@
+KERNEL @@kernel@@
+APPEND initrd=@@kernelfs@@ vga=788 debug @@kopts@@

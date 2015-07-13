@@ -1,8 +1,17 @@
 linuxmuster-linbo (2.3.0-0) babo; urgency=low
 
   * added jweiher's pull request #29 "Auto increment IP and hostname on register".
+  * Frank Schuette:
+    * vlan support
+    * added 64bit boot
+    * syslinux update to 6.03
+    * efi boot with syslinux
+    * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
+    * tg3 not needed, is already in kernel 3.11
+    * new kernel 3.16
+    * enable e1000e (32bit)
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 22 Mar 2015 11:53:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 22 Mar 2015 12:15:00 +0200
 
 linuxmuster-linbo (2.2.16-0) babo; urgency=low
 
@@ -31,6 +40,7 @@ linuxmuster-linbo (2.2.13-2) babo; urgency=low
   * Rebuild.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Jan 2015 18:28:37 +0000
+>>>>>>> upstream/testing
 
 linuxmuster-linbo (2.2.13-1) babo; urgency=low
 

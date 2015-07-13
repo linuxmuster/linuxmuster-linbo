@@ -1,0 +1,22 @@
+--- linuxmuster-linbo/linbo_gui/build_qt	2014-10-11 06:45:24.980079627 +0200
++++ linuxmuster-linbo/linbo_gui64/build_qt	2014-07-30 15:54:20.000000000 +0200
+@@ -7,9 +7,7 @@
+   cd $QTDIR
+   make clean
+   echo -e "yes\n" | ./configure \
+- -xplatform linux-g++-32 \
+- -device-option CROSS_COMPILE=i386-linux-gnu- \
+- -embedded x86 \
++ -embedded x86_64 \
+  -prefix $QTDIR \
+  -opensource \
+  -release \
+@@ -33,7 +31,7 @@
+  -no-openssl \
+  -no-iconv \
+  -no-dbus \
+- -depths 4,8,16 \
++ -depths 4,8,16,32 \
+  -no-largefile \
+  -no-xinerama \
+  -no-xrender \

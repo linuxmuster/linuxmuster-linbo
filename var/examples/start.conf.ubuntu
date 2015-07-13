@@ -18,6 +18,7 @@ DownloadType = torrent              # Image-Download per torrent|multicast|rsync
 BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
 ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
 ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
+SystemType = bios                   # moeglich ist bios|bios64|efi32|efi64 (Standard: bios fuer bios 32bit)
 KernelOptions =          # Beispiele:
 #KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
 #KernelOptions = server=10.16.1.5  # Abweichende Linbo-Server-IP als Kerneloption gesetzt
