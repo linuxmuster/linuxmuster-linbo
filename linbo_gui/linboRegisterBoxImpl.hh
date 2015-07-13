@@ -26,7 +26,6 @@ class linboRegisterBoxImpl : public QWidget, public Ui::linboRegisterBox, public
 private:
   QProcess* process;
   QStringList myCommand;
-  QStringList myPreCommand;
   linboProgressImpl *progwindow;
   linboGUIImpl *app;
   QString line;
@@ -42,8 +41,6 @@ public:
 		       const QString& new_consolefontcolorstderr,
 		       QTextEdit* newBrowser );
   virtual void setCommand(const QStringList& arglist);
-  virtual QStringList getPreCommand();
-  virtual void setPreCommand(const QStringList& arglist);
   virtual QStringList getCommand();
   // not needed here
   virtual void setMainApp( QWidget* newMainApp );
