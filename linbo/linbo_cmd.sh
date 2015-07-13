@@ -2217,6 +2217,48 @@ size(){
  return 0
 }
 
+#
+# Ermittelt den logisch naechsten Hostnamen, um die Rechneraufnahme zu
+# erleichtern
+#
+preregister() {
+	cd /tmp
+	interruptible rsync --progress -HaP "$1::linbo/workstations" "workstations.$$" ; RC="$?"
+	LASTWORKSTATION=$(cat /tmp/workstations.$$ | grep ^[a-z] | tail -n 1)
+
+	if [ "$LASTWORKSTATION" == "" ]; then
+		echo ",,," > /tmp/newregister
+		rm /tmp/workstations.$$
+		return 0
+	fi
+
+	LASTGROUP=$(echo $LASTWORKSTATION | cut -d ";" -f 3)
+	LASTROOM=$(echo $LASTWORKSTATION | cut -d ";" -f 1)
+	LASTHOST=$(echo $LASTWORKSTATION | cut -d ";" -f 2)
+	LASTIP=$(echo $LASTWORKSTATION | cut -d ";" -f 5)
+
+	# Naechste IP ermitteln
+	NEXTIP="$(echo -n $LASTIP | cut -d "." -f 1-3).$(($(echo $LASTIP | cut -d "." -f 4)+1))"
+
+	# Naechsten Hostnamen ermitteln
+	HOSTNAMECOUNTER=$(echo $LASTHOST | grep -Eo "[0-9]+$")
+	if [ ! "$HOSTNAMECOUNTER" == "" ]; then
+		NEXTCOUNT=$(expr $HOSTNAMECOUNTER + 1)
+		# Left fill with zeroes
+		while [ "${#NEXTCOUNT}" -lt "${#HOSTNAMECOUNTER}" ]; do
+			NEXTCOUNT=0$NEXTCOUNT
+		done
+
+		# Build new hostname
+		NEXTHOST=$(echo -n $LASTHOST | sed "s/${HOSTNAMECOUNTER}$//g")$NEXTCOUNT
+	else
+		NEXTHOST=$LASTHOST
+	fi
+	rm /tmp/workstations.$$
+	echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP" > /tmp/newregister
+	return 0
+}
+
 version(){
  local versionfile="/etc/linbo-version"
  if [ -s "$versionfile" ]; then
@@ -2240,6 +2282,7 @@ case "$cmd" in
  start) start "$@" ;;
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
+ preregister) preregister "$@";;
  initcache) initcache "$@" ;;
  initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
  mountcache) mountcache "$@" ;;
