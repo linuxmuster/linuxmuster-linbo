@@ -61,7 +61,30 @@ void linboRegisterBoxImpl::setMainApp( QWidget* newMainApp ) {
 
 
 void linboRegisterBoxImpl::precmd() {
-  // nothing to do
+    // Die vorgeschlagenen Daten fuer die Rechneraufnahme lesen und anzeigen
+    QProcess* preprocess = new QProcess( this );
+    ifstream newdata;
+    QString registerData;
+    QStringList registerDataList;
+    char line[1024];
+    QStringList cmdargs( myPreCommand );
+
+    QString precommand = cmdargs.takeFirst();
+    preprocess->start(precommand, cmdargs);
+    preprocess->waitForFinished();
+
+    newdata.open("/tmp/newregister", ios::in);
+    if (newdata.is_open()) {
+        newdata.getline(line,1024,'\n');
+        registerData = QString::fromAscii( line, -1 ).stripWhiteSpace();
+        newdata.close();
+        registerDataList = registerData.split(',');
+
+        roomName->setText(registerDataList[0]);
+        clientGroup->setText(registerDataList[1]);
+        clientName->setText(registerDataList[2]);
+        ipAddress->setText(registerDataList[3]);
+    }
 }
 
 
@@ -129,6 +152,16 @@ void linboRegisterBoxImpl::setCommand(const QStringList& arglist)
 QStringList linboRegisterBoxImpl::getCommand()
 {
   return QStringList(myCommand); 
+}
+
+void linboRegisterBoxImpl::setPreCommand(const QStringList& arglist)
+{
+  myPreCommand = QStringList(arglist); // Create local copy
+}
+
+QStringList linboRegisterBoxImpl::getPreCommand()
+{
+  return QStringList(myPreCommand); 
 }
 
 void linboRegisterBoxImpl::readFromStdout()

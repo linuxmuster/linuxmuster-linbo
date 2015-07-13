@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 11.03.2015
+# 09.01.2013
 # GPL v3
 #
 
@@ -133,7 +133,6 @@ Papierkorb/*
 [Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
-swapfile
 tmp/*
 var/log/ConsoleKit/history
 var/tmp/*'
@@ -349,7 +348,6 @@ mountpart(){
    mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
  esac
- [ "$RC" = "0" ]
  return "$RC"
 }
 
@@ -364,29 +362,15 @@ format(){
  echo -n "format " ;  printargs "$@"
 # local dev="${1%%[0-9]*}"
 # local part="${1#$dev}"
- local cmd
- local RC
  case "$2" in
-  swap) cmd="mkswap $1" ;;
-  reiserfs) cmd="mkreiserfs -f -f  $1" ;;
-  ext2|ext3|ext4) cmd="mkfs.$2 $1" ;;
-  [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $1" ;;
-  *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $1" ;;
+  swap) mkswap "$1" ;;
+  reiserfs) mkreiserfs -f -f  "$1" ;;
+  ext2|ext3|ext4) mkfs."$2" "$1" ;;
+  [Nn][Tt][Ff][Ss]*) mkfs.ntfs -Q "$1" ;;
+  *[Ff][Aa][Tt]*) mkdosfs -F 32 "$1" ;;
   *) return 1 ;;
  esac
- echo "Formatiere $1 mit $2."
- $cmd ; RC="$?"
- if [ "$RC" != "0" ]; then
-  echo "Partition $1 ist noch nicht bereit. Versuche nochmal."
-  sleep 2
-  $cmd ; RC="$?"
- fi
- if [ "$RC" = "0" ]; then
-  echo "$1 erfolgreich mit $2 formatiert."
- else
-  echo "Formatieren von $1 mit $2 gescheitert!"
- fi
- return "$RC"
+ return $?
 }
 
 # mountcache partition [options]
@@ -399,8 +383,8 @@ mountcache(){
   local RW
   grep -q "^$1 .*rw.*" /proc/mounts && RW="true" || RW=""
   case "$2" in
-   -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache 2>> /tmp/linbo.log ; RC=0 ;; 
-   *) [ -n "$RW" ] || mount -o remount,rw /cache 2>> /tmp/linbo.log ; RC="$?" ;; 
+   -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache; RC=0 ;; 
+   *) [ -n "$RW" ] || mount -o remount,rw /cache; RC="$?" ;; 
   esac
   return "$RC"
  fi
@@ -411,7 +395,7 @@ mountcache(){
    echo "Mounte /cache per NFS von $1..."
    # -o nolock is EXTREMELY important here, otherwise mount.nfs will timeout waiting for
    # local portmap
-   mount $2 -t nfs -o nolock,rsize=8192,wsize=8192,hard,intr "$1" /cache 2>> /tmp/linbo.log
+   mount $2 -t nfs -o nolock,rsize=8192,wsize=8192,hard,intr "$1" /cache
    RC="$?"
    ;;
   \\\\*\\*|//*/*) # CIFS/SAMBA
@@ -426,11 +410,11 @@ mountcache(){
    # temporary workaround for password
    [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
    [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
-   mount $2 -t cifs -o user=linbo,pass="$PASSWD",nolock "$1" /cache 2>> /tmp/linbo.log
+   mount $2 -t cifs -o user=linbo,pass="$PASSWD",nolock "$1" /cache 2>/dev/null
    RC="$?"
    if [ "$RC" != "0" ]; then
     echo "Zugriff auf $1 als User \"linbo\" mit Authentifizierung klappt nicht."
-    mount $2 -t cifs -o nolock,guest,sec=none "$1" /cache 2>> /tmp/linbo.log
+    mount $2 -t cifs -o nolock,guest,sec=none "$1" /cache
     RC="$?"
     if [ "$RC" != "0" ]; then
      echo "Zugriff als \"Gast\" klappt auch nicht."
@@ -445,17 +429,17 @@ mountcache(){
 #     RC=0
 #    else
      echo "Mounte Cachepartition $1 ..."
-     mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
+     mountpart "$1" /cache $2 ; RC="$?"
 #    fi
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
      local cachefs="$(fstype_startconf "$1")"
      if [ -n "$cachefs" ]; then
       echo "Formatiere Cache-Partition..."
-      format "$1" "$cachefs" 2>> /tmp/linbo.log
+      format "$1" "$cachefs"
      fi
      # Retry.
-     mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
+     mountpart "$1" /cache $2 ; RC="$?"
     fi
    else
     echo "Cache-Partition existiert nicht."
@@ -485,8 +469,15 @@ killalltorrents(){
 # When "$NOFORMAT" is set, format is skipped, otherwise all
 # partitions with known fstypes are formatted.
 partition(){
- killalltorrents
  echo -n "partition " ;  printargs "$@"
+ local WAIT=5
+ # check for running torrents and kill them if any
+ if ps w | grep ctorrent | grep -v grep &>/dev/null; then
+  echo "Killing torrents ..."
+  killall -9 ctorrent
+  sleep "$WAIT"
+  ps w | grep ctorrent | grep -v grep &>/dev/null && sleep "$WAIT"
+ fi
  # umount /cache if mounted
  if cat /proc/mounts | grep -q /cache; then
   cd /
@@ -523,10 +514,10 @@ partition(){
    local fstype=""
    local bootable=""
    read d cylinders relax <<.
-$(sfdisk -g "$disk" 2>> /tmp/linbo.log)
+$(sfdisk -g "$disk")
 .
    read disksize relax <<.
-$(sfdisk -s "$disk" 2>> /tmp/linbo.log)
+$(sfdisk -s "$disk")
 .
    [ -n "$cylinders" -a "$cylinders" -gt 0 -a -n "$disksize" -a "$disksize" -gt 0 ] >/dev/null 2>&1 || { echo "Festplatten-Geometrie von $disk lässt sich nicht lesen, cylinders=$cylinders, disksize=$disksize, Abbruch." >&2; return 1; }
   fi
@@ -560,13 +551,11 @@ $(sfdisk -s "$disk" 2>> /tmp/linbo.log)
     let pcount++
    done
   fi
-  # handle bootable flag
+  # Insert table entry.
   bootable="$4"
-  [ "$bootable" = "bootable" ] || bootable=""
-  # handle fstype
+  [ "$bootable" = "-" -o "$bootable" = " " ] && bootable=""
   fstype="$5"
   [ "$fstype" = "-" ] && fstype=""
-  # Insert table entry.
   # knopper begin
   # table="$table,$csize,$3${bootable:+,*}"
   # knopper end
@@ -603,32 +592,26 @@ $(sfdisk -s "$disk" 2>> /tmp/linbo.log)
   if echo "$lastpartitions" | grep -q "$dev"; then
    # sfdisk -D -f "$disk" 2>&1 <<EOT
    # jonny 
-   sfdisk -uS -f "$disk" 2>> /tmp/linbo.log <<EOT
+   sfdisk -uS -f "$disk" 2>&1 <<EOT
 $table
 EOT
-   RC="$?"
-   if [ "$RC" != "0" ]; then
-    echo "Partitionierung von $disk gescheitert!"
-    return "$RC"
-   fi
-   if [ -z "$NOFORMAT" ]; then
+   if [ "$?" = "0" -a -z "$NOFORMAT" ]; then
     sleep 2
     local i=""
     for i in $formats; do
-     format "${i%%,*}" "${i##*,}" 2>> /tmp/linbo.log
+     format "${i%%,*}" "${i##*,}"
     done
    fi # format
   fi # lastpartitions
  done
 }
 
-# mkgrub - writes grub stuff for local boot
+# mkgrub disk
 mkgrub(){
+ local disk="$1"
  local grubdir="/cache/boot/grub"
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
- # create a standard menu.lst for local boot which contains current linbo kernel params
- if [ ! -e /cache/.custom.menu.lst -a ! -e /tmp/.menulst.done -a -e /menu.lst ]; then
-  echo "Erstelle menu.lst fuer lokalen Boot."
+ if [ ! -e /cache/.custom.menu.lst -a -e /menu.lst ]; then
   local append=""
   local vga="vga=785"
   local i
@@ -639,33 +622,10 @@ mkgrub(){
    esac
   done
   sed -e "s|^kernel /linbo .*|kernel /linbo $append|" /menu.lst > /cache/boot/grub/menu.lst
-  touch /tmp/.menulst.done
  fi
- # return if grub-install is already done by earlier invokation
- [ -e /tmp/.mkgrub.done ] && return 0
- # grep all disks from start.conf
- local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
- if [ -z "$disks" ]; then
-  echo "Keine Festplatten zur Grub-Installation gefunden!"
-  return 1
- fi
- local d
- local n=0
- # create device.map which contains all disks
- local devicemap="/cache/boot/grub/device.map"
- rm -f "$devicemap"
- touch "$devicemap"
- for d in $disks; do
-  [ -b "$d" ] || continue
-  echo "(hd${n}) $d" >> "$devicemap"
-  n=$(( n + 1 ))
- done
- # finally write grub to the mbr of all disks
- if [ -s "$devicemap" ]; then
-  for d in `awk '{ print $2 }' "$devicemap"`; do
-   echo "Installiere Grub in MBR auf $d."
-   grub-install --root-directory=/cache "$d" >> /tmp/linbo.log
-  done
+ if [ ! -e /tmp/.mkgrub.done -a -b "$disk" ]; then
+  echo "(hd0) $disk" > /cache/boot/grub/device.map 
+  grub-install --root-directory=/cache "$disk"
   touch /tmp/.mkgrub.done
  fi
 }
@@ -691,43 +651,6 @@ mkgrldr(){
  cp /usr/lib/grub/grldr /mnt
 }
 
-# download server file [important]
-download(){
- local RC=1
- [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
- rm -f "$TMP"
- interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
- if [ "$RC" != "0" ]; then
-  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
-  rm -f "$2" 2>/dev/null
-  if [ -n "$3" ]; then
-   # Verbose error message if file was important
-   cat "$TMP" >&2
-   echo "Datei $2 konnte nicht heruntergeladen werden." >&2
-  fi
- fi
- rm -f "$TMP"
- return "$RC"
-}
-
-# request macct file to invoke samba password hash ldap upload stuff on the server
-invoke_macct(){
- local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
- [ -z "$serverip" ] && return
- [ -s /mnt/.linbo ] || return
- local image="$(cat /mnt/.linbo)"
- local macctfile
- if [ -e "/cache/${image}.rsync" ]; then
-  macctfile="${image}.rsync.macct"
- elif [ -e "/cache/${image}.cloop" ]; then
-  macctfile="${image}.cloop.macct"
- else
-  return
- fi
- download "$serverip" "$macctfile" && echo "Maschinenpasswort auf $serverip wurde gesetzt."
- rm -f "/cache/$macctfile"
-}
-
 # start boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
@@ -739,13 +662,12 @@ start(){
  local i
  local cpunum=1
  local disk="${1%%[1-9]*}"
- if mountpart "$1" /mnt -w 2>> /tmp/linbo.log; then
+ if mountpart "$1" /mnt -w; then
   [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
   # tschmitt: repairing grub mbr on every start
-  #if mountcache "$6" && cache_writable ; then
-   #mkgrub "$disk"
-  #fi
-  (mountcache "$6" && cache_writable) && mkgrub
+  if mountcache "$6" && cache_writable ; then
+   mkgrub "$disk"
+  fi
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
     # tschmitt: use builtin grub.exe in any case
@@ -758,8 +680,7 @@ start(){
      # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
      WINDOWS="yes"
      LOADED="true"
-     echo "Schreibe Reboot-Flag auf $1."
-     dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1 2>> /tmp/linbo.log
+     dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1
      cp /mnt/.linbo.reboot /mnt/.grub.reboot
      ;;
    *)
@@ -788,20 +709,19 @@ start(){
  else
   echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
   umount /mnt 2>/dev/null
+  sendlog
   mountcache "$6" -r
   return 1
  fi
- # cause machine password stuff on server
- invoke_macct
  # kill torrents if any
  killalltorrents
- # No more timer interrupts (deprecated)
- #[ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
- #[ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
+ # No more timer interrupts
+ [ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
+ [ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
  if [ -z "$WINDOWS" ]; then
-  echo "kexec -l $INITRD --append=\"$APPEND\" $KERNEL" >> /tmp/linbo.log
-  kexec -l $INITRD --append="$APPEND" $KERNEL 2>&1 >> /tmp/linbo.log && LOADED="true"
-  #sleep 3
+  echo "kexec -l $INITRD --append=\"$APPEND\" $KERNEL"
+  kexec -l $INITRD --append="$APPEND" $KERNEL && LOADED="true"
+  sleep 3
  fi
  umount /mnt 2>/dev/null
  sendlog
@@ -810,21 +730,21 @@ start(){
   umount /cache || umount -l /cache 2>/dev/null
  fi
  if [ -n "$LOADED" ]; then
-  # Workaround for missing speedstep-capability of Windows (deprecated)
-  #local i=""
-  #for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-  # if [ -f "$i" ]; then
-  #  echo "Setze CPU #$((cpunum++)) auf maximale Leistung."
-  #  echo "performance" > "$i"
-  # fi
-  #done
-  #[ "$cpunum" -gt "1" ] && sleep 4
+  # Workaround for missing speedstep-capability of Windows
+  local i=""
+  for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+   if [ -f "$i" ]; then
+    echo "Setze CPU #$((cpunum++)) auf maximale Leistung."
+    echo "performance" > "$i"
+   fi
+  done
+  [ "$cpunum" -gt "1" ] && sleep 4
   # We basically do a quick shutdown here.
   killall5 -15
   [ -z "$WINDOWS" ] && sleep 2
   echo -n "c" >/dev/console
   if [ -z "$WINDOWS" ]; then
-   exec kexec -e --reset-vga &> /dev/null
+   exec kexec -e --reset-vga
    # exec kexec -e
    sleep 10
   else
@@ -845,7 +765,7 @@ get_partition_size(){
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
  fi
- sfdisk -s "$1" 2>> /tmp/linbo.log
+ sfdisk -s "$1"
  return $?
 }
 
@@ -880,9 +800,9 @@ prepare_fs(){
    fi
   done
   # save win7 bcd & mbr
-  local targetdir="$(ls -d [Bb][Oo][Oo][Tt] 2> /dev/null)"
+  local targetdir="$(ls -d [Bb][Oo][Oo][Tt])" 2> /dev/null
   if [ -n "$targetdir" ]; then
-   local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
+   local bcd="$(ls $targetdir/[Bb][Cc][Dd])" 2> /dev/null
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
     echo "Sichere Windows-7-Bootsektor-Dateien."
@@ -890,10 +810,10 @@ prepare_fs(){
     cp -f "$bcd" "$bcd"."$group"
     # 4 bytes mbr group specific
     local mbr=$targetdir/win7mbr.$group
-    dd if=$disk of=$mbr bs=1 count=4 skip=440 2>> /tmp/linbo.log
+    dd if=$disk of=$mbr bs=1 count=4 skip=440
     # ntfs partition id
     local ntfsid=$targetdir/ntfs.id
-    dd if=$2 of=$ntfsid bs=8 count=1 skip=9 2>> /tmp/linbo.log
+    dd if=$2 of=$ntfsid bs=8 count=1 skip=9 
    fi
   fi
  )
@@ -914,7 +834,7 @@ mk_cloop(){
  local imgsize=0
  case "$1" in
   partition) # full partition dump
-   if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
+   if mountpart "$2" /mnt -w ; then
     echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     prepare_fs /mnt "$2" | tee -a /tmp/image.log
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
@@ -929,7 +849,7 @@ mk_cloop(){
      echo "$(du -ch /mnt/zero*.tmp | tail -1 | awk '{ print $1 }') genullt... " | tee -a /tmp/image.log
     done
     # Sync is asynchronous, unless started twice at least.
-    sync ; sync ; sync
+    sync ; sync ; sync 
     rm -f /mnt/zero*.tmp
     # we don't need the file list anymore
     #echo "Dateiliste erzeugen..." | tee -a /tmp/image.log
@@ -941,7 +861,7 @@ mk_cloop(){
    interruptible create_compressed_fs -B "$CLOOP_BLOCKSIZE" -L 1 -t 2 -s "${size}K" "$2" "$3" 2>&1 ; export RC="$?"
    if [ "$RC" = "0" ]; then
     # create status file
-    if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
+    if mountpart "$2" /mnt -w ; then
      echo "${3%.cloop}" > /mnt/.linbo
      umount /mnt || umount -l /mnt
     fi
@@ -957,12 +877,12 @@ mk_cloop(){
    fi
   ;;
   differential)
-   if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
+   if mountpart "$2" /mnt -w ; then
     rmmod cloop >/dev/null 2>&1
 #    echo "modprobe cloop file=/cache/$4" | tee -a /tmp/image.log
     if test -s /cache/"$4" && modprobe cloop file=/cache/"$4"; then
      mkdir -p /cloop
-     if mountpart /dev/cloop /cloop -r 2>> /tmp/linbo.log; then
+     if mountpart /dev/cloop /cloop -r ; then
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       prepare_fs /mnt "$2" | tee -a /tmp/image.log
       mkexclude
@@ -1018,7 +938,7 @@ check_status(){
  local base="${2##*/}"
  base="${base%.[Cc][Ll][Oo]*}"
  base="${base%.[Rr][Ss][Yy]*}"
- mountpart "$1" /mnt -r 2>> /tmp/linbo.log || return $?
+ mountpart "$1" /mnt -r 2>/dev/null || return $?
  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$base*) RC=0 ;; esac
  umount /mnt || umount -l /mnt
 # [ "$RC" = "0" ] && echo "Enthält schon eine Version von $2."
@@ -1031,7 +951,7 @@ update_status(){
  local base="${2##*/}"
  base="${base%.[Cc][Ll][Oo]*}"
  base="${base%.[Rr][Ss][Yy]*}"
- mountpart "$1" /mnt -w 2>> /tmp/linbo.log || return $?
+ mountpart "$1" /mnt -w 2>/dev/null || return $?
  case "$2" in *.[Cc][Ll][Oo]*) rm -f /mnt/.linbo ;; esac
  echo "$base" >> /mnt/.linbo
  sync; sync; sleep 1
@@ -1045,7 +965,7 @@ cp_cloop_ntfs(){
  local RC=1
  local targetdev="$1"
  echo "Restauriere Partition $targetdev mit ntfsclone..." | tee -a /tmp/image.log
- interruptible ntfsclone -f --overwrite "$targetdev" /dev/cloop 2>> /tmp/image.log ; RC="$?"
+ interruptible ntfsclone -f --overwrite "$targetdev" /dev/cloop ; RC="$?"
  if [ "$RC" != "0" ]; then
   echo 'FEHLER!' | tee -a /tmp/image.log
   return "$RC"
@@ -1053,7 +973,7 @@ cp_cloop_ntfs(){
  # check if resizing is necessary
  echo "Pruefe ob Dateisystem vergroessert werden muss..." | tee -a /tmp/image.log
  # save ntfs size infos in temp file
- ntfsresize -f -i "$targetdev" 2>> /tmp/image.log > /tmp/ntfs.info
+ ntfsresize -f -i "$targetdev" > /tmp/ntfs.info
  # get volume size in mb
  local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if volsizemb is an integer value
@@ -1117,7 +1037,7 @@ cp_cloop(){
    fi
    # Userspace program MAY be faster than kernel module (no kernel lock necessary)
    # Forking an additional dd makes use of a second CPU and speeds up writing
-   ( interruptible extract_compressed_fs /cache/"$imagefile" - | dd of="$targetdev" bs=1M ) 2>> /tmp/linbo.log | tee -a /tmp/image.log
+   ( interruptible extract_compressed_fs /cache/"$imagefile" - | dd of="$targetdev" bs=1M ) 2>&1 | tee -a /tmp/image.log
    #interruptible extract_compressed_fs /cache/"$1" "$2" 2>&1 | tee -a /tmp/image.log
    # interruptible dd if=/dev/cloop of="$2" bs=1024k
    RC="$?"
@@ -1143,17 +1063,15 @@ sync_cloop(){
  # echo -n "sync_cloop " ;  printargs "$@"
  local RC=1
  local ROPTS="-HaAX"
- #local TMP=/tmp/sync_tmp.log
  #local ROPTS="-a"
  [ "$(fstype "$2")" = "vfat" ] && ROPTS="-rt"
- if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
+ if mountpart "$2" /mnt -w ; then
   case "$1" in
    *.[Rr][Ss][Yy]*)
+    rm -f "$TMP"
     # tschmitt: added logging parameter
     #interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
-    echo "Synchronisation laeuft ... bitte warten ..."
-    #interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
-    interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt 2>&1 ; RC="$?"
+    interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
     if [ "$RC" != "0" ]; then
      cat "$TMP" >&2 | tee -a /tmp/image.log
      echo "Fehler beim Synchronisieren des differentiellen Images \"$1\" nach $2, rsync-Fehlercode: $RC." >&2 | tee -a /tmp/image.log
@@ -1166,18 +1084,18 @@ sync_cloop(){
     echo "modprobe cloop file=/cache/$1"  | tee -a /tmp/image.log
     if test -s "$1" && modprobe cloop file=/cache/"$1"; then
      mkdir -p /cloop
-     if mountpart /dev/cloop /cloop -r 2>> /tmp/linbo.log; then
+     if mountpart /dev/cloop /cloop -r ; then
       # file list is obsolete
       #list="$1".list
       #FROMLIST=""
       #[ -r "$list" ] && FROMLIST="--files-from=$list"
       mkexclude
+      rm -f "$TMP"
       # knopper: added --inplace
       #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
       # tschmitt: added logging parameter
       #interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
-      echo "Synchronisation laeuft ... bitte warten ..."
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt 2>&1 ; RC="$?"
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
        cat "$TMP" >&2 | tee -a /tmp/image.log
@@ -1223,7 +1141,7 @@ restore(){
    fi
    if [ "$force" = "force" ]; then
     echo "[Komplette Partition]..."
-    format "$2" "$fstype" 2>> /tmp/linbo.log || return 1
+    format "$2" "$fstype" || return 1
    else
     echo "[Datei-Sync]..."
    fi
@@ -1243,6 +1161,25 @@ restore(){
  else
   return "$RC"
  fi
+ return "$RC"
+}
+
+# download server file [important]
+download(){
+ local RC=1
+ [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
+ rm -f "$TMP"
+ interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
+ if [ "$RC" != "0" ]; then
+  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
+  rm -f "$2" 2>/dev/null
+  if [ -n "$3" ]; then
+   # Verbose error message if file was important
+   cat "$TMP" >&2
+   echo "Datei $2 konnte nicht heruntergeladen werden." >&2
+  fi
+ fi
+ rm -f "$TMP"
  return "$RC"
 }
 
@@ -1306,126 +1243,12 @@ patch_fstab(){
  fi
 }
 
-# process opsi stuff if client is installed: do_opsi baseimage image
-do_opsi(){
- # test for opsi's client config
- local conf
- conf="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]*/opsi.org/opsi-client-agent/opsiclientd/opsiclientd.conf 2> /dev/null)"
- [ -s "$conf" ] || return 0
- echo "Starte OPSI-Client-Konfiguration ..."
- local ip="$(grep ^ip /tmp/dhcp.log | awk -F\' '{ print $2 }')"
- local domainname="$(grep ^domain /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1)"
- local fqdn="$(hostname).$domainname"
- local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
- local opsiip="${serverip/.1.1/.1.2}"
- local image
- local RC="0"
- if [ -n "$2" ]; then
-  image="$2"
- else
-  image="$1"
- fi
- # request opsikey
- rsync "$serverip"::linbo/"$ip.opsikey" /cache/opsikey
- [ -s /cache/opsikey ] && local key="$(cat /cache/opsikey)"
- if [ -n "$key" ]; then
-  echo "Opsi-Host-Key heruntergeladen."
-  # patch opsi host key
-  sed -e "s|^host_id.*|host_id = $fqdn|" -e "s|^opsi_host_key.*|opsi_host_key = $key|" -i "$conf" || RC="1"
-  # patch changed opsi ip
-  if ! grep -q "$opsiip" "$conf"; then
-   sed -e "s|10.*.1.2|$opsiip|g" -i "$conf" || RC="1"
-  fi
-  if [ "$RC" = "0" ]; then
-   echo "Opsi-Clientkonfiguration aktualisiert."
-  else
-   echo "Opsi-Clientkonfiguration konnte nicht aktualisiert werden."
-  fi
- else
-  echo "Opsi-Host-Key konnte nicht heruntergeladen werden."
-  RC="1"
- fi
- rm -f /cache/opsikey
- # request opsi host ini update
- rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
- return "$RC"
-}
-
-# restore windows activation tokens
-restore_winact(){
- # get image name
- [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
- # if an image is not yet created do nothing
- if [ -z "$image" ]; then
-  echo "Überspringe Reaktivierung, System ist unsynchronisiert."
-  return
- fi
- local archive
- local tarchive
- local i
- # get mac address
- local mac="$(mac | tr a-z A-Z)"
- # without linbo server
- if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
-  tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
-  # get mac address from archive name
-  for i in $tarchive; do
-   mac="$(echo $i | awk -F\. '{ print $1 }')"
-   if ifconfig -a | grep -q "$mac"; then
-    archive="$i"
-    break
-   fi
-  done
- else # with linbo server
-  archive="$mac.$image.winact.tar.gz"
-  # get token archive from linbo server
-  echo "Fordere Reaktivierungs-Daten von $serverip an."
-  # get server ip address
-  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
-  rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
-  # request windows/office productkeys
-  local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-  rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
-  [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
-  # create windows key batchfile
-  if [ -n "$winkey" ]; then
-   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "/cache/$image.winact.cmd"
-  fi
-  # add office key handling to batchfile if office token is in archive
-  if gunzip -c "/cache/$archive" | tar -t | grep -qi office; then
-   if [ -n "$officekey" ]; then
-    # get office installation dir
-    local office_dir="$(ls -d /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]\ \(x86\)/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]1[45] 2> /dev/null)"
-    if [ -n "$office_dir" ]; then
-     # compute windows path to office installation dir
-     local office_win_dir="$(echo "$office_dir" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
-     # write office activations commands to batchfile
-     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /inpkey:$officekey" >> "/cache/$image.winact.cmd"
-     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /act" >> "/cache/$image.winact.cmd"
-    fi
-   fi
-  fi
-  dos2unix "/cache/$image.winact.cmd"
-  rm -f "$keyfile"
- fi
- # no data available
- if [ ! -s "/cache/$archive" -o ! -s "/cache/$image.winact.cmd" ]; then
-  echo "Überspringe Reaktivierung, keine Daten."
-  return
- fi
- echo "Stelle Windows-Aktivierungstokens wieder her."
- tar xf "/cache/$archive" -C / || return 1
- # copy batchfile
- local batchfile="/mnt/linuxmuster-win/winact.cmd"
- echo "Schreibe Aktivierungs-Batchdatei nach $batchfile."
- cp "/cache/$image.winact.cmd" "$batchfile"
-}
-
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC=1
  local patchfile=""
  local postsync=""
+ local macctfile=""
  local rootdev="$5"
  local disk="${rootdev%%[1-9]*}"
  local group="$(hostgroup)"
@@ -1445,19 +1268,36 @@ syncl(){
    [ "$RC" = "0" ] || break
    patchfile="$image.reg"
    postsync="$image.postsync"
+   # file with samba machine password hashes
+   macctfile="$image.macct"
   fi
  done
  if [ "$RC" = "0" ]; then
+  # request macct file to invoke samba password hash ldap upload stuff on the server
+  local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+  if [ -n "$serverip" ]; then
+   #echo "Fordere $macctfile von $serverip an."
+   download "$serverip" "$macctfile"
+   rm -f "/cache/$macctfile"
+  fi
   # Apply patches
-  if mountpart "$5" /mnt -w 2>> /tmp/linbo.log; then
+  if mountpart "$5" /mnt -w ; then
    # hostname
    local HOSTNAME
    if localmode; then
     if [ -s /cache/hostname ]; then
-     HOSTNAME="$(cat /cache/hostname)"
+     if [ -e /tmp/.offline ]; then
+      # add -w to hostname for wlan clients if client is really offline
+      HOSTNAME="$(cat /cache/hostname)-w"
+     else
+      HOSTNAME="$(cat /cache/hostname)"
+     fi
+    else
+     HOSTNAME="$(hostname)"
     fi
+   else
+    HOSTNAME="$(hostname)"
    fi
-   [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
    # do registry patching for windows systems
    if [ -r "$patchfile" ]; then
     echo "Patche System mit $patchfile."
@@ -1480,8 +1320,8 @@ syncl(){
     rm -f "$TMP"
    fi
    # tweak newdev.dll (suppresses new hardware dialog)
-   local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
-   [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
+   local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
+   [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll])" 2> /dev/null
    local newdevdllbak="$newdevdll.linbo-orig"
    # save original file
    [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
@@ -1491,23 +1331,23 @@ syncl(){
     grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
    fi
    # restore win7 bcd
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] 2> /dev/null)"
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd])" 2> /dev/null
    [ -n "$bcd" ] && local groupbcd="$bcd"."$group"
    if [ -n "$groupbcd" -a -s "$groupbcd" ]; then
     echo "Restauriere /Boot/BCD."
     cp -f "$groupbcd" "$bcd"
    fi
    # restore win7 mbr flag
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" ] && local mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" 2> /dev/null)"
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" ] && local mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group")" 2> /dev/null
    if [ -n "$mbr" -a -s "$mbr" ]; then
     echo "Patche Win7-MBR."
-    dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+    dd if=$mbr of=$disk bs=1 count=4 seek=440
    fi
    # restore ntfs id
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/ntfs.id ] && local ntfsid="$(ls /mnt/[Bb][Oo][Oo][Tt]/ntfs.id 2> /dev/null)"
+   [ -e /mnt/[Bb][Oo][Oo][Tt]/ntfs.id ] && local ntfsid="$(ls /mnt/[Bb][Oo][Oo][Tt]/ntfs.id)" 2> /dev/null
    if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
     echo "Restauriere NTFS-ID."
-    dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+    dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9
    fi 
    # write partition boot sector (vfat only)
    if [ "$(fstype "$5")" = "vfat" ]; then
@@ -1547,12 +1387,6 @@ syncl(){
    fi
    # fstab
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
-   # do opsi stuff
-   do_opsi "$2" "$3" || RC="1"
-   # restore windows activation if linuxmuster-win scripts are installed
-   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -a -d /mnt/linuxmuster-win ]; then
-    restore_winact || RC="1"
-   fi
    # source postsync script
    [ -s "/cache/$postsync" ] && . "/cache/$postsync"
    sync; sync; sleep 1
@@ -1653,40 +1487,73 @@ download_multicast(){
  return "$RC"
 }
 
+#check_torrent_complete image
+check_torrent_complete(){
+ local image="$1"
+ local complete="$image".complete
+ local logfile=/tmp/"$image".log
+ local RC=1
+ [ -e "$logfile" ] || return "$RC"
+ if [ -e "$complete" ]; then
+  RC=0
+ else
+  grep "$image" "$logfile" | grep -q "(100%)" && { touch "$complete"; RC=0; }
+ fi
+ return "$RC"
+}
+
 # torrent_watchdog image timeout
 torrent_watchdog(){
  local image="$1"
- local complete="$image".complete
  local torrent="$image".torrent
  local logfile=/tmp/"$image".log
  local timeout="$2"
  local line=""
  local line_old=""
+ local pid=""
  local int=10
  local RC=1
  local c=0
  while [ $c -lt $timeout ]; do
   sleep $int
   # check if torrent is complete
-  [ -e "$complete" ] && { RC=0; break; }
+  check_torrent_complete "$image" && { RC=0; break; }
   line="$(tail -1 "$logfile" | awk '{ print $3 }')"
   [ -z "$line_old" ] && line_old="$line"
   if [ "$line_old" = "$line" ]; then
-   [ $c -eq 0 ] || echo -e "\nTorrent-Watchdog: Download von $image stockt seit $c Sekunden." >&2 | tee -a /tmp/image.log
+   [ $c -eq 0 ] || echo "Torrent-Überwachung: Download von $image hängt seit $c Sekunden." >&2 | tee -a /tmp/image.log
    c=$(($c+$int))
   else
    line_old="$line"
    c=0
   fi
  done
- rm -f "$logfile"
+ if [ "$RC" = "1" ]; then
+  echo "Download von $image wurde wegen Zeitüberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
+  pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
+  [ -n "$pid" ] && kill "$pid"
+ fi
+ pid="$(ps w | grep "tail -f $logfile" | grep -v grep | awk '{ print $1 }')"
+ [ -n "$pid" ] && kill "$pid"
  echo
  if [ "$RC" = "0" ]; then
-  echo "Image $image erfolgreich heruntergeladen." | tee -a /tmp/image.log
- else
-  ps w | grep -v grep | grep -q ctorrent && killall -9 ctorrent
-  echo "Download von $image wegen Zeitüberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
+  echo "Image $image wurde komplett heruntergeladen. :-)" | tee -a /tmp/image.log
  fi
+ return "$RC"
+}
+
+# download_torrent_check image opts
+download_torrent_check() {
+ local image="$1"
+ local OPTS="$2"
+ local complete="$image".complete
+ local torrent="$image".torrent
+ local logfile=/tmp/"$image".log
+ local RC=1
+ ctorrent -dd -X "touch $complete" $OPTS "$torrent" > "$logfile"
+ tail -f "$logfile"
+ [ -e "$complete" ] && RC=0
+ rm -f "$logfile"
  return "$RC"
 }
 
@@ -1704,25 +1571,23 @@ download_torrent(){
  local MAX_UPLOAD_RATE=0
  local SLICE_SIZE=128
  local TIMEOUT=300
+ local pid=""
  [ -e /torrent-client.conf ] && . /torrent-client.conf
  [ -n "$DOWNLOAD_SLICE_SIZE" ] && SLICE_SIZE=$(($DOWNLOAD_SLICE_SIZE/1024))
  local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
  [ -n "$pid" ] && kill "$pid"
- local OPTS="-e 100000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
+ local OPTS="-e 10000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
  echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
- local logfile=/tmp/"$image".log
- if [ ! -e "$complete" ]; then
+ if [ -e "$complete" ]; then
+  ctorrent -f -d $OPTS "$torrent"
+ else
   rm -f "$image" "$torrent".bf
   torrent_watchdog "$image" "$TIMEOUT" &
-  interruptible ctorrent $OPTS -X "touch $complete ; killall -9 ctorrent" "$torrent" | tee -a "$logfile"
+  interruptible download_torrent_check "$image" "$OPTS"
  fi
  [ -e "$complete" ] && RC=0
- for i in *.torrent; do
-  # start seeders
-  [ -e "${i/.torrent/.complete}" ] && ctorrent -f -d $OPTS "$i"
- done
  return "$RC"
 }
 
@@ -1973,15 +1838,33 @@ update(){
  local server="$1"
  local cachedev="$2"
  local disk="${cachedev%%[1-9]*}"
- mountcache "$cachedev" || return 1
+ mountcache "$cachedev" ; RC="$?" || return "$?"
  cd /cache
- # local restore of start.conf in cache (necessary if cache partition was formatted before)
- [ -s start.conf ] || cp /start.conf .
- echo "Aktualisiere LINBO-Kernel."
- download "$server" linbo || RC=1
- download "$server" linbofs.lz || RC=1
- # grub update
- if [ -s "linbo" -a -s "linbofs.lz" ]; then
+ echo "Suche nach LINBO-Updates auf $1."
+ #download_if_newer "$server" grub.exe
+ local linbo_ts1="$(getinfo linbo.info timestamp)"
+ local linbo_fs1="$(get_filesize linbo)"
+ download_if_newer "$server" linbo
+ local linbo_ts2="$(getinfo linbo.info timestamp)"
+ local linbo_fs2="$(get_filesize linbo)"
+ local linbofs_ts1="$(getinfo linbofs.gz.info timestamp)"
+ local linbofs_fs1="$(get_filesize linbofs.gz)"
+ # tschmitt: download group specific linbofs
+# [ -n "$group" ] && download_if_newer "$server" linbofs.$group.gz
+# if [ -e "linbofs.$group.gz" ]; then
+#  rm -f linbofs.gz; ln linbofs.$group.gz linbofs.gz
+#  rm -f linbofs.gz.info; ln linbofs.$group.gz.info linbofs.gz.info
+# else
+  download_if_newer "$server" linbofs.gz
+# fi
+ local linbofs_ts2="$(getinfo linbofs.gz.info timestamp)"
+ local linbofs_fs2="$(get_filesize linbofs.gz)"
+ # tschmitt: update grub on every synced start not only if newer linbo is available
+ # if [ "$disk" -a -n "$cachedev" -a -s "linbo" -a -s "linbofs.gz" ] && \
+ #    [ "$linbo_ts1" != "$linbo_ts2" -o "$linbo_fs1" != "$linbo_fs2" -o \
+ #      "$linbofs_ts1" != "$linbofs_ts2" -o "$linbofs_fs1" != "$linbofs_fs2" ]; then
+ if [ -b "$disk" -a -s "linbo" -a -s "linbofs.gz" ]; then
+  echo "Update Master-Bootrecord von $disk."
   mkdir -p /cache/boot/grub
   # only if online
   if ! localmode; then
@@ -1990,22 +1873,19 @@ update(){
    # tschmitt: provide custom local menu.lst
    download "$server" "menu.lst.$group"
    if [ -e "/cache/menu.lst.$group" ]; then
-    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst || RC=1
+    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst
     # flag for downloaded custom menu.lst
     touch /cache/.custom.menu.lst
    else
     rm -f /cache/.custom.menu.lst
    fi
   fi # localmode
-  mkgrub || RC=1
+  mkgrub "$disk"
  fi
+ RC="$?"
  cd / ; sendlog
  #umount /cache
- if [ "$RC" = "0" ]; then
-  echo "LINBO update fertig."
- else
-  echo "Lokale Installation von LINBO hat nicht geklappt." >&2
- fi
+ [ "$RC" = "0" ] && echo "LINBO update fertig." || echo "Lokale Installation von LINBO hat nicht geklappt." >&2
  return "$RC"
 }
 
@@ -2030,7 +1910,7 @@ initcache(){
   local cachefs="$(fstype_startconf "$cachedev")"
   if [ -n "$cachefs" ]; then
    echo "Formatiere Cache-Partition $cachedev..."
-   format "$cachedev" "$cachefs" 2>> /tmp/linbo.log
+   format "$cachedev" "$cachefs"
   fi
  fi
  mountcache "$cachedev" || return "$?"
@@ -2039,7 +1919,6 @@ initcache(){
 
  # clean up obsolete linbofs files
  rm -f linbofs[.a-zA-Z0-9_-]*.gz*
- rm -f linbo*.info
 
  # clean up obsolete image files
  used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -2065,9 +1944,8 @@ initcache(){
    download_if_newer "$server" "$i" "$download_type"
   fi
  done
- # obsolete, done in update() anyway
- #sendlog
- #cd / ; mountcache "$cachedev" -r
+ sendlog
+ cd / ; mountcache "$cachedev" -r
  update "$server" "$cachedev"
 }
 
@@ -2202,12 +2080,12 @@ memory(){
 }
 
 size(){
- if mountpart "$1" /mnt -r 2>> /tmp/linbo.log; then
+ if mountpart "$1" /mnt -r 2>/dev/null; then
   df -k /mnt 2>/dev/null | tail -1 | \
    awk '{printf "%.1f/%.1fGB\n", $4 / 1048576, $2 / 1048576}' 2>/dev/null
   umount /mnt
  else
-  local d=$(sfdisk -s $1 2>> /tmp/linbo.log)
+  local d=$(sfdisk -s $1 2>/dev/null)
   if [ "$?" = "0" -a "$d" -ge 0 ] 2>/dev/null; then
    echo "$d" | awk '{printf "%.1fGB\n",$1 / 1048576}' 2>/dev/null
   else
@@ -2215,6 +2093,48 @@ size(){
   fi
  fi
  return 0
+}
+
+#
+# Ermittelt den logisch naechsten Hostnamen, um die Rechneraufnahme zu
+# erleichtern
+#
+preregister() {
+	cd /tmp
+	interruptible rsync --progress -HaP "$1::linbo/workstations" "workstations.$$" ; RC="$?"
+	LASTWORKSTATION=$(cat /tmp/workstations.$$ | grep ^[a-z] | tail -n 1)
+
+	if [ "$LASTWORKSTATION" == "" ]; then
+		echo ",,," > /tmp/newregister
+		rm /tmp/workstations.$$
+		return 0
+	fi
+
+	LASTGROUP=$(echo $LASTWORKSTATION | cut -d ";" -f 3)
+	LASTROOM=$(echo $LASTWORKSTATION | cut -d ";" -f 1)
+	LASTHOST=$(echo $LASTWORKSTATION | cut -d ";" -f 2)
+	LASTIP=$(echo $LASTWORKSTATION | cut -d ";" -f 5)
+
+	# Naechste IP ermitteln
+	NEXTIP="$(echo -n $LASTIP | cut -d "." -f 1-3).$(($(echo $LASTIP | cut -d "." -f 4)+1))"
+
+	# Naechsten Hostnamen ermitteln
+	HOSTNAMECOUNTER=$(echo $LASTHOST | grep -Eo "[0-9]+$")
+	if [ ! "$HOSTNAMECOUNTER" == "" ]; then
+		NEXTCOUNT=$(expr $HOSTNAMECOUNTER + 1)
+		# Left fill with zeroes
+		while [ "${#NEXTCOUNT}" -lt "${#HOSTNAMECOUNTER}" ]; do
+			NEXTCOUNT=0$NEXTCOUNT
+		done
+
+		# Build new hostname
+		NEXTHOST=$(echo -n $LASTHOST | sed "s/${HOSTNAMECOUNTER}$//g")$NEXTCOUNT
+	else
+		NEXTHOST=$LASTHOST
+	fi
+	rm /tmp/workstations.$$
+	echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP" > /tmp/newregister
+	return 0
 }
 
 version(){
@@ -2240,6 +2160,7 @@ case "$cmd" in
  start) start "$@" ;;
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
+ preregister) preregister "$@";;
  initcache) initcache "$@" ;;
  initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
  mountcache) mountcache "$@" ;;

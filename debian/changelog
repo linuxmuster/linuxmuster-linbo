@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-0) babo; urgency=low
+
+  * added jweiher's pull request #29 "Auto increment IP and hostname on register".
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 22 Mar 2015 11:53:00 +0200
+
 linuxmuster-linbo (2.2.16-0) babo; urgency=low
 
   * added patching of opsi server ip in case of windows client sync (closes #449).
