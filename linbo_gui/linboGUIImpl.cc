@@ -1260,14 +1260,7 @@ linboGUIImpl::linboGUIImpl()
 			       config.get_consolefontcolorstderr(),
 			       Console );
   registerBox->setMainApp(this );
-  
-  //cout << "Preregister command";
-  command = LINBO_CMD("preregister");
-  saveappend( command, config.get_server() );
-  registerBox->setPreCommand( command );
 
-
-  //cout << "Register Command";
   command = LINBO_CMD("register");
   saveappend( command, config.get_server() );
   saveappend( command, QString("linbo") );
