@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
-# 22.03.2015
+# 14.07.2015
 #
 
 set -e
@@ -94,6 +94,13 @@ case "$1" in
     cp -f "$conf" "$LINBODIR/backup"
     sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
 KernelOptions = $kopts" -i "$conf"
+   fi
+   # add new SystemType option
+   if ! grep -wqi ^systemtype "$conf"; then
+    echo "Adding SystemType to start.conf.$i."
+    cp -f "$conf" "$LINBODIR/backup"
+    sed -e "/^\[[Ll][Ii][Nn][Bb][Oo]\]/a\
+SystemType = bios" -i "$conf"
    fi
   done
  fi

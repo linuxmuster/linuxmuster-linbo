@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 19.03.2015
+# 15.07.2015
 # GPL v3
 #
 
@@ -36,15 +36,6 @@ CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 
 # cloop64
 CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
-
-# virtualbox-guest
-VBOX_ARCHIVE=$(shell grep virtualbox_ debian/md5sums.src | awk '{ print $$2 }')
-VBOX_DIR=kernel/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.orig.tar.xz//' -e 's/_/-/' )
-#VBOX_URL=$(LML_URL)
-VBOX_URL=http://ftp.de.debian.org/debian/pool/contrib/v/virtualbox
-
-# virtualbox-guest64
-VBOX64_DIR=kernel64/$(shell echo $(VBOX_ARCHIVE) | sed -e 's/.orig.tar.xz//' -e 's/_/-/' )
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
@@ -124,31 +115,21 @@ SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }'
 SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.xz//')
 SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
 
-# ctorrent
-CTORRENT_ARCHIVE=$(shell grep ctorrent- debian/md5sums.src | awk '{ print $$2 }')
-CTORRENT_DIR=src/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
-CTORRENT_URL=http://www.rahul.net/dholmes/ctorrent
-
-# ctorrent64
-CTORRENT64_DIR=src64/$(shell echo $(CTORRENT_ARCHIVE) | sed -e 's/.tar.gz//')
-
-# 32bit binaries
-BIN32_DIR=src/bin32
+# 32bit toolchain & binaries
+TOOLCHAIN=$(CURDIR)/toolchain
+BIN32_DIR=$(CURDIR)/src/bin32
+BIN32_DEBS=bc bluez bvi cloop-utils ctorrent dosfstools dropbear e2fsprogs \
+           ethtool kmod libc-bin libgpod-common libmtp-runtime mount ncurses-bin \
+           pcmciautils reiserfsprogs rsync sysvinit-utils udev udisks udpcast \
+           util-linux xserver-xorg-input-vmmouse
 
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
 
 	# setup 32bit build tool chain
-	-@if [ ! -e /usr/local/bin/i386-linux-gnu-gcc ]; then \
-		echo "[1mSetting up 32bit toolchain...[0m" ; \
-		install -o root -g root -m 755 toolchain/i386-linux-gnu-gcc /usr/local/bin/i386-linux-gnu-gcc ; \
-		install -o root -g root -m 755 toolchain/i386-linux-gnu-g++ /usr/local/bin/i386-linux-gnu-g++ ; \
-		install -o root -g root -m 755 toolchain/i386-linux-gnu-c++ /usr/local/bin/i386-linux-gnu-c++ ; \
-		( cd /usr/local/bin && ln -s /usr/bin/ar i386-linux-gnu-ar \
-			    && ln -s /usr/bin/strip i386-linux-gnu-strip ) ; \
-		[ -e /lib/i386-linux-gnu/libacl.so ] || ( cd /lib/i386-linux-gnu && ln -s libacl.so.1 libacl.so ) ; \
-	fi
+	ln -sf /usr/bin/ar $(TOOLCHAIN)/i386-linux-gnu-ar
+	ln -sf /usr/bin/strip $(TOOLCHAIN)/i386-linux-gnu-strip
 	
 	# make necessary build dirs
 	mkdir -p cache || true
@@ -157,6 +138,7 @@ configure-stamp:
 	mkdir -p src || true
 	mkdir -p src64 || true
 	mkdir -p linbo_gui64 || true
+	mkdir -p $(BIN32_DIR) || true
 
 	# setup 64bit linbo_gui dir
 	-@if [ ! -e linbo_gui64/build_gui ]; then \
@@ -197,9 +179,6 @@ configure-stamp:
 		( cd cache && grep $(GRUB4DOS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(GRUB4DOS_ARCHIVE)...[0m" ; \
 		tar xf cache/$(GRUB4DOS_ARCHIVE) -C src; \
-#		echo "[1mPatching grub4dos sources...[0m" ; \
-#		( cd $(GRUB4DOS_DIR) && for i in ../../patches/grub4dos/*; do patch -p1 <$$i; done ); \
-#		chmod 755 $(GRUB4DOS_DIR)/configure; \
 		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
 	fi
 
@@ -279,28 +258,6 @@ configure-stamp:
 		ln -sf ../$(NTFS3G64_DIR) src64/ntfs-3g; \
 	fi
 
-	# rsync
-	-@if [ ! -d $(RSYNC_DIR) ]; then \
-		( [ -e cache/$(RSYNC_ARCHIVE) ] || ( cd cache && wget $(RSYNC_URL)/$(RSYNC_ARCHIVE) ) ); \
-		( cd cache && grep $(RSYNC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(RSYNC_ARCHIVE)...[0m" ; \
-		tar xf cache/$(RSYNC_ARCHIVE) -C src; \
-		echo "[1mPatching rsync sources...[0m" ; \
-		( cd $(RSYNC_DIR) && for i in ../../patches/rsync/*; do patch -p1 <$$i; done ); \
-		ln -sf ../$(RSYNC_DIR) src/rsync; \
-	fi
-
-	# rsync64
-	-@if [ ! -d $(RSYNC64_DIR) ]; then \
-		( [ -e cache/$(RSYNC_ARCHIVE) ] || ( cd cache && wget $(RSYNC_URL)/$(RSYNC_ARCHIVE) ) ); \
-		( cd cache && grep $(RSYNC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(RSYNC_ARCHIVE)...[0m" ; \
-		tar xf cache/$(RSYNC_ARCHIVE) -C src64; \
-		echo "[1mPatching 64bit rsync sources...[0m" ; \
-		( cd $(RSYNC64_DIR) && for i in ../../patches/rsync/*; do patch -p1 <$$i; done ); \
-		ln -sf ../$(RSYNC64_DIR) src64/rsync; \
-	fi
-
 	# ssmtp
 	-@if [ ! -d $(SSMTP_DIR) ]; then \
 		( [ -e cache/$(SSMTP_ARCHIVE) ] || ( cd cache && wget $(SSMTP_URL)/$(SSMTP_ARCHIVE) ) ); \
@@ -331,24 +288,6 @@ configure-stamp:
 		ln -sf ../$(SYSLINUX_DIR) src/syslinux; \
 	fi
 
-	# ctorrent
-	-@if [ ! -d $(CTORRENT_DIR) ]; then \
-		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL)/$(CTORRENT_ARCHIVE) ) ); \
-		( cd cache && grep $(CTORRENT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(CTORRENT_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CTORRENT_ARCHIVE) -C src; \
-		ln -sf ../$(CTORRENT_DIR) src/ctorrent; \
-	fi
-
-	# ctorrent64
-	-@if [ ! -d $(CTORRENT64_DIR) ]; then \
-		( [ -e cache/$(CTORRENT_ARCHIVE) ] || ( cd cache && wget $(CTORRENT_URL)/$(CTORRENT_ARCHIVE) ) ); \
-		( cd cache && grep $(CTORRENT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(CTORRENT_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CTORRENT_ARCHIVE) -C src64; \
-		ln -sf ../$(CTORRENT64_DIR) src64/ctorrent; \
-	fi
-
 	# qt
 	-@if [ ! -d $(QT_DIR) ]; then \
 		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL)/$(QT_ARCHIVE) ) ); \
@@ -372,9 +311,6 @@ configure-stamp:
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
 		( cd $(CLOOP_DIR) && patch -p0 <../../patches/cloop32.patch ); \
-		if [ ! -e /usr/include/zconf.h ]; then \
-			( cd /usr/include; ln -s x86_64-linux-gnu/zconf.h ); \
-		fi; \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 	fi
 
@@ -385,24 +321,6 @@ configure-stamp:
 		echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
 		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
-	fi
-
-	# vboxguest
-	-@if [ ! -d $(VBOX_DIR) ]; then \
-		( [ -e cache/$(VBOX_ARCHIVE) ] || ( cd cache && wget $(VBOX_URL)/$(VBOX_ARCHIVE) ) ); \
-		( cd cache && grep $(VBOX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(VBOX_ARCHIVE)...[0m" ; \
-		tar xf cache/$(VBOX_ARCHIVE) -C kernel; \
-		ln -sf ../$(VBOX_DIR) kernel/virtualbox-guest; \
-	fi
-
-	# vboxguest64
-	-@if [ ! -d $(VBOX64_DIR) ]; then \
-		( [ -e cache/$(VBOX_ARCHIVE) ] || ( cd cache && wget $(VBOX_URL)/$(VBOX_ARCHIVE) ) ); \
-		( cd cache && grep $(VBOX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(VBOX_ARCHIVE)...[0m" ; \
-		tar xf cache/$(VBOX_ARCHIVE) -C kernel64; \
-		ln -sf ../$(VBOX64_DIR) kernel64/virtualbox-guest; \
 	fi
 
 	# kernel
@@ -430,14 +348,14 @@ configure-stamp:
 	fi
 
 	# 32bit binaries
-	-@if [ ! -d $(BIN32_DIR) ]; then \
-		echo "[1mCreating $(BIN32_DIR)...[0m" ; \
-		while read deb file ; do \
-			( [ -e cache/$$file ] || ( cd cache && apt-get download $$deb ) ); \
-			echo "[1mUnpacking $$deb...[0m" ; \
-			dpkg -x cache/$$file $(BIN32_DIR); \
-		done < conf/bin32_deb.conf; \
-	fi
+	echo "[1mInstalling 32bit binaries...[0m"
+	for i in $(BIN32_DEBS) ; do \
+		( cd cache ; echo "[1mDownloading/updating $${i}:i386 ...[0m" ; apt-get download $${i}:i386 ) ; \
+		pkg=`ls -1tr cache/$$i*_i386.deb | tail -1` ; \
+		echo "[1mUnpacking $$pkg ...[0m" ; \
+		dpkg -x $$pkg $(BIN32_DIR) ; \
+	done
+
 	touch configure-stamp
 
 build: build-stamp
@@ -446,12 +364,10 @@ build-stamp: configure-stamp
 
 	# build src components
 
-	
-
 	# busybox
 	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \
 		echo "[1mBuilding busybox...[0m" ; \
-		( cd $(BB_DIR) && ARCH=i386 CFLAGS=-m32 CROSS_COMPILE=i386-linux-gnu- make install ); \
+		( cd $(BB_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 CROSS_COMPILE=i386-linux-gnu- make install ); \
 	fi
 
 	# busybox64
@@ -460,22 +376,10 @@ build-stamp: configure-stamp
 		( cd $(BB64_DIR) && make install ); \
 	fi
 
-	# cloop
-	-@if [ ! -e $(CLOOP_DIR)/bin/create_compressed_fs -o ! -e $(CLOOP_DIR)/bin/extract_compressed_fs ]; then \
-		echo "[1mBuilding cloop-utils...[0m" ; \
-		( cd $(CLOOP_DIR) && rm -rf bin || true && CFLAGS=-m32 make utils && mkdir -p bin && mv *_compressed_fs bin ); \
-	fi
-
-	# cloop64
-	-@if [ ! -e $(CLOOP64_DIR)/bin/create_compressed_fs -o ! -e $(CLOOP64_DIR)/bin/extract_compressed_fs ]; then \
-		echo "[1mBuilding 64bit cloop-utils...[0m" ; \
-		( cd $(CLOOP64_DIR) && rm -rf bin || true && make utils && mkdir -p bin && mv *_compressed_fs bin ); \
-	fi
-
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && ARCH=i386 CFLAGS=-m32 LDFLAGS=-static ./configure --host=i386-linux-gnu && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 LDFLAGS=-static ./configure --host=i386-linux-gnu && make && strip build/sbin/kexec ); \
 	fi
 
 	# kexec-tools64
@@ -487,7 +391,7 @@ build-stamp: configure-stamp
 	# ms-sys
 	-@if [ ! -e $(MSSYS_DIR)/bin/ms-sys ]; then \
 		echo "[1mBuilding ms-sys...[0m" ; \
-		( cd $(MSSYS_DIR) && CFLAGS=-m32 make && strip bin/ms-sys ); \
+		( cd $(MSSYS_DIR) && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 make && strip bin/ms-sys ); \
 	fi
 
 	# ms-sys64
@@ -499,7 +403,7 @@ build-stamp: configure-stamp
 	# chntpw
 	-@if [ ! -e $(CHNTPW_DIR)/reged ]; then \
  		echo "[1mBuilding reged...[0m"; \
-		( cd $(CHNTPW_DIR) && CFLAGS=-m32 make reged && strip reged ); \
+		( cd $(CHNTPW_DIR) && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 make reged && strip reged ); \
 	fi
 
 	# chntpw64
@@ -511,7 +415,7 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
+		( cd $(NTFS3G_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
 	fi
 
 	# ntfs-3g64
@@ -520,22 +424,10 @@ build-stamp: configure-stamp
 		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
 	fi
 
-	# rsync
-	-@if [ ! -e $(RSYNC_DIR)/rsync ]; then \
-		echo "[1mBuilding rsync...[0m" ; \
-		( cd $(RSYNC_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --prefix=/usr --host=i386-linux-gnu && make && strip rsync ); \
-	fi
-
-	# rsync64
-	-@if [ ! -e $(RSYNC64_DIR)/rsync ]; then \
-		echo "[1mBuilding 64bit rsync...[0m" ; \
-		( cd $(RSYNC64_DIR) && ./configure --prefix=/usr && make && strip rsync ); \
-	fi
-
 	# ssmtp
 	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
 		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+		( cd $(SSMTP_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
 	# ssmtp64
@@ -544,22 +436,10 @@ build-stamp: configure-stamp
 		( cd $(SSMTP64_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
 	fi
 
-	# ctorrent
-	-@if [ ! -e $(CTORRENT_DIR)/ctorrent ]; then \
-		echo "[1mBuilding ctorrent...[0m" ; \
-		( cd $(CTORRENT_DIR) && ARCH=i386 CFLAGS=-m32 ./configure --with-ssl=no --host=i386-linux-gnu && make && strip ctorrent ); \
-	fi
-
-	# ctorrent64
-	-@if [ ! -e $(CTORRENT64_DIR)/ctorrent ]; then \
-		echo "[1mBuilding 64bit ctorrent...[0m" ; \
-		( cd $(CTORRENT64_DIR) && ./configure --with-ssl=no && make && strip ctorrent ); \
-	fi
-
 	# qt
 	-@if [ ! -e $(QT_DIR)/bin/moc ]; then \
 		echo "[1mBuilding QT...[0m" ; \
-		( cd $(CURDIR)/linbo_gui && ./build_qt && rm linbo_gui ); \
+		( cd $(CURDIR)/linbo_gui && PATH=$(TOOLCHAIN):$(PATH) ./build_qt && rm linbo_gui ); \
 	fi
 
 	# qt64
@@ -571,7 +451,7 @@ build-stamp: configure-stamp
 	# linbo_gui
 	-@if [ ! -e $(CURDIR)/linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
-		( cd linbo_gui && CFLAGS=-m32 ./build_gui ); \
+		( cd linbo_gui && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 ./build_gui ); \
 	fi
 
 	# linbo_gui64
@@ -584,21 +464,19 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
 	        echo "[1mBuilding LINBO kernel...[0m" ; \
 	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
-	        rm -f $(VBOX_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -rf ../modules/* || true ; \
 	        cd $(KERNEL_DIR) ; \
 	        ln -snf ../initramfs_kernel.conf . ; \
 	        :> ../initramfs_kernel.conf ; \
 	        rm -f usr/initramfs_data.cpio.gz || true ; \
 	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=i386 CFLAGS=-m32 make bzImage modules ; \
+	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make bzImage modules ; \
 	fi
 
 	# linbo kernel64
 	-@if [ ! -e $(KERNEL64_DIR)/vmlinux ]; then \
 	        echo "[1mBuilding 64bit LINBO kernel...[0m" ; \
 	        rm -f $(CLOOP64_DIR)/cloop.ko || true ; \
-	        rm -f $(VBOX64_DIR)/vboxguest/vboxguest.ko || true ; \
 	        rm -rf ../modules/* || true ; \
 	        cd $(KERNEL64_DIR) ; \
 	        ln -snf ../initramfs_kernel.conf . ; \
@@ -613,7 +491,7 @@ build-stamp: configure-stamp
 	        echo "[1mBuilding cloop module...[0m" ; \
 	        rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
+	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
 	fi
 
 	# cloop64 module
@@ -622,22 +500,6 @@ build-stamp: configure-stamp
 	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP64_DIR) && \
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
-	fi
-
-	# vboxguest modules
-	-@if [ ! -e $(VBOX_DIR)/vboxguest/vboxguest.ko ]; then \
-	        echo "[1mBuilding virtualbox-guest modules...[0m" ; \
-	        rm -f kernel/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
-	        cd $(VBOX_DIR) && \
-	        ( make -C vboxguest clean ; ARCH=i386 CFLAGS=-m32 make -C $(CURDIR)/$(KERNEL_DIR) M=$(CURDIR)/$(VBOX_DIR) ) ; \
-	fi
-
-	# vboxguest64 modules
-	-@if [ ! -e $(VBOX64_DIR)/vboxguest/vboxguest.ko ]; then \
-	        echo "[1mBuilding 64bit virtualbox-guest modules...[0m" ; \
-	        rm -f kernel64/modules/lib/modules/*/kernel/misc/vboxguest.ko || true ; \
-	        cd $(VBOX64_DIR) && \
-	        ( make -C vboxguest clean ; ARCH=x86_64 make -C $(CURDIR)/$(KERNEL64_DIR) M=$(CURDIR)/$(VBOX64_DIR) ) ; \
 	fi
 
 	touch build-stamp
@@ -674,19 +536,11 @@ install: build
 	( cd $(KERNEL64_DIR) && mkdir -p ../modules ; ARCH=x86_64 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking 64bit LINBO kernel to /var/linbo/linbo64.[0m" ; \
 	cp $(KERNEL64_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo64
-	# deprecated
-	#printf "[LINBO]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.info
 	# cloop module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
 	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP64_DIR)/cloop.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block/
-#	# vboxguest module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/misc && \
-#	cp $(VBOX_DIR)/vboxguest/vboxguest.ko kernel/modules/lib/modules/$(KVERS)/kernel/misc/
-#	# vboxguest64 module
-#	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/misc && \
-#	cp $(VBOX64_DIR)/vboxguest/vboxguest.ko kernel64/modules/lib/modules/$(KVERS)/kernel/misc/
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	-/sbin/depmod -a -b kernel64/modules $(KVERS)
 	# initrd
@@ -706,8 +560,6 @@ install: build
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
-	# deprecated
-	#printf "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz | awk '{print $$5}'`" >$(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz.info
 	# initrd 64bit
 	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
 	cd $(KERNEL64_DIR) ; \
@@ -737,19 +589,28 @@ install: build
 	sed -e 's|@@version@@|$(LVERS)|' -i debian/linuxmuster-linbo/var/linbo/boot.msg
 	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
 	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst
+	# syslinux bios
 	install -m 644 $(SYSLINUX_DIR)/bios/core/pxelinux.0 debian/linuxmuster-linbo/var/linbo/bios/pxelinux.0
 	install -m 644 $(SYSLINUX_DIR)/bios/com32/elflink/ldlinux/ldlinux.c32 debian/linuxmuster-linbo/var/linbo/bios/ldlinux.c32
 	install -m 644 $(SYSLINUX_DIR)/bios/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/bios/memdisk
 	install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/bios/menu.c32
 	install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/bios/vesamenu.c32
+	install -m 644 $(SYSLINUX_DIR)/bios/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/bios/libcom32.c32
+	install -m 644 $(SYSLINUX_DIR)/bios/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/bios/libutil.c32
+    # syslinux efi32
 	install -m 644 $(SYSLINUX_DIR)/efi32/efi/syslinux.efi debian/linuxmuster-linbo/var/linbo/efi32/bootia32.efi
 	install -m 644 $(SYSLINUX_DIR)/efi32/com32/elflink/ldlinux/ldlinux.e32 debian/linuxmuster-linbo/var/linbo/efi32/ldlinux.e32
 	install -m 644 $(SYSLINUX_DIR)/efi32/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/efi32/menu.c32
 	install -m 644 $(SYSLINUX_DIR)/efi32/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/efi32/vesamenu.c32
+	install -m 644 $(SYSLINUX_DIR)/efi32/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/efi32/libcom32.c32
+	install -m 644 $(SYSLINUX_DIR)/efi32/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/efi32/libutil.c32
+    # syslinux efi64
 	install -m 644 $(SYSLINUX_DIR)/efi64/efi/syslinux.efi debian/linuxmuster-linbo/var/linbo/efi64/bootx64.efi
 	install -m 644 $(SYSLINUX_DIR)/efi64/com32/elflink/ldlinux/ldlinux.e64 debian/linuxmuster-linbo/var/linbo/efi64/ldlinux.e64
 	install -m 644 $(SYSLINUX_DIR)/efi64/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/efi64/menu.c32
 	install -m 644 $(SYSLINUX_DIR)/efi64/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/efi64/vesamenu.c32
+	install -m 644 $(SYSLINUX_DIR)/efi64/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/efi64/libcom32.c32
+	install -m 644 $(SYSLINUX_DIR)/efi64/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/efi64/libutil.c32
 	# /usr/share/linuxmuster-linbo
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	install -m 644 linbo_gui/icons/linbo_wallpaper.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo_wallpaper.png

@@ -2289,45 +2289,47 @@ size(){
 }
 
 #
+# jweiher, angepasst tschmitt
 # Ermittelt den logisch naechsten Hostnamen, um die Rechneraufnahme zu
 # erleichtern
 #
 preregister() {
-	cd /tmp
-	interruptible rsync --progress -HaP "$1::linbo/workstations" "workstations.$$" ; RC="$?"
-	LASTWORKSTATION=$(cat /tmp/workstations.$$ | grep ^[a-z] | tail -n 1)
+ local LAST_REGISTERED="/tmp/last_registered"
+ interruptible rsync --progress -HaP "$1::linbo/last_registered" "$LAST_REGISTERED" ; RC="$?"
+ local LASTWORKSTATION="$(grep ^[a-z0-9] "$LAST_REGISTERED" | tail -n 1)"
 
-	if [ "$LASTWORKSTATION" == "" ]; then
-		echo ",,," > /tmp/newregister
-		rm /tmp/workstations.$$
-		return 0
-	fi
+ if [ "$LASTWORKSTATION" == "" ]; then
+  echo ",,," > /tmp/newregister
+  rm -f "$LAST_REGISTERED"
+  return 0
+ fi
 
-	LASTGROUP=$(echo $LASTWORKSTATION | cut -d ";" -f 3)
-	LASTROOM=$(echo $LASTWORKSTATION | cut -d ";" -f 1)
-	LASTHOST=$(echo $LASTWORKSTATION | cut -d ";" -f 2)
-	LASTIP=$(echo $LASTWORKSTATION | cut -d ";" -f 5)
+ local LASTGROUP="$(echo $LASTWORKSTATION | cut -d ";" -f 3)"
+ local LASTROOM="$(echo $LASTWORKSTATION | cut -d ";" -f 1)"
+ local LASTHOST="$(echo $LASTWORKSTATION | cut -d ";" -f 2)"
+ local LASTIP="$(echo $LASTWORKSTATION | cut -d ";" -f 5)"
 
-	# Naechste IP ermitteln
-	NEXTIP="$(echo -n $LASTIP | cut -d "." -f 1-3).$(($(echo $LASTIP | cut -d "." -f 4)+1))"
+ # Naechste IP ermitteln
+ local NEXTIP="$(echo -n $LASTIP | cut -d "." -f 1-3).$(($(echo $LASTIP | cut -d "." -f 4)+1))"
 
-	# Naechsten Hostnamen ermitteln
-	HOSTNAMECOUNTER=$(echo $LASTHOST | grep -Eo "[0-9]+$")
-	if [ ! "$HOSTNAMECOUNTER" == "" ]; then
-		NEXTCOUNT=$(expr $HOSTNAMECOUNTER + 1)
-		# Left fill with zeroes
-		while [ "${#NEXTCOUNT}" -lt "${#HOSTNAMECOUNTER}" ]; do
-			NEXTCOUNT=0$NEXTCOUNT
-		done
+ # Naechsten Hostnamen ermitteln
+ local HOSTNAMECOUNTER="$(echo $LASTHOST | grep -Eo "[0-9]+$")"
+ local NEXTCOUNT
+ if [ ! "$HOSTNAMECOUNTER" == "" ]; then
+  NEXTCOUNT=$(expr $HOSTNAMECOUNTER + 1)
+  # Left fill with zeroes
+  while [ "${#NEXTCOUNT}" -lt "${#HOSTNAMECOUNTER}" ]; do
+   NEXTCOUNT=0$NEXTCOUNT
+  done
 
-		# Build new hostname
-		NEXTHOST=$(echo -n $LASTHOST | sed "s/${HOSTNAMECOUNTER}$//g")$NEXTCOUNT
-	else
-		NEXTHOST=$LASTHOST
-	fi
-	rm /tmp/workstations.$$
-	echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP" > /tmp/newregister
-	return 0
+  # Build new hostname
+  local NEXTHOST="$(echo -n $LASTHOST | sed "s/${HOSTNAMECOUNTER}$//g")$NEXTCOUNT"
+ else
+  NEXTHOST="$LASTHOST"
+ fi
+ rm -f "$LAST_REGISTERED"
+ echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP" > /tmp/newregister
+ return 0
 }
 
 version(){
