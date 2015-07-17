@@ -1,11 +1,14 @@
 7925683d7dd105aabe9b6b618d48cc73  busybox-1.23.2.tar.bz2
 d60bc657206b07ad84d926649d6417dc  chntpw-source-140201.zip
-712cd1e9cdd3bec1dc013b8b13c8469b  cloop_3.14.1.1.tar.xz
+458d7cc0c69646a2caaedec5c836cdcc  cloop_2.639-2.tar.gz
 774e2505ea8a073c473a9247d09d047e  grub4dos-0.4.4-2009-10-16-src.tar.xz
 b3ced2097ce3981abba38ceedc84f939  kexec-tools-2.0.3.tar.bz2
-8a0d1e45b27f286444f166aca6588ef3  linux_3.16.0.orig.tar.gz
 46d186707c7767db664afe681f8eaad6  ms-sys-2.3.0.tar.gz
 f11d563816249d730a00498983485f3a  ntfs-3g_ntfsprogs-2014.2.15.tgz
 2edbe4d6c2eff33ef91732602f3518eb  qt-everywhere-opensource-src-4.8.6.tar.gz
 257ac04e62ab7e3616e220333a1140cb  ssmtp_2.62.orig.tar.gz
 92a253df9211e9c20172796ecf388f13  syslinux-6.03.tar.xz
+0e534b894be8026b739ea9ae8fa515b6  linux-3.2.53.tar.xz
+5fb9e5797794cb50f3796e18ad8a7f3f  backports-4.1.1-1.tar.xz
+da331c268e1b928e896dfa4c71fbe4d9  e1000e-3.2.4.2.tar.gz
+890a3d8b8ccca9abce6b384978e28d25  tg3-3.137h.tar.gz

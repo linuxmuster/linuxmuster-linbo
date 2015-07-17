@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.0-1) babo-testing; urgency=low
+
+  * changed to kernel 3.2.53 with backports 4.1.1-1, e1000e 3.2.4.2 and tg3 3.137h.
+  * minor build process improvements.
+  * minor changes to default.pxe configuration template.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 17 Jul 2015 12:39:00 +0200
+
 linuxmuster-linbo (2.3.0-0) babo-testing; urgency=low
 
   * Frank Schuette:
