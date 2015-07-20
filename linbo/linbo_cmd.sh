@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 13.07.2015
+# 19.07.2015
 # GPL v3
 #
 
@@ -262,31 +262,19 @@ systemtype(){
  echo "$systemtype"
 }
 
-kerneltype(){
- local kerneltype="linbo"
- local systemtype=$(systemtype)
- case $systemtype in
-   bios64|efi64)
-       kerneltype="linbo64"
-   ;;
-   *)
-   ;;
- esac
- echo "$kerneltype"
+get_64(){
+ local is_64=""
+ if uname -a | grep -q x86_64; then
+  is_64="64"
+ else
+  local systemtype=$(systemtype)
+  case $systemtype in
+   bios64|efi64) is_64="64" ;;
+  esac
+ fi
+ echo "$is_64"
 }
 
-kernelfstype(){
- local kernelfstype="linbofs.lz"
- local systemtype=$(systemtype)
- case $systemtype in
-   bios64|efi64)
-       kernelfstype="linbofs64.lz"
-   ;;
-   *)
-   ;;
- esac
- echo "$kernelfstype"
-}
 
 # fschuett
 # extract block device name for sd?,/dev/sd?,*blk?p?,/dev/*blk?p?
@@ -689,54 +677,105 @@ EOT
  done
 }
 
-# mkgrub - writes grub stuff for local boot
+# write grub stuff
+# mkgrub partition reboot
 mkgrub(){
+ local reboot="$2"
+ local doneflag="/tmp/.mkgrub.done"
+ [ -e "$doneflag" -a -z "$reboot" ] && return 0
+ local partition="$1"
+ local disk="${partition%%[1-9]*}"
+ if [ ! -b "$disk" ]; then
+  echo "$disk ist kein Blockdevice!"
+  return 1
+ fi
  local grubdir="/cache/boot/grub"
+ local grubenv="$grubdir/grubenv"
+ local grubsharedir="/usr/share/grub"
+ local i
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
- # create a standard menu.lst for local boot which contains current linbo kernel params
- if [ ! -e /cache/.custom.menu.lst -a ! -e /tmp/.menulst.done -a -e /menu.lst ]; then
-  echo "Erstelle menu.lst fuer lokalen Boot."
-  local append=""
-  local vga="vga=785"
-  local kernel="$(kerneltype)"
-  local i
+ if [ ! -e "$doneflag" ]; then
+  echo "Update Master-Bootrecord von $disk."
+  # write grub device.map file
+  echo "(hd0) $disk" > $grubdir/device.map
+  # get append params
   for i in $(cat /proc/cmdline); do
    case "$i" in
-    BOOT_IMAGE=*|server=*|cache=*) true ;;
+    BOOT_IMAGE=*|server=*|cache=*|initrd=*|INITRD=*) true ;;
     *) append="$append $i" ;;
    esac
   done
-  sed -e "s|^kernel /$kernel .*|kernel /$kernel $append|" /menu.lst > /cache/boot/grub/menu.lst
-  touch /tmp/.menulst.done
+  # provide default grub.cfg with current append params
+  sed -e "s|linux /linbo64 .*|linux /linbo64 $append|
+          s|linux /linbo .*|linux /linbo $append|" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
+  # setup grub
+  grub-install --root-directory=/cache "$disk"
+  # provide unicode font
+  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2"
+  # reset grubenv
+  if [ -s "$grubenv" ]; then
+   grub-editenv "$grubenv" unset reboot
+  else
+   grub-editenv "$grubenv" create
+  fi
+  touch "$doneflag"
  fi
- # return if grub-install is already done by earlier invokation
- [ -e /tmp/.mkgrub.done ] && return 0
- # grep all disks from start.conf
- local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
- if [ -z "$disks" ]; then
-  echo "Keine Festplatten zur Grub-Installation gefunden!"
-  return 1
- fi
- local d
- local n=0
- # create device.map which contains all disks
- local devicemap="/cache/boot/grub/device.map"
- rm -f "$devicemap"
- touch "$devicemap"
- for d in $disks; do
-  [ -b "$d" ] || continue
-  echo "(hd${n}) $d" >> "$devicemap"
-  n=$(( n + 1 ))
- done
- # finally write grub to the mbr of all disks
- if [ -s "$devicemap" ]; then
-  for d in `awk '{ print $2 }' "$devicemap"`; do
-   echo "Installiere Grub in MBR auf $d."
-   grub-install --root-directory=/cache "$d" >> /tmp/linbo.log
-  done
-  touch /tmp/.mkgrub.done
+ # save reboot partition in grubenv
+ if [ -n "$reboot" ]; then
+  reboot="$(grub-probe -d $partition -t drive -m $grubdir/device.map)"
+  grub-editenv "$grubenv" set reboot="$reboot"
+  echo "Schreibe Reboot-Partition $reboot nach $grubenv."
  fi
 }
+
+# old mkgrub - writes grub stuff for local boot
+#mkgrub(){
+# local grubdir="/cache/boot/grub"
+# [ -e "$grubdir" ] || mkdir -p "$grubdir"
+# # create a standard menu.lst for local boot which contains current linbo kernel params
+# if [ ! -e /cache/.custom.menu.lst -a ! -e /tmp/.menulst.done -a -e /menu.lst ]; then
+#  echo "Erstelle menu.lst fuer lokalen Boot."
+#  local append=""
+#  local vga="vga=785"
+#  local kernel="$(kerneltype)"
+#  local i
+#  for i in $(cat /proc/cmdline); do
+#   case "$i" in
+#    BOOT_IMAGE=*|server=*|cache=*) true ;;
+#    *) append="$append $i" ;;
+#   esac
+#  done
+#  sed -e "s|^kernel /$kernel .*|kernel /$kernel $append|" /menu.lst > /cache/boot/grub/menu.lst
+#  touch /tmp/.menulst.done
+# fi
+# # return if grub-install is already done by earlier invokation
+# [ -e /tmp/.mkgrub.done ] && return 0
+# # grep all disks from start.conf
+# local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
+# if [ -z "$disks" ]; then
+#  echo "Keine Festplatten zur Grub-Installation gefunden!"
+#  return 1
+# fi
+# local d
+# local n=0
+# # create device.map which contains all disks
+# local devicemap="/cache/boot/grub/device.map"
+# rm -f "$devicemap"
+# touch "$devicemap"
+# for d in $disks; do
+#  [ -b "$d" ] || continue
+#  echo "(hd${n}) $d" >> "$devicemap"
+#  n=$(( n + 1 ))
+# done
+# # finally write grub to the mbr of all disks
+# if [ -s "$devicemap" ]; then
+#  for d in `awk '{ print $2 }' "$devicemap"`; do
+#   echo "Installiere Grub in MBR auf $d."
+#   grub-install --root-directory=/cache "$d" >> /tmp/linbo.log
+#  done
+#  touch /tmp/.mkgrub.done
+# fi
+#}
 
 # tschmitt: mkgrldr bootpart bootfile
 # Creates menu.lst on given windows partition
@@ -764,9 +803,9 @@ download(){
  local RC=1
  [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
  rm -f "$TMP"
- interruptible rsync -HaLz --partial "$1::linbo/$2" "$2" 2>"$TMP"; RC="$?"
+ interruptible rsync -HaLz --partial "$1::linbo/$2" "$(basename $2)" 2>"$TMP"; RC="$?"
  if [ "$RC" != "0" ]; then
-  # Delete incomplete/defective/non-existent file (maybe we should check for returncde=23 first?)
+  # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
   rm -f "$2" 2>/dev/null
   if [ -n "$3" ]; then
    # Verbose error message if file was important
@@ -799,8 +838,8 @@ invoke_macct(){
 # start boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
- local WINDOWS=""
  local LOADED=""
+ local REBOOT=""
  local KERNEL="/mnt/$3"
  local INITRD=""
  local APPEND="$5"
@@ -809,11 +848,6 @@ start(){
  local disk="${1%%[1-9]*}"
  if mountpart "$1" /mnt -w 2>> /tmp/linbo.log; then
   [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
-  # tschmitt: repairing grub mbr on every start
-  #if mountcache "$6" && cache_writable ; then
-   #mkgrub "$disk"
-  #fi
-  (mountcache "$6" && cache_writable) && mkgrub
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
     # tschmitt: use builtin grub.exe in any case
@@ -824,11 +858,8 @@ start(){
     ;;
    *[Rr][Ee][Bb][Oo][Oo][Tt]*)
      # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
-     WINDOWS="yes"
      LOADED="true"
-     echo "Schreibe Reboot-Flag auf $1."
-     dd if=/dev/zero of=/mnt/.linbo.reboot bs=2k count=1 2>> /tmp/linbo.log
-     cp /mnt/.linbo.reboot /mnt/.grub.reboot
+     REBOOT="true"
      ;;
    *)
     if [ -n "$2" ]; then
@@ -836,6 +867,8 @@ start(){
     fi
     ;;
   esac
+  # tschmitt: repairing grub mbr on every start
+  (mountcache "$6" && cache_writable) && mkgrub "$1" "$REBOOT"
   # provide a menu.lst for grldr on win2k/xp
   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
    mkgrldr "$1" "/bootmgr"
@@ -866,7 +899,7 @@ start(){
  # No more timer interrupts (deprecated)
  #[ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
  #[ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
- if [ -z "$WINDOWS" ]; then
+ if [ -z "$REBOOT" ]; then
   echo "kexec -l $INITRD --append=\"$APPEND\" $KERNEL" >> /tmp/linbo.log
   kexec -l $INITRD --append="$APPEND" $KERNEL 2>&1 >> /tmp/linbo.log && LOADED="true"
   #sleep 3
@@ -878,20 +911,11 @@ start(){
   umount /cache || umount -l /cache 2>/dev/null
  fi
  if [ -n "$LOADED" ]; then
-  # Workaround for missing speedstep-capability of Windows (deprecated)
-  #local i=""
-  #for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-  # if [ -f "$i" ]; then
-  #  echo "Setze CPU #$((cpunum++)) auf maximale Leistung."
-  #  echo "performance" > "$i"
-  # fi
-  #done
-  #[ "$cpunum" -gt "1" ] && sleep 4
   # We basically do a quick shutdown here.
   killall5 -15
-  [ -z "$WINDOWS" ] && sleep 2
+  [ -z "$REBOOT" ] && sleep 2
   echo -n "c" >/dev/console
-  if [ -z "$WINDOWS" ]; then
+  if [ -z "$REBOOT" ]; then
    exec kexec -e --reset-vga &> /dev/null
    # exec kexec -e
    sleep 10
@@ -2043,8 +2067,9 @@ update(){
  local disk="${cachedev%%[1-9]*}"
  mountcache "$cachedev" || return 1
  cd /cache
- local kernel="$(kerneltype)"
- local kernelfs="$(kernelfstype)"
+ local is_64="$(get_64)"
+ local kernel="linbo${is_64}"
+ local kernelfs="linbofs${is_64}.lz"
 
  # local restore of start.conf in cache (necessary if cache partition was formatted before)
  [ -s start.conf ] || cp /start.conf .
@@ -2054,21 +2079,17 @@ update(){
  # grub update
  if [ -s "$kernel" -a -s "$kernelfs" ]; then
   mkdir -p /cache/boot/grub
-  # only if online
-  if ! localmode; then
-   # fetch pxe kernel
-   download "$server" "gpxe.krn"
-   # tschmitt: provide custom local menu.lst
-   download "$server" "menu.lst.$group"
-   if [ -e "/cache/menu.lst.$group" ]; then
-    mv "/cache/menu.lst.$group" /cache/boot/grub/menu.lst || RC=1
-    # flag for downloaded custom menu.lst
-    touch /cache/.custom.menu.lst
-   else
-    rm -f /cache/.custom.menu.lst
-   fi
-  fi # localmode
-  mkgrub || RC=1
+  # deprecated with grub2
+  # fetch pxe kernel
+  #download "$server" "gpxe.krn"
+  # tschmitt: provide custom group specific grub config
+  download "$server" "grub/${group}.cfg" || RC=1
+  if [ -e "/cache/${group}.cfg" ]; then
+   mv "/cache/${group}.cfg" /cache/boot/grub/custom.cfg || RC=1
+  else
+   rm -f /cache/boot/grub/custom.cfg
+  fi
+  mkgrub "$disk" || RC=1
  fi
  cd / ; sendlog
  #umount /cache

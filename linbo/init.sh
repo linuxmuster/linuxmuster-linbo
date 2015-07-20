@@ -683,6 +683,9 @@ fi
 
 # splash mode
 
+# convert wallpaper to splash image
+pngtopnm /icons/linbo_wallpaper.png > /etc/splash.pnm
+
 # no kernel messages, no screen blanking
 setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0
 tput clear

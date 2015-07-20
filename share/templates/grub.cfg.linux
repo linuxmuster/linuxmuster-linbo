@@ -1,0 +1,21 @@
+# group specific grub.cfg template for linbo net boot, linux os
+# thomas@linuxmuster.net
+# 20.07.2015
+#
+
+# default #@@nr@@
+menuentry '@@osname@@' {
+
+ set root="@@osroot@@"
+
+ if [ -e /@@kernel@@ -a -e /@@initrd@@ ]; then
+  linux /@@kernel@@ root=@@partition@@ @@append@@
+  initrd /@@initrd@@
+ elif [ -s /boot/grub/grub.cfg ] ; then
+  configfile /boot/grub/grub.cfg
+ else
+  chainloader +1
+ fi
+
+}
+

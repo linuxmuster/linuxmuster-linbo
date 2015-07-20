@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 17.07.2015
+# 19.07.2015
 # GPL v3
 #
 
@@ -145,9 +145,10 @@ SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
 BIN32_DEBS=bc bluez bvi cloop-utils ctorrent dosfstools dropbear e2fsprogs \
-           ethtool kmod libc-bin libgpod-common libmtp-runtime mount ncurses-bin \
-           pcmciautils reiserfsprogs rsync sysvinit-utils udev udisks udpcast \
-           util-linux xserver-xorg-input-vmmouse
+           ethtool grub-pc grub-pc-bin grub-common grub2-common kmod libc-bin \
+           libgpod-common libmtp-runtime libnetpbm10 libpng12-0 mount netpbm \
+           ncurses-bin pcmciautils reiserfsprogs rsync sysvinit-utils udev \
+           udisks udpcast util-linux xserver-xorg-input-vmmouse
 
 configure: configure-stamp
 configure-stamp:
@@ -550,12 +551,14 @@ build-stamp: configure-stamp
 	# linbo_gui
 	-@if [ ! -e $(CURDIR)/linbo_gui/linbo_gui ]; then \
 		echo "[1mBuilding linbo_gui...[0m" ; \
+		cp var/icons/linbo_wallpaper_800x600.png linbo_gui/icons/linbo_wallpaper.png ; \
 		( cd linbo_gui && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 ./build_gui ); \
 	fi
 
 	# linbo_gui64
 	-@if [ ! -e $(CURDIR)/linbo_gui64/linbo_gui ]; then \
 		echo "[1mBuilding 64bit linbo_gui...[0m" ; \
+		cp var/icons/linbo_wallpaper_800x600.png linbo_gui64/icons/linbo_wallpaper.png ; \
 		( cd linbo_gui64 && ./build_gui ); \
 	fi
 
@@ -719,9 +722,10 @@ install: build
 	cd $(KERNEL_DIR) ; \
 	ln -snf ../initramfs.conf . ; \
 	:> ../initramfs.conf ; \
-	#cat $(CURDIR)/conf/initramfs_kernel.conf $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
+	echo "# grub2 boot images" >> $(CURDIR)/kernel/initramfs.conf ; \
+	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*.[mli][osm][dtg]" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	( cd ../../src/bin32 && find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p ../../src/bin32/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel/initramfs.conf ; \
@@ -736,9 +740,10 @@ install: build
 	cd $(KERNEL64_DIR) ; \
 	ln -snf ../initramfs.conf ./initramfs.conf ; \
 	:> ../initramfs.conf ; \
-	#cat $(CURDIR)/conf/initramfs_kernel.conf $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
+	echo "# grub2 boot images" >> $(CURDIR)/kernel64/initramfs.conf ; \
+	( cd /usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*.[mli][osm][dtg]" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
@@ -758,45 +763,56 @@ install: build
 	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	# /var/linbo
 	cp -r var/* debian/linuxmuster-linbo/var/linbo
-	sed -e 's|@@version@@|$(LVERS)|' -i debian/linuxmuster-linbo/var/linbo/boot.msg
-	install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
-	install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst
+	#sed -e 's|@@version@@|$(LVERS)|' -i debian/linuxmuster-linbo/var/linbo/boot.msg
+	#install -m 644 $(GRUB4DOS_DIR)/stage2/grub.exe debian/linuxmuster-linbo/var/linbo/grub.exe
+	#install -m 644 linbo/menu.lst debian/linuxmuster-linbo/var/linbo/examples/menu.lst
+	# grub pxe
+	install -m 644 /usr/lib/grub/i386-pc/*.[ml][os][dt] debian/linuxmuster-linbo/var/linbo/grub/i386-pc
+	install -m 644 /usr/lib/grub/i386-efi/*.[ml][os][dt] debian/linuxmuster-linbo/var/linbo/grub/i386-efi
+	install -m 644 /usr/lib/grub/x86_64-efi/*.[ml][os][dt] debian/linuxmuster-linbo/var/linbo/grub/x86_64-efi
+	install -m 644 /usr/share/grub/unicode.pf2 debian/linuxmuster-linbo/var/linbo/grub/unicode.pf2
+	grub-mkimage -o debian/linuxmuster-linbo/var/linbo/bios/grub.pxe -O i386-pc-pxe -p /grub cpuid net pxe tftp
+	grub-mkimage -o debian/linuxmuster-linbo/var/linbo/efi32/bootia32.efi -O i386-efi -p /grub cpuid efi_gop efi_uga efifwsetup efinet tftp
+	grub-mkimage -o debian/linuxmuster-linbo/var/linbo/efi64/bootx64.efi -O x86_64-efi -p /grub cpuid efi_gop efi_uga efifwsetup efinet tftp
+	install -m 644 var/examples/grub.cfg.pxe-default debian/linuxmuster-linbo/var/linbo/grub/grub.cfg
+	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo/var/linbo/grub/ipxe.lkrn
+	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo/var/linbo/grub/ipxe.efi
 	# syslinux bios
-	install -m 644 $(SYSLINUX_DIR)/bios/core/pxelinux.0 debian/linuxmuster-linbo/var/linbo/bios/pxelinux.0
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/elflink/ldlinux/ldlinux.c32 debian/linuxmuster-linbo/var/linbo/bios/ldlinux.c32
-	install -m 644 $(SYSLINUX_DIR)/bios/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/bios/memdisk
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/bios/menu.c32
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/bios/vesamenu.c32
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/bios/libcom32.c32
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/bios/libutil.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/core/pxelinux.0 debian/linuxmuster-linbo/var/linbo/bios/pxelinux.0
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/elflink/ldlinux/ldlinux.c32 debian/linuxmuster-linbo/var/linbo/bios/ldlinux.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/memdisk/memdisk debian/linuxmuster-linbo/var/linbo/bios/memdisk
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/bios/menu.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/bios/vesamenu.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/bios/libcom32.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/bios/libutil.c32
     # syslinux efi32
-	install -m 644 $(SYSLINUX_DIR)/efi32/efi/syslinux.efi debian/linuxmuster-linbo/var/linbo/efi32/bootia32.efi
-	install -m 644 $(SYSLINUX_DIR)/efi32/com32/elflink/ldlinux/ldlinux.e32 debian/linuxmuster-linbo/var/linbo/efi32/ldlinux.e32
-	install -m 644 $(SYSLINUX_DIR)/efi32/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/efi32/menu.c32
-	install -m 644 $(SYSLINUX_DIR)/efi32/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/efi32/vesamenu.c32
-	install -m 644 $(SYSLINUX_DIR)/efi32/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/efi32/libcom32.c32
-	install -m 644 $(SYSLINUX_DIR)/efi32/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/efi32/libutil.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi32/efi/syslinux.efi debian/linuxmuster-linbo/var/linbo/efi32/bootia32.efi
+	#install -m 644 $(SYSLINUX_DIR)/efi32/com32/elflink/ldlinux/ldlinux.e32 debian/linuxmuster-linbo/var/linbo/efi32/ldlinux.e32
+	#install -m 644 $(SYSLINUX_DIR)/efi32/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/efi32/menu.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi32/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/efi32/vesamenu.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi32/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/efi32/libcom32.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi32/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/efi32/libutil.c32
     # syslinux efi64
-	install -m 644 $(SYSLINUX_DIR)/efi64/efi/syslinux.efi debian/linuxmuster-linbo/var/linbo/efi64/bootx64.efi
-	install -m 644 $(SYSLINUX_DIR)/efi64/com32/elflink/ldlinux/ldlinux.e64 debian/linuxmuster-linbo/var/linbo/efi64/ldlinux.e64
-	install -m 644 $(SYSLINUX_DIR)/efi64/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/efi64/menu.c32
-	install -m 644 $(SYSLINUX_DIR)/efi64/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/efi64/vesamenu.c32
-	install -m 644 $(SYSLINUX_DIR)/efi64/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/efi64/libcom32.c32
-	install -m 644 $(SYSLINUX_DIR)/efi64/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/efi64/libutil.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi64/efi/syslinux.efi debian/linuxmuster-linbo/var/linbo/efi64/bootx64.efi
+	#install -m 644 $(SYSLINUX_DIR)/efi64/com32/elflink/ldlinux/ldlinux.e64 debian/linuxmuster-linbo/var/linbo/efi64/ldlinux.e64
+	#install -m 644 $(SYSLINUX_DIR)/efi64/com32/menu/menu.c32 debian/linuxmuster-linbo/var/linbo/efi64/menu.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi64/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/efi64/vesamenu.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi64/com32/lib/libcom32.c32 debian/linuxmuster-linbo/var/linbo/efi64/libcom32.c32
+	#install -m 644 $(SYSLINUX_DIR)/efi64/com32/libutil/libutil.c32 debian/linuxmuster-linbo/var/linbo/efi64/libutil.c32
 	# /usr/share/linuxmuster-linbo
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
-	install -m 644 linbo_gui/icons/linbo_wallpaper.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo_wallpaper.png
+	#install -m 644 linbo_gui/icons/linbo_wallpaper.png debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/linbo_wallpaper.png
 	# /usr/lib/linuxmuster-linbo
-	install -m 644 $(SYSLINUX_DIR)/bios/core/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
-	install -m 644 $(SYSLINUX_DIR)/bios/core/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
-	install -m 644 $(SYSLINUX_DIR)/bios/com32/modules/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
-	install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxelinux.0
-	install -m 755 $(SYSLINUX_DIR)/bios/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
-	install -m 644 $(SYSLINUX_DIR)/bios/memdisk/memdisk debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/memdisk
-	install -m 644 $(SYSLINUX_DIR)/bios/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
-	install -m 644 $(SYSLINUX_DIR)/bios/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
-	install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
+	#install -m 644 $(SYSLINUX_DIR)/bios/core/isolinux.bin debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/isolinux.bin
+	#install -m 644 $(SYSLINUX_DIR)/bios/core/pxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/pxelinux.0
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/menu/vesamenu.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/vesamenu.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/com32/modules/reboot.c32 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/reboot.c32
+	#install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxelinux.0
+	#install -m 755 $(SYSLINUX_DIR)/bios/linux/syslinux debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux
+	#install -m 644 $(SYSLINUX_DIR)/bios/memdisk/memdisk debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/memdisk
+	#install -m 644 $(SYSLINUX_DIR)/bios/win32/syslinux.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux.exe
+	#install -m 644 $(SYSLINUX_DIR)/bios/win64/syslinux64.exe debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/syslinux64.exe
+	#install -m 644 $(SYSLINUX_DIR)/bios/gpxe/gpxelinux.0 debian/linuxmuster-linbo/usr/lib/linuxmuster-linbo/gpxe.krn
 
 # Build architecture-independent files here.
 binary-indep: build install

@@ -5,6 +5,7 @@
 
 [LINBO]                         # globale Konfiguration
 Cache = //10.16.1.1/linbo-repo  # Cache auf server smb share
+SystemType = bios               # Mögliche Werte: bios|bios64|efi32|efi64
 Server = 10.16.1.1              # IP des TFTP-Servers, der Images vorhaelt
 RootTimeout = 600               # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no              # keine automatische Partitionsreparatur beim LINBO-Start
@@ -12,7 +13,7 @@ AutoFormat = no                 # kein automatisches Formatieren aller Partition
 AutoInitCache = no              # kein automatisches Befüllen des Caches beim LINBO-Start
 DownloadType = multicast        # Image-Download per torrent|multicast|rsync, default ist rsync
 #KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
-KernelOptions =
+KernelOptions = quiet splash
 
 [Partition]                     # Start einer Partitionsdefinition, Windows XP
 Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster Platte)

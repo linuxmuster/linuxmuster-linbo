@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-2) babo-testing; urgency=low
+
+  * feature/grub2.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Jul 2015 21:21:00 +0200
+
 linuxmuster-linbo (2.3.0-1) babo-testing; urgency=low
 
   * changed to kernel 3.2.53 with backports 4.1.1-1, e1000e 3.2.4.2 and tg3 3.137h.

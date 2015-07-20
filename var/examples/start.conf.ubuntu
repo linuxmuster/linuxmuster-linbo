@@ -6,8 +6,8 @@
 # Festplatte 160G
 
 [LINBO]                             # Start der globalen Konfiguration
-Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhält
-Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
+Server = 10.16.1.1                  # IP des Linbo-Servers, der das Linbo-Repository vorhält
+Group = gruppe                      # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda2                   # lokale Cache Partition
 RootTimeout = 600                   # automatischer Rootlogout nach 600 Sek.
@@ -19,7 +19,7 @@ BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
 ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
 ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
 SystemType = bios                   # moeglich ist bios|bios64|efi32|efi64 (Standard: bios fuer bios 32bit)
-KernelOptions =          # Beispiele:
+KernelOptions = quiet splash        # Beispiele:
 #KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
 #KernelOptions = server=10.16.1.5  # Abweichende Linbo-Server-IP als Kerneloption gesetzt
                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet 

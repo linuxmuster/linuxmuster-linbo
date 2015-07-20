@@ -1,0 +1,22 @@
+# group specific grub.cfg template for linbo net boot, windows os
+# thomas@linuxmuster.net
+# 20.07.2015
+#
+
+# default #@@nr@@
+menuentry '@@osname@@' {
+
+ set root="@@osroot@@"
+
+ if [ -s /bootmgr ] ; then
+  ntldr /bootmgr
+ elif [ -s /grldr ] ; then
+  ntldr /grldr
+ elif [ -s /ntldr ] ; then
+  ntldr /ntldr
+ else
+  chainloader +1
+ fi
+
+}
+

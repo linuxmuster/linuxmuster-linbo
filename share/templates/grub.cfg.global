@@ -1,0 +1,45 @@
+# global part of group specific grub.cfg template for linbo net boot
+# thomas@linuxmuster.net
+# 20.07.2015
+#
+
+# if you don't want this file being overwritten by import_workstations remove the following line:
+# ### managed by linuxmuster.net ###
+
+# edit to your needs
+set default=0
+set timeout=0
+set fallback=1
+set menu_color_normal=cyan/blue
+set menu_color_highlight=white/blue
+set gfxpayload=800x600x16
+
+# linbo part, detect pxe or local boot (default #0)
+if [ -n $net_pxe_boot_file ]; then
+
+ menuentry 'LINBO pxe' {
+  set root=(pxe)
+  if cpuid -l; then
+   linux /linbo64 @@kopts@@
+   initrd /linbofs64.lz
+  else
+   linux /linbo @@kopts@@
+   initrd /linbofs.lz
+  fi
+ }
+
+else
+
+ # local boot
+ menuentry 'LINBO lokal' {
+  if [ -e /linbofs64.lz ]; then
+   linux /linbo64 @@kopts@@
+   initrd /linbofs64.lz
+  else
+   linux /linbo @@kopts@@
+   initrd /linbofs.lz
+  fi
+ }
+
+fi
+
