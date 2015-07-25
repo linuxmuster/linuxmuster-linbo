@@ -60,21 +60,21 @@ case "$1" in
  echo "Setting server ip in start.conf.default."
  sed -e "s/^[Ss][Ee][Rr][Vv][Ee][Rr] = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i "$LINBODIR/start.conf"
 
- # provide the default pxelinux configfile
- conf="$PXECFGDIR/default"
- if [ ! -s "$conf" -o -L "$conf" ]; then
-  echo "Creating default pxelinux configfile."
-  rm -f "$conf"
-  tpl="$LINBOTPLDIR/default.pxe"
-  sed -e "s|@@default@@|linbo|
-          s|@@kopts@@||g" "$tpl" > "$conf"
- fi
+ # provide the default pxelinux configfile, deprecated with grub2
+# conf="$PXECFGDIR/default"
+# if [ ! -s "$conf" -o -L "$conf" ]; then
+#  echo "Creating default pxelinux configfile."
+#  rm -f "$conf"
+#  tpl="$LINBOTPLDIR/default.pxe"
+#  sed -e "s|@@default@@|linbo|
+#          s|@@kopts@@||g" "$tpl" > "$conf"
+# fi
 
- # pxelinux configfiles and menu.lst update
- for i in $PXECFGDIR/* $LINBODIR/menu.lst.*; do
-  [ -f "$i" ] || continue
-  grep -q linbofs.gz "$i" && sed -e 's|linbofs.gz|linbofs.lz|g' -i $i
- done
+ # pxelinux configfiles and menu.lst update, deprecated with grub2
+# for i in $PXECFGDIR/* $LINBODIR/menu.lst.*; do
+#  [ -f "$i" ] || continue
+#  grep -q linbofs.gz "$i" && sed -e 's|linbofs.gz|linbofs.lz|g' -i $i
+# done
 
  # start.confs update
  if ls $LINBODIR/start.conf.* &> /dev/null; then

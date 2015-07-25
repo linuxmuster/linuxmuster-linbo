@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 05.02.2014
+# 23.07.2015
 #
 
 # read linuxmuster environment
@@ -110,9 +110,19 @@ echo "Ok!"
 
 }
 
+# create download links for linbo kernel and initrd so it can be downloaded per http
+create_www_links(){
+ [ -d /var/www ] || return
+ for i in linbo linbo64 linbofs.lz linbofs64.lz; do
+  ln -sf "$LINBODIR/$i" /var/www/
+ done
+}
+
 update_linbofs
 
 update_linbofs 64
+
+create_www_links
 
 # clean tmpdir
 cd "$curdir"

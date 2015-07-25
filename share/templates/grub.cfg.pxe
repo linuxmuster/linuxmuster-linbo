@@ -1,0 +1,96 @@
+#
+# default grub.cfg, pxe boot version (placed on server)
+# thomas@linuxmuster.net
+# 24.07.2015
+#
+
+set default=0
+set fallback=1
+set timeout=0
+
+set menu_color_normal=cyan/blue
+set menu_color_highlight=white/blue
+set gfxpayload=800x600x16
+set prefix=/boot/grub
+
+# try to boot OS directly if reboot method is set
+menuentry 'Reboot' {
+
+ # find cache partition and set it to root
+ if search --set root --file /start.conf; then
+
+  # read grub environment variables
+  if [ -s /boot/grub/grubenv ]; then
+   load_env
+  fi
+
+  # if reboot is set try to load the os on the given partition
+  if [ "${reboot}" ] ; then
+
+   set tmproot="${reboot}"
+   set reboot=""
+   save_env reboot
+   set root="${tmproot}"
+
+   if [ -s /boot/grub/grub.cfg ] ; then
+    configfile /boot/grub/grub.cfg
+   elif [ -s /bootmgr ] ; then
+    ntldr /bootmgr
+   elif [ -s /grldr ] ; then
+    ntldr /grldr
+   elif [ -s /ntldr ] ; then
+    ntldr /ntldr
+   else
+    chainloader +1
+   fi
+
+  fi
+
+ fi
+}
+
+# fallback to netboot
+menuentry 'LINBO net' {
+
+ # compute path to group specific config
+ if [ "$grub_platform" = "efi" ]; then
+  set prefix=(tftp)/boot/grub
+  if [ -n "$net_efinet0_extensionspath" ]; then
+   set grubcfg="$prefix/${net_efinet0_extensionspath}.cfg"
+  elif [ -n "$net_efinet1_extensionspath" ]; then
+   set grubcfg="$prefix/${net_efinet1_extensionspath}.cfg"
+  elif [ -n "$net_efinet2_extensionspath" ]; then
+   set grubcfg="$prefix/${net_efinet2_extensionspath}.cfg"
+  fi
+ else
+  set prefix=(pxe)/boot/grub
+  set grubcfg="$prefix/${net_pxe_extensionspath}.cfg"
+ fi
+
+ # load group specific config from server
+ if [ -s $grubcfg ]; then
+  configfile $grubcfg
+
+ # or netboot linbo directly
+ else
+
+  # fetch linbo kernel per http
+  set root=(http)
+  
+  # 32bit or 64bit kernel
+  if cpuid -l; then
+   set kernel=/linbo64
+   set initrd=/linbofs64.lz
+  else
+   set kernel=/linbo
+   set initrd=/linbofs.lz
+  fi
+  echo "Loading $kernel .."
+  linux $kernel splash quiet
+  echo "Loading $initrd .."
+  initrd $initrd
+
+ fi
+
+}
+

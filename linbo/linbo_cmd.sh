@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 19.07.2015
+# 24.07.2015
 # GPL v3
 #
 
@@ -258,7 +258,7 @@ hostgroup(){
 systemtype(){
  local systemtype="bios"
  [ -s /start.conf ] || return 1
- systemtype=`grep -i ^SystemType /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
+ systemtype=`grep -iw ^SystemType /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }'`
  echo "$systemtype"
 }
 
@@ -535,6 +535,97 @@ killalltorrents(){
  fi
 }
 
+# partition with parted, invoked by partition() for each disk
+# args: table
+mkparted(){
+ local table="$1"
+ [ -s "$table" ] || return 1
+ local disk="/dev/$(basename "$table")"
+ [ -b "$disk" ] || return 1
+ local dev
+ local start
+ local partstart
+ local end
+ local partend
+ local size
+ local unit="kiB"
+ local begin="1024"
+ local id
+ local fstype
+ local partfstype
+ local label="msdos"
+ local parttype="primary"
+ local bootable
+ local RC=0
+ local BASECMD="parted -s -a cylinder $disk"
+ local CMD
+ # efi system -> gpt label
+ systemtype | grep -qi efi && label="gpt"
+ parted -s "$disk" mklabel "$label" || RC="1"
+
+ local n=0
+ while read dev size id fstype bootable; do
+  n=$(( n + 1 ))
+  
+  # begin of first partition
+  if [ $n -eq 1 ]; then
+   start=$begin
+  else
+   # start of next partition is the end of the partition before
+   start=$end
+  fi
+  partstart=$start$unit
+  
+  # partitions after "extended" are "logical"
+  [ "$parttype" = "extended" ] && parttype="logical"
+
+  # handle size if not set
+  if [ "$size" = "-" ]; then
+   partend="-1"
+  else
+   end=$(( start + size ))
+   partend=$end$unit
+  fi
+
+  # handle parteds fstypes
+  case "$id" in
+   5) parttype="extended" ; pfstype="" ;;
+   6|e) partfstype="fat16" ;;
+   7) partfstype="NTFS" ;;
+   b|c|ee|ef) partfstype="fat32" ;;
+   82) partfstype="linux-swap" ;;
+   83) partfstype="ext2" ;;
+   *) partfstype="ext2" ;;
+  esac
+
+  # build parted mkpart command line
+  if [ "$partend" = "-1" ]; then
+   CMD="$BASECMD -- mkpart"
+  else
+   CMD="$BASECMD mkpart"
+  fi
+  if [ "$parttype" = "extended" ]; then
+   CMD="$CMD $parttype $partstart $partend"
+  else
+   CMD="$CMD $parttype $pfstype $partstart $partend"
+  fi
+  
+  # execute parted
+  echo "$CMD"
+  $CMD || RC="1"
+
+  # note: with gparted only one partition can own the bootable flag, so the last one wins
+  if [ "$bootable" = "[Yy][Ee][Ss]" ]; then
+   parted -s "$disk" set $n boot on || RC="1"
+  fi
+
+  # format partition if NOFORMAT is not set
+  [ -z "$NOFORMAT" ] && format "$dev" "$fstype"
+
+ done < "$table"
+ return "$RC"
+}
+
 # Changed: All partitions start on cylinder boundaries.
 # partition dev1 size1 id1 bootable1 filesystem dev2 ...
 # When "$NOFORMAT" is set, format is skipped, otherwise all
@@ -555,126 +646,42 @@ partition(){
   fi
  fi
 
- # grep all disks from start.conf
+ # collect partition infos from start.conf
+ local dev
+ local size
+ local id
+ local fstype
+ local bootable
+ local table="/tmp/partitions"
+ local n
+ local max
+ local RC=0
+ n=0
+ max="$(grep -ci ^'\[Partition\]' /start.conf)"
+ rm -f "$table"
+ while true; do
+  n=$(( n + 1 ))
+  [ $n -gt $max ] && break
+  dev="$(grep -iw -m $n ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
+  size="$(grep -iw -m $n ^size /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
+  [ -z "$size" ] && size="-"
+  id="$(grep -iw -m $n ^id /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
+  fstype="$(grep -iw -m $n ^fstype /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
+  bootable="$(grep -iw -m $n ^bootable /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
+  # write infos to table file
+  echo "$dev $size $id $fstype $bootable" >> "$table"
+ done
+ # get all disks from start.conf
  local disks="$(get_disks)"
- # compute the last partition of each disk
- local i=""
- for i in $disks; do
-  local lastpartitions="$lastpartitions $(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -r | grep $i | head -1)"
+ local disk
+ local diskname
+ # sort table by disks and partitions
+ for disk in $disks; do
+  diskname="${disk#\/dev\/}"
+  grep ^"$disk" "$table" | sort > "/tmp/$diskname"
+  mkparted "/tmp/$diskname" || RC=1
  done
-
- while [ "$#" -ge "5" ]; do
-  # support multiple disks
-  local disk="$(get_disk_from_partition "$1")"
-  if echo "$disks" | grep -q "$disk"; then
-   disks="$(echo "$disks" | sed -e "s|$disk||")"
-   local table=""
-   local formats=""
-   local cylinders=""
-   local disksize=""
-   local dummy=""
-   local relax=""
-   local pcount=0
-   local fstype=""
-   local bootable=""
-   read d cylinders relax <<.
-$(sfdisk -g "$disk" 2>> /tmp/linbo.log)
-.
-   read disksize relax <<.
-$(sfdisk -s "$disk" 2>> /tmp/linbo.log)
-.
-   [ -n "$cylinders" -a "$cylinders" -gt 0 -a -n "$disksize" -a "$disksize" -gt 0 ] >/dev/null 2>&1 || { echo "Festplatten-Geometrie von $disk lässt sich nicht lesen, cylinders=$cylinders, disksize=$disksize, Abbruch." >&2; return 1; }
-  fi
-  # compute partition table
-  local dev="$1"
-  [ -n "$dev" ] || continue
-  local csize=""
-  if [ "$2" -gt 0 ] 2>/dev/null; then
-   # knopper begin
-   ## Cylinders = kilobytes * totalcylinders / totalkilobytes
-   #csize="$(($2 * $cylinders / $disksize))"
-   #[ "$(($csize * $disksize / $cylinders))" -lt "$2" ] && let csize++
-   # knopper end
-   # jonny begin
-   # sektoren = kilobytes * 2 
-   csize="$(($2 * 2))"
-   # jonny end
-  fi
-  if [ -n "$table" ]; then
-   table="$table
-"
-  fi
-  let pcount++
-  # Is this a primary partition?
-  local partno="$(expr "$dev" : ".*\([[:digit:]]\)")" # fix syntax highlighting: "
-  if [ "$partno" -gt 4 ] >/dev/null 2>&1; then
-   # Fill up unused partitions
-   while [ "$pcount" < 5 ]; do
-    table="$table;
-"
-    let pcount++
-   done
-  fi
-  # handle bootable flag
-  bootable="$4"
-  [ "$bootable" = "bootable" ] || bootable=""
-  # handle fstype
-  fstype="$5"
-  [ "$fstype" = "-" ] && fstype=""
-  # Insert table entry.
-  # knopper begin
-  # table="$table,$csize,$3${bootable:+,*}"
-  # knopper end
-  # jonny begin
-  if [ "$pcount" -eq 1 ] >/dev/null 2>&1; then  
-   table="2048,$csize,$3${bootable:+,*}"
-   ts0="$csize"
-  fi
-  if [ "$pcount" -eq 2 ] >/dev/null 2>&1; then  
-   table="$table$(($ts0 + 2048)),$csize,$3${bootable:+,*}"
-   ts1="$csize"
-  fi
-  if [ "$pcount" -eq 3 ] >/dev/null 2>&1; then  
-   table="$table$(($ts0 + $ts1 + 2048)),$csize,$3${bootable:+,*}"
-   ts2="$csize"
-  fi
-  if [ "$pcount" -eq 4 ] >/dev/null 2>&1; then  
-   if [ "$3" -eq 5 ] >/dev/null 2>&1; then  
-    ts2=$(($ts2 + 2047))
-   fi
-   table="$table$(($ts0 + $ts1 + $ts2 + 2048)),$csize,$3${bootable:+,*}"
-   ts3="$csize"
-  fi
-  if [ "$pcount" -eq 5 ] >/dev/null 2>&1; then  
-   table="$table,$(($csize - 1)),$3${bootable:+,*}"
-  fi
-  if [ "$pcount" -gt 5 ] >/dev/null 2>&1; then  
-   table="$table,$csize,$3${bootable:+,*}"
-  fi
-  # jonny end
-  [ -n "$fstype" ] && formats="$formats $dev,$fstype"
-  shift 5
-  # write partition table if last disk partition is reached
-  if echo "$lastpartitions" | grep -q "$dev"; then
-   # sfdisk -D -f "$disk" 2>&1 <<EOT
-   # jonny 
-   sfdisk -uS -f "$disk" 2>> /tmp/linbo.log <<EOT
-$table
-EOT
-   RC="$?"
-   if [ "$RC" != "0" ]; then
-    echo "Partitionierung von $disk gescheitert!"
-    return "$RC"
-   fi
-   if [ -z "$NOFORMAT" ]; then
-    sleep 2
-    local i=""
-    for i in $formats; do
-     format "${i%%,*}" "${i##*,}" 2>> /tmp/linbo.log
-    done
-   fi # format
-  fi # lastpartitions
- done
+ return $RC
 }
 
 # write grub stuff
@@ -869,12 +876,12 @@ start(){
   esac
   # tschmitt: repairing grub mbr on every start
   (mountcache "$6" && cache_writable) && mkgrub "$1" "$REBOOT"
-  # provide a menu.lst for grldr on win2k/xp
+  # provide a menu.lst for grldr on win2k/xp, obsolete
   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
-   mkgrldr "$1" "/bootmgr"
+   #mkgrldr "$1" "/bootmgr"
    APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
-  elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-   mkgrldr "$1" "/ntldr"
+  #elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
+   #mkgrldr "$1" "/ntldr"
   elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
    # tschmitt: patch autoexec.bat (win98),
    if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
@@ -882,7 +889,7 @@ start(){
     unix2dos /mnt/AUTOEXEC.BAT
    fi
    # provide a menu.lst for grldr on win98
-   mkgrldr "$1" "/io.sys"
+   #mkgrldr "$1" "/io.sys"
    # change bootloader for win98 systems
    APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
   fi
@@ -933,11 +940,19 @@ start(){
 # return partition size in kilobytes
 # arg: partition
 get_partition_size(){
+ local part="$1"
+ local disk="${part%%[1-9]*}"
+ local partnr="$(echo "$part" | sed -e 's|/dev/[hsv]da||')"
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
  fi
- sfdisk -s "$1" 2>> /tmp/linbo.log
+ if  [ "$disk" = "$part" ]; then
+  parted -sm /dev/sda unit kiB print | grep ^${disk}: | awk -F\: '{ print $2 }' | sed 's|kiB||' 2>> /tmp/linbo.log
+ else
+  parted -sm "$disk" unit kiB print | grep ^${partnr}: | awk -F\: '{ print $4 }' | sed 's|kiB||' 2>> /tmp/linbo.log
+ fi
+ #sfdisk -s "$1" 2>> /tmp/linbo.log
  return $?
 }
 
@@ -2057,9 +2072,18 @@ syncr(){
  syncl "$@"
 }
 
-# update server cachedev 
+# update server cachedev force
 update(){
  echo -n "update " ;  printargs "$@"
+ local doneflag="/tmp/.update.done"
+ local force="$3"
+ if [ -e "$doneflag" -a -z "$force" ]; then
+  echo "LINBO-Update wurde in dieser Session schon einmal ausgefuehrt!"
+  return 0
+ else
+  rm -f "$doneflag"
+ fi
+
  local RC=0
  local group="$(hostgroup)"
  local server="$1"
@@ -2095,6 +2119,7 @@ update(){
  #umount /cache
  if [ "$RC" = "0" ]; then
   echo "LINBO update fertig."
+  touch "$doneflag"
  else
   echo "Lokale Installation von LINBO hat nicht geklappt." >&2
  fi
@@ -2299,7 +2324,7 @@ size(){
    awk '{printf "%.1f/%.1fGB\n", $4 / 1048576, $2 / 1048576}' 2>/dev/null
   umount /mnt
  else
-  local d=$(sfdisk -s $1 2>> /tmp/linbo.log)
+  local d=$(get_partition_size "$1")
   if [ "$?" = "0" -a "$d" -ge 0 ] 2>/dev/null; then
    echo "$d" | awk '{printf "%.1fGB\n",$1 / 1048576}' 2>/dev/null
   else

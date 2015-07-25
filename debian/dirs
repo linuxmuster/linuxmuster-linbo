@@ -3,10 +3,11 @@
 /etc/linuxmuster/linbo
 /var/linbo
 /var/linbo/examples
-/var/linbo/grub
-/var/linbo/grub/i386-pc
-/var/linbo/grub/i386-efi
-/var/linbo/grub/x86_64-efi
+/var/linbo/boot
+/var/linbo/boot/grub
+/var/linbo/boot/grub/i386-pc
+/var/linbo/boot/grub/i386-efi
+/var/linbo/boot/grub/x86_64-efi
 /var/linbo/icons
 /var/linbo/linbocmd
 /var/linbo/torrentadds

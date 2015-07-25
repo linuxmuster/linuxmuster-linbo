@@ -1,8 +1,23 @@
+linuxmuster-linbo (2.3.0-3) babo-testing; urgency=low
+
+  * activated kernel configuration for efi_vars and efi_fb.
+  * grub prefix to /boot/grub.
+  * creating grub net directory with gubr-mknetdir.
+  * updated grub.cfg templates.
+  * substituted sfdisk with parted in linbofs.
+  * removed grldr stuff for windows partitions.
+  * added linbo update on boot time in init.sh, reboots on locally booted linbo if version was altered.
+  * added efibootmgr binary.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 25 Jul 2015 13:55:55 +0200
+
 linuxmuster-linbo (2.3.0-2) babo-testing; urgency=low
 
-  * feature/grub2.
+  * changed pxe and local boot system from grub legacy and syslinux to grub2.
+  * boot splash image created from /icons/linbo_wallpaper.png on boot.
+  * added wallpapers in different resolutions.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Jul 2015 21:21:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2015 07:22:00 +0200
 
 linuxmuster-linbo (2.3.0-1) babo-testing; urgency=low
 

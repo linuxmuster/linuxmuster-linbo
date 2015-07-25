@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20.03.2015
+# 24.03.2015
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -312,14 +312,6 @@ $(route -n)
  return 1
 }
 
-# check if reboot is set in start.conf (deprecated)
-isreboot(){
- if [ -s /start.conf ]; then
-  grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
- fi
- return 1
-}
-
 # save windows activation tokens
 save_winact(){
  # rename obsolete activation status file
@@ -426,25 +418,38 @@ save_winact(){
  rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
 }
 
-# remove linbo reboot flag, save windows activation tokens
+# save windows activation tokens
 do_housekeeping(){
- local device="" properties="" cachedev="$(printcache)"
+ local device="" 
+ local cachedev="$(printcache)"
  if ! mount "$cachedev" /cache; then
   echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
   return 1
  fi
- sfdisk -l 2> /dev/null | grep ^/dev | grep -v "$cachedev" | grep -v Extended | grep -v "Linux swap" | while read device properties; do
+ grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
   if mount "$device" /mnt 2> /dev/null; then
-   if ls /mnt/.*.reboot &> /dev/null; then
-    echo "Entferne Reboot-Flag von $device."
-    rm -f /mnt/.*.reboot
-   fi
    # save windows activation files
    ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
    umount /mnt
   fi
  done
  mount | grep -v grep | grep -q /cache && umount /cache
+}
+
+# update linbo and install it locally
+do_linbo_update(){
+ local RC="0"
+ local server="$1"
+ local cachedev="$(printcache)"
+ linbo_cmd update "$server" "$cachedev" 2> /dev/null || RC=1
+ [ "$RC" = "1" ] && return 1
+ # get current linbo version from server
+ rsync ${server}::linbo/linbo-version /linbo-version.current
+ # compare versions and do a reboot if they differ
+ if [ "$(cat /etc/linbo-version)" != "$(cat /linbo-version.current)" ]; then
+  echo "LINBO wurde aktualisiert. Starte neu ..."
+  /sbin/reboot
+ fi
 }
 
 # disable auto functions from cmdline
@@ -551,6 +556,8 @@ network(){
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
   done
+  # linbo update
+  do_linbo_update "$server"
   # also look for other needed files
   for i in "torrent-client.conf" "multicast.list"; do
    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
