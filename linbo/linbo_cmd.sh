@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 24.07.2015
+# 28.07.2015
 # GPL v3
 #
 
@@ -414,32 +414,44 @@ remote_cache(){
  return 1
 }
 
-# format dev fs
+# format partition fstype label
 format(){
  echo -n "format " ;  printargs "$@"
-# local dev="${1%%[0-9]*}"
-# local part="${1#$dev}"
+ local partition="$1"
+ local fstype="$2"
+ local label="$3"
  local cmd
  local RC
- case "$2" in
-  swap) cmd="mkswap $1" ;;
-  reiserfs) cmd="mkreiserfs -f -f  $1" ;;
-  ext2|ext3|ext4) cmd="mkfs.$2 $1" ;;
-  [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $1" ;;
-  *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $1" ;;
-  *) return 1 ;;
- esac
- echo "Formatiere $1 mit $2."
+ if [ -n "$label" ]; then
+  case "$fstype" in
+   swap) cmd="mkswap -L $label $partition" ;;
+   reiserfs) cmd="mkreiserfs -l $label -f -f  $partition" ;;
+   ext2|ext3|ext4) cmd="mkfs.$fstype -L $label $partition" ;;
+   [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -L $label -Q $partition" ;;
+   *[Ff][Aa][Tt]*) cmd="mkdosfs -n $label -F 32 $partition" ;;
+   *) return 1 ;;
+  esac
+ else
+  case "$fstype" in
+   swap) cmd="mkswap $partition" ;;
+   reiserfs) cmd="mkreiserfs -f -f  $partition" ;;
+   ext2|ext3|ext4) cmd="mkfs.$fstype $partition" ;;
+   [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $partition" ;;
+   *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $partition" ;;
+   *) return 1 ;;
+  esac
+ fi
+ echo "Formatiere $partition mit $fstype."
  $cmd ; RC="$?"
  if [ "$RC" != "0" ]; then
-  echo "Partition $1 ist noch nicht bereit. Versuche nochmal."
+  echo "Partition $partition ist noch nicht bereit. Versuche nochmal."
   sleep 2
   $cmd ; RC="$?"
  fi
  if [ "$RC" = "0" ]; then
-  echo "$1 erfolgreich mit $2 formatiert."
+  echo "$partition erfolgreich mit $fstype formatiert."
  else
-  echo "Formatieren von $1 mit $2 gescheitert!"
+  echo "Formatieren von $partition mit $fstype gescheitert!"
  fi
  return "$RC"
 }
@@ -535,6 +547,22 @@ killalltorrents(){
  fi
 }
 
+# convert size from mib or gib to kib
+convert_size(){
+ local size="$1"
+ local unit="$(echo $size | sed 's|[^a-zA-Z]*||g')"
+ local ksize="$(echo ${size/$unit} | awk -F\[,.] '{ print $1 }')"
+ local unit="$(echo $unit | tr A-Z a-z | head -c1)"
+ if [ "$unit" = "m" ]; then
+  ksize=$(( ksize * 1024 ))
+ elif [ "$unit" = "g" ]; then
+  ksize=$(( ksize * 1024 * 1024 ))
+ elif [ "$unit" = "t" ]; then
+  ksize=$(( ksize * 1024 * 1024 * 1024 ))
+ fi
+ echo $ksize
+}
+
 # partition with parted, invoked by partition() for each disk
 # args: table
 mkparted(){
@@ -543,6 +571,7 @@ mkparted(){
  local disk="/dev/$(basename "$table")"
  [ -b "$disk" ] || return 1
  local dev
+ local label
  local start
  local partstart
  local end
@@ -553,20 +582,22 @@ mkparted(){
  local id
  local fstype
  local partfstype
- local label="msdos"
+ local esp
+ local disklabel="msdos"
  local parttype="primary"
  local bootable
  local RC=0
  local BASECMD="parted -s -a cylinder $disk"
  local CMD
  # efi system -> gpt label
- systemtype | grep -qi efi && label="gpt"
- parted -s "$disk" mklabel "$label" || RC="1"
+ systemtype | grep -qi efi && disklabel="gpt"
+ parted -s "$disk" mklabel "$disklabel" || RC="1"
 
  local n=0
- while read dev size id fstype bootable; do
+ while read dev label size id fstype bootable; do
   n=$(( n + 1 ))
-  
+  [ "$label" = "-" ] && label=""
+
   # begin of first partition
   if [ $n -eq 1 ]; then
    start=$begin
@@ -583,13 +614,14 @@ mkparted(){
   if [ "$size" = "-" ]; then
    partend="-1"
   else
+   isinteger "$size" || size="$(convert_size $size)"
    end=$(( start + size ))
    partend=$end$unit
   fi
 
   # handle parteds fstypes
   case "$id" in
-   5) parttype="extended" ; pfstype="" ;;
+   5) parttype="extended" ; partfstype="" ;;
    6|e) partfstype="fat16" ;;
    7) partfstype="NTFS" ;;
    b|c|ee|ef) partfstype="fat32" ;;
@@ -606,10 +638,12 @@ mkparted(){
   fi
   if [ "$parttype" = "extended" ]; then
    CMD="$CMD $parttype $partstart $partend"
+  elif [ -n "$label" -a "$disklabel" = "gpt" ]; then
+   CMD="$CMD $label $partfstype $partstart $partend"
   else
-   CMD="$CMD $parttype $pfstype $partstart $partend"
+   CMD="$CMD $parttype $partfstype $partstart $partend"
   fi
-  
+
   # execute parted
   echo "$CMD"
   $CMD || RC="1"
@@ -618,9 +652,18 @@ mkparted(){
   if [ "$bootable" = "[Yy][Ee][Ss]" ]; then
    parted -s "$disk" set $n boot on || RC="1"
   fi
+  
+  # set other flags
+  if [ "$label" = "esp" ]; then
+   parted -s "$disk" set $n esp on || RC="1"
+  elif [ "$label" = "msr" -o "$label" = "msftres" ]; then
+   parted -s "$disk" set $n msftres on || RC="1"
+  elif [ "$partfstype" = "NTFS" ]; then
+   parted -s "$disk" set $n msftdata on || RC="1"
+  fi
 
   # format partition if NOFORMAT is not set
-  [ -z "$NOFORMAT" ] && format "$dev" "$fstype"
+  [ -z "$NOFORMAT" -a -n "$fstype" ] && format "$dev" "$fstype" "$label"
 
  done < "$table"
  return "$RC"
@@ -646,31 +689,32 @@ partition(){
   fi
  fi
 
- # collect partition infos from start.conf
+ # collect partition infos from start.conf and write them to table
  local dev
+ local label
  local size
  local id
  local fstype
  local bootable
+ local line
  local table="/tmp/partitions"
- local n
- local max
  local RC=0
- n=0
- max="$(grep -ci ^'\[Partition\]' /start.conf)"
  rm -f "$table"
- while true; do
-  n=$(( n + 1 ))
-  [ $n -gt $max ] && break
-  dev="$(grep -iw -m $n ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
-  size="$(grep -iw -m $n ^size /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
-  [ -z "$size" ] && size="-"
-  id="$(grep -iw -m $n ^id /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
-  fstype="$(grep -iw -m $n ^fstype /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
-  bootable="$(grep -iw -m $n ^bootable /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1 | sed 's|#.*$||')"
-  # write infos to table file
-  echo "$dev $size $id $fstype $bootable" >> "$table"
+ grep -v '^$\|^\s*\#' /start.conf | awk -F\# '{ print $1 }' | sed -e 's| ||g' -e 's|[ \t]||' | tr A-Z a-z | while read line; do
+  if echo "$line" | grep -q ^'\['; then
+   if [ -n "$dev" ]; then
+    [ -z "$label" ] && label="-"
+    [ -z "$fstype" ] && fstype="-"
+    [ -z "$size" ] && size="-"
+    [ -z "$bootable" ] && bootable="-"
+    echo "$dev $label $size $id $fstype $bootable" >> "$table"
+   fi
+   dev=""; label=""; id=""; fstype=""; size=""; bootable=""
+   continue
+  fi
+  case "$line" in dev=*|label=*|id=*|fstype=*|size=*|bootable=*) eval "$line" ;; esac
  done
+
  # get all disks from start.conf
  local disks="$(get_disks)"
  local disk
@@ -684,14 +728,37 @@ partition(){
  return $RC
 }
 
+# print efi partition
+print_efi(){
+ # test for efi system
+ [ -d /sys/firmware/efi ] || return 1
+ local dev
+ local id
+ local label
+ local line
+ grep -v '^$\|^\s*\#' /start.conf | awk -F\# '{ print $1 }' | sed -e 's| ||g' -e 's|[ \t]||' | tr A-Z a-z | while read line; do
+  if echo "$line" | grep -q ^'\['; then
+   if [ "$id" = "ef" -o "$id" = "ee" -o "$label"="efi" -o "$label" = "esp" ]; then
+    echo "$dev"
+    return 0
+   fi
+   dev=""; id=""; label=""
+   continue
+  fi
+  case "$line" in dev=*|id=*|label=*) eval "$line" ;; esac
+ done
+}
+
 # write grub stuff
-# mkgrub partition reboot
+# mkgrub partition reboot append
 mkgrub(){
  local reboot="$2"
  local doneflag="/tmp/.mkgrub.done"
- [ -e "$doneflag" -a -z "$reboot" ] && return 0
+ [ -e "$doneflag" -a "$reboot" = "false" ] && return 0
  local partition="$1"
  local disk="${partition%%[1-9]*}"
+ # get os kernel append params
+ local reboot_append="$3"
  if [ ! -b "$disk" ]; then
   echo "$disk ist kein Blockdevice!"
   return 1
@@ -702,10 +769,17 @@ mkgrub(){
  local i
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
  if [ ! -e "$doneflag" ]; then
+  mkdir -p /boot
+  mount --bind /cache/boot /boot || return 1
+  local efipart="$(print_efi)"
+  if [ -b "$efipart" ]; then
+   mkdir -p /boot/efi
+   mount "$efipart" /boot/efi || return 1
+  fi
   echo "Update Master-Bootrecord von $disk."
   # write grub device.map file
   echo "(hd0) $disk" > $grubdir/device.map
-  # get append params
+  # get linbo append params
   for i in $(cat /proc/cmdline); do
    case "$i" in
     BOOT_IMAGE=*|server=*|cache=*|initrd=*|INITRD=*) true ;;
@@ -716,7 +790,7 @@ mkgrub(){
   sed -e "s|linux /linbo64 .*|linux /linbo64 $append|
           s|linux /linbo .*|linux /linbo $append|" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
   # setup grub
-  grub-install --root-directory=/cache "$disk"
+  grub-install "$disk"
   # provide unicode font
   rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2"
   # reset grubenv
@@ -728,81 +802,18 @@ mkgrub(){
   touch "$doneflag"
  fi
  # save reboot partition in grubenv
- if [ -n "$reboot" ]; then
+ if [ "$reboot" = "true" ]; then
   reboot="$(grub-probe -d $partition -t drive -m $grubdir/device.map)"
-  grub-editenv "$grubenv" set reboot="$reboot"
   echo "Schreibe Reboot-Partition $reboot nach $grubenv."
+  grub-editenv "$grubenv" set reboot_grub="$reboot"
+  if [ -n "$reboot_append" ]; then
+   grub-editenv "$grubenv" set reboot_append="root=$partition $reboot_append"
+  else
+   grub-editenv "$grubenv" set reboot_append="root=$partition"
+  fi
  fi
-}
-
-# old mkgrub - writes grub stuff for local boot
-#mkgrub(){
-# local grubdir="/cache/boot/grub"
-# [ -e "$grubdir" ] || mkdir -p "$grubdir"
-# # create a standard menu.lst for local boot which contains current linbo kernel params
-# if [ ! -e /cache/.custom.menu.lst -a ! -e /tmp/.menulst.done -a -e /menu.lst ]; then
-#  echo "Erstelle menu.lst fuer lokalen Boot."
-#  local append=""
-#  local vga="vga=785"
-#  local kernel="$(kerneltype)"
-#  local i
-#  for i in $(cat /proc/cmdline); do
-#   case "$i" in
-#    BOOT_IMAGE=*|server=*|cache=*) true ;;
-#    *) append="$append $i" ;;
-#   esac
-#  done
-#  sed -e "s|^kernel /$kernel .*|kernel /$kernel $append|" /menu.lst > /cache/boot/grub/menu.lst
-#  touch /tmp/.menulst.done
-# fi
-# # return if grub-install is already done by earlier invokation
-# [ -e /tmp/.mkgrub.done ] && return 0
-# # grep all disks from start.conf
-# local disks="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e 's|[0-9]*||g' | sort -u)"
-# if [ -z "$disks" ]; then
-#  echo "Keine Festplatten zur Grub-Installation gefunden!"
-#  return 1
-# fi
-# local d
-# local n=0
-# # create device.map which contains all disks
-# local devicemap="/cache/boot/grub/device.map"
-# rm -f "$devicemap"
-# touch "$devicemap"
-# for d in $disks; do
-#  [ -b "$d" ] || continue
-#  echo "(hd${n}) $d" >> "$devicemap"
-#  n=$(( n + 1 ))
-# done
-# # finally write grub to the mbr of all disks
-# if [ -s "$devicemap" ]; then
-#  for d in `awk '{ print $2 }' "$devicemap"`; do
-#   echo "Installiere Grub in MBR auf $d."
-#   grub-install --root-directory=/cache "$d" >> /tmp/linbo.log
-#  done
-#  touch /tmp/.mkgrub.done
-# fi
-#}
-
-# tschmitt: mkgrldr bootpart bootfile
-# Creates menu.lst on given windows partition
-# /cache and /mnt is already mounted when this is called.
-mkgrldr(){
- local menu="/mnt/menu.lst"
- local grubdisk="hd0"
- local bootfile="$2"
- local driveid="0x80"
- case "$1" in
-  *[hsv]da) grubdisk=hd0; driveid="0x80" ;;
-  *[hsv]db) grubdisk=hd1; driveid="0x81" ;;
-  *[hsv]dc) grubdisk=hd2; driveid="0x82" ;;
-  *[hsv]dd) grubdisk=hd3; driveid="0x83" ;;
- esac
- local grubpart="${1##*[hsv]d[a-z]}"
- grubpart="$((grubpart - 1))"
- bootlace.com --"$(fstype_startconf "$1")" --floppy="$driveid" "$1"
- echo -e "default 0\ntimeout 0\nhiddenmenu\n\ntitle Windows\nroot ($grubdisk,$grubpart)\nchainloader ($grubdisk,$grubpart)$bootfile" > $menu
- cp /usr/lib/grub/grldr /mnt
+ mount | grep -q /boot/efi && umount /boot/efi
+ mount | grep -q /boot && umount /boot
 }
 
 # download server file [important]
@@ -846,7 +857,7 @@ invoke_macct(){
 start(){
  echo -n "start " ;  printargs "$@"
  local LOADED=""
- local REBOOT=""
+ local REBOOT="false"
  local KERNEL="/mnt/$3"
  local INITRD=""
  local APPEND="$5"
@@ -857,14 +868,14 @@ start(){
   [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
   case "$3" in
    *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
-    # tschmitt: use builtin grub.exe in any case
+    # use builtin grub.exe
     KERNEL="/usr/lib/$3"
     [ -e "$KERNEL" ] || KERNEL="/usr/lib/grub.exe"
     # provide an APPEND line if no one is given
     [ -z "$APPEND" ] && APPEND="--config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) $disk"
     ;;
    *[Rr][Ee][Bb][Oo][Oo][Tt]*)
-     # tschmitt: if kernel is "reboot" assume that it is a real windows, which has to be rebootet
+     # reboot workaround
      LOADED="true"
      REBOOT="true"
      ;;
@@ -874,22 +885,17 @@ start(){
     fi
     ;;
   esac
-  # tschmitt: repairing grub mbr on every start
-  (mountcache "$6" && cache_writable) && mkgrub "$1" "$REBOOT"
+  # install grub if cache is mounted writable
+  (mountcache "$6" && cache_writable) && mkgrub "$1" "$REBOOT" "$APPEND"
   # provide a menu.lst for grldr on win2k/xp, obsolete
   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
-   #mkgrldr "$1" "/bootmgr"
    APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
-  #elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ]; then
-   #mkgrldr "$1" "/ntldr"
   elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
    # tschmitt: patch autoexec.bat (win98),
    if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
     echo "if exist C:\linbo.reg regedit C:\linbo.reg" >> /mnt/AUTOEXEC.BAT
     unix2dos /mnt/AUTOEXEC.BAT
    fi
-   # provide a menu.lst for grldr on win98
-   #mkgrldr "$1" "/io.sys"
    # change bootloader for win98 systems
    APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
   fi
@@ -899,17 +905,13 @@ start(){
   mountcache "$6" -r
   return 1
  fi
- # cause machine password stuff on server
+ # sets machine password on server
  invoke_macct
  # kill torrents if any
  killalltorrents
- # No more timer interrupts (deprecated)
- #[ -f /proc/sys/dev/rtc/max-user-freq ] && echo "1024" >/proc/sys/dev/rtc/max-user-freq 2>/dev/null
- #[ -f /proc/sys/dev/hpet/max-user-freq ] && echo "1024" >/proc/sys/dev/hpet/max-user-freq 2>/dev/null
- if [ -z "$REBOOT" ]; then
+ if [ "$REBOOT" = "false" ]; then
   echo "kexec -l $INITRD --append=\"$APPEND\" $KERNEL" >> /tmp/linbo.log
   kexec -l $INITRD --append="$APPEND" $KERNEL 2>&1 >> /tmp/linbo.log && LOADED="true"
-  #sleep 3
  fi
  umount /mnt 2>/dev/null
  sendlog
@@ -917,20 +919,14 @@ start(){
  if [ "$2" != "$6" ]; then
   umount /cache || umount -l /cache 2>/dev/null
  fi
+ [ "$REBOOT" = "true" ] && reboot -f
  if [ -n "$LOADED" ]; then
   # We basically do a quick shutdown here.
   killall5 -15
-  [ -z "$REBOOT" ] && sleep 2
+  #sleep 2
   echo -n "c" >/dev/console
-  if [ -z "$REBOOT" ]; then
-   exec kexec -e --reset-vga &> /dev/null
-   # exec kexec -e
-   sleep 10
-  else
-   #sleep 2
-   reboot -f
-   #sleep 10
-  fi
+  exec kexec -e --reset-vga &> /dev/null
+  sleep 3
  else
   echo "Betriebssystem konnte nicht geladen werden." >&2
   return 1

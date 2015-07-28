@@ -2,14 +2,19 @@ linuxmuster-linbo (2.3.0-3) babo-testing; urgency=low
 
   * activated kernel configuration for efi_vars and efi_fb.
   * grub prefix to /boot/grub.
-  * creating grub net directory with gubr-mknetdir.
+  * creating grub net directory with grub-mknetdir.
   * updated grub.cfg templates.
   * substituted sfdisk with parted in linbofs.
   * removed grldr stuff for windows partitions.
   * added linbo update on boot time in init.sh, reboots on locally booted linbo if version was altered.
   * added efibootmgr binary.
+  * reworked mkgrub() in linbo_cmd for grub2/efi.
+  * support of partition labels in start.conf (option label = <name>).
+  * support of partition size entries in MB, GB or TB (size = 200M, size = 20G, size = 1T).
+  * improved reboot workaround for linux systems.
+  * updated kexec tools to 2.0.10.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 25 Jul 2015 13:55:55 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jul 2015 09:19:08 +0200
 
 linuxmuster-linbo (2.3.0-2) babo-testing; urgency=low
 

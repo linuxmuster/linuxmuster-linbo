@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 24.03.2015
+# 27.03.2015
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -198,6 +198,7 @@ printcache(){
 # copytocache file - copies start.conf to local cache
 copytocache(){
  local cachedev="$(printcache)"
+ [ -b "$cachedev" ] || return 1
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then

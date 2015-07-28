@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 24.07.2015
+# 27.07.2015
 # GPL v3
 #
 
@@ -90,13 +90,12 @@ CHNTPW64_DIR=src64/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -
 
 # kexec-tools
 KEXEC_ARCHIVE=$(shell grep kexec-tools- debian/md5sums.src | awk '{ print $$2 }')
-KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.bz2//')
-#KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.gz//')
-#KEXEC_URL=http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools
-KEXEC_URL=$(LML_URL)
+KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.xz//')
+KEXEC_URL=https://www.kernel.org/pub/linux/utils/kernel/kexec
+#KEXEC_URL=$(LML_URL)
 
 # kexec-tools64
-KEXEC64_DIR=src64/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.bz2//')
+KEXEC64_DIR=src64/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.xz//')
 
 # grub4dos
 GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
@@ -480,7 +479,7 @@ build-stamp: configure-stamp
 	# kexec-tools
 	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
 		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 LDFLAGS=-static ./configure --host=i386-linux-gnu && make && strip build/sbin/kexec ); \
+		( cd $(KEXEC_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 LDFLAGS=-static ./configure --host=i386-linux-gnu && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 make && strip build/sbin/kexec ); \
 	fi
 
 	# kexec-tools64

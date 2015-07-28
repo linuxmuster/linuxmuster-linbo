@@ -1,7 +1,7 @@
 #
-# default grub.cfg, pxe boot version (placed on server)
+# default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 24.07.2015
+# 27.07.2015
 #
 
 set default=0
@@ -21,25 +21,33 @@ menuentry 'Reboot' {
 
   # read grub environment variables
   if [ -s /boot/grub/grubenv ]; then
+   echo -n Loading grub environment ...
    load_env
+   echo
   fi
 
   # if reboot is set try to load the os on the given partition
-  if [ "${reboot}" ] ; then
+  if [ "${reboot_grub}" ] ; then
 
-   set tmproot="${reboot}"
-   set reboot=""
-   save_env reboot
+   echo Reboot detected, booting os ...
+   echo
+
+   set tmproot="${reboot_grub}"
+   set reboot_grub=""
+   save_env reboot_grub
    set root="${tmproot}"
 
-   if [ -s /boot/grub/grub.cfg ] ; then
+   if [ -e /vmlinuz -a -e /initrd.img ]; then
+    linux /vmlinuz $reboot_append
+    initrd /initrd.img
+   elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
    elif [ -s /bootmgr ] ; then
     ntldr /bootmgr
-   elif [ -s /grldr ] ; then
-    ntldr /grldr
    elif [ -s /ntldr ] ; then
     ntldr /ntldr
+   elif [ -s /grldr ] ; then
+    ntldr /grldr
    else
     chainloader +1
    fi
@@ -50,7 +58,7 @@ menuentry 'Reboot' {
 }
 
 # fallback to netboot
-menuentry 'LINBO net' {
+menuentry 'LINBO net boot' {
 
  # compute path to group specific config
  if [ "$grub_platform" = "efi" ]; then
@@ -85,9 +93,10 @@ menuentry 'LINBO net' {
    set kernel=/linbo
    set initrd=/linbofs.lz
   fi
-  echo "Loading $kernel .."
+  echo -n "Loading $kernel .."
   linux $kernel splash quiet
-  echo "Loading $initrd .."
+  echo
+  echo -n "Loading $initrd .."
   initrd $initrd
 
  fi

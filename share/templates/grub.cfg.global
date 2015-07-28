@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 24.07.2015
+# 27.07.2015
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -14,10 +14,14 @@ set menu_color_normal=cyan/blue
 set menu_color_highlight=white/blue
 set gfxpayload=800x600x16
 
+clear
+
 # linbo part, detect pxe or local boot (default #0)
 if [ -n $net_pxe_boot_file ]; then
 
  menuentry 'LINBO net' {
+  echo LINBO net boot for group @@group@@
+  echo
   set root=(http)
   # 32bit or 64bit kernel
   if cpuid -l; then
@@ -27,24 +31,32 @@ if [ -n $net_pxe_boot_file ]; then
    set kernel=/linbo
    set initrd=/linbofs.lz
   fi
-  echo "Loading $kernel .."
-  linux $kernel splash quiet
-  echo "Loading $initrd .."
+  echo -n "Loading $kernel ..."
+  linux $kernel @@kopts@@
+  echo
+  echo -n "Loading $initrd ..."
   initrd $initrd
  }
 
 else
 
  # local boot
- menuentry 'LINBO lokal' {
+ menuentry 'LINBO local' {
+  echo LINBO local boot for group @@group@@
+  echo
   search --set root --file /start.conf
   if [ -e /linbofs64.lz ]; then
-   linux /linbo64 @@kopts@@
-   initrd /linbofs64.lz
+   set kernel=/linbo64
+   set initrd=/linbofs64.lz
   else
-   linux /linbo @@kopts@@
-   initrd /linbofs.lz
+   set kernel=/linbo
+   set initrd=/linbofs.lz
   fi
+  echo -n "Loading $kernel ..."
+  linux $kernel @@kopts@@
+  echo
+  echo -n "Loading $initrd ..."
+  initrd $initrd
  }
 
 fi
