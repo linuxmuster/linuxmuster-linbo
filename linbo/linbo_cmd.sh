@@ -581,8 +581,8 @@ mkparted(){
  local begin="1024"
  local id
  local fstype
- local partfstype
- local esp
+ local partname
+ local partflag
  local disklabel="msdos"
  local parttype="primary"
  local bootable
@@ -597,6 +597,7 @@ mkparted(){
  while read dev label size id fstype bootable; do
   n=$(( n + 1 ))
   [ "$label" = "-" ] && label=""
+  partname="" ; partflag=""
 
   # begin of first partition
   if [ $n -eq 1 ]; then
@@ -619,48 +620,42 @@ mkparted(){
    partend=$end$unit
   fi
 
-  # handle parteds fstypes
-  case "$id" in
-   5) parttype="extended" ; partfstype="" ;;
-   6|e) partfstype="fat16" ;;
-   7) partfstype="NTFS" ;;
-   b|c|ee|ef) partfstype="fat32" ;;
-   82) partfstype="linux-swap" ;;
-   83) partfstype="ext2" ;;
-   *) partfstype="ext2" ;;
+  # build parted mkpart command line                                                                                           
+  if [ "$partend" = "-1" ]; then                                                                                               
+   CMD="$BASECMD -- mkpart"                                                                                                    
+  else                                                                                                                         
+   CMD="$BASECMD mkpart"                                                                                                       
+  fi
+  
+  # handle partition name
+  if [ -n "$label" -a "$disklabel" = "gpt" ]; then
+   partname="$label"
+  else
+   partname="$parttype"
+  fi
+                                                                                                                               
+  # create partitions
+  case "$id" in                                                                                                                
+   c01|0c01) $CMD '"Microsoft reserved partition"' $partstart $partend || RC=1 ; partflag="msftres" ;;
+   5|05) parttype="extended" ; $CMD extended $partstart $partend || RC=1 ;;
+   6|06|e|0e) $CMD $partname fat16 $partstart $partend ;;
+   7|07) $CMD '"Basic data partition"' NTFS $partstart $partend || RC=1 ; partflag="msftdata" ;;
+   b|0b|c|0c) $CMD $partname fat32 $partstart $partend || RC=1 ;;
+   ef) $CMD '"EFI system partition"' fat32 $partstart $partend || RC=1 ; partflag="boot" ;;
+   82) $CMD $partname linux-swap $partstart $partend || RC=1 ;;
+   83) $CMD $partname ext2 $partstart $partend || RC=1 ;;
+   *) $CMD $partname $partstart $partend || RC=1 ;;
   esac
-
-  # build parted mkpart command line
-  if [ "$partend" = "-1" ]; then
-   CMD="$BASECMD -- mkpart"
-  else
-   CMD="$BASECMD mkpart"
-  fi
-  if [ "$parttype" = "extended" ]; then
-   CMD="$CMD $parttype $partstart $partend"
-  elif [ -n "$label" -a "$disklabel" = "gpt" ]; then
-   CMD="$CMD $label $partfstype $partstart $partend"
-  else
-   CMD="$CMD $parttype $partfstype $partstart $partend"
-  fi
-
-  # execute parted
-  echo "$CMD"
-  $CMD || RC="1"
 
   # note: with gparted only one partition can own the bootable flag, so the last one wins
   if [ "$bootable" = "[Yy][Ee][Ss]" ]; then
    parted -s "$disk" set $n boot on || RC="1"
   fi
   
-  # set other flags
-  if [ "$label" = "esp" ]; then
-   parted -s "$disk" set $n esp on || RC="1"
-  elif [ "$label" = "msr" -o "$label" = "msftres" ]; then
-   parted -s "$disk" set $n msftres on || RC="1"
-  elif [ "$partfstype" = "NTFS" ]; then
-   parted -s "$disk" set $n msftdata on || RC="1"
-  fi
+  # set other flags                                                                                                            
+  if [ -n "$partflag" ]; then                                                                                                  
+   parted -s "$disk" set $n $partflag on || RC="1"                                                                             
+  fi                                                                                                                           
 
   # format partition if NOFORMAT is not set
   [ -z "$NOFORMAT" -a -n "$fstype" ] && format "$dev" "$fstype" "$label"
@@ -738,7 +733,7 @@ print_efi(){
  local line
  grep -v '^$\|^\s*\#' /start.conf | awk -F\# '{ print $1 }' | sed -e 's| ||g' -e 's|[ \t]||' | tr A-Z a-z | while read line; do
   if echo "$line" | grep -q ^'\['; then
-   if [ "$id" = "ef" -o "$id" = "ee" -o "$label"="efi" -o "$label" = "esp" ]; then
+   if [ "$id" = "ef" ]; then
     echo "$dev"
     return 0
    fi

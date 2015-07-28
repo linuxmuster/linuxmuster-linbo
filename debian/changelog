@@ -14,7 +14,7 @@ linuxmuster-linbo (2.3.0-3) babo-testing; urgency=low
   * improved reboot workaround for linux systems.
   * updated kexec tools to 2.0.10.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jul 2015 09:19:08 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jul 2015 12:32:27 +0200
 
 linuxmuster-linbo (2.3.0-2) babo-testing; urgency=low
 
