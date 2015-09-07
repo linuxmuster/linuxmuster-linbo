@@ -1,7 +1,7 @@
 #
 # default grub.cfg, local boot version (placed in linbo cache)
 # thomas@linuxmuster.net
-# 27.07.2015
+# 07.09.2015
 #
 
 set default=0
@@ -37,6 +37,7 @@ insmod test
 
 # find cache partition and set it as root
 search --set root --file /start.conf
+set linboroot="${root}"
 
 # try to boot os directly if reboot is set
 menuentry 'Reboot' {
@@ -59,26 +60,37 @@ menuentry 'Reboot' {
    if [ -e /vmlinuz -a -e /initrd.img ]; then
     linux /vmlinuz $reboot_append
     initrd /initrd.img
+   elif [ -e /vmlinuz -a -e /initrd ]; then
+    linux /vmlinuz $reboot_append
+    initrd /initrd
    elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
-   elif [ -s /bootmgr ] ; then
-    ntldr /bootmgr
-   elif [ -s /ntldr ] ; then
-    ntldr /ntldr
-   elif [ -s /grldr ] ; then
-    ntldr /grldr
+   elif [ "$grub_platform" = "pc" ]; then
+    if [ -s /bootmgr ] ; then
+     ntldr /bootmgr
+    elif [ -s /ntldr ] ; then
+     ntldr /ntldr
+    elif [ -s /grldr ] ; then
+     ntldr /grldr
+    else
+     chainloader +1
+    fi
+   elif [ -e /Windows/Boot/EFI/bootmgfw.efi ]; then
+    chainloader /Windows/Boot/EFI/bootmgfw.efi
+    boot
    else
     chainloader +1
    fi
 
   # if no reboot is set load group specific custom.cfg if present  
-  elif [ -s /custom.cfg ] ; then
-   configfile /custom.cfg
+  elif [ -s /boot/grub/custom.cfg ] ; then
+   configfile /boot/grub/custom.cfg
   fi
 }
 
 # boot linbo local from cache as fallback
-menuentry 'LINBO local boot' {
+menuentry 'LINBO localboot' {
+ set root="${linboroot}"
  if [ -e /linbofs64.lz ]; then
   set kernel=/linbo64
   set initrd=/linbofs64.lz
@@ -87,7 +99,7 @@ menuentry 'LINBO local boot' {
   set initrd=/linbofs.lz
  fi
  echo -n "Loading $kernel .."
- linux $kernel splash quiet
+ linux $kernel splash quiet localboot
  echo
  echo -n "Loading $initrd .."
  initrd $initrd

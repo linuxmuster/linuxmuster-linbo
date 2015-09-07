@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 23.07.2015
+# 07.09.2015
 #
 
 # read linuxmuster environment
@@ -49,64 +49,63 @@ bailout() {
 [ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
 
 update_linbofs() {
-local _64=$1
+ local _64=$1
 
-# check for default linbofs${_64}.lz
-[ ! -s "$LINBODIR/linbofs${_64}.lz" ] && bailout "Error: $LINBODIR/linbofs${_64}.lz not found!"
+ # check for default linbofs${_64}.lz
+ [ ! -s "$LINBODIR/linbofs${_64}.lz" ] && bailout "Error: $LINBODIR/linbofs${_64}.lz not found!"
 
-# grep linbo rsync password to sync it with linbo account
-[ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
-linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
-if [ -z "$linbo_passwd" ]; then
- bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
-else
- sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
- [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
- # md5sum of linbo password goes into ramdisk
- linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
-fi
+ # grep linbo rsync password to sync it with linbo account
+ [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
+ linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
+ if [ -z "$linbo_passwd" ]; then
+  bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
+ else
+  sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
+  [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
+  # md5sum of linbo password goes into ramdisk
+  linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+ fi
 
-# begin to process linbofs${_64}.lz
-echo "Processing linbofs${_64} update ..."
+ # begin to process linbofs${_64}.lz
+ echo "Processing linbofs${_64} update ..."
 
-# create temp dir for linbofs${_64} content
-if [ -n "${_64}" ]; then
-mkdir -p $tmpdir64
-cd $tmpdir64 || bailout "Cannot change to $tmpdir64!"
-else
-mkdir -p $tmpdir
-cd $tmpdir || bailout "Cannot change to $tmpdir!"
-fi
-# unpack linbofs${_64}.lz to tmpdir${_64}
-xzcat $LINBODIR/linbofs${_64}.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
-[ $RC -ne 0 ] && bailout " Failed to unpack linbofs${_64}.lz!"
+ # create temp dir for linbofs${_64} content
+ if [ -n "${_64}" ]; then
+  mkdir -p $tmpdir64
+  cd $tmpdir64 || bailout "Cannot change to $tmpdir64!"
+ else
+  mkdir -p $tmpdir
+  cd $tmpdir || bailout "Cannot change to $tmpdir!"
+ fi
+ # unpack linbofs${_64}.lz to tmpdir${_64}
+ xzcat $LINBODIR/linbofs${_64}.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
+ [ $RC -ne 0 ] && bailout " Failed to unpack linbofs${_64}.lz!"
 
-# store linbo md5 password
-[ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
+ # store linbo md5 password
+ [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
 
-# create ssmtp.conf
-mkdir -p etc/ssmtp
-echo "mailhub=$serverip:25" > etc/ssmtp/ssmtp.conf
+ # create ssmtp.conf
+ mkdir -p etc/ssmtp
+ echo "mailhub=$serverip:25" > etc/ssmtp/ssmtp.conf
 
-# provide dropbear ssh host key
-mkdir -p etc/dropbear
-cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
-mkdir -p etc/ssh
-cp $SYSCONFDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
-mkdir -p .ssh
-cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
-mkdir -p var/log
-touch var/log/lastlog
+ # provide dropbear ssh host key
+ mkdir -p etc/dropbear
+ cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
+ mkdir -p etc/ssh
+ cp $SYSCONFDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
+ mkdir -p .ssh
+ cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
+ mkdir -p var/log
+ touch var/log/lastlog
 
-# copy default start.conf
-cp -f $LINBODIR/start.conf .
+ # copy default start.conf
+ cp -f $LINBODIR/start.conf .
 
-# pack default linbofs${_64}.lz again
-find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs${_64}.lz ; RC="$?"
-[ $RC -ne 0 ] && bailout "failed!"
-# deprecated
-#echo -e "[LINBOFS]\ntimestamp=`date +%Y\%m\%d\%H\%M`\nimagesize=`ls -l $LINBODIR/linbofs${_64}.lz | awk '{print $5}'`" > $LINBODIR/linbofs${_64}.lz.info
-echo "Ok!"
+ # pack default linbofs${_64}.lz again
+ find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs${_64}.lz ; RC="$?"
+ [ $RC -ne 0 ] && bailout "failed!"
+
+ echo "Ok!"
 
 }
 

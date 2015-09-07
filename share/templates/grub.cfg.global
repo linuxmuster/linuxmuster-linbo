@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 27.07.2015
+# 07.09.2015
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -16,14 +16,22 @@ set gfxpayload=800x600x16
 
 clear
 
-# linbo part, detect pxe or local boot (default #0)
-if [ -n $net_pxe_boot_file ]; then
+# linbo part, boot local or net (default #0)
+menuentry 'LINBO' {
 
- menuentry 'LINBO net' {
-  echo LINBO net boot for group @@group@@
-  echo
+ set root="@@cacheroot@@"
+
+ if [ -e /linbo64 -a -e /linbofs64.lz ]; then
+  set bootflag=localboot
+  set kernel=/linbo64
+  set initrd=/linbofs64.lz
+ elif [ -e /linbo -a -e /linbofs.lz ]; then
+  set bootflag=localboot
+  set kernel=/linbo
+  set initrd=/linbofs.lz
+ else
   set root=(http)
-  # 32bit or 64bit kernel
+  set bootflag=netboot
   if cpuid -l; then
    set kernel=/linbo64
    set initrd=/linbofs64.lz
@@ -31,33 +39,14 @@ if [ -n $net_pxe_boot_file ]; then
    set kernel=/linbo
    set initrd=/linbofs.lz
   fi
-  echo -n "Loading $kernel ..."
-  linux $kernel @@kopts@@
-  echo
-  echo -n "Loading $initrd ..."
-  initrd $initrd
- }
+ fi
+ echo LINBO $bootflag for group @@group@@
+ echo
+ echo -n "Loading $kernel ..."
+ linux $kernel @@kopts@@ $bootflag
+ echo
+ echo -n "Loading $initrd ..."
+ initrd $initrd
 
-else
-
- # local boot
- menuentry 'LINBO local' {
-  echo LINBO local boot for group @@group@@
-  echo
-  search --set root --file /start.conf
-  if [ -e /linbofs64.lz ]; then
-   set kernel=/linbo64
-   set initrd=/linbofs64.lz
-  else
-   set kernel=/linbo
-   set initrd=/linbofs.lz
-  fi
-  echo -n "Loading $kernel ..."
-  linux $kernel @@kopts@@
-  echo
-  echo -n "Loading $initrd ..."
-  initrd $initrd
- }
-
-fi
+}
 

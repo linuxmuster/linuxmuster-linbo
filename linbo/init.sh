@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 27.03.2015
+# 07.09.2015
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -91,6 +91,7 @@ read_cmdline(){
  case "$CMDLINE" in *\ splash*) splash=yes;; esac
  case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
  case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
+ case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
 }
 
 # initial setup
@@ -442,13 +443,13 @@ do_linbo_update(){
  local RC="0"
  local server="$1"
  local cachedev="$(printcache)"
+ local customcfg="/cache/boot/grub/custom.cfg"
+ # save current custom.cfg
  linbo_cmd update "$server" "$cachedev" 2> /dev/null || RC=1
  [ "$RC" = "1" ] && return 1
- # get current linbo version from server
- rsync ${server}::linbo/linbo-version /linbo-version.current
- # compare versions and do a reboot if they differ
- if [ "$(cat /etc/linbo-version)" != "$(cat /linbo-version.current)" ]; then
-  echo "LINBO wurde aktualisiert. Starte neu ..."
+ # test if linbofs or custom.cfg were updated on local boot
+ if [ -n "$localboot" -a -e /tmp/.doreboot ]; then
+  echo "Lokale LINBO/GRUB-Konfiguration wurde aktualisiert. Starte neu ..."
   /sbin/reboot
  fi
 }

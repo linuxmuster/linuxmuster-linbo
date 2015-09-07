@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.0-4) babo-testing; urgency=low
+
+  * grub configuration:
+    * added uefi boot support for opensuse kernel & initrd
+    * improved windows efi boot handling
+  * fix for not updated local grub config
+  * preferred linbo localboot if installed locally
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Sep 2015 22:39:37 +0200
+
 linuxmuster-linbo (2.3.0-3) babo-testing; urgency=low
 
   * activated kernel configuration for efi_vars and efi_fb.

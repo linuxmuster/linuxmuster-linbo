@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 28.07.2015
+# 07.09.2015
 # GPL v3
 #
 
@@ -2088,19 +2088,19 @@ update(){
 
  # local restore of start.conf in cache (necessary if cache partition was formatted before)
  [ -s start.conf ] || cp /start.conf .
- echo "Aktualisiere LINBO-Kernel($kernel,$kernelfs)."
+ echo "Aktualisiere LINBO-Kernel ($kernel,$kernelfs)."
  download "$server" "$kernel" || RC=1
+ local kernelfs_before="$(md5sum $kernelfs | awk '{ print $1 }')"
  download "$server" "$kernelfs" || RC=1
  # grub update
  if [ -s "$kernel" -a -s "$kernelfs" ]; then
   mkdir -p /cache/boot/grub
-  # deprecated with grub2
-  # fetch pxe kernel
-  #download "$server" "gpxe.krn"
   # tschmitt: provide custom group specific grub config
-  download "$server" "grub/${group}.cfg" || RC=1
+  [ -e /cache/boot/grub/custom.cfg ] && local cfg_before="$(md5sum /cache/boot/grub/custom.cfg | awk '{ print $1 }')"
+  download "$server" "boot/grub/${group}.cfg" || RC=1
   if [ -e "/cache/${group}.cfg" ]; then
    mv "/cache/${group}.cfg" /cache/boot/grub/custom.cfg || RC=1
+   local cfg_after="$(md5sum /cache/boot/grub/custom.cfg | awk '{ print $1 }')"
   else
    rm -f /cache/boot/grub/custom.cfg
   fi
@@ -2109,6 +2109,9 @@ update(){
  cd / ; sendlog
  #umount /cache
  if [ "$RC" = "0" ]; then
+  local kernelfs_after="$(md5sum /cache/$kernelfs | awk '{ print $1 }')"
+  [ "$kernelfs_after" != "$kernelfs_before" ] && touch /tmp/.doreboot
+  [ -n "$cfg_after" -a -n "$cfg_before" -a "$cfg_after" != "$cfg_before" ] && touch /tmp/.doreboot
   echo "LINBO update fertig."
   touch "$doneflag"
  else

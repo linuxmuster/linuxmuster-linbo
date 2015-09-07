@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 27.07.2015
+# 07.09.2015
 #
 
 set default=0
@@ -42,12 +42,19 @@ menuentry 'Reboot' {
     initrd /initrd.img
    elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
-   elif [ -s /bootmgr ] ; then
-    ntldr /bootmgr
-   elif [ -s /ntldr ] ; then
-    ntldr /ntldr
-   elif [ -s /grldr ] ; then
-    ntldr /grldr
+   elif [ "$grub_platform" = "pc" ]; then
+    if [ -s /bootmgr ]; then
+     ntldr /bootmgr
+    elif [ -s /ntldr ]; then
+     ntldr /ntldr
+    elif [ -s /grldr ]; then
+     ntldr /grldr
+    else
+     chainloader +1
+    fi
+   elif [ -e /Windows/Boot/EFI/bootmgfw.efi ]; then
+    chainloader /Windows/Boot/EFI/bootmgfw.efi
+    boot
    else
     chainloader +1
    fi
@@ -58,7 +65,7 @@ menuentry 'Reboot' {
 }
 
 # fallback to netboot
-menuentry 'LINBO net boot' {
+menuentry 'Netboot' {
 
  # compute path to group specific config
  if [ "$grub_platform" = "efi" ]; then
@@ -94,7 +101,7 @@ menuentry 'LINBO net boot' {
    set initrd=/linbofs.lz
   fi
   echo -n "Loading $kernel .."
-  linux $kernel splash quiet
+  linux $kernel splash quiet netboot
   echo
   echo -n "Loading $initrd .."
   initrd $initrd
