@@ -1,10 +1,14 @@
 #!/bin/sh
-
+#
 # creates directory structure for grub network boot
-           
+# thomas@linuxmuster.net
+# GPL v3
+# 09.09.2015
+#
+
 # required modules
-GRUB_COMMON_MODULES="chain configfile cpuid echo net ext2 extcmd fat http \
- ntfs linux loadenv net part_gpt part_msdos progress reiserfs search terminal test"
+GRUB_COMMON_MODULES="all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
+ ntfs linux loadenv net part_gpt part_msdos png progress reiserfs search terminal test"
 
 GRUB_EFI32_MODULES="efi_gop efi_uga efinet tftp"
 GRUB_EFI64_MODULES="efi_gop efi_uga efinet linuxefi tftp"

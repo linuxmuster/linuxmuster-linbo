@@ -2,7 +2,8 @@
 #
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
-# 14.07.2015
+# GPL v3
+# 09.09.2015
 #
 
 set -e
@@ -200,6 +201,9 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
   sed -e 's|^ALLOWED_DIR|#ALLOWED_DIR|g' -i "$conf"
   service bittorrent restart || true
  fi
+ 
+ # provide grub menu background
+ [ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -s ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
 
  # update linbofs.lz
  $LINBOUPDATE

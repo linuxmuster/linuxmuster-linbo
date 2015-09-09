@@ -788,6 +788,8 @@ mkgrub(){
   grub-install "$disk"
   # provide unicode font
   rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2"
+  # provide menu background image
+  rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png"
   # reset grubenv
   if [ -s "$grubenv" ]; then
    grub-editenv "$grubenv" unset reboot
