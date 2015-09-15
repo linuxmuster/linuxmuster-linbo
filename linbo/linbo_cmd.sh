@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 07.09.2015
+# 15.09.2015
 # GPL v3
 #
 
@@ -744,36 +744,112 @@ print_efi(){
  done
 }
 
+# print_grubpart partition
+print_grubpart(){
+ local partition="$1"
+ [ -b "$partition" ] || return 1
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
+ local ord="$(printf "$(echo $partition | sed 's|[1-9]||' | sed 's|/dev/[hsv]d||')" | od -A n -t d1)"
+ local disknr=$(( $ord - 97 ))
+ echo "(hd${disknr},${partnr})"
+}
+
+# set efi bootorder to local,network
+set_efi_bootorder(){
+ local efiout="/tmp/efiout"
+ efibootmgr | grep ^Boot0 > "$efiout"
+ local grubnumber="$(grep " grub" "$efiout" | head -1 | awk '{ print $1 }' | sed -e 's|Boot||' -e 's|\*||')"
+ local netnumbers="$(grep -i "efi network" "$efiout" | awk '{ print $1 }' | sed -e 's|Boot||' -e 's|\*||')"
+ if [ -n "$grubnumber" -a -n "$netnumbers" ]; then
+  local bootorder="$grubnumber"
+  for i in $netnumbers; do
+   bootorder="$bootorder,$i"
+  done
+  echo "Setze EFI Bootreihenfolge auf Lokal,Netzwerk: $bootorder."
+  efibootmgr -o "$bootorder" >> /tmp/linbo.log
+ fi
+}
+
+# write_devicemap devicemap
+# write grub device.map file
+write_devicemap() {
+ [ -z "$1" ] && return 1
+ local devicemap="$1"
+ local disk
+ local n=0
+ rm -f "$devicemap"
+ grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed 's|[1-9]||g' | sort -u | while read disk; do
+  echo "(hd${n}) $disk" >> "$devicemap"
+  n=$(( $n + 1 ))
+ done
+ [ -s "$devicemap" ] || return 1
+}
+
+# umount_boot
+# unmounts boot partition
+umount_boot(){
+ local i
+ for i in /boot/efi /boot; do
+  if mount | grep -q " $i "; then
+   umount "$i" || umount -l "$i"
+  fi
+ done
+}
+
+# mount_boot efipart
+# fake mounts boot partition for grub
+mount_boot(){
+ local efipart="$1"
+ mkdir -p /boot
+ if ! mount | grep -q " /boot "; then
+  mount --bind /cache/boot /boot || return 1
+ fi
+ if [ -n "$efipart" ]; then
+  if ! mount | grep -q " /boot/efi "; then
+   mkdir -p /boot/efi
+   if ! mount "$efipart" /boot/efi; then
+    umount_boot
+    return 1
+   fi
+  fi
+ fi
+}
+
 # write grub stuff
-# mkgrub partition reboot append
+# mkgrub partition/disk reboot kernel initrd append
 mkgrub(){
  local reboot="$2"
+ local reboot_kernel="$3"
+ local reboot_initrd="$4"
+ local reboot_append="$5"
+ local efipart="$(print_efi)"
  local doneflag="/tmp/.mkgrub.done"
+ # return if grub/linbo update was done on boot and no os start with reboot is requested
  [ -e "$doneflag" -a "$reboot" = "false" ] && return 0
+ # get disk for grub install
  local partition="$1"
  local disk="${partition%%[1-9]*}"
- # get os kernel append params
- local reboot_append="$3"
  if [ ! -b "$disk" ]; then
   echo "$disk ist kein Blockdevice!"
   return 1
  fi
+ # dirs where grub stuff is located
  local grubdir="/cache/boot/grub"
  local grubenv="$grubdir/grubenv"
  local grubsharedir="/usr/share/grub"
  local i
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
+ # do the grub install (if not done on boot)
  if [ ! -e "$doneflag" ]; then
-  mkdir -p /boot
-  mount --bind /cache/boot /boot || return 1
-  local efipart="$(print_efi)"
-  if [ -b "$efipart" ]; then
-   mkdir -p /boot/efi
-   mount "$efipart" /boot/efi || return 1
-  fi
+  mount_boot "$efipart" || return 1
   echo "Update Master-Bootrecord von $disk."
   # write grub device.map file
-  echo "(hd0) $disk" > $grubdir/device.map
+  write_devicemap "$grubdir/device.map"
+  # install grub
+  if ! grub-install "$disk"; then
+   umount_boot
+   return 1
+  fi
   # get linbo append params
   for i in $(cat /proc/cmdline); do
    case "$i" in
@@ -784,8 +860,6 @@ mkgrub(){
   # provide default grub.cfg with current append params
   sed -e "s|linux /linbo64 .*|linux /linbo64 $append|
           s|linux /linbo .*|linux /linbo $append|" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
-  # setup grub
-  grub-install "$disk"
   # provide unicode font
   rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2"
   # provide menu background image
@@ -798,19 +872,70 @@ mkgrub(){
   fi
   touch "$doneflag"
  fi
- # save reboot partition in grubenv
+ # reboot stuff
  if [ "$reboot" = "true" ]; then
-  reboot="$(grub-probe -d $partition -t drive -m $grubdir/device.map)"
-  echo "Schreibe Reboot-Partition $reboot nach $grubenv."
+  # restore windows efi boot files
+  if [ -b "$efipart" ]; then
+   local win_bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+   if [ -z "$win_bootdir" ]; then
+    local win_oldbootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+    if [ -n "$win_oldbootdir" ]; then
+     win_bootdir="/mnt/EFI/Microsoft/Boot"
+     mkdir -p "$win_bootdir"
+     mv "$win_oldbootdir"/* "$win_bootdir/"
+     rm -rf "$win_oldbootdir"
+    fi
+    local win_sourcedir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
+    if [ -n "$win_sourcedir" ]; then
+     if [ -z "$win_bootdir" ]; then
+      win_bootdir="/mnt/EFI/Microsoft/Boot"
+      mkdir -p "$win_bootdir"
+     fi
+     cp -r "$win_sourcedir"/* "$win_bootdir/"
+    fi
+   fi
+   local win_bcd="$(ls "$win_bootdir"/[Bb][Cc][Dd] 2> /dev/null)"
+   if [ -n "$win_bcd" ]; then
+    mount_boot "$efipart" || return 1
+    local win_efidir="$(ls -d /boot/efi/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+    if [ -z "$win_efidir" ]; then
+     win_efidir="/boot/efi/EFI/Microsoft/Boot"
+     mkdir -p "$win_efidir"
+    fi
+    # test for necessary efi boot files
+    [ -s "$win_bootdir/bootmgfw.efi" ] || rsync "$win_sourcedir"/bootmg* "$win_bootdir/"
+    # copy whole windows efi stuff to efi partition
+    echo "Stelle Windows-Bootdateien auf EFI-Partition $efipart wieder her."
+    rsync -r "$win_bootdir/" "$win_efidir/"
+   fi
+   # set efi bootorder to local,network
+   set_efi_bootorder
+  fi
+  # reboot partition is the partition where the os is installed
+  reboot="$(print_grubpart $partition)"
+  # save reboot informations in grubenv
+  echo "Schreibe Reboot-Informationen nach $grubenv."
   grub-editenv "$grubenv" set reboot_grub="$reboot"
+  if [ -n "$reboot_kernel" -a "$reboot_kernel" != "grub.exe" -a "$reboot_kernel" != "reboot" ]; then
+   [ "${reboot_kernel:0:1}" = "/" ] || reboot_kernel="/$reboot_kernel"
+   grub-editenv "$grubenv" set reboot_kernel="$reboot_kernel"
+  else
+   grub-editenv "$grubenv" unset reboot_kernel
+  fi
+  if [ -n "$reboot_initrd" ]; then
+   [ "${reboot_initrd:0:1}" = "/" ] || reboot_initrd="/$reboot_initrd"
+   grub-editenv "$grubenv" set reboot_kernel="$reboot_initrd"
+  else
+   grub-editenv "$grubenv" unset reboot_initrd
+  fi
   if [ -n "$reboot_append" ]; then
    grub-editenv "$grubenv" set reboot_append="root=$partition $reboot_append"
   else
-   grub-editenv "$grubenv" set reboot_append="root=$partition"
+   grub-editenv "$grubenv" unset reboot_append
   fi
  fi
- mount | grep -q /boot/efi && umount /boot/efi
- mount | grep -q /boot && umount /boot
+ # umount boot partitions if mounted
+ umount_boot
 }
 
 # download server file [important]
@@ -882,8 +1007,10 @@ start(){
     fi
     ;;
   esac
+  # on efi system reboot is always required
+  print_efi &> /dev/null && REBOOT="true"
   # install grub if cache is mounted writable
-  (mountcache "$6" && cache_writable) && mkgrub "$1" "$REBOOT" "$APPEND"
+  (mountcache "$6" && cache_writable) && mkgrub "$1" "$REBOOT" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
   # provide a menu.lst for grldr on win2k/xp, obsolete
   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
    APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
@@ -964,6 +1091,29 @@ ${RSYNC_EXCLUDE}
 EOT
 }
 
+# save_efi_bcd targetdir efipart
+# saves the windows efi file to os partition
+save_efi_bcd(){
+ local targetdir="$1"
+ local efipart="$2"
+ local efimnt="/cache/boot/efi"
+ mkdir -p "$efimnt"
+ mount "$efipart" "$efimnt" || return 1
+ local sourcedir="$(ls "$efimnt"/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+ if [ -z "$sourcedir" ]; then
+  echo "$sourcedir nicht vorhanden. Kann Windows-EFI-Bootdateien nicht nach $targetdir kopieren."
+  umount "$efimnt" || umount -l "$efimnt"
+  return 1
+ fi
+ echo "Kopiere Windows-EFI-Bootdateien von $sourcedir nach $targetdir."
+ mkdir -p "$targetdir"
+ local RC=0
+ rsync -r "$sourcedir/" "$targetdir/" || RC="1"
+ umount "$efimnt" || umount -l "$efimnt"
+ [ "$RC" = "1" ] && echo "Fehler beim Kopieren der Windows-EFI-Bootdateien."
+ return "$RC"
+}
+
 # prepare_fs directory inputdev
 # Removes all files from ${RSYNC_EXCLUDE} and saves win7 boot configuration in
 # the root directory of the os.
@@ -980,12 +1130,21 @@ prepare_fs(){
    fi
   done
   # save win7 bcd & mbr
-  local targetdir="$(ls -d [Bb][Oo][Oo][Tt] 2> /dev/null)"
+  local targetdir
+  # in case of efi save the windows efi files
+  local efipart="$(print_efi)"
+  if [ -b "$efipart" ]; then
+   targetdir="$(ls [Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[[Bb][Oo][Oo][Tt] 2> /dev/null)"
+   [ -z "$targetdir" ] && targetdir="EFI/Microsoft/Boot"
+   save_efi_bcd "$targetdir" "$efipart" | tee -a /tmp/linbo_image.log
+  else
+   targetdir="$(ls -d [Bb][Oo][Oo][Tt] 2> /dev/null)"
+  fi
   if [ -n "$targetdir" ]; then
    local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
-    echo "Sichere Windows-7-Bootsektor-Dateien."
+    echo "Sichere Windows-Bootdateien fuer Gruppe $group."
     # BCD group specific
     cp -f "$bcd" "$bcd"."$group"
     # 4 bytes mbr group specific
@@ -1529,6 +1688,7 @@ syncl(){
  local rootdev="$5"
  local disk="${rootdev%%[1-9]*}"
  local group="$(hostgroup)"
+ local bootdir
  # don't sync in that case
  if [ "$1" = "$rootdev" ]; then
   echo "Ueberspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
@@ -1590,21 +1750,27 @@ syncl(){
     echo "Patche $newdevdll."
     grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
    fi
+   # get boot files directory
+   if print_efi &> /dev/null; then
+    bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][ff][Tt]/[Bb][Oo][Oo][Tt])"
+   else
+    bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
+   fi
    # restore win7 bcd
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] ] && local bcd="$(ls /mnt/[Bb][Oo][Oo][Tt]/[Bb][Cc][Dd] 2> /dev/null)"
+   [ -e "$bootdir"/[Bb][Cc][Dd] ] && local bcd="$(ls "$bootdir"/[Bb][Cc][Dd] 2> /dev/null)"
    [ -n "$bcd" ] && local groupbcd="$bcd"."$group"
    if [ -n "$groupbcd" -a -s "$groupbcd" ]; then
     echo "Restauriere /Boot/BCD."
     cp -f "$groupbcd" "$bcd"
    fi
    # restore win7 mbr flag
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" ] && local mbr="$(ls /mnt/[Bb][Oo][Oo][Tt]/win7mbr."$group" 2> /dev/null)"
+   [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
    if [ -n "$mbr" -a -s "$mbr" ]; then
     echo "Patche Win7-MBR."
     dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
    fi
    # restore ntfs id
-   [ -e /mnt/[Bb][Oo][Oo][Tt]/ntfs.id ] && local ntfsid="$(ls /mnt/[Bb][Oo][Oo][Tt]/ntfs.id 2> /dev/null)"
+   [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
    if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
     echo "Restauriere NTFS-ID."
     dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log

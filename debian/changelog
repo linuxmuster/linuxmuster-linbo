@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-6) babo-testing; urgency=low
+
+  * more efi boot improvements.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2015 14:12:25 +0200
+
 linuxmuster-linbo (2.3.0-5) babo-testing; urgency=low
 
   * added linbo wallpaper and graphical grub boot menu.
