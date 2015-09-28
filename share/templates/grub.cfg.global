@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 07.09.2015
+# 17.09.2015
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -10,6 +10,8 @@
 set default=0
 set timeout=0
 set fallback=1
+
+set gfxpayload=800x600x16
 
 clear
 

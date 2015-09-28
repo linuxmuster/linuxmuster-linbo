@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 07.09.2015
+# 23.09.2015
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -444,13 +444,16 @@ do_linbo_update(){
  local server="$1"
  local cachedev="$(printcache)"
  local customcfg="/cache/boot/grub/custom.cfg"
+ local rebootflag="/cache/.linbo.reboot"
  # save current custom.cfg
  linbo_cmd update "$server" "$cachedev" 2> /dev/null || RC=1
  [ "$RC" = "1" ] && return 1
  # test if linbofs or custom.cfg were updated on local boot
- if [ -n "$localboot" -a -e /tmp/.doreboot ]; then
+ if [ -n "$localboot" -a -e "$rebootflag" ]; then
   echo "Lokale LINBO/GRUB-Konfiguration wurde aktualisiert. Starte neu ..."
-  /sbin/reboot
+  cd /
+  umount -a &> /dev/null
+  /sbin/reboot -f
  fi
 }
 

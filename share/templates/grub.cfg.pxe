@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 15.09.2015
+# 28.09.2015
 #
 
 set default=0
@@ -70,17 +70,19 @@ menuentry 'OS localboot' {
     initrd /initrd
    elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
+   elif [ "$grub_platform" = "pc" ]; then
+    if [ -s /bootmgr ] ; then
+     ntldr /bootmgr
+    elif [ -s /ntldr ] ; then
+     ntldr /ntldr
+    elif [ -s /grldr ] ; then
+     ntldr /grldr
+    else
+     chainloader +1
+    fi
    elif [ -e "$win_efiloader" ]; then
     chainloader $win_efiloader
     boot
-   elif [ -s /bootmgr ] ; then
-    ntldr /bootmgr
-   elif [ -s /ntldr ] ; then
-    ntldr /ntldr
-   elif [ -s /grldr ] ; then
-    ntldr /grldr
-   else
-    chainloader +1
    fi
 
   fi

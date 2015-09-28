@@ -1,3 +1,24 @@
+linuxmuster-linbo (2.3.0-8) babo-testing; urgency=low
+
+  * kernel update to 4.2.
+  * back to self compiled cloop utils.
+  * implemented direct boot for efi systems
+  * reworked boot stuff
+  * windows efi/bcd improvements
+  * added linuxmuster-win scripts to /var/linbo
+  * patch_registry fix
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 28 Sep 2015 21:02:13 +0200
+
+linuxmuster-linbo (2.3.0-7) babo-testing; urgency=low
+
+  * linbo_cmd:
+    - fixes for windows efi boot file restauration,
+    - added test for ntfs filesystem.
+    - added uuid save and restore of gpt partitions.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Sep 2015 15:25:40 +0200
+
 linuxmuster-linbo (2.3.0-6) babo-testing; urgency=low
 
   * more efi boot improvements.

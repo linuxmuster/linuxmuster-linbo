@@ -1,6 +1,6 @@
 # group specific grub.cfg template for linbo net boot, should work with linux and windows operating systems
 # thomas@linuxmuster.net
-# 14.09.2015
+# 28.09.2015
 #
 
 # default #@@nr@@
@@ -22,17 +22,19 @@ menuentry '@@osname@@' {
   linux /@@kernel@@ root=@@partition@@ @@append@@
  elif [ -s /boot/grub/grub.cfg ] ; then
   configfile /boot/grub/grub.cfg
+ elif [ "$grub_platform" = "pc" ]; then
+  if [ -s /bootmgr ] ; then
+   ntldr /bootmgr
+  elif [ -s /ntldr ] ; then
+   ntldr /ntldr
+  elif [ -s /grldr ] ; then
+   ntldr /grldr
+  else
+   chainloader +1
+  fi
  elif [ -e "$win_efiloader" ]; then
   chainloader $win_efiloader
   boot
- elif [ -s /bootmgr ] ; then
-  ntldr /bootmgr
- elif [ -s /ntldr ] ; then
-  ntldr /ntldr
- elif [ -s /grldr ] ; then
-  ntldr /grldr
- else
-  chainloader +1
  fi
 
 }
