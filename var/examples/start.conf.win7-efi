@@ -10,7 +10,7 @@
 Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhaelt
 Group = gruppe           # Name der Rechnergruppe fuer die diese Konfigurationsdatei gilt
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
-Cache = /dev/sda5        # lokale Cache Partition
+Cache = /dev/sda4        # lokale Cache Partition
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
@@ -28,7 +28,7 @@ KernelOptions = quiet splash        # Beispiele:
 [Partition]              # Partition fuer EFI
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
 Label = efi              # Partitionslabel efi (efi system partition)
-Size = 200M              # Partitionsgroesse (Bsp.: 200M), ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
+Size = 200M              # Partitionsgroesse 200M, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
 Id = ef                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ef = efi)
 FSType = vfat            # Dateisystem auf der Partition (FAT32)
 Bootable = yes           # Bootable-Flag gesetzt
@@ -65,23 +65,22 @@ Id = 7                   # Partitionstyp 7
 FSType = ntfs            # Dateisystem ntfs
 Bootable = no            # kein Bootable-Flag
 
-[OS]
-Name = Windows                  # Name des Betriebssystems
-Version =                       # Version (optional)
-Description = Windows 7 SP1     # Beschreibung
-IconName = winxp.png            # Icon fuer die Startseite, muss unter /var/linbo/icons abgelegt sein
-Image =                         # kein differentielles Image
-BaseImage = win7.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda3                # Bootpartition = Rootpartition
-Root = /dev/sda3                # Rootpartition, in die das BS installiert ist
-Kernel = reboot                 # bei EFI wird immer reboot ausgefuehrt
-Initrd =                        # keine Initrd
-Append =                        # kein Append
-StartEnabled = no               # "Start"-Button deaktiviert
-SyncEnabled = yes               # "Sync+Start"-Button anzeigen
-NewEnabled = yes                # "Neu+Start"-Button anzeigen
-Hidden = no                     # zeige OS-Reiter an
-Autostart = no                  # automatischer synchronisierter Start dieses Betriebssystems: yes|no
-DefaultAction = sync            # DefaultAction bei Autostart: start|sync|new
-AutostartTimeout = 5            # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
-
+[OS]                         # Beginn einer Betriebssystemdefinition
+Name = Windows 7             # Name des Betriebssystems
+Version =                    # Version (unbenutzt, leer lassen)
+Description = Windows 7 SP1  # Beschreibung
+IconName = winxp.png         # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                      # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = win7.cloop       # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda3             # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda3             # Rootpartition, in die das BS installiert ist
+Kernel = auto                # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
+Initrd =                     # Windows: leer
+Append =                     # Windows: leer
+StartEnabled = yes           # "Start"-Button anzeigen
+SyncEnabled = yes            # "Sync+Start"-Button anzeigen
+NewEnabled = yes             # "Neu+Start"-Button anzeigen
+Autostart = no               # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5         # Timeout in Sekunden für Benutzerabbruch bei Autostart
+DefaultAction = sync         # Standardaktion bei Autostart: start|sync|new
+Hidden = yes                 # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

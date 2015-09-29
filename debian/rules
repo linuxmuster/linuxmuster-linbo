@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 18.09.2015
+# 29.09.2015
 # GPL v3
 #
 
@@ -93,27 +93,10 @@ CHNTPW_URL=http://pogostick.net/~pnh/ntpasswd
 # chntpw64
 CHNTPW64_DIR=src64/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
 
-# kexec-tools
-KEXEC_ARCHIVE=$(shell grep kexec-tools- debian/md5sums.src | awk '{ print $$2 }')
-KEXEC_DIR=src/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.xz//')
-KEXEC_URL=https://www.kernel.org/pub/linux/utils/kernel/kexec
-#KEXEC_URL=$(LML_URL)
-
-# kexec-tools64
-KEXEC64_DIR=src64/$(shell echo $(KEXEC_ARCHIVE) | sed -e 's/.tar.xz//')
-
-# grub4dos
-GRUB4DOS_ARCHIVE=$(shell grep grub4dos- debian/md5sums.src | awk '{ print $$2 }')
-GRUB4DOS_DIR=src/$(shell echo $(GRUB4DOS_ARCHIVE) | sed -e 's/.tar.xz//')
-GRUB4DOS_URL=$(LML_URL)/$(GRUB4DOS_ARCHIVE)
-
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
 MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
 MSSYS_URL=$(LML_URL)
-
-# ms-sys
-MSSYS64_DIR=src64/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
 
 # ntfs-3g
 NTFS3G_ARCHIVE=$(shell grep ntfs-3g_ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
@@ -139,11 +122,6 @@ SSMTP_URL=$(LML_URL)
 
 # ssmtp64
 SSMTP64_DIR=src64/ssmtp
-
-# syslinux 32/64
-#SYSLINUX_ARCHIVE=$(shell grep syslinux- debian/md5sums.src | awk '{ print $$2 }')
-#SYSLINUX_DIR=src/$(shell echo $(SYSLINUX_ARCHIVE) | sed -e 's/.tar.xz//')
-#SYSLINUX_URL=http://www.kernel.org/pub/linux/utils/boot/syslinux
 
 # 32bit toolchain & binaries
 TOOLCHAIN=$(CURDIR)/toolchain
@@ -208,15 +186,6 @@ configure-stamp:
 		ln -sf ../$(BB64_DIR) src64/busybox; \
 	fi
 
-	# grub4dos
-	-@if [ ! -d $(GRUB4DOS_DIR) ]; then \
-		( [ -e cache/$(GRUB4DOS_ARCHIVE) ] || ( cd cache && wget $(GRUB4DOS_URL) ) ); \
-		( cd cache && grep $(GRUB4DOS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(GRUB4DOS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(GRUB4DOS_ARCHIVE) -C src; \
-		ln -sf ../$(GRUB4DOS_DIR) src/grub4dos; \
-	fi
-
 	# chntpw
 	-@if [ ! -d $(CHNTPW_DIR) ]; then \
 		( [ -e cache/$(CHNTPW_ARCHIVE) ] || ( cd cache && wget $(CHNTPW_URL)/$(CHNTPW_ARCHIVE) ) ); \
@@ -237,24 +206,6 @@ configure-stamp:
 		( cd $(CHNTPW64_DIR) && for i in ../../patches/chntpw64/*; do patch -p1 <$$i; done ); \
 	fi
 
-	# kexec-tools
-	-@if [ ! -d $(KEXEC_DIR) ]; then \
-		( [ -e cache/$(KEXEC_ARCHIVE) ] || ( cd cache && wget $(KEXEC_URL)/$(KEXEC_ARCHIVE) ) ); \
-		( cd cache && grep $(KEXEC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(KEXEC_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KEXEC_ARCHIVE) -C src; \
-		ln -sf ../$(KEXEC_DIR) src/kexec-tools; \
-	fi
-
-	# kexec-tools64
-	-@if [ ! -d $(KEXEC64_DIR) ]; then \
-		( [ -e cache/$(KEXEC_ARCHIVE) ] || ( cd cache && wget $(KEXEC_URL)/$(KEXEC_ARCHIVE) ) ); \
-		( cd cache && grep $(KEXEC_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(KEXEC_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KEXEC_ARCHIVE) -C src64; \
-		ln -sf ../$(KEXEC64_DIR) src64/kexec-tools; \
-	fi
-
 	# ms-sys
 	-@if [ ! -d $(MSSYS_DIR) ]; then \
 		( [ -e cache/$(MSSYS_ARCHIVE) ] || ( cd cache && wget $(MSSYS_URL)/$(MSSYS_ARCHIVE) ) ); \
@@ -264,15 +215,6 @@ configure-stamp:
 		echo "[1mPatching $(MSSYS_ARCHIVE)...[0m" ; \
 		( cd $(MSSYS_DIR) && patch -p0 <../../patches/ms-sys32.patch ); \
 		ln -sf ../$(MSSYS_DIR) src/ms-sys; \
-	fi
-
-	# ms-sys64
-	-@if [ ! -d $(MSSYS64_DIR) ]; then \
-		( [ -e cache/$(MSSYS_ARCHIVE) ] || ( cd cache && wget $(MSSYS_URL)/$(MSSYS_ARCHIVE) ) ); \
-		( cd cache && grep $(MSSYS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(MSSYS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(MSSYS_ARCHIVE) -C src64; \
-		ln -sf ../$(MSSYS64_DIR) src64/ms-sys; \
 	fi
 
 	# ntfs-3g
@@ -313,15 +255,6 @@ configure-stamp:
 		echo "[1mPatching 64bit ssmtp sources...[0m" ; \
 		( cd $(SSMTP64_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 	fi
-
-	# syslinux 32/64
-#	-@if [ ! -d $(SYSLINUX_DIR) ]; then \
-#		( [ -e cache/$(SYSLINUX_ARCHIVE) ] || ( cd cache && wget $(SYSLINUX_URL)/$(SYSLINUX_ARCHIVE) ) ); \
-#		( cd cache && grep $(SYSLINUX_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking 32bit/64bit $(SYSLINUX_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(SYSLINUX_ARCHIVE) -C src; \
-#		ln -sf ../$(SYSLINUX_DIR) src/syslinux; \
-#	fi
 
 	# qt
 	-@if [ ! -d $(QT_DIR) ]; then \
@@ -494,28 +427,10 @@ build-stamp: configure-stamp
 		( cd $(BB64_DIR) && make install ); \
 	fi
 
-	# kexec-tools
-	-@if [ ! -e $(KEXEC_DIR)/build/sbin/kexec ]; then \
-		echo "[1mBuilding kexec...[0m" ; \
-		( cd $(KEXEC_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 LDFLAGS=-static ./configure --host=i386-linux-gnu && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 make && strip build/sbin/kexec ); \
-	fi
-
-	# kexec-tools64
-	-@if [ ! -e $(KEXEC64_DIR)/build/sbin/kexec ]; then \
-		echo "[1mBuilding 64bit kexec...[0m" ; \
-		( cd $(KEXEC64_DIR) && LDFLAGS=-static ./configure && make && strip build/sbin/kexec ); \
-	fi
-
 	# ms-sys
 	-@if [ ! -e $(MSSYS_DIR)/bin/ms-sys ]; then \
 		echo "[1mBuilding ms-sys...[0m" ; \
 		( cd $(MSSYS_DIR) && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 make && strip bin/ms-sys ); \
-	fi
-
-	# ms-sys64
-	-@if [ ! -e $(MSSYS64_DIR)/bin/ms-sys ]; then \
-		echo "[1mBuilding 64bit ms-sys...[0m" ; \
-		( cd $(MSSYS64_DIR) && make && strip bin/ms-sys ); \
 	fi
 
 	# chntpw

@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 28.09.2015
+# 29.09.2015
 # GPL v3
 #
 
@@ -1058,60 +1058,54 @@ mk_efiboot(){
  fi
 }
 
-# mk_grubboot partition grubenv reboot_kernel reboot_initrd reboot_append
+# mk_grubboot partition grubenv kernel initrd append
 # prepare for grub boot after reboot
 mk_grubboot(){
  local partition="$1"
  local grubenv="$2"
- local reboot_kernel="$3"
- [ -z "$reboot_kernel" ] && return 0
+ local KERNEL="$3"
+ [ -z "$KERNEL" ] && return 0
  local doneflag="/tmp/.mk_grubboot.$(basename "$partition")"
  [ -e "$doneflag" ] && return 0
- local reboot_initrd="$4"
- local reboot_append="$5"
+ local INITRD="$4"
+ local APPEND="$5"
  local RC="0"
  # reboot partition is the partition where the os is installed
- local reboot="$(print_grubpart $partition)"
+ local REBOOT="$(print_grubpart $partition)"
  # save reboot informations in grubenv
  echo "Schreibe Reboot-Informationen nach $grubenv."
- grub-editenv "$grubenv" set reboot_grub="$reboot" || RC="1"
- if [ -n "$reboot_kernel" -a "$reboot_kernel" != "grub.exe" -a "$reboot_kernel" != "reboot" ]; then
-  [ "${reboot_kernel:0:1}" = "/" ] || reboot_kernel="/$reboot_kernel"
-  grub-editenv "$grubenv" set reboot_kernel="$reboot_kernel" || RC="1"
- else
-  grub-editenv "$grubenv" unset reboot_kernel || RC="1"
- fi
- if [ -n "$reboot_initrd" ]; then
-  [ "${reboot_initrd:0:1}" = "/" ] || reboot_initrd="/$reboot_initrd"
-  grub-editenv "$grubenv" set reboot_kernel="$reboot_initrd" || RC="1"
- else
-  grub-editenv "$grubenv" unset reboot_initrd || RC="1"
- fi
- if [ -n "$reboot_append" ]; then
-  grub-editenv "$grubenv" set reboot_append="root=$partition $reboot_append" || RC="1"
- else
-  grub-editenv "$grubenv" unset reboot_append || RC="1"
+ grub-editenv "$grubenv" set reboot_grub="$REBOOT" || RC="1"
+ if [ "$KERNEL" != "[Aa][Uu][Tt][Oo]" ]; then
+  [ "${KERNEL:0:1}" = "/" ] || KERNEL="/$KERNEL"
+  grub-editenv "$grubenv" set reboot_kernel="$KERNEL" || RC="1"
+  if [ -n "$INITRD" ]; then
+   [ "${INITRD:0:1}" = "/" ] || INITRD="/$INITRD"
+   grub-editenv "$grubenv" set reboot_initrd="$INITRD" || RC="1"
+  fi
+  if [ -n "$APPEND" ]; then
+   grub-editenv "$grubenv" set reboot_append="$APPEND" || RC="1"
+  fi
  fi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
 
 # prepare_reboot: prepares filesystem for reboot to os
-# args: grubdisk partition grubenv reboot_kernel reboot_initrd reboot_append efipart  
+# args: grubdisk partition grubenv kernel initrd append efipart  
 prepare_reboot(){
  local grubdisk="$1"
  local partition="$2"
  local grubenv="$3"
- local reboot_kernel="$4"
- local reboot_initrd="$5"
- local reboot_append="$6"
+ local KERNEL="${4#/}"
+ local INITRD="${5#/}"
+ local APPEND="$6"
  local efipart="$7"
  local efiboot="false"
  if [ -n "$efipart" ]; then
   mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then
-  mk_grubboot "$partition" "$grubenv" "$reboot_kernel" "$reboot_initrd" "$reboot_append" || return 1
+  mk_grubboot "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" || return 1
  fi
 }
 
@@ -1143,21 +1137,24 @@ prepare_grub(){
  # provide menu background image
  rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || return 1
  # reset grubenv
+ local RC="0"
  if [ -s "$grubenv" ]; then
-  grub-editenv "$grubenv" unset reboot || return 1
+  for i in reboot reboot_kernel reboot_initrd reboot_append; do
+   grub-editenv "$grubenv" unset "$i" || RC="1"
+  done
  else
-  grub-editenv "$grubenv" create || return 1
+  grub-editenv "$grubenv" create || RC="1"
  fi
- touch "$doneflag"
+ [ "$RC" = "0" ] && touch "$doneflag"
+ return "$RC"
 }
 
-# configure boot stuff
-# mk_boot partition reboot kernel initrd append
+# mk_boot: configure boot stuff
+# args: partition kernel initrd append
 mk_boot(){
- local reboot="$2"
- local reboot_kernel="$3"
- local reboot_initrd="$4"
- local reboot_append="$5"
+ local KERNEL="${2#/}"
+ local INITRD="${3#/}"
+ local APPEND="$4"
  local efipart="$(print_efipart)"
  local partition="$1"
  # get disk for grub install, use always the first disk
@@ -1176,10 +1173,8 @@ mk_boot(){
  local RC="0"
  # prepare grub stuff
  prepare_grub "$grubdir" "$grubenv" "$grubsharedir" || RC="1"
- # reboot stuff
- if [ "$reboot" = "true" ]; then
-  prepare_reboot "$grubdisk" "$partition" "$grubenv" "$reboot_kernel" "$reboot_initrd" "$reboot_append" "$efipart" || RC="1"
- fi
+ # prepare reboot stuff
+ prepare_reboot "$grubdisk" "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" "$efipart" || RC="1"
  # install grub in mbr/efi
  if [ ! -e "$doneflag" ]; then
   echo -n "Installiere Grub in MBR/EFI von $grubdisk ... "
@@ -1233,93 +1228,56 @@ invoke_macct(){
  rm -f "/cache/$macctfile"
 }
 
-# start boot root kernel initrd append cache
+# start: start operating system
+# args: boot root kernel initrd append cache
 start(){
  echo -n "start " ;  printargs "$@"
- local LOADED=""
- local REBOOT="false"
- local KERNEL="/mnt/$3"
- local INITRD=""
- local APPEND="$5"
+ # if no kernel is given, do not start
+ if [ -z "$3" ]; then
+  echo "Nichts zu starten!"
+  return 0
+ fi
+ local INITRD
+ local APPEND
+ local KERNEL="${3#/}"
  local i
- local cpunum=1
- local disk="${1%%[1-9]*}"
+ local partition="$2"
+ local disk="${partition%%[1-9]*}"
+ local cachedev="$6"
  local startflag="/tmp/.start"
  touch "$startflag"
- if mountpart "$1" /mnt -w 2>> /tmp/linbo.log; then
-  [ -n "$4" -a -r /mnt/"$4" ] && INITRD="--initrd=/mnt/$4"
-  case "$3" in
-   *[Gg][Rr][Uu][Bb].[Ee][Xx][Ee]*)
-    # use builtin grub.exe
-    KERNEL="/usr/lib/$3"
-    [ -e "$KERNEL" ] || KERNEL="/usr/lib/grub.exe"
-    # provide an APPEND line if no one is given
-    [ -z "$APPEND" ] && APPEND="--config-file=map(rd) (hd0,0); map --hook; chainloader (hd0,0)/ntldr; rootnoverify(hd0,0) --device-map=(hd0) $disk"
-    ;;
-   *[Rr][Ee][Bb][Oo][Oo][Tt]*)
-     # reboot workaround
-     LOADED="true"
-     REBOOT="true"
-     ;;
-   *)
-    if [ -n "$2" ]; then
-     APPEND="root=$2 $APPEND"
-    fi
-    ;;
-  esac
+ if mountpart "$partition" /mnt -w 2>> /tmp/linbo.log; then
+  if [ -e "/mnt/$KERNEL" ]; then
+   echo "Kernel $KERNEL auf Partition $partition gefunden."
+   INITRD="${4#/}"
+   APPEND="$5"
+   [ -n "$partition" ] && APPEND="root=$partition $APPEND"
+  else
+   echo "Kernel $KERNEL auf Partition $partition nicht vorhanden. Setze auf \"auto\"."
+   KERNEL="auto"
+  fi
   # update linuxmuster-win scripts
-  if [ "$(fstype "$2")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
+  if [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
    mkdir -p /mnt/linuxmuster-win
    rsync /cache/linuxmuster-win/* /mnt/linuxmuster-win
   fi
-  # on efi system reboot is always required
-  print_efipart &> /dev/null && REBOOT="true"
-  # install grub if cache is mounted writable
-  (mountcache "$6" && cache_writable) && mk_boot "$1" "$REBOOT" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
-  # provide a menu.lst for grldr on win2k/xp, obsolete
-  if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ]; then
-   APPEND="$(echo $APPEND | sed -e 's/ntldr/bootmgr/')"
-  elif [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
-   # tschmitt: patch autoexec.bat (win98),
-   if ! grep ^'if exist C:\\linbo.reg' /mnt/AUTOEXEC.BAT; then
-    echo "if exist C:\linbo.reg regedit C:\linbo.reg" >> /mnt/AUTOEXEC.BAT
-    unix2dos /mnt/AUTOEXEC.BAT
-   fi
-   # change bootloader for win98 systems
-   APPEND="$(echo $APPEND | sed -e 's/ntldr/io.sys/' | sed -e 's/bootmgr/io.sys/')"
-  fi
+  # install/update grub/efi stuff if cache is mounted writable
+  (mountcache "$6" && cache_writable) && mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
  else
-  echo "Konnte Betriebssystem-Partition $1 nicht mounten." >&2
-  umount /mnt 2>/dev/null
-  mountcache "$6" -r
+  echo "Konnte Betriebssystem-Partition $partition nicht mounten." >&2
+  umount /mnt 2>> /tmp/linbo.log
+  mountcache "$cachedev" -r
   return 1
  fi
  # sets machine password on server
  invoke_macct
  # kill torrents if any
  killalltorrents
- if [ "$REBOOT" = "false" ]; then
-  echo "kexec -l $INITRD --append=\"$APPEND\" $KERNEL" >> /tmp/linbo.log
-  kexec -l $INITRD --append="$APPEND" $KERNEL 2>&1 >> /tmp/linbo.log && LOADED="true"
- fi
- umount /mnt 2>/dev/null
+ sync
+ umount /mnt 2>> /tmp/linbo.log
  sendlog
- # do not umount cache if root = cache
- if [ "$2" != "$6" ]; then
-  umount /cache || umount -l /cache 2>/dev/null
- fi
- [ "$REBOOT" = "true" ] && reboot -f
- if [ -n "$LOADED" ]; then
-  # We basically do a quick shutdown here.
-  killall5 -15
-  #sleep 2
-  echo -n "c" >/dev/console
-  exec kexec -e --reset-vga &> /dev/null
-  sleep 3
- else
-  echo "Betriebssystem konnte nicht geladen werden." >&2
-  return 1
- fi
+ # reboot to operating system
+ reboot -f
 }
 
 # return partition size in kilobytes
@@ -2010,23 +1968,16 @@ syncl(){
    [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
    # do registry patching for windows systems
    if [ -r "$patchfile" ]; then
-    rm -f "$TMP"
-    sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
-    dos2unix "$TMP"
-    # tschmitt: different patching for different windows 
-    # Win98
-    if [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ]; then
-     cp -f "$TMP" /mnt/linbo.reg
-     unix2dos /mnt/linbo.reg
     # WinXP, Win7
-    elif [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o "$(fstype $rootdev)" = "ntfs" ]; then
-     # tschmitt: logging
+    if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o "$(fstype "$rootdev")" = "ntfs" ]; then
+     sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
+     dos2unix "$TMP"
      echo -n "Patche System mit $patchfile." >/tmp/patch.log
      cat "$TMP" >>/tmp/patch.log
      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
+     rm -f "$TMP"
     fi
-    rm -f "$TMP"
    fi
    # tweak newdev.dll (suppresses new hardware dialog)
    local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
@@ -2079,8 +2030,8 @@ syncl(){
     echo "Restauriere NTFS-ID."
     dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
    fi
-   # write partition boot sector (vfat only)
-   if [ "$(fstype "$5")" = "vfat" ]; then
+   # write partition boot sector (vfat and 32bit only)
+   if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
     local msopt=""
     [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
     [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
@@ -2126,7 +2077,7 @@ syncl(){
    # source postsync script
    [ -s "/cache/$postsync" ] && . "/cache/$postsync"
    # finally do boot configuration
-   mk_boot "$rootdev" "true" || RC=1
+   mk_boot "$rootdev" || RC=1
    # all done
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
@@ -2745,7 +2696,7 @@ register(){
  local group="$7"
  local macaddr="$(mac)"
  [ "$maccaddr" = "OFFLINE" ] && return 1
- local info="$room;$client;$group;$macaddr;$ip;255.240.0.0;1;1;1;1;1"
+ local info="$room;$client;$group;$macaddr;$ip;;;;;1;1"
  # Plausibility check
  if echo "$client" | grep -qi '[^a-z0-9-]'; then
   echo "Falscher Rechnername: '$client'," >&2

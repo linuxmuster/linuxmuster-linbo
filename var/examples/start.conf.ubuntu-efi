@@ -7,7 +7,7 @@
 # Festplatte 160G
 
 [LINBO]                  # globale Konfiguration
-Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhält
+Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhaelt
 Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda5        # lokale Cache Partition
@@ -28,7 +28,7 @@ KernelOptions = quiet splash        # Beispiele:
 [Partition]              # Partition fuer EFI
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
 Label = efi              # Partitionslabel (efi system partition)
-Size = 200M              # Partitionsgroesse (Bsp.: 200M), ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
+Size = 200M              # Partitionsgroesse 200M, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
 Id = ef                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ef = efi)
 FSType = vfat            # Dateisystem auf der Partition (FAT32)
 Bootable = yes           # Bootable-Flag gesetzt
@@ -58,7 +58,7 @@ FSType = ext4            # Dateisystem ext4
 Bootable = no            # kein Bootable-Flag
 
 [Partition]              # Daten-Partition
-Dev = /dev/sda5          # Device-Name der Partition (sda5 = fuenfte Partition auf erster IDE-Platte)
+Dev = /dev/sda5          # Device-Name der Partition (sda5 = fuenfte Partition auf erster Platte)
 Label = daten            # Partitionslabel daten
 Size =                   # Partitionsgroesse nicht angegeben = Rest der Platte
 Id = 83                  # Partitionstyp 7
@@ -66,22 +66,21 @@ FSType = ext4            # Dateisystem ntfs
 Bootable = no            # kein Bootable-Flag
 
 [OS]
-Name = Ubuntu                   # Name des Betriebssystems
-Version =                       # Version (optional)
-Description = Ubuntu 14.04      # Beschreibung
-IconName = ubuntu.png           # Icon für die Startseite, muss unter /var/linbo/icons abgelegt sein
-Image =                         # kein differentielles Image
-BaseImage = ubuntu.cloop        # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda2                # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda2                # Rootpartition, in die das BS installiert ist
-Kernel = vmlinuz                # Relativer Pfad zum Kernel
-Initrd = initrd.img             # Relativer Pfad zur Initrd
-Append = ro splash              # Kernel-Append-Parameter, ggf. anpassen
-StartEnabled = no               # "Start"-Button deaktiviert
-SyncEnabled = yes               # "Sync+Start"-Button anzeigen
-NewEnabled = yes                # "Neu+Start"-Button anzeigen
-Hidden = no                     # zeige OS-Reiter an
-Autostart = no                  # automatischer synchronisierter Start dieses Betriebssystems: yes|no
-DefaultAction = sync            # DefaultAction bei Autostart: start|sync|new
-AutostartTimeout = 5            # Timeout in Sekunden für Benutzerabbruch bei Autostart
-
+Name = Ubuntu                     # Name des Betriebssystems
+Version =                         # Version (unbenutzt, leer lassen)
+Description = Ubuntu 14.04 Trusty # Beschreibung
+IconName = ubuntu.png             # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                           # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = ubuntu.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda2                  # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda2                  # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                  # Relativer Pfad zum Kernel
+Initrd = initrd.img               # Relativer Pfad zur Initrd
+Append = ro splash                # Kernel-Append-Parameter, ggf. anpassen
+StartEnabled = yes                # "Start"-Button anzeigen
+SyncEnabled = yes                 # "Sync+Start"-Button anzeigen
+NewEnabled = yes                  # "Neu+Start"-Button anzeigen
+Autostart = no                    # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5              # Timeout in Sekunden für Benutzerabbruch bei Autostart
+DefaultAction = sync              # Standardaktion bei Autostart: start|sync|new
+Hidden = yes                      # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

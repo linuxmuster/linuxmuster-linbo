@@ -1,6 +1,6 @@
 # LINBO start.conf Beispiel mit
 # Windows 7 auf Partition 1 (NTFS)
-# Ubuntu Lucid 10.4 auf Partition 2
+# Ubuntu auf Partition 2
 # Swap auf Partition 3
 # Daten auf Partition 5 (NTFS)
 # Cache auf Partition 6
@@ -27,26 +27,31 @@ KernelOptions = quiet splash        # Beispiele:
 
 [Partition]              # Start einer Partitionsdefinition, Windows 7 auf NTFS
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
-Size = 30000000          # Partitionsgroesse in kB (Bsp.: ca. 30G)
+Label = windows          # Partitionslabel
+Size = 30G               # Partitionsgroesse 30G, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
 Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ntfs            # Dateisystem auf der Partition (NTFS)
-Bootable = no            # Bootable-Flag
+Bootable = yes           # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Ubuntu
 Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster Platte)
-Size = 10000000          # Partitionsgroesse in kB (Bsp.: ca. 10G)
+Label = ubuntu           # Partitionslabel
+Size = 10G               # Partitionsgroesse 10G
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext4            # Dateisystem auf der Partition (ext4)
-Bootable = no            # Bootable-Flag
+Bootable = yes           # Bootable-Flag
 
 [Partition]              # Definition der Swappartition
 Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster Platte)
-Size = 2000000           # Partitionsgroesse in kB (Bsp.: ca. 2G)
+Label = swap             # Partitionslabel
+Size = 2G                # Partitionsgroesse 2G
 Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = swap            # Dateisystem auf der Partition (swap)
+Bootable = no            # Bootable-Flag
 
 [Partition]              # Erweiterte Partition
 Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster Platte)
+Label = extended         # Partitionslabel
 Size =                   # Partitionsgroesse in kB (leer bei erweiterter Partition)
 Id = 5                   # Partitionstyp (5 = erweiterte Partition)
 FSType =                 # Dateisystem auf der Partition (leer bei erweiterter Partition)
@@ -54,55 +59,56 @@ Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Datenpartition mit NTFS
 Dev = /dev/sda5          # Device-Name der Partition (sda5 = fuenfte Partition auf erster Platte)
-Size = 80000000          # Partitionsgroesse in kB (Bsp.: ca. 80G)
+Label = daten            # Partitionslabel
+Size = 80G               # Partitionsgroesse 80G
 Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ntfs            # Dateisystem auf der Partition
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Definition der Cache-Partition
 Dev = /dev/sda6          # Device-Name der Partition (sda6 = sechste Partition auf erster IDE-Platte)
-Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 38G)
+Label = cache            # Partitionslabel
+Size =                   # Partitionsgroesse (Bsp.: keine Angabe = Rest der Platte)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = ext4            # Dateisystem fuer Cache-Partition (ext4)
-Bootable = no            # Bootable-Flag
+Bootable = yes           # Bootable-Flag
 
-[OS]                           # Beginn einer Betriebssystemdefinition
-Name = Windows 7               # Name des Betriebssystems
-Version =                      # Version (optional, frei waehlbar)
-Description = Windows 7 SP1    # Beschreibung
-IconName = winxp.png           # Icon für die Startseite, muss unter /var/linbo/icons abgelegt sein
-Image =                        # kein differentielles Image definiert
-BaseImage  = win7.cloop        # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1               # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda1               # Rootpartition, in die das BS installiert ist
-Kernel = grub.exe              # Relativer Pfad zum Kernel, bei Windows immer grub.exe
-Initrd =                       # Relativer Pfad zur Initrd, bei Windows immer leer
-Append =                       # bleibt bei Windows leer
-StartEnabled = no              # "Start"-Button deaktiviert
-SyncEnabled = yes              # "Sync+Start"-Button anzeigen
-NewEnabled = yes               # "Neu+Start"-Button anzeigen
-Hidden = no                    # zeige OS-Reiter an
-Autostart = no                 # automatischer synchronisierter Start dieses Betriebssystems: yes|no
-DefaultAction = sync           # DefaultAction bei Autostart: start|sync|new
-AutostartTimeout = 5           # Timeout in Sekunden für Benutzerabbruch bei Autostart
+[OS]                         # Beginn einer Betriebssystemdefinition
+Name = Windows 7             # Name des Betriebssystems
+Version =                    # Version (unbenutzt, leer lassen)
+Description = Windows 7 SP1  # Beschreibung
+IconName = winxp.png         # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                      # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = win7.cloop       # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1             # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda1             # Rootpartition, in die das BS installiert ist
+Kernel = auto                # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
+Initrd =                     # Windows: leer
+Append =                     # Windows: leer
+StartEnabled = yes           # "Start"-Button anzeigen
+SyncEnabled = yes            # "Sync+Start"-Button anzeigen
+NewEnabled = yes             # "Neu+Start"-Button anzeigen
+Autostart = no               # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5         # Timeout in Sekunden für Benutzerabbruch bei Autostart
+DefaultAction = sync         # Standardaktion bei Autostart: start|sync|new
+Hidden = yes                 # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
 
 [OS]
-Name = Ubuntu                   # Name des Betriebssystems
-Version =                       # Version (optional)
-Description = Ubuntu 10.4 Lucid # Beschreibung
-IconName = ubuntu.png           # Icon für die Startseite, muss unter /var/linbo/icons abgelegt sein
-Image =                         # kein differentielles Image
-BaseImage = ubuntu.cloop        # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda2                # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda2                # Rootpartition, in die das BS installiert ist
-Kernel = vmlinuz                # Relativer Pfad zum Kernel
-Initrd = initrd.img             # Relativer Pfad zur Initrd
-Append = ro splash              # Kernel-Append-Parameter, ggf. anpassen
-StartEnabled = no               # "Start"-Button deaktiviert
-SyncEnabled = yes               # "Sync+Start"-Button anzeigen
-NewEnabled = yes                # "Neu+Start"-Button anzeigen
-Hidden = no                     # zeige OS-Reiter an
-Autostart = no                  # automatischer synchronisierter Start dieses Betriebssystems: yes|no
-DefaultAction = sync            # DefaultAction bei Autostart: start|sync|new
-AutostartTimeout = 5            # Timeout in Sekunden für Benutzerabbruch bei Autostart
-
+Name = Ubuntu                     # Name des Betriebssystems
+Version =                         # Version (unbenutzt, leer lassen)
+Description = Ubuntu 14.04 Trusty # Beschreibung
+IconName = ubuntu.png             # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                           # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = ubuntu.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda2                  # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda2                  # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                  # Relativer Pfad zum Kernel
+Initrd = initrd.img               # Relativer Pfad zur Initrd
+Append = ro splash                # Kernel-Append-Parameter, ggf. anpassen
+StartEnabled = yes                # "Start"-Button anzeigen
+SyncEnabled = yes                 # "Sync+Start"-Button anzeigen
+NewEnabled = yes                  # "Neu+Start"-Button anzeigen
+Autostart = no                    # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5              # Timeout in Sekunden für Benutzerabbruch bei Autostart
+DefaultAction = sync              # Standardaktion bei Autostart: start|sync|new
+Hidden = yes                      # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

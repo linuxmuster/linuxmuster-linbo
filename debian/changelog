@@ -1,14 +1,18 @@
 linuxmuster-linbo (2.3.0-8) babo-testing; urgency=low
 
   * kernel update to 4.2.
-  * back to self compiled cloop utils.
+  * updated cloop modules & utils to 3.14.1.2.
   * implemented direct boot for efi systems
   * reworked boot stuff
   * windows efi/bcd improvements
   * added linuxmuster-win scripts to /var/linbo
   * patch_registry fix
+  * implemented reboot only os start
+  * removed grub4dos & kexec
+  * start.conf examples update
+  * new workstations register fix (closes #486)
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 28 Sep 2015 21:02:13 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 29 Sep 2015 17:46:22 +0200
 
 linuxmuster-linbo (2.3.0-7) babo-testing; urgency=low
 
