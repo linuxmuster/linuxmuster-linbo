@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 29.09.2015
+# 04.10.2015
 # GPL v3
 #
 
@@ -123,6 +123,15 @@ SSMTP_URL=$(LML_URL)
 # ssmtp64
 SSMTP64_DIR=src64/ssmtp
 
+# gptfdisk
+GPTFDISK_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep i386 | awk '{ print $$2 }')
+GPTFDISK64_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep amd64 | awk '{ print $$2 }')
+GPTFDISK_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/i386
+GPTFDISK64_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/amd64
+
+# 64bit binaries
+BIN64_DIR=$(CURDIR)/src64/bin64
+
 # 32bit toolchain & binaries
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
@@ -152,6 +161,7 @@ configure-stamp:
 	mkdir -p src64 || true
 	mkdir -p linbo_gui64 || true
 	mkdir -p $(BIN32_DIR) || true
+	mkdir -p $(BIN64_DIR) || true
 
 	# setup 64bit linbo_gui dir
 	-@if [ ! -e linbo_gui64/build_gui ]; then \
@@ -254,6 +264,26 @@ configure-stamp:
 		tar xf cache/$(SSMTP_ARCHIVE) -C src64; \
 		echo "[1mPatching 64bit ssmtp sources...[0m" ; \
 		( cd $(SSMTP64_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
+	fi
+
+	# gptfdisk
+	-@if [ ! -e cache/$(GPTFDISK_DEB) ]; then \
+		( cd cache ; echo "[1mDownloading $(GPTFDISK_DEB) ...[0m" ; wget $(GPTFDISK_URL)/$(GPTFDISK_DEB) ) ; \
+		rm -rf $(BIN32_DIR)/usr/share/doc/gptfdisk ; \
+	fi
+	-@if [ ! -d $(BIN32_DIR)/usr/share/doc/gptfdisk ]; then \
+		echo "[1mUnpacking gptfdisk ...[0m" ; \
+		dpkg -x cache/$(GPTFDISK_DEB) $(BIN32_DIR) ; \
+	fi
+
+	# gptfdisk64
+	-@if [ ! -e cache/$(GPTFDISK64_DEB) ]; then \
+		( cd cache ; echo "[1mDownloading $(GPTFDISK64_DEB) ...[0m" ; wget $(GPTFDISK64_URL)/$(GPTFDISK64_DEB) ) ; \
+		rm -rf $(BIN64_DIR)/usr/share/doc/gptfdisk ; \
+	fi
+	-@if [ ! -d $(BIN64_DIR)/usr/share/doc/gptfdisk ]; then \
+		echo "[1mUnpacking gptfdisk ...[0m" ; \
+		dpkg -x cache/$(GPTFDISK64_DEB) $(BIN64_DIR) ; \
 	fi
 
 	# qt

@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 29.09.2015
+# 04.10.2015
 # GPL v3
 #
 
@@ -999,7 +999,7 @@ mk_winefiboot(){
  # change default windows bootloader to grub
  local grubefi="/boot/efi/EFI/grub/grubx64.efi"
  if [ -s "$grubefi" ]; then
-  echo "Stelle Windows-Standardboot-Dateien wieder her."
+  echo "Stelle EFI-Standardboot wieder her."
   mkdir -p /boot/efi/EFI/Boot
   rsync /boot/efi/EFI/grub/grubx64.efi /boot/efi/EFI/Boot/bootx64.efi || RC="1"
  fi
@@ -1285,13 +1285,13 @@ start(){
 get_partition_size(){
  local part="$1"
  local disk="${part%%[1-9]*}"
- local partnr="$(echo "$part" | sed -e 's|/dev/[hsv]da||')"
+ local partnr="$(echo "$part" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
  fi
  if  [ "$disk" = "$part" ]; then
-  parted -sm /dev/sda unit kiB print | grep ^${disk}: | awk -F\: '{ print $2 }' | sed 's|kiB||' 2>> /tmp/linbo.log
+  parted -sm "$disk" unit kiB print | grep ^${disk}: | awk -F\: '{ print $2 }' | sed 's|kiB||' 2>> /tmp/linbo.log
  else
   parted -sm "$disk" unit kiB print | grep ^${partnr}: | awk -F\: '{ print $4 }' | sed 's|kiB||' 2>> /tmp/linbo.log
  fi
@@ -1375,11 +1375,11 @@ prepare_fs(){
   local targetdir
   # in case of efi save the windows efi files
   local efipart="$(print_efipart)"
-  if [ -b "$efipart" ]; then
+  if [ -n "$efipart" ]; then
    # save partition uuids
    echo "Sichere Partitions-GUIDs."
-   echo "guid_efi=$(print_guid "$efipart")" > /mnt/.guids
-   echo "guid_os=$(print_guid "$2")" >> /mnt/.guids
+   print_guid "$efipart" > /mnt/.guid.efi
+   print_guid "$2" > /mnt/.guid."$(basename "$2")"
    if [ "$(fstype $2)" = "ntfs" ]; then
     targetdir="$(ls -d [Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[[Bb][Oo][Oo][Tt] 2> /dev/null)"
     [ -z "$targetdir" ] && targetdir="EFI/Microsoft/Boot"
@@ -1393,8 +1393,12 @@ prepare_fs(){
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
     echo "Sichere Windows-Bootdateien fuer Gruppe $group."
-    # BCD group specific
-    cp -f "$bcd" "$bcd"."$group"
+    # BCD group specific and partition specific on efi systems
+    if [ -n "$efipart" ]; then
+     cp -f "$bcd" "$bcd"."$group"."$(basename "$2")"
+    else
+     cp -f "$bcd" "$bcd"."$group"
+    fi
     # 4 bytes mbr group specific
     local mbr=$targetdir/win7mbr.$group
     dd if=$disk of=$mbr bs=1 count=4 skip=440 2>> /tmp/linbo.log
@@ -1994,42 +1998,59 @@ syncl(){
    local efipart="$(print_efipart)"
    if [ -n "$efipart" ]; then
     # restore partition guids
+    local partname="$(basename "$rootdev")"
+    # get guids with old method
     [ -s /mnt/.guids ] && source /mnt/.guids
-    [ -n "$guid_efi" ]&& set_guid "$efipart" "$guid_efi"
-    [ -n "$guid_os" ] && set_guid "$rootdev" "$guid_os"
-    bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
-    # restore efi boot dir from bios boot dir
-    if [ -z "$bootdir" ]; then
-     bootdir="/mnt/EFI/Microsoft/Boot"
-     mkdir -p "$bootdir"
-     local oldbootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt] 2> /dev/null)"
-     if [ -n "$oldbootdir" ]; then
-      cp -r "$oldbootdir"/* "$bootdir/"
-     fi
-     local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
-     [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
+    if [ -s /mnt/.guid.efi ]; then
+     set_guid "$efipart" "$(cat /mnt/.guid.efi)"
+    else
+     [ -n "$guid_efi" ]&& set_guid "$efipart" "$guid_efi"
     fi
-   else # bios
-    bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
-   fi
-   # restore win7 bcd
-   local bcd="$(ls "$bootdir"/[Bb][Cc][Dd] 2> /dev/null)"
-   if [ -n "$bcd" -a -s "${bcd}.${group}" ]; then
-    echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group."
-    cp -f "${bcd}.${group}" "$bcd"
-   fi
-   # restore win7 mbr flag
-   [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
-   if [ -n "$mbr" -a -s "$mbr" ]; then
-    echo "Restauriere Win7-MBR."
-    dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
-   fi
-   # restore ntfs id
-   [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
-   if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
-    echo "Restauriere NTFS-ID."
-    dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
-   fi
+    if [ -s "/mnt/.guid.$partname" ]; then
+     set_guid "$rootdev" "$(cat /mnt/.guid."$partname")"
+    else
+     [ -n "$guid_os" ] && set_guid "$rootdev" "$guid_os"
+    fi
+    # windows stuff
+    if [ "$(fstype "$5")" = "ntfs" ]; then
+     bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+     # restore efi boot dir from bios boot dir
+     if [ -z "$bootdir" ]; then
+      bootdir="/mnt/EFI/Microsoft/Boot"
+      mkdir -p "$bootdir"
+      local oldbootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+      if [ -n "$oldbootdir" ]; then
+       cp -r "$oldbootdir"/* "$bootdir/"
+      fi
+      local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
+      [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
+     fi
+     local bcd_backup_efi="$bootdir"/BCD."$group"."$partname"
+    else # bios
+     bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
+     local bcd_backup="$bootdir"/BCD."$group"
+    fi
+    # restore win7 bcd
+    if [ -s "$bcd_backup_efi" ]; then
+     echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group und Partition $partname."
+     cp -f "$bcd_backup_efi" "$bootdir"/BCD
+    elif [ -s "$bcd_backup" ]; then
+     echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group."
+     cp -f "$bcd_backup" "$bootdir"/BCD
+    fi
+    # restore win7 mbr flag
+    [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
+    if [ -n "$mbr" -a -s "$mbr" ]; then
+     echo "Restauriere Win7-MBR."
+     dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+    fi
+    # restore ntfs id
+    [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
+    if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
+     echo "Restauriere NTFS-ID."
+     dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+    fi
+   fi # ntfs
    # write partition boot sector (vfat and 32bit only)
    if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
     local msopt=""
@@ -2041,6 +2062,20 @@ syncl(){
     fi
    fi
    # patching for linux systems
+   # grub
+   if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
+    mkdir -p /mnt/boot/efi
+    mount "$efipart" /boot/efi
+    local i
+    for i in /dev /dev/pts /proc /sys; do
+     mount --bind "$i" /mnt"$i"
+    done
+    chroot /mnt update-grub
+    for i in /sys /proc /dev/pts /dev; do
+     umount /mnt"$i"
+    done
+    umount /mnt/boot/efi
+   fi
    # hostname
    if [ -f /mnt/etc/hostname ]; then
     if [ -n "$HOSTNAME" ]; then

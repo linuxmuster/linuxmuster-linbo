@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.0-9) babo-testing; urgency=low
+
+  * linbofs: changed to gptfdisk's gdisk which is much smaller.
+  * linbo_cmd:
+    - improved save and restore of partition guid on efi systems.
+    - added update-grub to sync of linux efi systems.
+    - fixed get_partition_size for use with multiple disks.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 04 Oct 2015 23:01:58 +0200
+
 linuxmuster-linbo (2.3.0-8) babo-testing; urgency=low
 
   * kernel update to 4.2.
@@ -34,16 +44,6 @@ linuxmuster-linbo (2.3.0-5) babo-testing; urgency=low
   * added linbo wallpaper and graphical grub boot menu.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 09 Sep 2015 16:37:37 +0200
-
-linuxmuster-linbo (2.3.0-4) babo-testing; urgency=low
-
-  * grub configuration:
-    * added uefi boot support for opensuse kernel & initrd
-    * improved windows efi boot handling
-  * fix for not updated local grub config (closes #480)
-  * preferred linbo localboot if installed locally
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Sep 2015 22:39:37 +0200
 
 linuxmuster-linbo (2.3.0-4) babo-testing; urgency=low
 
