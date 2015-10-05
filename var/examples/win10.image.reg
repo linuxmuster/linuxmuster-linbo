@@ -1,0 +1,25 @@
+Windows Registry Editor Version 5.00
+
+; setzt den Computernamen richtig
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ActiveComputerName\]
+"ComputerName"="{$HostName$}"
+
+; setzt den Computernamen richtig
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ComputerName\]
+"ComputerName"="{$HostName$}"
+
+; setzt den Computernamen richtig
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Tcpip\Parameters\]
+"Hostname"="{$HostName$}"
+"NV Hostname"="{$HostName$}"
+
+; setzt den Domainnamen richtig
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\]
+"DefaultLogonDomain"="SCHULE"
+
+; setzt den Computernamen und Domainnamenrichtig
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Tcpip\Parameters]
+"Domain"="SCHULE"
+"NV Hostname"="{$HostName$}"
+"Hostname"="{$HostName$}"
+"NV Domain"="SCHULE"
