@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.0-10) babo-testing; urgency=low
+
+  * added Maurice's windows 10 registry patch files.
+  * linbo_cmd:
+    - added acl utils (see #489 & 491).
+    - tmp fix (closes #471).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 06 Oct 2015 17:33:52 +0200
+
 linuxmuster-linbo (2.3.0-9) babo-testing; urgency=low
 
   * linbofs: changed to gptfdisk's gdisk which is much smaller.

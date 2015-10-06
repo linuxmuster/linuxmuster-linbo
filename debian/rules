@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 04.10.2015
+# 06.10.2015
 # GPL v3
 #
 
@@ -135,7 +135,7 @@ BIN64_DIR=$(CURDIR)/src64/bin64
 # 32bit toolchain & binaries
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
-BIN32_DEBS=bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
+BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
            ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
            grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
            libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \

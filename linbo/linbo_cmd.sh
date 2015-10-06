@@ -134,9 +134,9 @@ Papierkorb/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
 swapfile
-tmp/*
+/tmp/*
 var/log/ConsoleKit/history
-var/tmp/*'
+/var/tmp/*'
 
 bailout(){
  echo "DEBUG: bailout() called, linbo_cmd=$PID, my_pid=$$" >&2
