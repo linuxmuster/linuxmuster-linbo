@@ -1,8 +1,19 @@
+linuxmuster-linbo (2.3.0-11) babo-testing; urgency=low
+
+  * linbofs: removed parted.
+  * linbo_cmd:
+    - uses fdisk/gdisk instead of parted, which causes errors with extended partitions.
+    - fixed efi bootorder.
+    - improved console output and logging.
+    - return code fixes.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Oct 2015 21:16:27 +0200
+
 linuxmuster-linbo (2.3.0-10) babo-testing; urgency=low
 
   * added Maurice's windows 10 registry patch files.
   * linbo_cmd:
-    - added acl utils (see #489 & 491).
+    - added acl utils (see #489 & #491).
     - tmp fix (closes #471).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 06 Oct 2015 17:33:52 +0200
