@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 06.10.2015
+# 09.10.2015
 # GPL v3
 #
 
@@ -123,6 +123,12 @@ SSMTP_URL=$(LML_URL)
 # ssmtp64
 SSMTP64_DIR=src64/ssmtp
 
+# gnu parted
+PARTED_ARCHIVE=$(shell grep parted- debian/md5sums.src | awk '{ print $$2 }')
+#PARTED_DIR=src/$(shell echo $(PARTED_ARCHIVE) | sed -e 's/.tar.xz//')
+PARTED64_DIR=src64/$(shell echo $(PARTED_ARCHIVE) | sed -e 's/.tar.xz//')
+PARTED_URL=http://ftp.gnu.org/gnu/parted
+
 # gptfdisk
 GPTFDISK_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep i386 | awk '{ print $$2 }')
 GPTFDISK64_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep amd64 | awk '{ print $$2 }')
@@ -140,7 +146,8 @@ BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
            grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
            libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
            ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
-           udev udisks udpcast util-linux xserver-xorg-input-vmmouse zlib1g zlib1g-dev
+           udev udisks udpcast util-linux uuid-dev xserver-xorg-input-vmmouse \
+           zlib1g zlib1g-dev
 
 configure: configure-stamp
 configure-stamp:
@@ -251,6 +258,7 @@ configure-stamp:
 		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(SSMTP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SSMTP_ARCHIVE) -C src; \
+		ln -sf ../$(SSMTP_DIR) src/ssmtp; \
 		echo "[1mPatching ssmtp sources...[0m" ; \
 		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 		( cd $(SSMTP_DIR) && patch -p0 <../../patches/ssmtp32.patch ); \
@@ -262,8 +270,27 @@ configure-stamp:
 		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(SSMTP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SSMTP_ARCHIVE) -C src64; \
+		ln -sf ../$(SSMTP64_DIR) src64/ssmtp; \
 		echo "[1mPatching 64bit ssmtp sources...[0m" ; \
 		( cd $(SSMTP64_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
+	fi
+
+	# parted
+#	-@if [ ! -d $(PARTED_DIR) ]; then \
+#		( [ -e cache/$(PARTED_ARCHIVE) ] || ( cd cache && wget $(PARTED_URL)/$(PARTED_ARCHIVE) ) ); \
+#		( cd cache && grep $(PARTED_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(PARTED_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(PARTED_ARCHIVE) -C src; \
+#		ln -sf ../$(PARTED_DIR) src/parted; \
+#	fi
+
+	# parted64
+	-@if [ ! -d $(PARTED64_DIR) ]; then \
+		( [ -e cache/$(PARTED_ARCHIVE) ] || ( cd cache && wget $(PARTED_URL)/$(PARTED_ARCHIVE) ) ); \
+		( cd cache && grep $(PARTED_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking 64bit $(PARTED_ARCHIVE)...[0m" ; \
+		tar xf cache/$(PARTED_ARCHIVE) -C src64; \
+		ln -sf ../$(PARTED64_DIR) src64/parted; \
 	fi
 
 	# gptfdisk
@@ -497,6 +524,18 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(SSMTP64_DIR)/ssmtp ]; then \
 		echo "[1mBuilding 64bit ssmtp...[0m" ; \
 		( cd $(SSMTP64_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
+	fi
+	# parted
+#	-@if [ ! -e $(PARTED_DIR)/parted/parted ]; then \
+#		echo "[1mBuilding parted...[0m" ; \
+#		ln -sf $(BIN32_DIR)/usr/include/uuid $(PARTED_DIR)/uuid; \
+#		( cd $(PARTED_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make && strip parted/parted ); \
+#	fi
+
+	# parted64
+	-@if [ ! -e $(PARTED64_DIR)/parted/parted ]; then \
+		echo "[1mBuilding 64bit parted...[0m" ; \
+		( cd $(PARTED64_DIR) && ./configure --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && make && strip parted/parted ); \
 	fi
 
 	# qt

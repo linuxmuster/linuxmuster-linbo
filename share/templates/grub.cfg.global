@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 17.09.2015
+# 09.10.2015
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -20,25 +20,22 @@ menuentry 'LINBO' {
 
  set root="@@cacheroot@@"
 
- if [ -e /linbo64 -a -e /linbofs64.lz ]; then
-  set bootflag=localboot
+ # set apropriate kernel and initrd
+ if cpuid -l; then
   set kernel=/linbo64
   set initrd=/linbofs64.lz
- elif [ -e /linbo -a -e /linbofs.lz ]; then
-  set bootflag=localboot
+ else
   set kernel=/linbo
   set initrd=/linbofs.lz
+ fi
+
+ if [ -e "$kernel" -a -e "$initrd" ]; then
+  set bootflag=localboot
  else
   set root=(http)
   set bootflag=netboot
-  if cpuid -l; then
-   set kernel=/linbo64
-   set initrd=/linbofs64.lz
-  else
-   set kernel=/linbo
-   set initrd=/linbofs.lz
-  fi
  fi
+
  echo LINBO $bootflag for group @@group@@
  echo
  echo -n "Loading $kernel ..."

@@ -1,3 +1,14 @@
+linuxmuster-linbo (2.3.0-12) babo-testing; urgency=low
+
+  * linbofs:
+    - back to parted again for partitioning.
+    - busybox clean up.
+  * linbo_cmd: fixed partition alignment, extended/logical partition
+    creation and grub update for linux efi systems.
+  * grub.cfg.global: fixed 64bit kernel detection.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 09 Oct 2015 19:49:38 +0200
+
 linuxmuster-linbo (2.3.0-11) babo-testing; urgency=low
 
   * linbofs: removed parted.

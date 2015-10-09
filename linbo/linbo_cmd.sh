@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 07.10.2015
+# 09.10.2015
 # GPL v3
 #
 
@@ -597,136 +597,154 @@ killalltorrents(){
  fi
 }
 
-# convert size from mib or gib to kib
+# convert all units to MiB and ensure partability by 2048
 convert_size(){
- local size="$1"
- local unit="$(echo $size | sed 's|[^a-zA-Z]*||g')"
- local ksize="$(echo ${size/$unit} | awk -F\[,.] '{ print $1 }')"
+ local unit="$(echo $1 | sed 's|[^a-zA-Z]*||g')"
+ local size="$(echo ${1/$unit} | awk -F\[,.] '{ print $1 }')"
  local unit="$(echo $unit | tr A-Z a-z | head -c1)"
- if [ "$unit" = "m" ]; then
-  ksize=$(( ksize * 1024 ))
- elif [ "$unit" = "g" ]; then
-  ksize=$(( ksize * 1024 * 1024 ))
- elif [ "$unit" = "t" ]; then
-  ksize=$(( ksize * 1024 * 1024 * 1024 ))
- fi
- echo $ksize
+ case "$unit" in
+  k) size=$(( $size / 2048 * 2 )) ;;
+  m) size=$(( $size / 2 * 2 )) ;;
+  g) size=$(( $size * 1024 )) ;;
+  t) size=$(( $size * 1024 * 1024 )) ;;
+  *) return 1 ;;
+ esac
+ echo $size
 }
 
-# partition with fdisk/gdisk, invoked by partition() for each disk
+# partition with parted, invoked by partition() for each disk
 # args: table
-mk_partitions(){
+mk_parted(){
  local table="$1"
  [ -s "$table" ] || return 1
  local disk="/dev/$(basename "$table")"
  [ -b "$disk" ] || return 1
+ local lastnr="$(grep -c ^"$disk" "$table")"
  local dev
  local label
+ local start
+ local partstart
+ local end
+ local partend
+ local extend
+ local extpartend
  local size
- local unit="k"
+ local unit="MiB"
  local id
- local parttype="p"
+ local fstype
+ local partname
+ local partflag
+ local disklabel="msdos"
+ local parttype="primary"
  local bootable
- local RC="0"
+ local RC=0
+ local CMD="parted -s -a opt $disk mkpart"
+ # efi system -> gpt label
+ systemtype | grep -qi efi && disklabel="gpt"
+ echo "Erstelle neue $disklabel Partitionstabelle auf $disk."
+ parted -s "$disk" mklabel "$disklabel" || RC="1"
 
- # create disklabel command
- if systemtype | grep -qi efi; then
-  # efi, uses gdisk
-  local type="g"
-  local CMD="o\nY\nw\nY\n"
- else
-  # bios, uses fdisk
-  local type="f"
-  local CMD="o\nw\n"
- fi
- local BASECMD="${type}disk $disk"
-
- # execute disklabel cmd
- echo "Partitioniere $disk ..."
- echo -e "$CMD" | $BASECMD 2>> /tmp/linbo.log 1>> linbo.log || RC="1"
-
- # iterate over partitions
  local n=0
+ echo "partition label size id fstype bootable"
  while read dev label size id fstype bootable; do
-
-  # increase partition counter
   n=$(( n + 1 ))
-
-  # output
   echo "$n: $dev $label $size $id $fstype $bootable"
-
-  # empty label
-  [ "$label" = "-" ] && label=""
-
-  # empty fstype
   [ "$fstype" = "-" ] && fstype=""
+  [ "$label" = "-" ] && label=""
+  partname="" ; partflag=""
 
-  # convert size
-  if [ "$size" = "-" ]; then
-   size=""
+  # begin of first partition
+  if [ $n -eq 1 ]; then
+   start=1
   else
-   isinteger "$size" || size="$(convert_size $size)"
-   size=+$size$unit
+   if [ "$parttype" = "extended" -o "$parttype" = "logical" ]; then
+    parttype="logical"
+    # add 1 MiB to logical partition start position
+    start=$(( $end + 1 ))
+   else
+    # start of next partition is the end of the partition before
+    start=$end
+   fi
+  fi
+  partstart=$start$unit
+
+  # handle size if not set
+  if [ "$size" = "-" ]; then
+   partend="100%"
+   extpartend="$partend"
+  else
+   isinteger "$size" && size="$size"k
+   size="$(convert_size $size)"
+   # don't increase the end counter in case of extended partition
+   case "$id" in                                                                                                                
+    5|05) extend=$(( $start + $size )) ; extpartend=$extend$unit ;;
+    * ) end=$(( $start + $size )) ; partend=$end$unit ;;
+   esac
+  fi
+  
+  # handle partition name
+  if [ -n "$label" -a "$disklabel" = "gpt" ]; then
+   partname="$label"
+  else
+   partname="$parttype"
   fi
 
-  # efi system with gpt disklabel
-  if [ "$type" = "g" ]; then
+  # handle last logical partition if size was not set and size for extended was set
+  [ "$n" = "$lastnr" -a "$parttype" = "logical" -a "$partend" = "100%" -a -n "$extend" ] && partend=$extend$unit
 
-   # handle id, expand to four chars
-   [ ${#id} -eq 1 ] && id=0"$id"00
-   [ ${#id} -eq 2 ] && id="$id"00
-   [ "$id" = "c01" ] && id="0c01"
+  # create partitions
+  case "$id" in                                                                                                                
+   c01|0c01) $CMD '"Microsoft reserved partition"' $partstart $partend || RC=1 ; partflag="msftres" ;;
+   5|05)
+    parttype="extended"
+    $CMD $parttype $partstart $extpartend || RC=1
+    if [ "$RC" = "0" ]; then
+     # correct parted's idea of the extended partition id
+     echo -e "t\n$n\n5\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+    fi
+    ;;
+   6|06|e|0e) $CMD $partname fat16 $partstart $partend || RC=1 ;;
+   7|07)
+    if [ "$disklabel" = "gpt" ]; then
+     $CMD '"Basic data partition"' NTFS $partstart $partend || RC=1
+     partflag="msftdata"
+    else
+     $CMD $partname NTFS $partstart $partend || RC=1
+    fi
+    ;;
+   b|0b|c|0c) $CMD $partname fat32 $partstart $partend || RC=1 ;;
+   ef)
+    if [ "$disklabel" = "gpt" ]; then
+     $CMD '"EFI system partition"' fat32 $partstart $partend || RC=1
+     partflag="boot"
+    else
+     $CMD $partname fat32 $partstart $partend || RC=1
+     if [ "$RC" = "0" ]; then
+      # correct parted's idea of the efi partition id on msdos disklabel
+      echo -e "t\n$n\nef\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+     fi
+    fi
+    ;;
+   82) $CMD $partname linux-swap $partstart $partend || RC=1 ;;
+   83) $CMD $partname $fstype $partstart $partend || RC=1 ;;
+   *) $CMD $partname $partstart $partend || RC=1 ;;
+  esac
 
-   # create partition cmd (sets boot flag on efi partition)
-   case "$id" in                                                                                                                
-    0600|0700|0b00|0c00|0c01|8200|8300) CMD="n\n\n\n$size\n$id\nw\nY\n" ;;
-    ef00) CMD="n\n\n\n$size\n$id\nx\na\n2\n\nw\nY\n" ;;
-    *) echo "Unbekannte Partitions-Id: $id." ; RC="1" ;;
-   esac
-
-  else # bios system with msdos disklabel
-
-   # handle id, expand to two chars
-   [ ${#id} -eq 1 ] && id=0"$id"
-
-   # handle bootable flag
-   if [ "$bootable" = "yes" ]; then
-    bootable="a\n$n\n"
+  # set bootable flag
+  if [ "$bootable" = "yes" ]; then
+   if [ "$disklabel" = "msdos" ]; then
+    echo -e "a\n$n\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
    else
-    bootable=""
+    # note: with gpt disklabel only one partition can own the bootable 
+    # flag, so the last one wins if multiple boot flags were set
+    parted -s "$disk" set $n boot on || RC="1"
    fi
+  fi
 
-   # create partition cmd
-   case "$id" in                                                                                                                
-    06|07|0b|0c|82|83)
-     if [ "$parttype" = "p" ]; then
-      if [ $n -eq 1 ]; then
-       CMD="n\np\n$n\n\n$size\nt\n$id\n${bootable}w\n"
-      else
-       CMD="n\np\n$n\n\n$size\nt\n$n\n$id\n${bootable}w\n"
-      fi
-     elif [ "$parttype" = "l" ]; then
-      CMD="n\nl\n\n\n$size\nt\n$n\n$id\n${bootable}w\n"
-     else
-      CMD="n\n\n$size\nt\n$n\n$id\n${bootable}w\n"
-     fi
-     ;;
-    05)
-     if [ $n -eq 4 ]; then
-      CMD="n\ne\n\n$size\nw\n"
-      parttype="e"
-     else
-      CMD="n\ne\n$n\n\n$size\nw\n"
-      parttype="l"
-     fi
-     ;;
-    *) echo "Unbekannte Partitions-Id: $id." ; RC="1" ;;
-   esac
-
-  fi # type
-
-  # execute partition cmd
-  echo -e "$CMD" | $BASECMD 2>> /tmp/linbo.log 1>> linbo.log || RC="1"
+  # set other flags                                                                                                            
+  if [ -n "$partflag" ]; then                                                                                                  
+   parted -s "$disk" set $n $partflag on || RC="1"
+  fi
 
   # format partition if NOFORMAT is not set
   if [ -z "$NOFORMAT" -a -n "$fstype" ]; then
@@ -734,11 +752,11 @@ mk_partitions(){
   fi
 
  done < "$table"
-
+ 
  if [ "$RC" = "0" ]; then
   echo "Partitionierung von $disk erfolgreich beendet!"
  else
-  echo "Partitionierung fehlerhaft! Details siehe $(hostname)_linbo.log."
+  echo "Partitionierung von $disk fehlerhaft! Details siehe $(hostname)_linbo.log."
  fi
  return "$RC"
 }
@@ -797,7 +815,7 @@ partition(){
  for disk in $disks; do
   diskname="${disk#\/dev\/}"
   grep ^"$disk" "$table" | sort > "/tmp/$diskname"
-  mk_partitions "/tmp/$diskname" || RC="1"
+  mk_parted "/tmp/$diskname" || RC="1"
  done
  return "$RC"
 }
@@ -2089,7 +2107,7 @@ syncl(){
    # grub
    if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
     mkdir -p /mnt/boot/efi
-    mount "$efipart" /boot/efi
+    mount "$efipart" /mnt/boot/efi
     local i
     for i in /dev /dev/pts /proc /sys; do
      mount --bind "$i" /mnt"$i"
