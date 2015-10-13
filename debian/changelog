@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.0-13) babo-testing; urgency=low
+
+  * linbo_cmd, update(): look for old legacy grub stuff, remove it and
+    force installation of grub 2 instead.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 13 Oct 2015 21:10:23 +0200
+
 linuxmuster-linbo (2.3.0-12) babo-testing; urgency=low
 
   * linbofs:

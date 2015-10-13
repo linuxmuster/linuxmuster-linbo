@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 09.10.2015
+# 13.10.2015
 # GPL v3
 #
 
@@ -1216,7 +1216,9 @@ mk_boot(){
  # prepare grub stuff
  prepare_grub "$grubdir" "$grubenv" "$grubsharedir" || RC="1"
  # prepare reboot stuff
- prepare_reboot "$grubdisk" "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" "$efipart" || RC="1"
+ if [ -n "$partition" ]; then
+  prepare_reboot "$grubdisk" "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" "$efipart" || RC="1"
+ fi
  # install grub in mbr/efi
  if [ ! -e "$doneflag" ]; then
   echo -n "Installiere Grub in MBR/EFI von $grubdisk ... "
@@ -2624,6 +2626,11 @@ update(){
   # fetch also linuxmuster-win scripts on linbo update
   [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
   rsync -a --delete "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/
+  # look for old legacy grub stuff, remove it and install grub 2
+  if [ -e "/cache/boot/grub/stage1" ]; then
+   echo "Grub legacy entdeckt, upgrade notwendig."
+   mk_boot && rm -f /cache/boot/grub/*stage* && ( umount -a &> /dev/null ; /sbin/reboot -f )
+  fi
   echo "LINBO update fertig."
   touch "$doneflag"
  else
