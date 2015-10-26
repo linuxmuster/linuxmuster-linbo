@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 09.10.2015
+# 26.10.2015
 # GPL v3
 #
 
@@ -135,6 +135,11 @@ GPTFDISK64_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep amd64 | awk '{ p
 GPTFDISK_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/i386
 GPTFDISK64_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/amd64
 
+# lsaSecrets
+LSASECRETS_ARCHIVE=$(shell grep lsaSecrets debian/md5sums.src | awk '{ print $$2 }')
+LSASECRETS_DIR=src/$(shell echo $(LSASECRETS_ARCHIVE) | sed -e 's/.zip//')
+LSASECRETS_URL=$(LML_URL)
+
 # 64bit binaries
 BIN64_DIR=$(CURDIR)/src64/bin64
 
@@ -146,7 +151,7 @@ BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
            grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
            libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
            ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
-           udev udisks udpcast util-linux uuid-dev xserver-xorg-input-vmmouse \
+           udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
            zlib1g zlib1g-dev
 
 configure: configure-stamp
@@ -311,6 +316,14 @@ configure-stamp:
 	-@if [ ! -d $(BIN64_DIR)/usr/share/doc/gptfdisk ]; then \
 		echo "[1mUnpacking gptfdisk ...[0m" ; \
 		dpkg -x cache/$(GPTFDISK64_DEB) $(BIN64_DIR) ; \
+	fi
+
+	# lsaSecrets
+	-@if [ ! -d $(LSASECRETS_DIR) ]; then \
+		( [ -e cache/$(LSASECRETS_ARCHIVE) ] || ( cd cache && wget $(LSASECRETS_URL)/$(LSASECRETS_ARCHIVE) ) ); \
+		( cd cache && grep $(LSASECRETS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(LSASECRETS_ARCHIVE)...[0m" ; \
+		( cd src && unzip ../cache/$(LSASECRETS_ARCHIVE) ); \
 	fi
 
 	# qt

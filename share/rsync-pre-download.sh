@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 22.03.2015
+# 26.10.2015
 #
 
 # read in linuxmuster.net specific environment
@@ -38,25 +38,12 @@ compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
 
 case $EXT in
 
- # write machine password hash to host's samba/ldap account
- *.macct)
-  LDAPMODIFY="$(which ldapmodify)"
-  LDAPSEARCH="$(which ldapsearch)"
-  imagemacct="$LINBODIR/${RSYNC_REQUEST##*/}"
-  ldapsec="/etc/ldap.secret"
-  # upload samba machine password hashes to host's machine account
-  if [ -s "$imagemacct" -a -n "$basedn" ]; then
-   echo "Machine account file: $imagemacct"
-   echo "Host: $compname"
-   echo "Writing samba machine password hashes to ldap account:"
-   sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
-   # check for success
-   sambaNTpwhash_cur="$("$LDAPSEARCH" -y "$ldapsec" -D cn=admin,$basedn -x -h localhost "(uid=$compname$)" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
-   sambaNTpwhash_new="$(grep ^sambaNTPassword: "$imagemacct" | awk '{ print $2 }')"
-   if [ "$sambaNTpwhash_new" != "$sambaNTpwhash_cur" ]; then
-    echo "Not successfull, once again:"
-    sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
-   fi
+ # handle machine account password
+ *.mpw)
+  # create random machine password, set it and store it in a temporary file, which the client will download
+  MACHINEPW="$(pwgen -s 10 1)"
+  if ! sophomorix-passwd --force --user "$compname$" --pass "$MACHINEPW" | grep -qi "error"; then
+   echo "$MACHINEPW" > "$FILE"
   fi
  ;;
 

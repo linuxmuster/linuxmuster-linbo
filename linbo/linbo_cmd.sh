@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 13.10.2015
+# 26.10.2015
 # GPL v3
 #
 
@@ -1254,22 +1254,49 @@ download(){
  return "$RC"
 }
 
-# request macct file to invoke samba password hash ldap upload stuff on the server
-invoke_macct(){
- local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
- [ -z "$serverip" ] && return
- [ -s /mnt/.linbo ] || return
- local image="$(cat /mnt/.linbo)"
- local macctfile
- if [ -e "/cache/${image}.rsync" ]; then
-  macctfile="${image}.rsync.macct"
- elif [ -e "/cache/${image}.cloop" ]; then
-  macctfile="${image}.cloop.macct"
+# do_machinepw
+# no args
+# handle machine password stuff locally and on the server
+do_machinepw(){
+ local mpwfile="$(uuidgen).mpw"
+ download "$(serverip)" "$mpwfile"
+ local RC="0"
+ if [ -s "$mpwfile" ]; then
+  local machinepw="$(cat $mpwfile)"
+  local srcdir="/linuxmuster-win"
+  local tgtdir="/mnt$srcdir"
+  sed -e "s|@@machinepw@@|$machinepw|" "$srcdir/set_machinepw.cmd.tpl" > "$tgtdir/set_machinepw.cmd" || RC="1"
+  if [ "$RC" = "0" ]; then
+   cp "$srcdir/lsaSecretStore.exe" "$tgtdir" || RC="1"
+  fi
+  [ "$RC" = "0" ] && echo "Maschinenpasswort wurde gesetzt."
  else
-  return
+  RC="1"
  fi
- download "$serverip" "$macctfile" && echo "Maschinenpasswort auf $serverip wurde gesetzt."
- rm -f "/cache/$macctfile"
+ rm -f "$mpwfile"
+ return "$RC"
+}
+
+# update linuxmuster-win scripts and install start tasks
+# no args
+# invoked by start() & syncl()
+update_win(){
+ local doneflag="/tmp/.update_win"
+ [ -e "$doneflag" ] && return 0
+ local RC="0"
+ mkdir -p /mnt/linuxmuster-win
+ # copy scripts to os rootdir
+ rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+ # install start tasks
+ if [ "$RC" = "0" ]; then
+  /linuxmuster-win/install-start-tasks.sh || RC="1"
+ fi
+ # handle machine password
+ if [ "$RC" = "0" ]; then
+  do_machinepw || RC="1"
+ fi
+ [ "$RC" = "0" ] && touch "$doneflag"
+ return "$RC"
 }
 
 # start: start operating system
@@ -1300,21 +1327,18 @@ start(){
    echo "Kernel $KERNEL auf Partition $partition nicht vorhanden. Setze auf \"auto\"."
    KERNEL="auto"
   fi
-  # update linuxmuster-win scripts
-  if [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
-   mkdir -p /mnt/linuxmuster-win
-   rsync /cache/linuxmuster-win/* /mnt/linuxmuster-win
+  if (mountcache "$6" && cache_writable); then
+   # install/update grub/efi stuff if cache is mounted writable
+   mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
+   # update linuxmuster-win scripts and install start tasks
+   [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win | tee -a /tmp/linbo.log
   fi
-  # install/update grub/efi stuff if cache is mounted writable
-  (mountcache "$6" && cache_writable) && mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
  else
   echo "Konnte Betriebssystem-Partition $partition nicht mounten." >&2
   umount /mnt 2>> /tmp/linbo.log
   mountcache "$cachedev" -r
   return 1
  fi
- # sets machine password on server
- invoke_macct
  # kill torrents if any
  killalltorrents
  sync
@@ -1933,10 +1957,10 @@ restore_winact(){
   done
  else # with linbo server
   archive="$mac.$image.winact.tar.gz"
-  # get token archive from linbo server
-  echo "Fordere Reaktivierungs-Daten von $serverip an."
   # get server ip address
   local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
+  echo "Fordere Reaktivierungs-Daten von $serverip an."
+  # get token archive from linbo server
   rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
   # request windows/office productkeys
   local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
@@ -2149,9 +2173,12 @@ syncl(){
    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
    # do opsi stuff
    do_opsi "$2" "$3" || RC="1"
-   # restore windows activation if linuxmuster-win scripts are installed
-   if [ -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -a -d /mnt/linuxmuster-win ]; then
-    restore_winact || RC="1"
+   # update linuxmuster-win scripts and restore windows activation
+   if [ "$(fstype "$rootdev")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
+    update_win || RC="1"
+    if [ "$RC" = "0" ]; then
+     restore_winact || RC="1"
+    fi
    fi
    # source postsync script
    [ -s "/cache/$postsync" ] && . "/cache/$postsync"
@@ -2625,7 +2652,7 @@ update(){
   [ -n "$cfg_after" -a -n "$cfg_before" -a "$cfg_after" != "$cfg_before" ] && touch "$rebootflag"
   # fetch also linuxmuster-win scripts on linbo update
   [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
-  rsync -a --delete "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/
+  rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/
   # look for old legacy grub stuff, remove it and install grub 2
   if [ -e "/cache/boot/grub/stage1" ]; then
    echo "Grub legacy entdeckt, upgrade notwendig."

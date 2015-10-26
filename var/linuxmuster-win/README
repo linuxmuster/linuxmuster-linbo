@@ -7,6 +7,9 @@ Management-Skripte für den Windows 7 Client
 Installation
 ------------
 
+* Bemerkung: Ab linuxmuster-linbo 2.3.0-14 wird die Installation
+  automatisch von LINBO beim Start eines Windows-7-Systems ausgeführt.
+
 * Die Windows-Eingabeaufforderung mit Administratorrechten öffnen.
 
 * Skript C:\linuxmuster-win\install.cmd ausführen.
@@ -23,15 +26,13 @@ Skripte
   und führt sie ggf. aus:
   * winact.cmd
     wird von LINBO zur Reaktivierung angelegt. Das Skript enthält die
-    Produktkeys und Aktivierungsbefehle für Windows und ggf. MSOffice. Wird nach
-    Ausführung gelöscht.
-  * setgrubdefault.cmd
-    wird von Linbo auf EFI-Systemen angelegt. Trägt grub als Default-Boot in den
-    BCD-Speicher ein. Stellt sicher, dass nach einem Neustart wieder in Linbo
-    gebootet werden kann. Wird nach Ausführung gelöscht.
+    Produktkeys und Aktivierungsbefehle für Windows und ggf. MSOffice.
+    Wird nach Ausführung gelöscht.
+  * set_machine_pw.cmd
+    Setzt das Maschinenpasswort mit mtaman.exe, falls vorhanden. Wird
+    nach Ausführung gelöscht.
   * custom.cmd
-    Kann eigene Befehle enthalten, die beim Windowsstart ausgeführt werden
-    sollen.
+    Für eigene Befehle, die beim Windowsstart ausgeführt werden sollen.
 
 * save-activation-status.cmd:
   Dieses Skript muss von Hand ausgeführt werden, nachdem man die Produkte
@@ -44,6 +45,17 @@ Skripte
   Beim nächsten Sync stellt LINBO die Aktivierung aus den gesicherten Dateien
   wieder her.
 
+Sonstiges
+---------
+
+* mtaman.exe:
+  Tool zum lokalen Setzen des Maschinenpassworts:
+  mtaman.exe -s -v <Passwort>
+  Anzeigen mit:
+  mtaman.exe -d
+  Datei wurde am 23.10.2015 von http://arktur.shuttle.de/CD/beta/slack/odszusatz/
+  heruntergeladen. Lizenz unbekannt.
+
 thomas@linuxmuster.net
-21.09.2015
+23.10.2015
 

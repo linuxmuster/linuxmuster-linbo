@@ -1,3 +1,15 @@
+linuxmuster-linbo (2.3.0-14) babo-testing; urgency=low
+
+  * fixed 32bit cloop module.
+  * added automatical installation of linuxmuster-start-tasks on windows clients.
+  * reworked machine password handling for windows clients
+  * linuxmuster-win:
+    - added tool lsaSecretStore.exe.
+    - added script template set_machine_pw.cmd.tpl.
+  * win7.global.reg update.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Oct 2015 16:14:41 +0100
+
 linuxmuster-linbo (2.3.0-13) babo-testing; urgency=low
 
   * linbo_cmd, update(): look for old legacy grub stuff, remove it and

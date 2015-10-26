@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 12.10.2014
+# 26.10.2015
 #
 
 # read in paedml specific environment
@@ -42,6 +42,14 @@ case $EXT in
  *.cmd)
   echo "Removing onboot linbocmd file $FILE."
   rm -f "$FILE"
+ ;;
+
+ # machine password file
+ *.mpw)
+  if [ -e "$FILE" ]; then
+   echo "Removing machine password file $FILE."
+   rm -f "$FILE"
+  fi
  ;;
 
  # update host's opsi ini, invoked by linbo_cmd on postsync
