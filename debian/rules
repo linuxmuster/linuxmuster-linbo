@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 26.10.2015
+# 05.11.2015
 # GPL v3
 #
 
@@ -138,7 +138,7 @@ GPTFDISK64_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_1
 # lsaSecrets
 LSASECRETS_ARCHIVE=$(shell grep lsaSecrets debian/md5sums.src | awk '{ print $$2 }')
 LSASECRETS_DIR=src/$(shell echo $(LSASECRETS_ARCHIVE) | sed -e 's/.zip//')
-LSASECRETS_URL=$(LML_URL)
+LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
 
 # 64bit binaries
 BIN64_DIR=$(CURDIR)/src64/bin64
@@ -320,7 +320,7 @@ configure-stamp:
 
 	# lsaSecrets
 	-@if [ ! -d $(LSASECRETS_DIR) ]; then \
-		( [ -e cache/$(LSASECRETS_ARCHIVE) ] || ( cd cache && wget $(LSASECRETS_URL)/$(LSASECRETS_ARCHIVE) ) ); \
+		( [ -e cache/$(LSASECRETS_ARCHIVE) ] || ( cd cache && wget $(LSASECRETS_URL) -O $(LSASECRETS_ARCHIVE) ) ); \
 		( cd cache && grep $(LSASECRETS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(LSASECRETS_ARCHIVE)...[0m" ; \
 		( cd src && unzip ../cache/$(LSASECRETS_ARCHIVE) ); \

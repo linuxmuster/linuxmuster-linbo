@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 09.10.2014
+# 05.11.2015
 # GPL V3
 #
 
@@ -192,11 +192,6 @@ format_partition(){
      return 1 ;;
  esac
  if [ -n "$fcmd" ]; then
-  # abort if partitioning fails
-  if ! linbo_cmd partition_noformat $partitions; then
-   echo "Partitioning error ... aborting!"
-   return 1
-  fi
   # test if device is present after partitioning, if not wait 3 secs
   if [ ! -b "$dev" ]; then
    echo "Partition $dev is not yet ready ... waiting 3 seconds ..."

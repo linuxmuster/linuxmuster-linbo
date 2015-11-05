@@ -323,8 +323,8 @@ get_disk_from_partition(){
   local p="$1"
   local disk=
   expr "$p" : ".*p[[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%p[0-9]*}
-  expr "$p" : ".*sd[[:alpha:]][[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%[0-9]*}
-  if [[ -n "$disk" ]]; then
+  expr "$p" : ".*[hsv]d[[:alpha:]][[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%[0-9]*}
+  if [ -n "$disk" ]; then
     echo "$disk"
     return 0
   else
@@ -340,9 +340,13 @@ get_disks(){
   local parts="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' )"
   local disks=
   for p in $parts; do
+   if [ -z "$disks" ]; then
+    disks="$(get_disk_from_partition "$p")"
+   else
     disks="$disks $(get_disk_from_partition "$p")"
+   fi
   done;
-  disks="$(echo $disks|tr " " "\n"|sort -u)"
+  disks="$(echo $disks|tr " " "\n" | sort -u)"
   echo "$disks"
   return 0
 }

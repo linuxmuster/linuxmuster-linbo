@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.0-15) babo-testing; urgency=low
+
+  * linbo_cmd.sh, get_disk_from_partition(): fixed support for vda disks.
+  * linbo.sh: framebuffer fix.
+  * added sync+start and neu+start entries to group specific grub config.
+  * linbo_wrapper.sh, format_partition(): removed call to linbo_cmd's partitioning routine.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 05 Nov 2015 13:45:12 +0100
+
 linuxmuster-linbo (2.3.0-14) babo-testing; urgency=low
 
   * fixed 32bit cloop module.

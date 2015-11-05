@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 09.10.2015
+# 05.11.2015
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -13,6 +13,15 @@ set fallback=1
 
 set gfxpayload=800x600x16
 
+# set apropriate linbo kernel and initrd
+if cpuid -l; then
+ set linbo_kernel=/linbo64
+ set linbo_initrd=/linbofs64.lz
+else
+ set linbo_kernel=/linbo
+ set linbo_initrd=/linbofs.lz
+fi
+
 clear
 
 # linbo part, boot local or net (default #0)
@@ -20,16 +29,7 @@ menuentry 'LINBO' {
 
  set root="@@cacheroot@@"
 
- # set apropriate kernel and initrd
- if cpuid -l; then
-  set kernel=/linbo64
-  set initrd=/linbofs64.lz
- else
-  set kernel=/linbo
-  set initrd=/linbofs.lz
- fi
-
- if [ -e "$kernel" -a -e "$initrd" ]; then
+ if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
  else
   set root=(http)
@@ -38,11 +38,11 @@ menuentry 'LINBO' {
 
  echo LINBO $bootflag for group @@group@@
  echo
- echo -n "Loading $kernel ..."
- linux $kernel @@kopts@@ $bootflag
+ echo -n "Loading $linbo_kernel ..."
+ linux $linbo_kernel @@kopts@@ $bootflag
  echo
- echo -n "Loading $initrd ..."
- initrd $initrd
+ echo -n "Loading $linbo_initrd ..."
+ initrd $linbo_initrd
 
 }
 
