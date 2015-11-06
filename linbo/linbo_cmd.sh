@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 26.10.2015
+# 06.11.2015
 # GPL v3
 #
 
@@ -2644,6 +2644,8 @@ update(){
   if [ -e "/cache/${group}.cfg" ]; then
    mv "/cache/${group}.cfg" /cache/boot/grub/custom.cfg || RC=1
    local cfg_after="$(md5sum /cache/boot/grub/custom.cfg | awk '{ print $1 }')"
+   # get theme dir if set
+   themedir="$(dirname "$(grep -i ^"set theme=" /cache/boot/grub/custom.cfg | awk -F\= '{ print $2 }')")"
   else
    rm -f /cache/boot/grub/custom.cfg
   fi
@@ -2662,10 +2664,16 @@ update(){
    echo "Grub legacy entdeckt, upgrade notwendig."
    mk_boot && rm -f /cache/boot/grub/*stage* && ( umount -a &> /dev/null ; /sbin/reboot -f )
   fi
-  echo "LINBO update fertig."
+  # get grub theme
+  if [ -n "$themedir" ]; then
+   echo "Aktualisiere Grub-Theme."
+   mkdir -p "/cache$themedir"
+   rsync -a --delete "${server}::linbo${themedir}/" "/cache${themedir}/"
+  fi
+  echo "LINBO/GRUB update fertig."
   touch "$doneflag"
  else
-  echo "Lokale Installation von LINBO hat nicht geklappt." >&2
+  echo "Lokale Installation von LINBO/GRUB hat nicht geklappt." >&2
  fi
  return "$RC"
 }

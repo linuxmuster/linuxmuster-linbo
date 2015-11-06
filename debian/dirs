@@ -1,10 +1,8 @@
 /etc/default
 /etc/init.d
 /etc/linuxmuster/linbo
-/var/linbo
 /var/linbo/examples
-/var/linbo/boot
-/var/linbo/boot/grub
+/var/linbo/boot/grub/themes/linbo
 /var/linbo/boot/grub/i386-pc
 /var/linbo/boot/grub/i386-efi
 /var/linbo/boot/grub/x86_64-efi

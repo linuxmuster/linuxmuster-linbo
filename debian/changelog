@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-16) babo-testing; urgency=low
+
+  * added support for grub themes.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 06 Nov 2015 21:46:01 +0100
+
 linuxmuster-linbo (2.3.0-15) babo-testing; urgency=low
 
   * linbo_cmd.sh, get_disk_from_partition(): fixed support for vda disks.

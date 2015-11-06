@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 05.11.2015
+# 06.11.2015
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -24,8 +24,13 @@ fi
 
 clear
 
+# theme
+loadfont /boot/grub/themes/linbo/unifont-regular-16.pf2
+set theme=/boot/grub/themes/linbo/theme.txt
+export theme
+
 # linbo part, boot local or net (default #0)
-menuentry 'LINBO' {
+menuentry 'LINBO' --class linux {
 
  set root="@@cacheroot@@"
 

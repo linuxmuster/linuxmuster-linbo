@@ -1,10 +1,10 @@
 # group specific grub.cfg template for linbo net boot, should work with linux and windows operating systems
 # thomas@linuxmuster.net
-# 05.11.2015
+# 06.11.2015
 #
 
 # start "@@osname@@" directly
-menuentry '@@osname@@ (Start)' {
+menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
 
  set root="@@osroot@@"
  set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
@@ -40,7 +40,7 @@ menuentry '@@osname@@ (Start)' {
 }
 
 # boot LINBO, sync and then start "@@osname@@"
-menuentry '@@osname@@ (Sync+Start)' {
+menuentry '@@osname@@ (Sync+Start)' --class @@ostype@@_syncstart {
 
  set root="@@cacheroot@@"
 
@@ -62,7 +62,7 @@ menuentry '@@osname@@ (Sync+Start)' {
 }
 
 # boot LINBO, format os partition, sync and then start "@@osname@@"
-menuentry '@@osname@@ (Neu+Start)' {
+menuentry '@@osname@@ (Neu+Start)' --class @@ostype@@_newstart {
 
  set root="@@cacheroot@@"
 

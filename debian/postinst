@@ -3,7 +3,7 @@
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
 # GPL v3
-# 09.09.2015
+# 06.10.2015
 #
 
 set -e
@@ -203,7 +203,8 @@ linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
  fi
  
  # provide grub menu background
- [ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -s ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
+ ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
+ ln -sf ../../linbo_wallpaper.png "$LINBODIR/boot/grub/themes/linbo/linbo_wallpaper.png"
 
  # update linbofs.lz
  $LINBOUPDATE
