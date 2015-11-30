@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 06.11.2015
+# 28.11.2015
 # GPL v3
 #
 
@@ -849,9 +849,14 @@ print_efipart(){
 print_grubpart(){
  local partition="$1"
  [ -b "$partition" ] || return 1
- local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
- local ord="$(printf "$(echo $partition | sed 's|[1-9]||' | sed 's|/dev/[hsv]d||')" | od -A n -t d1)"
- local disknr=$(( $ord - 97 ))
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
+ case "$partition" in
+  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk[0-9]p\([0-9]*\)|\1|')" ;;
+  *)
+   local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
+   local disknr=$(( $ord - 97 ))
+   ;;
+ esac
  echo "(hd${disknr},${partnr})"
 }
 
@@ -977,7 +982,7 @@ write_devicemap() {
  local disk
  local n=0
  rm -f "$devicemap"
- grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed 's|[1-9]||g' | sort -u | while read disk; do
+ for disk in get_disks; do
   echo "(hd${n}) $disk" >> "$devicemap"
   n=$(( $n + 1 ))
  done
@@ -1258,7 +1263,25 @@ download(){
  return "$RC"
 }
 
-# do_machinepw
+# request macct file to invoke samba password hash ldap upload stuff on the server
+invoke_macct(){
+ local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
+ [ -z "$serverip" ] && return
+ [ -s /mnt/.linbo ] || return
+ local image="$(cat /mnt/.linbo)"
+ local macctfile
+ if [ -e "/cache/${image}.rsync" ]; then
+  macctfile="${image}.rsync.macct"
+ elif [ -e "/cache/${image}.cloop" ]; then
+  macctfile="${image}.cloop.macct"
+ else
+  return
+ fi
+ download "$serverip" "$macctfile" && echo "Maschinenpasswort auf $serverip wurde gesetzt."
+ rm -f "/cache/$macctfile"
+}
+
+# do_machinepw (not used)
 # no args
 # handle machine password stuff locally and on the server
 do_machinepw(){
@@ -1294,11 +1317,13 @@ update_win(){
  # install start tasks
  if [ "$RC" = "0" ]; then
   /linuxmuster-win/install-start-tasks.sh || RC="1"
+  # set machine account password on server
+  #download "$(serverip)" set.mpw
  fi
  # handle machine password
- if [ "$RC" = "0" ]; then
-  do_machinepw || RC="1"
- fi
+# if [ "$RC" = "0" ]; then
+#  do_machinepw || RC="1"
+# fi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -1343,6 +1368,8 @@ start(){
   mountcache "$cachedev" -r
   return 1
  fi
+ # sets machine password on server
+ invoke_macct
  # kill torrents if any
  killalltorrents
  sync

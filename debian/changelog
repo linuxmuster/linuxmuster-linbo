@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.0-17) babo-testing; urgency=low
+
+  * reverted machine password handling as in release 2.3.0-13.
+  * added support for /dev/mmcblk? and /dev/xvd? devices.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Nov 2015 16:07:16 +0100
+
 linuxmuster-linbo (2.3.0-16) babo-testing; urgency=low
 
   * added support for grub themes.

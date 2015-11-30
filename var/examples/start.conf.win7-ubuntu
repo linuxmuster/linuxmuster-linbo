@@ -7,18 +7,18 @@
 # Festplatte 160G
 
 [LINBO]                  # globale Konfiguration
-Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhält
-Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
+Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhÃ¤lt
+Group = gruppe           # Name der Rechnergruppe fÃ¼r die diese Konfigurationsdatei gilt
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda6        # lokale Cache Partition
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
-AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Start
+AutoInitCache = no       # kein automatisches BefÃ¼llen des Caches beim LINBO-Start
 DownloadType = torrent   # Image-Download per torrent|multicast|rsync, default ist rsync
 BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
 ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
-ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
+ConsoleFontColorStderr = orange     # Konsolenschriftfarbe fÃ¼r Fehler-/Warnmeldungen (default: red)
 SystemType = bios                   # moeglich ist bios|bios64|efi32|efi64 (Standard: bios fuer bios 32bit)
 KernelOptions = quiet splash        # Beispiele:
 #KernelOptions = acpi=noirq irqpoll # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
@@ -77,7 +77,7 @@ Bootable = yes           # Bootable-Flag
 Name = Windows 7             # Name des Betriebssystems
 Version =                    # Version (unbenutzt, leer lassen)
 Description = Windows 7 SP1  # Beschreibung
-IconName = winxp.png         # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+IconName = winxp.png         # Icon fÃ¼r den Startbutton, muss unter /var/linbo/icons abgelegt sein
 Image =                      # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
 BaseImage = win7.cloop       # Dateiname des Basisimages (Erweiterung .cloop)
 Boot = /dev/sda1             # Bootpartition (unbenutzt, immer gleich Rootpartition)
@@ -89,7 +89,7 @@ StartEnabled = yes           # "Start"-Button anzeigen
 SyncEnabled = yes            # "Sync+Start"-Button anzeigen
 NewEnabled = yes             # "Neu+Start"-Button anzeigen
 Autostart = no               # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5         # Timeout in Sekunden für Benutzerabbruch bei Autostart
+AutostartTimeout = 5         # Timeout in Sekunden fÃ¼r Benutzerabbruch bei Autostart
 DefaultAction = sync         # Standardaktion bei Autostart: start|sync|new
 Hidden = yes                 # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
 
@@ -97,7 +97,7 @@ Hidden = yes                 # verstecke OS-Reiter (unbenutzte Option, auf "yes"
 Name = Ubuntu                     # Name des Betriebssystems
 Version =                         # Version (unbenutzt, leer lassen)
 Description = Ubuntu 14.04 Trusty # Beschreibung
-IconName = ubuntu.png             # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+IconName = ubuntu.png             # Icon fÃ¼r den Startbutton, muss unter /var/linbo/icons abgelegt sein
 Image =                           # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
 BaseImage = ubuntu.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
 Boot = /dev/sda2                  # Bootpartition (unbenutzt, immer gleich Rootpartition)
@@ -109,6 +109,6 @@ StartEnabled = yes                # "Start"-Button anzeigen
 SyncEnabled = yes                 # "Sync+Start"-Button anzeigen
 NewEnabled = yes                  # "Neu+Start"-Button anzeigen
 Autostart = no                    # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5              # Timeout in Sekunden für Benutzerabbruch bei Autostart
+AutostartTimeout = 5              # Timeout in Sekunden fÃ¼r Benutzerabbruch bei Autostart
 DefaultAction = sync              # Standardaktion bei Autostart: start|sync|new
 Hidden = yes                      # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

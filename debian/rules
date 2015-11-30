@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 05.11.2015
+# 18.11.2015
 # GPL v3
 #
 
@@ -798,6 +798,7 @@ install: build
 	# /var/linbo
 	cp -r var/* debian/linuxmuster-linbo/var/linbo
 	install -m 644 linbo/etc/linbo-version debian/linuxmuster-linbo/var/linbo
+	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo/var/linbo/linuxmuster-win
 	# grub netboot
 	debian/mkgrubnetdir.sh
 	install -m 644 share/templates/grub.cfg.pxe debian/linuxmuster-linbo/var/linbo/boot/grub/grub.cfg

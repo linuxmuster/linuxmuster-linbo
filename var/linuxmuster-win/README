@@ -10,16 +10,16 @@ Installation
 * Bemerkung: Ab linuxmuster-linbo 2.3.0-14 wird die Installation
   automatisch von LINBO beim Start eines Windows-7-Systems ausgeführt.
 
-* Die Windows-Eingabeaufforderung mit Administratorrechten öffnen.
-
-* Skript C:\linuxmuster-win\install.cmd ausführen.
-
 * Es wird eine "geplante Aufgabe" angelegt:
   Beim Start des Betriebssystems wird das Skript "start-tasks.cmd" automatisch
   ausgeführt.
 
 Skripte
 -------
+
+* install.cmd: Skript zur händischen Installation des Startskripts.
+
+* uninstall.cmd: Skript zur händischen Deinstallation.
 
 * start-tasks.cmd:
   Prüft das Verzeichnis C:\linuxmuster-win auf das Vorhandensein von Skripten
@@ -28,11 +28,10 @@ Skripte
     wird von LINBO zur Reaktivierung angelegt. Das Skript enthält die
     Produktkeys und Aktivierungsbefehle für Windows und ggf. MSOffice.
     Wird nach Ausführung gelöscht.
-  * set_machine_pw.cmd
-    Setzt das Maschinenpasswort mit mtaman.exe, falls vorhanden. Wird
-    nach Ausführung gelöscht.
-  * custom.cmd
-    Für eigene Befehle, die beim Windowsstart ausgeführt werden sollen.
+  * custom.cmd.ex
+    Beispielskript für eigene Befehle, die beim Windowsstart ausgeführt
+    werden sollen. Muss nach custom.cmd umbenannt werden, damit es
+    ausgeführt wird.
 
 * save-activation-status.cmd:
   Dieses Skript muss von Hand ausgeführt werden, nachdem man die Produkte
@@ -48,14 +47,11 @@ Skripte
 Sonstiges
 ---------
 
-* mtaman.exe:
+* lsaSecretStore.exe:
   Tool zum lokalen Setzen des Maschinenpassworts:
-  mtaman.exe -s -v <Passwort>
-  Anzeigen mit:
-  mtaman.exe -d
-  Datei wurde am 23.10.2015 von http://arktur.shuttle.de/CD/beta/slack/odszusatz/
-  heruntergeladen. Lizenz unbekannt.
+  lsaSecretStore.exe $MACHINE.ACC <Passwort>
+  (MIT-Lizenz).
 
 thomas@linuxmuster.net
-23.10.2015
+18.11.2015
 

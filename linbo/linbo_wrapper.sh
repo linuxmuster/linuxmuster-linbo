@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 05.11.2015
+# 18.11.2015
 # GPL V3
 #
 
@@ -33,8 +33,15 @@ isinteger () {
 get_server(){
  server=`grep ^linbo_server /tmp/dhcp.log | awk -F\' '{ print $2 }'`
  if [ -z "$server" ]; then
-  echo "Cannot determine server ip!"
-  exit 1
+  udhcpc
+  server=`grep ^serverid /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1`
+  server_check=`grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1`
+  if [ "$server_check" = "$server" ]; then
+   touch /tmp/network.ok
+  else
+   echo "Cannot determine server ip!"
+   exit 1
+  fi
  fi
  echo "$server"
 }
