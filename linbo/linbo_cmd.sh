@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 28.11.2015
+# 03.12.2015
 # GPL v3
 #
 
@@ -982,7 +982,7 @@ write_devicemap() {
  local disk
  local n=0
  rm -f "$devicemap"
- for disk in get_disks; do
+ for disk in $(get_disks); do
   echo "(hd${n}) $disk" >> "$devicemap"
   n=$(( $n + 1 ))
  done

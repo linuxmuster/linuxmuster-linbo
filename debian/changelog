@@ -1,3 +1,16 @@
+linuxmuster-linbo (2.3.0-19) babo-testing; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 Dec 2015 13:23:32 +0100
+
+linuxmuster-linbo (2.3.0-18) babo-testing; urgency=low
+
+  * linbo_cmd.sh, write_devicemap(): fixed syntax error.
+  * linbo_gui 32bit: fixed 32bit color depth.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 Dec 2015 13:15:27 +0100
+
 linuxmuster-linbo (2.3.0-17) babo-testing; urgency=low
 
   * reverted machine password handling as in release 2.3.0-13.

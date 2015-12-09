@@ -33,7 +33,7 @@
  -no-openssl \
  -no-iconv \
  -no-dbus \
- -depths 4,8,16 \
+ -depths 4,8,16,32 \
  -no-largefile \
  -no-xinerama \
  -no-xrender \
