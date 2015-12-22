@@ -263,7 +263,7 @@ configure-stamp:
 		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(SSMTP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SSMTP_ARCHIVE) -C src; \
-		ln -sf ../$(SSMTP_DIR) src/ssmtp; \
+	#	ln -sf ../$(SSMTP_DIR) src/ssmtp; \
 		echo "[1mPatching ssmtp sources...[0m" ; \
 		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 		( cd $(SSMTP_DIR) && patch -p0 <../../patches/ssmtp32.patch ); \
@@ -275,7 +275,7 @@ configure-stamp:
 		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(SSMTP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(SSMTP_ARCHIVE) -C src64; \
-		ln -sf ../$(SSMTP64_DIR) src64/ssmtp; \
+	#	ln -sf ../$(SSMTP64_DIR) src64/ssmtp; \
 		echo "[1mPatching 64bit ssmtp sources...[0m" ; \
 		( cd $(SSMTP64_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
 	fi

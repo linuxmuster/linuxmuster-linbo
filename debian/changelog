@@ -1,9 +1,10 @@
 linuxmuster-linbo (2.3.0-20) babo-testing; urgency=low
 
   * debian/rules: build cloop module before cloop-utils (closes #511).
+  * debian/rules: fix ssmtp link (closes #513).
   * kernel: added emmc-Support (closes #512).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 22 Dec 2015 13:29:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 22 Dec 2015 13:37:00 +0100
 
 linuxmuster-linbo (2.3.0-19) babo-testing; urgency=low
 
