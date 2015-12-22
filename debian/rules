@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 18.11.2015
+# 22.12.2015
 # GPL v3
 #
 
@@ -621,19 +621,19 @@ build-stamp: configure-stamp
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
 	fi
 
-	# cloop64 utils
-	-@if [ ! -e $(CLOOP64_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
-	        echo "[1mBuilding 64bit cloop utils...[0m" ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( ARCH=x86_64 make utils ) ; \
-	fi
-
 	# cloop64 module
 	-@if [ ! -e $(CLOOP64_DIR)/cloop.ko ]; then \
 	        echo "[1mBuilding 64bit cloop module...[0m" ; \
 	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP64_DIR) && \
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
+	fi
+
+	# cloop64 utils
+	-@if [ ! -e $(CLOOP64_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
+	        echo "[1mBuilding 64bit cloop utils...[0m" ; \
+	        cd $(CLOOP64_DIR) && \
+	        ( ARCH=x86_64 make utils ) ; \
 	fi
 
 	# e1000e module
