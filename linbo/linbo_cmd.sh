@@ -2620,7 +2620,7 @@ syncr(){
   sendlog
   cd / ; mountcache "$2" -r
   # Also update LINBO, while we are here.
-  update "$1" "$2"
+  localmode || update "$1" "$2"
  fi
  shift 
  syncl "$@"
