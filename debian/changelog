@@ -1,10 +1,24 @@
+linuxmuster-linbo (2.3.0-21) babo-testing; urgency=low
+
+  * various fixes and improvements concerning to linbo update (closing #547).
+  * various fixes concerning to systems using remote cache.
+  * fixed offline issue with udhcp discover.
+  * improved upgrade process from linbo 2.2.
+  * various fixes and improvements in grub.cfg templates concerning to local
+    and pxe boot process (closing #544).
+  * introduced a grub spool dir (/var/linbo/boot/grub/spool) for temporary
+    server based reboot fifos (pipes), needed for systems booting with remote
+    cache.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 Feb 2016 19:43:09 +0100
+
 linuxmuster-linbo (2.3.0-20) babo-testing; urgency=low
 
   * debian/rules: build cloop module before cloop-utils (closes #511).
   * debian/rules: fix ssmtp link (closes #513).
   * kernel: added emmc-Support (closes #512).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 22 Dec 2015 13:37:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 22 Dec 2015 18:45:00 +0100
 
 linuxmuster-linbo (2.3.0-19) babo-testing; urgency=low
 

@@ -1,11 +1,9 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 28.09.2015
+# 12.02.2016
 #
 
-set default=0
-set fallback=1
 set timeout=0
 
 set gfxmode=auto
@@ -28,75 +26,97 @@ set menu_color_normal=white/black
 set menu_color_highlight=yellow/black
 set prefix=/boot/grub
 
-# try to boot OS directly if reboot method is set
-menuentry 'OS localboot' {
+# one menu entry does it all
+menuentry 'Default' {
 
- # find cache partition and set it to root
- if search --set root --file /start.conf; then
+ # look for reboot grubenv pipe on server and execute it if present
+ echo -n Loading remote grub environment ...
+ if load_env -f "$prefix/spool/${net_pxe_hostname}.reboot"; then
+  echo
+ else
+  clear
+ fi
 
-  # load background image locally if present
-  if [ -e "$prefix/linbo_wallpaper.png" ]; then
-   bg_image="$prefix/linbo_wallpaper.png"
-   background_image $bg_image
-  fi
+ # if grub reboot variable is not set from server
+ if [ -z "$reboot_grub" ]; then
 
-  # read grub environment variables
-  if [ -s /boot/grub/grubenv ]; then
-   echo -n Loading grub environment ...
-   load_env
-   echo
-  fi
+  # look for it on cache partition
+  if search --set root --file /start.conf; then
 
-  # if reboot is set try to load the os on the given partition
-  if [ "${reboot_grub}" ] ; then
-
-   echo Booting operating system ...
-   echo
-
-   set tmproot="${reboot_grub}"
-   set reboot_grub=""
-   save_env reboot_grub
-   set root="${tmproot}"
-   set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
-
-   if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
-    linux $reboot_kernel $reboot_append
-    initrd $reboot_initrd
-   elif [ -e /vmlinuz -a -e /initrd.img ]; then
-    linux /vmlinuz $reboot_append
-    initrd /initrd.img
-   elif [ -e /vmlinuz -a -e /initrd ]; then
-    linux /vmlinuz $reboot_append
-    initrd /initrd
-   elif [ -s /boot/grub/grub.cfg ] ; then
-    configfile /boot/grub/grub.cfg
-   elif [ "$grub_platform" = "pc" ]; then
-    if [ -s /bootmgr ] ; then
-     ntldr /bootmgr
-    elif [ -s /ntldr ] ; then
-     ntldr /ntldr
-    elif [ -s /grldr ] ; then
-     ntldr /grldr
-    else
-     chainloader +1
-    fi
-   elif [ -e "$win_efiloader" ]; then
-    chainloader $win_efiloader
-    boot
+   # load background image locally if present
+   if [ -e "$prefix/linbo_wallpaper.png" ]; then
+    bg_image="$prefix/linbo_wallpaper.png"
+    background_image $bg_image
    fi
 
+   # read grub environment variables
+   if [ -s /boot/grub/grubenv ]; then
+    echo -n Loading local grub environment ...
+    load_env
+    set localboot=yes
+    echo
+   fi
+
+  else
+   clear
   fi
 
  fi
 
-}
+ # if reboot is set try to load the os on the given partition
+ if [ "${reboot_grub}" ]; then
 
-# fallback to netboot
-menuentry 'Netboot' {
+  echo Booting operating system ...
+  echo
+
+  set tmproot="${reboot_grub}"
+  if [ "$localboot" ]; then
+   set reboot_grub=""
+   save_env reboot_grub
+  fi
+  set root="${tmproot}"
+  set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
+
+  if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
+   linux $reboot_kernel $reboot_append
+   initrd $reboot_initrd
+   boot
+  elif [ -e /vmlinuz -a -e /initrd.img ]; then
+   linux /vmlinuz $reboot_append
+   initrd /initrd.img
+   boot
+  elif [ -e /vmlinuz -a -e /initrd ]; then
+   linux /vmlinuz $reboot_append
+   initrd /initrd
+   boot
+  elif [ -s /boot/grub/grub.cfg ] ; then
+   configfile /boot/grub/grub.cfg
+  elif [ "$grub_platform" = "pc" ]; then
+   if [ -s /bootmgr ] ; then
+    ntldr /bootmgr
+    boot
+   elif [ -s /ntldr ] ; then
+    ntldr /ntldr
+    boot
+   elif [ -s /grldr ] ; then
+    ntldr /grldr
+    boot
+   else
+    chainloader +1
+    boot
+   fi
+  elif [ -e "$win_efiloader" ]; then
+   chainloader $win_efiloader
+   boot
+  fi
+
+ fi
+
+ # fallback to netboot if reboot was not set
+ set root="(tftp)"
 
  # compute path to group specific config
  if [ "$grub_platform" = "efi" ]; then
-  set prefix=(tftp)/boot/grub
   if [ -n "$net_efinet0_extensionspath" ]; then
    set grubcfg="$prefix/${net_efinet0_extensionspath}.cfg"
   elif [ -n "$net_efinet1_extensionspath" ]; then
@@ -105,7 +125,6 @@ menuentry 'Netboot' {
    set grubcfg="$prefix/${net_efinet2_extensionspath}.cfg"
   fi
  else
-  set prefix=(pxe)/boot/grub
   set grubcfg="$prefix/${net_pxe_extensionspath}.cfg"
  fi
 
@@ -121,25 +140,21 @@ menuentry 'Netboot' {
 
  # or netboot linbo directly
  else
-
-  # fetch linbo kernel per http
-  set root=(http)
   
   # 32bit or 64bit kernel
   if cpuid -l; then
-   set kernel=/linbo64
-   set initrd=/linbofs64.lz
+   set linbo_kernel=/linbo64
+   set linbo_initrd=/linbofs64.lz
   else
-   set kernel=/linbo
-   set initrd=/linbofs.lz
+   set linbo_kernel=/linbo
+   set linbo_initrd=/linbofs.lz
   fi
-  echo -n "Loading $kernel .."
-  linux $kernel splash quiet netboot
+  echo -n "Loading $linbo_kernel .."
+  linux $linbo_kernel splash quiet netboot
   echo
-  echo -n "Loading $initrd .."
-  initrd $initrd
+  echo -n "Loading $linbo_initrd .."
+  initrd $linbo_initrd
 
  fi
 
 }
-

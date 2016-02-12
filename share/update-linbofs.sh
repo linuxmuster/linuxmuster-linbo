@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 07.09.2015
+# 08.02.2016
 #
 
 # read linuxmuster environment
@@ -50,6 +50,9 @@ bailout() {
 
 update_linbofs() {
  local _64=$1
+ local linbofscachedir="/var/cache/linuxmuster-linbo/linbofs$_64"
+ rm -rf "$linbofscachedir"
+ mkdir -p "$linbofscachedir"
 
  # check for default linbofs${_64}.lz
  [ ! -s "$LINBODIR/linbofs${_64}.lz" ] && bailout "Error: $LINBODIR/linbofs${_64}.lz not found!"
@@ -69,15 +72,8 @@ update_linbofs() {
  # begin to process linbofs${_64}.lz
  echo "Processing linbofs${_64} update ..."
 
- # create temp dir for linbofs${_64} content
- if [ -n "${_64}" ]; then
-  mkdir -p $tmpdir64
-  cd $tmpdir64 || bailout "Cannot change to $tmpdir64!"
- else
-  mkdir -p $tmpdir
-  cd $tmpdir || bailout "Cannot change to $tmpdir!"
- fi
- # unpack linbofs${_64}.lz to tmpdir${_64}
+ # unpack linbofs.lz to cache dir
+ cd "$linbofscachedir" || bailout "Cannot change to $linbofscachedir!"
  xzcat $LINBODIR/linbofs${_64}.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
  [ $RC -ne 0 ] && bailout " Failed to unpack linbofs${_64}.lz!"
 

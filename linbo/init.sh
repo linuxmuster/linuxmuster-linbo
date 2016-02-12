@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 23.09.2015
+# 12.02.2016
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -440,20 +440,20 @@ do_housekeeping(){
 
 # update linbo and install it locally
 do_linbo_update(){
- local RC="0"
  local server="$1"
  local cachedev="$(printcache)"
  local customcfg="/cache/boot/grub/custom.cfg"
- local rebootflag="/cache/.linbo.reboot"
+ local rebootflag="/tmp/.linbo.reboot"
  # save current custom.cfg
- linbo_cmd update "$server" "$cachedev" 2> /dev/null || RC=1
- [ "$RC" = "1" ] && return 1
+ linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
  # test if linbofs or custom.cfg were updated on local boot
  if [ -n "$localboot" -a -e "$rebootflag" ]; then
   echo "Lokale LINBO/GRUB-Konfiguration wurde aktualisiert. Starte neu ..."
   cd /
   umount -a &> /dev/null
   /sbin/reboot -f
+ else
+  [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
  fi
 }
 
@@ -561,6 +561,11 @@ network(){
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
   done
+  # set flag for working network connection
+  if [ -s start.conf ]; then
+   echo "Network connection to $server successfully established."
+   echo > /tmp/network.ok
+  fi
   # linbo update
   do_linbo_update "$server"
   # also look for other needed files
@@ -587,16 +592,13 @@ network(){
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
+ # if start.conf could not be downloaded
  if [ ! -s start.conf ]; then
   # No new version / no network available, look for cached copies of start.conf and icons folder.
   copyfromcache "start.conf icons"
- else
-  # flag for network connection
-  echo "Network connection to $server successfully established."
-  echo > /tmp/network.ok
+  # Still nothing new, revert to old version.
+  mv -f start.conf.dist start.conf
  fi
- # Still nothing new, revert to old version.
- [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  # disable auto functions if noauto is given

@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 18.11.2015
+# 04.02.2016
 # GPL V3
 #
 
@@ -29,18 +29,25 @@ isinteger () {
  esac
 }
 
+islinked(){
+ local i
+ for i in $(ifconfig | grep ^e | awk '{ print $1 }'); do
+  ethtool "$i" | grep -i "link detected" | grep -qi "yes" && return 0
+ done
+ return 1
+}
+
 # get server ip
 get_server(){
  server=`grep ^linbo_server /tmp/dhcp.log | awk -F\' '{ print $2 }'`
  if [ -z "$server" ]; then
-  udhcpc
+  islinked && udhcpc
   server=`grep ^serverid /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1`
   server_check=`grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1`
   if [ "$server_check" = "$server" ]; then
    touch /tmp/network.ok
   else
-   echo "Cannot determine server ip!"
-   exit 1
+   return 1
   fi
  fi
  echo "$server"
@@ -321,6 +328,7 @@ while [ "$#" -gt "0" ]; do
 
   initcache)
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && return 1
    [ -z "$cachedev" ] && get_cachedev
    if [ "$param" = "rsync" -o "$param" = "multicast" -o "$param" = "torrent" ]; then
     downloadtype="$param"
@@ -365,8 +373,9 @@ while [ "$#" -gt "0" ]; do
    fi
    get_os
    get_passwd
-   echo "Uploading $baseimage to $server ..."
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && return 1
+   echo "Uploading $baseimage to $server ..."
    [ -z "$cachedev" ] && get_cachedev
    [ -n "$customimage" ] && baseimage="$customimage"
    if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$baseimage" ]; then
@@ -408,6 +417,7 @@ while [ "$#" -gt "0" ]; do
    get_passwd
    echo "Uploading $image to $server ..."
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && return 1
    [ -z "$cachedev" ] && get_cachedev
    [ -n "$customimage" ] && image="$customimage"
    if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$image" ]; then
@@ -428,6 +438,7 @@ while [ "$#" -gt "0" ]; do
    get_os
    echo "Syncing $osname ..."
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && server="offline"
    [ -z "$cachedev" ] && get_cachedev
    if [ -n "$server" -a -n "$cachedev" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
     linbo_cmd synconly "$server" "$cachedev" "$baseimage" "$image" "$bootdev" "$rootdev" "$kernel" "$initrd" "$append"

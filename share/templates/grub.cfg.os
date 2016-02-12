@@ -1,6 +1,6 @@
 # group specific grub.cfg template for linbo net boot, should work with linux and windows operating systems
 # thomas@linuxmuster.net
-# 06.11.2015
+# 11.02.2016
 #
 
 # start "@@osname@@" directly
@@ -46,18 +46,21 @@ menuentry '@@osname@@ (Sync+Start)' --class @@ostype@@_syncstart {
 
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
- else
-  set root=(http)
+ elif [ -n "$pxe_default_server" ]; then
+  set root="(tftp)"
   set bootflag=netboot
  fi
 
- echo LINBO $bootflag for group @@group@@
- echo
- echo -n "Loading $linbo_kernel ..."
- linux $linbo_kernel @@kopts@@ linbocmd=sync:@@osnr@@,start:@@osnr@@ $bootflag
- echo
- echo -n "Loading $linbo_initrd ..."
- initrd $linbo_initrd
+ if [ -n "$bootflag" ]; then
+  echo LINBO $bootflag for group @@group@@
+  echo
+  echo -n "Loading $linbo_kernel ..."
+  linux $linbo_kernel @@kopts@@ linbocmd=sync:@@osnr@@,start:@@osnr@@ $bootflag
+  echo
+  echo -n "Loading $linbo_initrd ..."
+  initrd $linbo_initrd
+  boot
+ fi
 
 }
 
@@ -68,18 +71,21 @@ menuentry '@@osname@@ (Neu+Start)' --class @@ostype@@_newstart {
 
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
- else
-  set root=(http)
+ elif [ -n "$pxe_default_server" ]; then
+  set root="(tftp)"
   set bootflag=netboot
  fi
 
- echo LINBO $bootflag for group @@group@@
- echo
- echo -n "Loading $linbo_kernel ..."
- linux $linbo_kernel @@kopts@@ linbocmd=format:@@partnr@@,sync:@@osnr@@,start:@@osnr@@ $bootflag
- echo
- echo -n "Loading $linbo_initrd ..."
- initrd $linbo_initrd
+ if [ -n "$bootflag" ]; then
+  echo LINBO $bootflag for group @@group@@
+  echo
+  echo -n "Loading $linbo_kernel ..."
+  linux $linbo_kernel @@kopts@@ linbocmd=format:@@partnr@@,sync:@@osnr@@,start:@@osnr@@ $bootflag
+  echo
+  echo -n "Loading $linbo_initrd ..."
+  initrd $linbo_initrd
+  boot
+ fi
 
 }
 

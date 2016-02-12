@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 06.11.2015
+# 12.02.2016
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -22,32 +22,49 @@ else
  set linbo_initrd=/linbofs.lz
 fi
 
-clear
-
-# theme
-loadfont /boot/grub/themes/linbo/unifont-regular-16.pf2
+# theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt
-export theme
+set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
+
+# load theme
+if [ -e "$theme" -a -e "$font" ]; then
+ loadfont "$font"
+ export theme
+fi
+
+clear
 
 # linbo part, boot local or net (default #0)
 menuentry 'LINBO' --class linux {
 
- set root="@@cacheroot@@"
+ echo LINBO $bootflag for group @@group@@
+ echo
 
+ set root="@@cacheroot@@"
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
- else
-  set root=(http)
+ elif [ -n "$pxe_default_server" ]; then
+  set root="(tftp)"
   set bootflag=netboot
  fi
 
- echo LINBO $bootflag for group @@group@@
- echo
- echo -n "Loading $linbo_kernel ..."
- linux $linbo_kernel @@kopts@@ $bootflag
- echo
- echo -n "Loading $linbo_initrd ..."
- initrd $linbo_initrd
+ if [ -n "$bootflag" ]; then
+  echo -n "Loading $linbo_kernel ..."
+  linux $linbo_kernel @@kopts@@ $bootflag
+  echo
+  echo -n "Loading $linbo_initrd ..."
+  initrd $linbo_initrd
+  boot
+ else
+  if [ "$grub_platform" = "pc" ]; then
+   set ipxe="/ipxe.lkrn"
+  fi
+  if [ -e "$ipxe" ]; then
+   echo -n "Initiating pxe boot ..."
+   linux16 $ipxe dhcp
+   boot
+  fi
+ fi
 
 }
 

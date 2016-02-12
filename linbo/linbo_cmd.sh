@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 03.12.2015
+# 12.02.2016
 # GPL v3
 #
 
@@ -293,6 +293,12 @@ osname(){
  return 1
 }
 
+# print kernel options from start.conf
+kerneloptions(){
+ [ -s /start.conf ] || return 1
+ grep -i ^kerneloptions /start.conf | tail -1 | sed -e 's/#.*$//' -e 's/kerneloptions//I' | awk -F\= '{ print substr($0, index($0,$2)) }' | sed -e 's/ =//' -e 's/^ *//g' -e 's/ *$//g'
+}
+
 # fschuett
 # fetch SystemType from start.conf
 systemtype(){
@@ -304,14 +310,7 @@ systemtype(){
 
 get_64(){
  local is_64=""
- if uname -a | grep -q x86_64; then
-  is_64="64"
- else
-  local systemtype=$(systemtype)
-  case $systemtype in
-   bios64|efi64) is_64="64" ;;
-  esac
- fi
+ uname -a | grep -q x86_64 && is_64="64"
  echo "$is_64"
 }
 
@@ -454,7 +453,7 @@ mountpart(){
 
 # Return true if cache is NFS- or SAMBA-Share
 remote_cache(){
- case "$1" in *:*|*//*|*\\\\*) return 0 ;; esac
+ case "$1" in *:*|*//*|*\\*|*\\\\*) return 0 ;; esac
  return 1
 }
 
@@ -516,9 +515,10 @@ mountcache(){
  [ -n "$1" ] || return 1
  export CACHE_PARTITION="$1"
  # Avoid duplicate mounts by just preparing read/write mode
- if grep -q "^$1 " /proc/mounts; then
-  local RW
-  grep -q "^$1 .*rw.*" /proc/mounts && RW="true" || RW=""
+ local mount_opts="$(grep " /cache " /proc/mounts | awk '{ print $4 }')"
+ if [ -n "$mount_opts" ]; then
+  local RW=""
+  echo "$mount_opts" | grep -q ".*rw.*" && RW="true"
   case "$2" in
    -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache 2>> /tmp/linbo.log ; RC=0 ;; 
    *) [ -n "$RW" ] || mount -o remount,rw /cache 2>> /tmp/linbo.log ; RC="$?" ;; 
@@ -1152,11 +1152,18 @@ prepare_reboot(){
  local APPEND="$6"
  local efipart="$7"
  local efiboot="false"
+ remote_cache "$(cachedev)" || local localcache="yes"
  if [ -n "$efipart" ]; then
   mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then
-  mk_grubboot "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" || return 1
+  if [ -n "$localcache" ]; then
+   mk_grubboot "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" || return 1
+  else
+   # create reboot grubenv file on server
+   local rebootstr="$(print_grubpart $partition)#${KERNEL}#${INITRD}#${APPEND}#.reboot"
+   rsync $(serverip)::linbo/"$rebootstr" /tmp 2>"$TMP" || true
+  fi
  fi
 }
 
@@ -1172,17 +1179,12 @@ prepare_grub(){
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
  # write grub device.map file
  write_devicemap "$grubdir/device.map" || return 1
- # get linbo append params
- local i
- for i in $(cat /proc/cmdline); do
-  case "$i" in
-   BOOT_IMAGE=*|server=*|cache=*|initrd=*|INITRD=*) true ;;
-   *) append="$append $i" ;;
-  esac
- done
- # provide default grub.cfg with current append params
- sed -e "s|linux /linbo64 .*|linux /linbo64 $append|
-         s|linux /linbo .*|linux /linbo $append|" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
+ # provide default grub.cfg with current append params on localmode
+ if localmode; then
+  local kopts="$(kerneloptions)"
+  [ -z "$kopts" ] && kopts="splash quiet localboot"
+  sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $(kerneloptions) localboot|g" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
+ fi
  # provide unicode font
  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2" || return 1
  # provide menu background image
@@ -1208,6 +1210,7 @@ mk_boot(){
  local APPEND="$4"
  local efipart="$(print_efipart)"
  local partition="$1"
+ remote_cache "$(cachedev)" || local localcache="yes"
  # get disk for grub install, use always the first disk
  local grubdisk="$(get_disks | head -1)"
  if [ ! -b "$grubdisk" ]; then
@@ -1223,13 +1226,15 @@ mk_boot(){
  local doneflag="/tmp/.grub-install"
  local RC="0"
  # prepare grub stuff
- prepare_grub "$grubdir" "$grubenv" "$grubsharedir" || RC="1"
+ if [ -n "$localcache" ]; then
+  prepare_grub "$grubdir" "$grubenv" "$grubsharedir" || RC="1"
+ fi
  # prepare reboot stuff
  if [ -n "$partition" ]; then
   prepare_reboot "$grubdisk" "$partition" "$grubenv" "$KERNEL" "$INITRD" "$APPEND" "$efipart" || RC="1"
  fi
  # install grub in mbr/efi
- if [ ! -e "$doneflag" ]; then
+ if [ ! -e "$doneflag" -a -n "$localcache" ]; then
   echo -n "Installiere Grub in MBR/EFI von $grubdisk ... "
   grub-install "$grubdisk" 2>> /tmp/linbo.log || RC="1"
   if [ "$RC" = "0" ]; then
@@ -1278,7 +1283,7 @@ invoke_macct(){
   return
  fi
  download "$serverip" "$macctfile" && echo "Maschinenpasswort auf $serverip wurde gesetzt."
- rm -f "/cache/$macctfile"
+ remote_cache "$(cachedev)" || rm -f "/cache/$macctfile"
 }
 
 # do_machinepw (not used)
@@ -1356,8 +1361,8 @@ start(){
    echo "Kernel $KERNEL auf Partition $partition nicht vorhanden. Setze auf \"auto\"."
    KERNEL="auto"
   fi
-  if (mountcache "$6" && cache_writable); then
-   # install/update grub/efi stuff if cache is mounted writable
+  if mountcache "$cachedev"; then
+   # install/update grub/efi stuff if cache is mounted
    mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
    # update linuxmuster-win scripts and install start tasks
    [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win | tee -a /tmp/linbo.log
@@ -2213,8 +2218,8 @@ syncl(){
    fi
    # source postsync script
    [ -s "/cache/$postsync" ] && . "/cache/$postsync"
-   # finally do boot configuration
-   mk_boot "$rootdev" || RC=1
+   # finally do minimal boot configuration
+   mk_boot || RC=1
    # all done
    sync; sync; sleep 1
    umount /mnt || umount -l /mnt
@@ -2627,24 +2632,15 @@ syncr(){
 }
 
 # update server cachedev force
+# updates grub and linbo stuff
 update(){
- #echo -n "update " ;  printargs "$@"
- local doneflag="/tmp/.update.done"
- local rebootflag="/cache/.linbo.reboot"
- local force="$3"
- local RC=0
- local group="$(hostgroup)"
- local server="$1"
- local cachedev="$2"
- local disk="${cachedev%%[1-9]*}"
- mountcache "$cachedev" || return 1
- mkdir -p /cache/boot/grub
+ # do not execute in localmode
+ localmode && return 0
 
- # test for previous done updates
- if [ -e "$rebootflag" ]; then
-  touch "$doneflag"
-  rm -f "$rebootflag"
- fi
+ echo -n "update " ;  printargs "$@"
+ local doneflag="/tmp/.update.done"
+ local force="$3"
+
  if [ -e "$doneflag" -a -z "$force" ]; then
   echo "LINBO-Update wurde schon ausgefuehrt!"
   return 0
@@ -2652,56 +2648,113 @@ update(){
   rm -f "$doneflag"
  fi
 
+ local rebootflag="/tmp/.linbo.reboot"
+ local reboot
+ local RC=0
+ local group="$(hostgroup)"
+ local server="$1"
+ local cachedev="$2"
+ local disk="${cachedev%%[1-9]*}"
+ local grubdir="/cache/boot/grub"
+ mountcache "$cachedev" || return 1
+ mkdir -p "$grubdir"
+
  cd /cache
  local is_64="$(get_64)"
  local kernel="linbo${is_64}"
  local kernelfs="linbofs${is_64}.lz"
+ local md5_before
+ local md5_after
+ local i
+ local myname="$(clientname)"
 
  # local restore of start.conf in cache (necessary if cache partition was formatted before)
  [ -s start.conf ] || cp /start.conf .
- echo "Aktualisiere LINBO-Kernel ($kernel,$kernelfs)."
- download "$server" "$kernel" || RC=1
- [ -e "$kernelfs" ] && local kernelfs_before="$(md5sum $kernelfs | awk '{ print $1 }')"
- download "$server" "$kernelfs" || RC=1
- # grub update
- if [ -s "$kernel" -a -s "$kernelfs" ]; then
-  # tschmitt: provide custom group specific grub config
-  [ -e /cache/boot/grub/custom.cfg ] && local cfg_before="$(md5sum /cache/boot/grub/custom.cfg | awk '{ print $1 }')"
-  download "$server" "boot/grub/${group}.cfg" || RC=1
-  if [ -e "/cache/${group}.cfg" ]; then
-   mv "/cache/${group}.cfg" /cache/boot/grub/custom.cfg || RC=1
-   local cfg_after="$(md5sum /cache/boot/grub/custom.cfg | awk '{ print $1 }')"
-   # get theme dir if set
-   themedir="$(dirname "$(grep -i ^"set theme=" /cache/boot/grub/custom.cfg | awk -F\= '{ print $2 }')")"
+
+ # get current linbo kernel/initrd and group specific and local grub configs from server
+ echo "Aktualisiere LINBO-Kernel und Grub-Konfiguration."
+ for i in "$kernel" "$kernelfs" boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
+  # collect md5 before download
+  if [ "$i" = "boot/grub/$group.cfg" ]; then
+   md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
+  elif [ "$i" = "boot/grub/spool/$myname.$group.grub.cfg" ]; then
+   md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
   else
-   rm -f /cache/boot/grub/custom.cfg
+   md5_before="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
   fi
+  download "$server" "$i" || RC=1
+  if [ "$RC" = "1" ]; then
+   echo "Download-Fehler bei $i!" >&2
+   rm -f "$i"
+   return 1
+  fi
+  # collect md5 after download
+  md5_after="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
+  # if md5 differ, reboot
+  if [ "$md5_before" != "$md5_after" ]; then
+   echo "$(basename "$i") wurde aktualisiert."
+   reboot="yes"
+  fi
+ done
+
+ # move downloads in place
+ mv "$group.cfg" "$grubdir/custom.cfg" || RC=1
+ mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
+ if [ "$RC" = "1" ]; then
+  echo "Fehler beim Schreiben der Grub-Konfigurationsdateien!" >&2
+  return 1
  fi
- cd / ; sendlog
- #umount /cache
+
+ # keep grub themes also updated
+ echo -n "Aktualisiere Grub-Themes ... "
+ themesdir="/boot/grub/themes"
+ mkdir -p "/cache$themesdir"
+ rsync -a --delete "${server}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
+ if [ "$RC" = "1" ]; then
+  echo "Fehler!" >&2
+  return 1
+ else
+  echo "OK!"
+ fi
+
+ # fetch also current linuxmuster-win scripts
+ echo -n "Aktualisiere linuxmuster-win ... "
+ [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
+ rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
+ if [ "$RC" = "1" ]; then
+  echo "Fehler!" >&2
+  return 1
+ else
+  echo "OK!"
+ fi
+
+ # finally update/install grub stuff
+ if mk_boot; then
+
+  # remove for old legacy grub stuff
+  if [ -e "$grubdir/stage1" -o -e "$grubdir/menu.lst" ]; then
+   echo "Entferne Grub legacy, Reboot wird notwendig."
+   rm -f "$grubdir"/*stage* "$grubdir"/menu.lst gpxe.krn
+   if [ -e /cache/update.log ]; then
+    cat /cache/update.log >> /tmp/linbo.log
+    sendlog
+   fi
+   ( umount -a ; /sbin/reboot -f )
+  fi
+
+ else
+  RC="1"
+ fi
+
  if [ "$RC" = "0" ]; then
-  local kernelfs_after="$(md5sum /cache/$kernelfs | awk '{ print $1 }')"
-  [ -n "$kernelfs_after" -a -n "$kernelfs_before" -a  "$kernelfs_after" != "$kernelfs_before" ] && touch "$rebootflag"
-  [ -n "$cfg_after" -a -n "$cfg_before" -a "$cfg_after" != "$cfg_before" ] && touch "$rebootflag"
-  # fetch also linuxmuster-win scripts on linbo update
-  [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
-  rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/
-  # look for old legacy grub stuff, remove it and install grub 2
-  if [ -e "/cache/boot/grub/stage1" ]; then
-   echo "Grub legacy entdeckt, upgrade notwendig."
-   mk_boot && rm -f /cache/boot/grub/*stage* && ( umount -a &> /dev/null ; /sbin/reboot -f )
-  fi
-  # get grub theme
-  if [ -n "$themedir" ]; then
-   echo "Aktualisiere Grub-Theme."
-   mkdir -p "/cache$themedir"
-   rsync -a --delete "${server}::linbo${themedir}/" "/cache${themedir}/"
-  fi
   echo "LINBO/GRUB update fertig."
   touch "$doneflag"
+  [ -n "$reboot" ] && touch "$rebootflag"
  else
-  echo "Lokale Installation von LINBO/GRUB hat nicht geklappt." >&2
+  echo "Fehler!" >&2
  fi
+
+ sendlog
  return "$RC"
 }
 
