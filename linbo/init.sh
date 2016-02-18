@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 12.02.2016
+# 18.02.2016
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -162,10 +162,10 @@ trycopyfromdevice(){
 
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
+ local cachdev="$(printcache)"
+ [ -z "$cachedev" && return 1
  local major="" minor="" blocks="" device="" relax=""
- if [ -b "$cache" ]; then
-  trycopyfromdevice "$cache" "$1" && return 0
- fi
+ trycopyfromdevice "$cachedev" "$1" && return 0
  cat /proc/partitions | grep -v ^major | while read major minor blocks device relax; do
   if [ -b "/dev/$device" ]; then
    trycopyfromdevice "/dev/$device" "$1" && return 0
@@ -187,19 +187,23 @@ Cache = $cache" -i "$1"
 
 # print cache partition
 printcache(){
- local cachedev=""
- if [ -n "$cache" ]; then
-  cachedev="$cache"
- else
-  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cache" -a -b "$cache" ]; then
+  echo "$cache"
+  return 0
  fi
- [ -b "$cachedev" ] && echo "$cachedev"
+ [ -s /start.conf ] || return 1
+ local cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cachedev" -a -b "$cachedev" ]; then
+  echo "$cachedev"
+  return 0
+ fi
+ return 1
 }
 
 # copytocache file - copies start.conf to local cache
 copytocache(){
  local cachedev="$(printcache)"
- [ -b "$cachedev" ] || return 1
+ [ -z "$cachedev" ] && return 1
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
@@ -217,7 +221,8 @@ copytocache(){
    # save hostname for offline use
    echo "Saving hostname $(hostname) to cache."
    hostname > /cache/hostname
-   [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
+   # deprecated
+   #[ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
   *)
@@ -597,7 +602,7 @@ network(){
   # No new version / no network available, look for cached copies of start.conf and icons folder.
   copyfromcache "start.conf icons"
   # Still nothing new, revert to old version.
-  mv -f start.conf.dist start.conf
+  [ ! -s start.conf ] && mv -f start.conf.dist start.conf
  fi
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf

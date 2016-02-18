@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-22) babo-testing; urgency=low
+
+  * fixed cache not being set correctly in offline mode.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 18 Feb 2016 16:49:31 +0100
+
 linuxmuster-linbo (2.3.0-21) babo-testing; urgency=low
 
   * various fixes and improvements concerning to linbo update (closing #547).
