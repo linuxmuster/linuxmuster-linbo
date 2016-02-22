@@ -1389,10 +1389,10 @@ start(){
 get_partition_size(){
  local part="$1"
  if echo "${part}" | grep -q '^/dev/mmcblk'; then
-  local disk="${part%%[0-9]*}"
+  local disk="${part%[1-9]*}"
   local partnr="$(echo "${part}" | sed -e 's|/dev/mmcblk[0-9]p||')"
  else
-  local disk="${part%%[1-9]*}"
+  local disk="${part%[1-9]*}"
   local partnr="$(echo "${part}" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
  fi
  # fix vanished cloop symlink
