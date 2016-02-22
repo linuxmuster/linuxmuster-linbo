@@ -1388,7 +1388,7 @@ start(){
 # arg: partition
 get_partition_size(){
  local part="$1"
- local disk="$(get_disk_from_partition "${partition}")"
+ local disk="$(get_disk_from_partition "${part}")"
  if echo "${part}" | grep -q '^/dev/mmcblk'; then
   local partnr="$(echo "${part}" | sed -e 's|/dev/mmcblk[0-9]p||')"
  else
