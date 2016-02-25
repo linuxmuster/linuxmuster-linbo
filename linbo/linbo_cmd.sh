@@ -1388,8 +1388,12 @@ start(){
 # arg: partition
 get_partition_size(){
  local part="$1"
- local disk="${part%%[1-9]*}"
- local partnr="$(echo "$part" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
+ local disk="$(get_disk_from_partition "${part}")"
+ if echo "${part}" | grep -q '^/dev/mmcblk'; then
+  local partnr="$(echo "${part}" | sed -e 's|/dev/mmcblk[0-9]p||')"
+ else
+  local partnr="$(echo "${part}" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
+ fi
  # fix vanished cloop symlink
  if [ "$1" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
@@ -1445,7 +1449,7 @@ save_efi_bcd(){
 # print gpt uuid of a partition (works only with efi)
 print_guid(){
  local partition="$1"
- local disk="${partition%%[1-9]*}"
+ local disk="$(get_disk_from_partition "${partition}")"
  local partnr="$(echo "$partition" | sed "s|$disk||")"
  echo -e "i\n$partnr\nq\n" | gdisk "$disk" | grep -i "partition unique guid" | awk -F\: '{ print $2 }' | awk '{ print $1 }' 2> /dev/null
 }
@@ -1456,7 +1460,7 @@ set_guid(){
  local partition="$1"
  local guid="$2"
  [ -z "$partition" -a -z "$guid" ] && return 1
- local disk="${partition%%[1-9]*}"
+ local disk="$(get_disk_from_partition "${partition}")"
  local partnr="$(echo "$partition" | sed "s|$disk||")"
  echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" &> /tmp/image.log || return 1
 }
