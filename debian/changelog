@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.0-23) babo-testing; urgency=low
+
+  * merged fix-mmc from fschuette, fixes several mmcblk device issues
+    (closes #555).
+  * merged fix-553 from fschuette, adds 32bit chroot capability to
+    64bit linbo (closes #553).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Feb 2016 18:14:27 +0100
+
 linuxmuster-linbo (2.3.0-22) babo-testing; urgency=low
 
   * fixed cache not being set correctly in offline mode.
