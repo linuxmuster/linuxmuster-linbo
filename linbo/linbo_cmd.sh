@@ -502,7 +502,11 @@ format(){
    update "$(serverip)" "$cachedev"
    mk_boot
    if mountcache "$cachedev"; then
+    echo "Saving start.conf to cache."
     cp /start.conf /cache
+    # save hostname for offline use
+    echo "Saving hostname $(hostname) to cache."
+    hostname > /cache/hostname
    fi
   fi
  else
