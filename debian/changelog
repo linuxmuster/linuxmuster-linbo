@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.0-24) babo-testing; urgency=low
+
+  * merged fix-563 from fschuette, closes #563 & #570:
+    - http://www.linuxmuster.net/flyspray/task/563
+    - http://www.linuxmuster.net/flyspray/task/570
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Mar 2016 11:10:34 +0100
+
 linuxmuster-linbo (2.3.0-23) babo-testing; urgency=low
 
   * merged fix-mmc from fschuette, fixes several mmcblk device issues
