@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 12.02.2016
+# 08.03.2016
 #
 
 # read in paedml specific environment
@@ -51,6 +51,12 @@ case $EXT in
  # remove linbocmd file after download
  *.cmd)
   echo "Removing onboot linbocmd file $FILE."
+  rm -f "$FILE"
+ ;;
+
+ # remove dummy logfile after download
+ *.log)
+  echo "Removing dummy logfile $FILE."
   rm -f "$FILE"
  ;;
 

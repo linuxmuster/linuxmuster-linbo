@@ -2,19 +2,14 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 12.02.2016
+# 08.03.2016
 #
 
 # read in linuxmuster.net specific environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
-LOGFILE=rsync-pre-download.log
-if [ -n "$LINBODIR" ]; then
- LOGFILE="$LINBODIR/log/$LOGFILE"
-else
- LOGFILE="/var/log/$LOGFILE"
-fi
+LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
 
 # Debug
 exec >>$LOGFILE 2>&1
@@ -71,6 +66,22 @@ case $EXT in
     sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
    fi
   fi
+ ;;
+
+ # fetch logfiles from client
+ *.log)
+  base_logfile="$(basename "$FILE")"
+  host_logfile="${compname}_$base_logfile"
+  echo "Upload request for $host_logfile."
+  src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR||")"
+  tgt_logfile="$LINBOLOGDIR/$host_logfile"
+  linbo-scp -v "${RSYNC_HOST_NAME}:$src_logfile" "$FILE" || RC="1"
+  if [ -s "$FILE" ]; then
+   date >> "$tgt_logfile"
+   cat "$FILE" >> "$tgt_logfile"
+  fi
+  rm -f "$FILE"
+  touch "$FILE"
  ;;
 
  # provide host's opsi key for download

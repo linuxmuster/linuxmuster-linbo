@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.0-25) babo-testing; urgency=low
+
+  * implemented rsync based client logging, see
+    http://www.linuxmuster.net/flyspray/task/571
+  * minor postinst clean up.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Mar 2016 13:52:09 +0100
+
 linuxmuster-linbo (2.3.0-24) babo-testing; urgency=low
 
   * merged fix-563 from fschuette, closes #563 & #570:

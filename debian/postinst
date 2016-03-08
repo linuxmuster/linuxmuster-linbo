@@ -3,7 +3,7 @@
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
 # GPL v3
-# 06.10.2015
+# 08.03.2016
 #
 
 set -e
@@ -25,8 +25,6 @@ set -e
 
 #db_version 2.0
 
-
-LINBODIR=/var/linbo
 DISTCONF=/usr/share/linuxmuster/config/dist.conf
 
 case "$1" in
@@ -42,7 +40,6 @@ case "$1" in
   . $DISTCONF
   . $HELPERFUNCTIONS
   [ -e "$INSTALLED" ] || exit 0
-  LINBOLOGDIR="$LOGDIR/linbo"
  else
   exit 0
  fi
@@ -53,29 +50,12 @@ case "$1" in
  mkdir -p "$LINBODIR/winact"
  # additional torrents
  mkdir -p "$LINBODIR/torrentadds"
-
- # backup pxelinux configfiles
- [ -e "$LINBODIR/backup/$(basename $PXECFGDIR)" ] || cp -a "$PXECFGDIR" "$LINBODIR/backup"
+ # temp dir
+ mkdir -p "$LINBODIR/tmp"
 
  # update serverip in start.conf
  echo "Setting server ip in start.conf.default."
  sed -e "s/^[Ss][Ee][Rr][Vv][Ee][Rr] = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i "$LINBODIR/start.conf"
-
- # provide the default pxelinux configfile, deprecated with grub2
-# conf="$PXECFGDIR/default"
-# if [ ! -s "$conf" -o -L "$conf" ]; then
-#  echo "Creating default pxelinux configfile."
-#  rm -f "$conf"
-#  tpl="$LINBOTPLDIR/default.pxe"
-#  sed -e "s|@@default@@|linbo|
-#          s|@@kopts@@||g" "$tpl" > "$conf"
-# fi
-
- # pxelinux configfiles and menu.lst update, deprecated with grub2
-# for i in $PXECFGDIR/* $LINBODIR/menu.lst.*; do
-#  [ -f "$i" ] || continue
-#  grep -q linbofs.gz "$i" && sed -e 's|linbofs.gz|linbofs.lz|g' -i $i
-# done
 
  # start.confs update
  if ls $LINBODIR/start.conf.* &> /dev/null; then
@@ -106,11 +86,12 @@ SystemType = bios" -i "$conf"
   done
  fi
 
- # check for linbo mail wrapper in /etc/aliases
- if ! grep -q ^linbo: /etc/aliases; then
+ # remove linbo logmail wrapper from /etc/aliases
+ pattern="mail2log.sh"
+ if grep -q "$pattern" /etc/aliases; then
+  echo "Removing linbo's mail2log entry from /etc/aliases."
   cp /etc/aliases /etc/aliases.dpkg-old
-  sed -e "/^root:/a\
-linbo: \"\|\/usr\/share\/linuxmuster-linbo\/mail2log.sh\"" -i /etc/aliases
+  sed "/$pattern/d" /etc/aliases.dpkg-old > /etc/aliases
   newaliases
  fi
 

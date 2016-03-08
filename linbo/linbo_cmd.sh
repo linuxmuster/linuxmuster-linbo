@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 12.02.2016
+# 08.03.2016
 # GPL v3
 #
 
@@ -78,42 +78,19 @@ localmode(){
 sendlog(){
  local RC="1"
  local logfile
- if [ -s /etc/sendlog.conf ]; then
-  . /etc/sendlog.conf
- elif [ -s /tmp/dhcp.log ]; then
-  local domain="$(grep -m1 ^domain= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
-  local logname="$(grep -m1 ^hostname= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
-  local serverip="$(grep -m1 ^siaddr= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
-  echo "local domain=$domain" > /etc/sendlog.conf
-  echo "local logname=$logname" >> /etc/sendlog.conf
-  echo "local serverip=$serverip" >> /etc/sendlog.conf
- fi
- for logfile in patch.log image.log linbo.log; do
-  if [ -s "/tmp/$logfile" ]; then
+ local i
+ for i in patch.log image.log linbo.log; do
+  logfile="/tmp/$i"
+  if [ -s "$logfile" ]; then
    if localmode; then
     if cache_writable; then
-     echo "Speichere Logdatei $logfile im Cache."
-     cp "/tmp/$logfile" /cache
+     echo "Speichere Logdatei $i im Cache."
+     cp "$logfile" /cache
     fi
    else
-    echo "Sende Logdatei an $serverip."
-    local body="$(cat /tmp/$logfile)"
-    ssmtp -oi linbo@$domain << EOF
-To: linbo@$domain
-Subject: LOG $logname $logfile
-
-$body
-EOF
-    RC="$?"
-   fi
-   if [ "$RC" = "0" ]; then
-    rm /tmp/$logfile
-    echo "Logdatei $logfile erfolgreich an $serverip versandt."
-   else
-    if cache_writable; then
-     echo "Speichere Logdatei $logfile im Cache."
-     cp "/tmp/$logfile" /cache
-    fi
+    [ -e /tmp/linbo-network.done ] || return 0
+    echo "Veranlasse Upload von $i."
+    rsync $(serverip)::linbo"$logfile" /tmp 2>"$TMP" || true
    fi
   fi
  done
