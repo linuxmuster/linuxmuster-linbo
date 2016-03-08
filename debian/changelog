@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.0-26) babo-testing; urgency=low
+
+  * fixed hostname in client logfile.
+  * removed ssmtp.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Mar 2016 15:01:36 +0100
+
 linuxmuster-linbo (2.3.0-25) babo-testing; urgency=low
 
   * implemented rsync based client logging, see

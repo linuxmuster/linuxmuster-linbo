@@ -561,7 +561,6 @@ network(){
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
-  echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
   echo "Downloading configuration files from $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break

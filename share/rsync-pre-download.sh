@@ -70,15 +70,15 @@ case $EXT in
 
  # fetch logfiles from client
  *.log)
-  base_logfile="$(basename "$FILE")"
-  host_logfile="${compname}_$base_logfile"
+  host_logfile="$(basename "$FILE")"
   echo "Upload request for $host_logfile."
-  src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR||")"
+  src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
   tgt_logfile="$LINBOLOGDIR/$host_logfile"
   linbo-scp -v "${RSYNC_HOST_NAME}:$src_logfile" "$FILE" || RC="1"
   if [ -s "$FILE" ]; then
-   date >> "$tgt_logfile"
+   echo "## Log session begin: $(date) ##" >> "$tgt_logfile"
    cat "$FILE" >> "$tgt_logfile"
+   echo "## Log session end: $(date) ##" >> "$tgt_logfile"
   fi
   rm -f "$FILE"
   touch "$FILE"

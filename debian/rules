@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 22.12.2015
+# 08.03.2015
 # GPL v3
 #
 
@@ -113,15 +113,6 @@ RSYNC_URL=http://rsync.samba.org/ftp/rsync/src
 
 # rsync64
 RSYNC64_DIR=src64/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
-
-# ssmtp
-SSMTP_ARCHIVE=$(shell grep ssmtp_ debian/md5sums.src | awk '{ print $$2 }')
-SSMTP_DIR=src/ssmtp
-#SSMTP_URL=http://archive.ubuntu.com/ubuntu/pool/universe/s/ssmtp
-SSMTP_URL=$(LML_URL)
-
-# ssmtp64
-SSMTP64_DIR=src64/ssmtp
 
 # gnu parted
 PARTED_ARCHIVE=$(shell grep parted- debian/md5sums.src | awk '{ print $$2 }')
@@ -256,38 +247,6 @@ configure-stamp:
 		tar xf cache/$(NTFS3G_ARCHIVE) -C src64; \
 		ln -sf ../$(NTFS3G64_DIR) src64/ntfs-3g; \
 	fi
-
-	# ssmtp
-	-@if [ ! -d $(SSMTP_DIR) ]; then \
-		( [ -e cache/$(SSMTP_ARCHIVE) ] || ( cd cache && wget $(SSMTP_URL)/$(SSMTP_ARCHIVE) ) ); \
-		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(SSMTP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(SSMTP_ARCHIVE) -C src; \
-	#	ln -sf ../$(SSMTP_DIR) src/ssmtp; \
-		echo "[1mPatching ssmtp sources...[0m" ; \
-		( cd $(SSMTP_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
-		( cd $(SSMTP_DIR) && patch -p0 <../../patches/ssmtp32.patch ); \
-	fi
-
-	# ssmtp64
-	-@if [ ! -d $(SSMTP64_DIR) ]; then \
-		( [ -e cache/$(SSMTP_ARCHIVE) ] || ( cd cache && wget $(SSMTP_URL)/$(SSMTP_ARCHIVE) ) ); \
-		( cd cache && grep $(SSMTP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(SSMTP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(SSMTP_ARCHIVE) -C src64; \
-	#	ln -sf ../$(SSMTP64_DIR) src64/ssmtp; \
-		echo "[1mPatching 64bit ssmtp sources...[0m" ; \
-		( cd $(SSMTP64_DIR) && for i in ../../patches/ssmtp/*; do patch -p1 <$$i; done ); \
-	fi
-
-	# parted
-#	-@if [ ! -d $(PARTED_DIR) ]; then \
-#		( [ -e cache/$(PARTED_ARCHIVE) ] || ( cd cache && wget $(PARTED_URL)/$(PARTED_ARCHIVE) ) ); \
-#		( cd cache && grep $(PARTED_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(PARTED_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(PARTED_ARCHIVE) -C src; \
-#		ln -sf ../$(PARTED_DIR) src/parted; \
-#	fi
 
 	# parted64
 	-@if [ ! -d $(PARTED64_DIR) ]; then \
@@ -526,24 +485,6 @@ build-stamp: configure-stamp
 		echo "[1mBuilding 64bit ntfs-3g...[0m" ; \
 		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
 	fi
-
-	# ssmtp
-	-@if [ ! -e $(SSMTP_DIR)/ssmtp ]; then \
-		echo "[1mBuilding ssmtp...[0m" ; \
-		( cd $(SSMTP_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
-	fi
-
-	# ssmtp64
-	-@if [ ! -e $(SSMTP64_DIR)/ssmtp ]; then \
-		echo "[1mBuilding 64bit ssmtp...[0m" ; \
-		( cd $(SSMTP64_DIR) && ./configure --exec-prefix="/usr" --prefix="" --enable-static --with-cflags="-O2 -g -Wall" && make && strip ssmtp ); \
-	fi
-	# parted
-#	-@if [ ! -e $(PARTED_DIR)/parted/parted ]; then \
-#		echo "[1mBuilding parted...[0m" ; \
-#		ln -sf $(BIN32_DIR)/usr/include/uuid $(PARTED_DIR)/uuid; \
-#		( cd $(PARTED_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make && strip parted/parted ); \
-#	fi
 
 	# parted64
 	-@if [ ! -e $(PARTED64_DIR)/parted/parted ]; then \

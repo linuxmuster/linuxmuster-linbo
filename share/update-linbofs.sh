@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 08.02.2016
+# 08.03.2016
 #
 
 # read linuxmuster environment
@@ -79,10 +79,6 @@ update_linbofs() {
 
  # store linbo md5 password
  [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
-
- # create ssmtp.conf
- mkdir -p etc/ssmtp
- echo "mailhub=$serverip:25" > etc/ssmtp/ssmtp.conf
 
  # provide dropbear ssh host key
  mkdir -p etc/dropbear

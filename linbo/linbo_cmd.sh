@@ -90,7 +90,8 @@ sendlog(){
    else
     [ -e /tmp/linbo-network.done ] || return 0
     echo "Veranlasse Upload von $i."
-    rsync $(serverip)::linbo"$logfile" /tmp 2>"$TMP" || true
+    logfile="/tmp/$(hostname)_$i"
+    rsync $(serverip)::linbo"$logfile" "/tmp/$i" 2>"$TMP" || true
    fi
   fi
  done
