@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-27) babo-testing; urgency=low
+
+  * kernel rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 10 Mar 2016 10:51:18 +0100
+
 linuxmuster-linbo (2.3.0-26) babo-testing; urgency=low
 
   * fixed hostname in client logfile.
