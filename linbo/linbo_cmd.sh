@@ -2116,92 +2116,92 @@ syncl(){
       fi
       local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
       [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
+      local bcd_backup_efi="$bootdir"/BCD."$group"."$partname"
+     else # bios
+      bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
+      local bcd_backup="$bootdir"/BCD."$group"
      fi
-     local bcd_backup_efi="$bootdir"/BCD."$group"."$partname"
-    else # bios
-     bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
-     local bcd_backup="$bootdir"/BCD."$group"
+     # restore win7 bcd
+     if [ -s "$bcd_backup_efi" ]; then
+      echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group und Partition $partname."
+      cp -f "$bcd_backup_efi" "$bootdir"/BCD
+     elif [ -s "$bcd_backup" ]; then
+      echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group."
+      cp -f "$bcd_backup" "$bootdir"/BCD
+     fi
+     # restore win7 mbr flag
+     [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
+     if [ -n "$mbr" -a -s "$mbr" ]; then
+      echo "Restauriere Win7-MBR."
+      dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+     fi
+     # restore ntfs id
+     [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
+     if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
+      echo "Restauriere NTFS-ID."
+      dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+     fi
+    fi # ntfs
+    # write partition boot sector (vfat and 32bit only)
+    if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
+     local msopt=""
+     [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
+     [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
+     if [ -n "$msopt" ]; then
+      echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
+      ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
+     fi
     fi
-    # restore win7 bcd
-    if [ -s "$bcd_backup_efi" ]; then
-     echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group und Partition $partname."
-     cp -f "$bcd_backup_efi" "$bootdir"/BCD
-    elif [ -s "$bcd_backup" ]; then
-     echo "Restauriere die Windows-Bootkonfiguration fuer Gruppe $group."
-     cp -f "$bcd_backup" "$bootdir"/BCD
+    # patching for linux systems
+    # grub
+    if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
+     mkdir -p /mnt/boot/efi
+     mount "$efipart" /mnt/boot/efi
+     local i
+     for i in /dev /dev/pts /proc /sys; do
+      mount --bind "$i" /mnt"$i"
+     done
+     chroot /mnt update-grub
+     for i in /sys /proc /dev/pts /dev; do
+      umount /mnt"$i"
+     done
+     umount /mnt/boot/efi
     fi
-    # restore win7 mbr flag
-    [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
-    if [ -n "$mbr" -a -s "$mbr" ]; then
-     echo "Restauriere Win7-MBR."
-     dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+    # hostname
+    if [ -f /mnt/etc/hostname ]; then
+     if [ -n "$HOSTNAME" ]; then
+      echo "Setze Hostname -> $HOSTNAME."
+      echo "$HOSTNAME" > /mnt/etc/hostname
+     fi
     fi
-    # restore ntfs id
-    [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
-    if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
-     echo "Restauriere NTFS-ID."
-     dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+    # copy ssh keys
+    if [ -d /mnt/etc/dropbear ]; then
+     cp /etc/dropbear/* /mnt/etc/dropbear
+     if [ -s /mnt/root/.ssh/authorized_keys ]; then
+      local sshkey="$(cat /.ssh/authorized_keys)"
+      grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
+     else
+      mkdir -p /mnt/root/.ssh
+      cp /.ssh/authorized_keys /mnt/root/.ssh
+     fi
+     chmod 600 /mnt/root/.ssh/authorized_keys
     fi
-   fi # ntfs
-   # write partition boot sector (vfat and 32bit only)
-   if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
-    local msopt=""
-    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
-    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
-    if [ -n "$msopt" ]; then
-     echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
-     ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
+    # patch dropbear config with port 2222 and disable password logins
+    if [ -s /mnt/etc/default/dropbear ]; then
+     sed -e 's|^NO_START=.*|NO_START=0|
+             s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
+             s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
     fi
-   fi
-   # patching for linux systems
-   # grub
-   if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
-    mkdir -p /mnt/boot/efi
-    mount "$efipart" /mnt/boot/efi
-    local i
-    for i in /dev /dev/pts /proc /sys; do
-     mount --bind "$i" /mnt"$i"
-    done
-    chroot /mnt update-grub
-    for i in /sys /proc /dev/pts /dev; do
-     umount /mnt"$i"
-    done
-    umount /mnt/boot/efi
-   fi
-   # hostname
-   if [ -f /mnt/etc/hostname ]; then
-    if [ -n "$HOSTNAME" ]; then
-     echo "Setze Hostname -> $HOSTNAME."
-     echo "$HOSTNAME" > /mnt/etc/hostname
-    fi
-   fi
-   # copy ssh keys
-   if [ -d /mnt/etc/dropbear ]; then
-    cp /etc/dropbear/* /mnt/etc/dropbear
-    if [ -s /mnt/root/.ssh/authorized_keys ]; then
-     local sshkey="$(cat /.ssh/authorized_keys)"
-     grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
-    else
-     mkdir -p /mnt/root/.ssh
-     cp /.ssh/authorized_keys /mnt/root/.ssh
-    fi
-    chmod 600 /mnt/root/.ssh/authorized_keys
-   fi
-   # patch dropbear config with port 2222 and disable password logins
-   if [ -s /mnt/etc/default/dropbear ]; then
-    sed -e 's|^NO_START=.*|NO_START=0|
-            s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
-            s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
-   fi
-   # fstab
-   [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
-   # do opsi stuff
-   do_opsi "$2" "$3" || RC="1"
-   # update linuxmuster-win scripts and restore windows activation
-   if [ "$(fstype "$rootdev")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
-    update_win || RC="1"
-    if [ "$RC" = "0" ]; then
-     restore_winact || RC="1"
+    # fstab
+    [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+    # do opsi stuff
+    do_opsi "$2" "$3" || RC="1"
+    # update linuxmuster-win scripts and restore windows activation
+    if [ "$(fstype "$rootdev")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
+     update_win || RC="1"
+     if [ "$RC" = "0" ]; then
+      restore_winact || RC="1"
+     fi
     fi
    fi
    # source postsync script

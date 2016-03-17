@@ -163,10 +163,11 @@ trycopyfromdevice(){
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
  local cachdev="$(printcache)"
- [ -z "$cachedev" && return 1
+ if [ -n "$cachedev" ]; then
+  trycopyfromdevice "$cachedev" "$1" && return 0
+ fi
  local major="" minor="" blocks="" device="" relax=""
- trycopyfromdevice "$cachedev" "$1" && return 0
- cat /proc/partitions | grep -v ^major | while read major minor blocks device relax; do
+ grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
   if [ -b "/dev/$device" ]; then
    trycopyfromdevice "/dev/$device" "$1" && return 0
   fi
