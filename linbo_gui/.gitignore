@@ -1,0 +1,8 @@
+Makefile
+*.o
+linbo_gui
+moc_*.cpp
+ui_*.h
+qt-everywhere-opensource-src-*
+
+qrc_linbo.cpp
