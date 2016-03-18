@@ -70,7 +70,7 @@ CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
-QT_DIR=linbo_gui/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
+QT_DIR=linbo_gui32/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
 QT_VERS=$(shell echo $(QT_ARCHIVE) | sed -e 's/qt-everywhere-opensource-src-//' | sed -e 's/.tar.gz//')
 QT_URL=http://download.qt-project.org/official_releases/qt/4.8/$(QT_VERS)
 
@@ -162,9 +162,16 @@ configure-stamp:
 	mkdir -p kernel64 || true
 	mkdir -p src || true
 	mkdir -p src64 || true
+	mkdir -p linbo_gui32 || true
 	mkdir -p linbo_gui64 || true
 	mkdir -p $(BIN32_DIR) || true
 	mkdir -p $(BIN64_DIR) || true
+
+	# setup 32bit linbo_gui dir
+	-@if [ ! -e linbo_gui32/build_gui ]; then \
+		echo "[1mCreating 32bit linbo_gui...[0m" ; \
+		cp -R linbo_gui/* linbo_gui32; \
+	fi
 
 	# setup 64bit linbo_gui dir
 	-@if [ ! -e linbo_gui64/build_gui ]; then \
@@ -285,12 +292,12 @@ configure-stamp:
 		( cd src && unzip ../cache/$(LSASECRETS_ARCHIVE) ); \
 	fi
 
-	# qt
+	# qt32
 	-@if [ ! -d $(QT_DIR) ]; then \
 		( [ -e cache/$(QT_ARCHIVE) ] || ( cd cache && wget $(QT_URL)/$(QT_ARCHIVE) ) ); \
 		( cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ; \
-		tar xf cache/$(QT_ARCHIVE) -C linbo_gui; \
+		echo "[1mUnpacking 32bit $(QT_ARCHIVE)...[0m" ; \
+		tar xf cache/$(QT_ARCHIVE) -C linbo_gui32; \
 	fi
 
 	# qt64
@@ -492,10 +499,10 @@ build-stamp: configure-stamp
 		( cd $(PARTED64_DIR) && ./configure --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && make && strip parted/parted ); \
 	fi
 
-	# qt
+	# qt32
 	-@if [ ! -e $(QT_DIR)/bin/moc ]; then \
-		echo "[1mBuilding QT...[0m" ; \
-		( cd $(CURDIR)/linbo_gui && PATH=$(TOOLCHAIN):$(PATH) ./build_qt && rm linbo_gui ); \
+		echo "[1mBuilding 32bit QT...[0m" ; \
+		( cd $(CURDIR)/linbo_gui32 && PATH=$(TOOLCHAIN):$(PATH) ./build_qt && rm linbo_gui ); \
 	fi
 
 	# qt64
@@ -504,11 +511,11 @@ build-stamp: configure-stamp
 		( cd $(CURDIR)/linbo_gui64 && ./build_qt && rm linbo_gui ); \
 	fi
 
-	# linbo_gui
-	-@if [ ! -e $(CURDIR)/linbo_gui/linbo_gui ]; then \
-		echo "[1mBuilding linbo_gui...[0m" ; \
-		cp var/icons/linbo_wallpaper_800x600.png linbo_gui/icons/linbo_wallpaper.png ; \
-		( cd linbo_gui && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 ./build_gui ); \
+	# linbo_gui32
+	-@if [ ! -e $(CURDIR)/linbo_gui32/linbo_gui ]; then \
+		echo "[1mBuilding 32bit linbo_gui...[0m" ; \
+		cp var/icons/linbo_wallpaper_800x600.png linbo_gui32/icons/linbo_wallpaper.png ; \
+		( cd linbo_gui32 && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 ./build_gui ); \
 	fi
 
 	# linbo_gui64
@@ -634,14 +641,11 @@ build-stamp: configure-stamp
 
 distclean: clean
 
-	( cd linbo_gui && make clean && rm linbo_gui ) || true
-	( cd linbo_gui64 && make clean && rm linbo_gui ) || true
-	rm -rf $(QT_DIR) || true
-	rm -rf $(QT64_DIR) || true
 	rm -rf src || true
 	rm -rf src64 || true
 	rm -rf kernel || true
 	rm -rf kernel64 || true
+	rm -rf linbo_gui32 || true
 	rm -rf linbo_gui64 || true
 
 clean: 
