@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 18.02.2016
+# 18.03.2016
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -163,9 +163,8 @@ trycopyfromdevice(){
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
  local cachdev="$(printcache)"
- if [ -n "$cachedev" ]; then
-  trycopyfromdevice "$cachedev" "$1" && return 0
- fi
+ [ -z "$cachedev" ] && return 1
+ trycopyfromdevice "$cachedev" "$1" && return 0
  local major="" minor="" blocks="" device="" relax=""
  grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
   if [ -b "/dev/$device" ]; then
@@ -252,7 +251,8 @@ copyextra(){
 # Try to read the first valid ip address from all up network interfaces
 get_ipaddr(){
  local ip=""
- while read line; do
+ local line
+ ifconfig | while read line; do
   case "$line" in *inet\ addr:*)
    ip="${line##*inet addr:}"
    ip="${ip%% *}"
@@ -260,9 +260,7 @@ get_ipaddr(){
    [ -n "$ip" ] && { echo "$ip"; return 0; }
    ;;
   esac
- done <<.
-$(ifconfig)
-.
+ done
  return 1
 }
 
