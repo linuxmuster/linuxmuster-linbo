@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-29) babo-testing; urgency=low
+
+  * init.sh: cachedev fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 19 Mar 2016 11:39:03 +0100
+
 linuxmuster-linbo (2.3.0-28) babo-testing; urgency=low
 
   * Merged pull request #49 from fschuette:
