@@ -1,13 +1,11 @@
+#include "linbogui.h"
 #include <QApplication>
-
-#include "myqtapp.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-    myQtApp *dialog = new myQtApp;
+    QApplication a(argc, argv);
+    LinboGUI w;
+    w.show();
 
-    dialog->show();
-    return app.exec();
+    return a.exec();
 }
-

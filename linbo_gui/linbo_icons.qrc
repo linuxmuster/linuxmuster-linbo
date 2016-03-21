@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/cache-22x22.png</file>
+        <file>icons/default.png</file>
+        <file>icons/start-22x22.png</file>
+        <file>icons/computer-64x64.png</file>
+        <file>icons/console-22x22.png</file>
+        <file>icons/drive-harddisk-64x64.png</file>
+        <file>icons/image-22x22.png</file>
+        <file>icons/information-22x22.png</file>
+        <file>icons/new+start-22x22.png</file>
+        <file>icons/partition-22x22.png</file>
+        <file>icons/register-22x22.png</file>
+        <file>icons/sync+start-22x22.png</file>
+        <file>icons/system-reboot-32x32.png</file>
+        <file>icons/system-shutdown-32x32.png</file>
+        <file>icons/upload-22x22.png</file>
+        <file>icons/windows-xp-86x86.png</file>
+        <file>wallpapers/linbo_wallpaper_1024x768.png</file>
+        <file>wallpapers/linbo_wallpaper_640x400.png</file>
+        <file>wallpapers/linbo_wallpaper_800x600.png</file>
+        <file>icons/system-shutdown-128x128.png</file>
+        <file>icons/system-reboot-128x128.png</file>
+        <file>icons/system-update-128x128.png</file>
+    </qresource>
+</RCC>
