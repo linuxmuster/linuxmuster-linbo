@@ -1,3 +1,0 @@
-QT_ARCHIVE=`grep qt- ../debian/md5sums.src | awk '{ print $2 }'`
-QTDIR=`pwd`/`echo "$QT_ARCHIVE" | sed -e 's/.tar.gz//'`
-"$QTDIR"/bin/qmake -project -o linboGUI_1.pro  -d -norecursive
