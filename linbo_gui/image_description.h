@@ -33,12 +33,14 @@ private:
   QString kerneloptions,systemtype;
   unsigned int roottimeout;
   bool autopartition, autoinitcache, autoformat;
+  QString hd; /* save cache device hd calculated from cache separate for easier reference */
 
 public:
   globals();
   ~globals();
   const QString& get_server() const;
   const QString& get_cache() const;
+  const QString& get_hd() const;
   const QString& get_hostgroup() const;
   const QString& get_kerneloptions() const;
   const QString& get_systemtype() const;

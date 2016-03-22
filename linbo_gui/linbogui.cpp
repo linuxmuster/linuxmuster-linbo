@@ -1,14 +1,17 @@
 #include <qfile.h>
 #include <qtextstream.h>
 
+#include <plugins/oswidget/linbooswidget.h>
+
 #include "linbogui.h"
 #include "ui_linbogui.h"
 #include "registrierungsdialog.h"
 #include "configuration.h"
 #include "command.h"
+#include "linboRegisterBox.h"
 
-LinboGUI::LinboGUI(QWidget *parent) :
-    QWidget(parent),
+LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
+    conf(),command(), process(new QProcess(this)), logConsole(new linboLogConsole),
     ui(new Ui::LinboGUI)
 {
     ui->setupUi(this);
@@ -34,9 +37,20 @@ LinboGUI::LinboGUI(QWidget *parent) :
     // logfilepath
     logfilepath = QString("/tmp/linbo.log");
 
+    // connect to process
+    connect(process,SIGNAL(started()),this,SLOT(disableButtons));
+    connect(process,SIGNAL(finished(int)),this,SLOT(restoreButtonsState));
+
     // clear buttons array
     p_buttons.clear();
     buttons_config.clear();
+
+    p_buttons.push_back(ui->update);
+    buttons_config.push_back(ui->update->isEnabled() ? 1 : 0);
+    p_buttons.push_back(ui->halt);
+    buttons_config.push_back(ui->halt->isEnabled() ? 1 : 0);
+    p_buttons.push_back(ui->reboot);
+    buttons_config.push_back(ui->reboot->isEnabled() ? 1 : 0);
 
     // we can set this now since our globals have been read
     logConsole->setLinboLogConsole( conf->config.get_consolefontcolorstdout(),
@@ -60,6 +74,12 @@ LinboGUI::LinboGUI(QWidget *parent) :
 
 
     }
+
+    showInfos();
+
+    showOSs();
+
+    ui->systeme->setCurrentIndex(0);
 }
 
 LinboGUI::~LinboGUI()
@@ -72,7 +92,7 @@ bool LinboGUI::isRoot() const {
 }
 
 void LinboGUI::showImagingTab() {
-    ui->systeme->setCurrentIndex( (ui->systeme->count() - 1) );
+    ui->systeme->setCurrentIndex( ADMINTAB );
 }
 
 void LinboGUI::log( const QString& data ) {
@@ -155,10 +175,65 @@ bool LinboGUI::isLogTab(int tabIndex) {
     return (tabIndex == LOGTAB);
 }
 
-void LinboGUI::tabWatcher( QWidget* currentWidget) {
+globals LinboGUI::config()
+{
+    return conf->config;
+}
 
+void LinboGUI::showInfos()
+{
+    ui->rechner->setText(QString("Host: ") + command->doSimpleCommand(QString("hostname")));
+    ui->gruppe->setText(QString("Gruppe: ") + conf->config.get_hostgroup());
+    ui->ip->setText(QString("IP: ") + command->doSimpleCommand(QString("ip")));
+    ui->mac->setText(QString("MAC: ") + command->doSimpleCommand(QString("mac")));
+
+    ui->cpu->setText(QString("CPU: ") + command->doSimpleCommand(QString("cpu")));
+    ui->ram->setText(QString("RAM: ") + command->doSimpleCommand(QString("memory")));
+    ui->cache->setText(QString("Cache: ") + command->doSimpleCommand(QString("size"),conf->config.get_cache()));
+    ui->hd->setText(QString("HD: ") + command->doSimpleCommand(QString("size"),conf->config.get_hd()));
+
+    ui->version->setText(command->doSimpleCommand(QString("version")) + QString(" auf Server ") + conf->config.get_server());
+
+}
+
+void LinboGUI::on_halt_clicked()
+{
+    QStringList cmd;
+      cmd.clear();
+#ifdef TESTCOMMAND
+      cmd = QStringList("echo busybox");
+#else
+      cmd = QStringList("busybox");
+#endif
+      cmd.append("poweroff");
+      logConsole->writeStdOut( QString("shutdown entered") );
+      process->start( cmd.join(" ") );
+}
+
+void LinboGUI::on_reboot_clicked()
+{
+    QStringList cmd;
+      cmd.clear();
+#ifdef TESTCOMMAND
+      cmd = QStringList("echo busybox");
+#else
+      cmd = QStringList("busybox");
+#endif
+      cmd.append("reboot");
+      logConsole->writeStdOut( QString("reboot entered") );
+      process->start( cmd.join(" ") );
+}
+
+void LinboGUI::on_update_clicked()
+{
+      logConsole->writeStdOut( QString("update entered") );
+      process->start( command->mklinboupdatecommand().join(" ") );
+}
+
+void LinboGUI::on_systeme_currentChanged(int index)
+{
     if( !isRoot() ) {
-        if( isAdminTab(ui->systeme->indexOf(currentWidget) )) {
+        if( isAdminTab(index)) {
             // if our partition button is disabled, there is a linbo_cmd running
             if( p_buttons[ ( p_buttons.size() - 1 ) ]->isEnabled() ) {
                 ui->systeme->setCurrentIndex( preTab );
@@ -176,7 +251,23 @@ void LinboGUI::tabWatcher( QWidget* currentWidget) {
         preTab = ui->systeme->currentIndex();
 }
 
-globals LinboGUI::config()
+void LinboGUI::on_doregister_clicked()
 {
-    return conf->config;
+    linboRegisterBox *regdlg = new linboRegisterBox( this );
+    connect(regdlg,SIGNAL(finished(int)),this,SLOT(do_register(int)));
+    regdlg->show();
+}
+
+void LinboGUI::do_register(int result)
+{
+    if(result == QDialog::Accepted){
+
+    }
+}
+
+void LinboGUI::showOSs()
+{
+    QWidget *osarea = ui->osarea;
+    LinboOSWidget *os = new LinboOSWidget(osarea);
+    osarea->adjustSize();
 }

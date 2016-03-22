@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <qprocess.h>
 #include <qstring.h>
 #include <qstringlist.h>
 
@@ -13,6 +14,7 @@ class Command
 {
 private:
     Configuration *conf;
+
     void saveappend( QStringList& command, const QString& item );
 
 public:
@@ -27,6 +29,10 @@ public:
     // type is 0 for rsync, 1 for multicast, 3 for bittorrent
     QStringList mkcacheinitcommand(const QString& type);
     QStringList mklinboupdatecommand();
+
+    QString doSimpleCommand(const QString& cmd);
+    QString doSimpleCommand(const QString& cmd, const QString& arg);
+
 };
 
 #endif // COMMAND_H

@@ -3,6 +3,12 @@
 # Project created by QtCreator 2016-02-17T17:53:31
 #
 #-------------------------------------------------
+CONFIG(release, debug|release) {
+    #This is a release build
+} else {
+    #This is a debug build
+    DEFINES += TESTCOMMAND=echo
+}
 
 QT       += core gui
 
@@ -33,7 +39,8 @@ SOURCES += main.cpp\
     linboPasswordBox.cpp \
     linboRegisterBox.cpp \
     linboYesNo.cpp \
-    linboConsole.cpp
+    linboConsole.cpp \
+    linbooswidget.cpp
 
 HEADERS  += linbogui.h\
         anmeldefenster.h \
@@ -56,7 +63,8 @@ HEADERS  += linbogui.h\
     linboPasswordBox.h \
     linboProgress.h \
     linboRegisterBox.h \
-    linboYesNo.h
+    linboYesNo.h \
+    linbooswidget.h
 
 FORMS    += linbogui.ui\
         anmeldefenster.ui \
@@ -73,7 +81,9 @@ FORMS    += linbogui.ui\
     linboPasswordBox.ui \
     linboProgress.ui \
     linboRegisterBox.ui \
-    linboYesNo.ui
+    linboYesNo.ui \
+    linbooswidget.ui
 
 RESOURCES += \
-    linbo_icons.qrc
+    linbo_icons.qrc \
+    linbooswidget_icons.qrc

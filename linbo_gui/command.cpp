@@ -1,6 +1,13 @@
-#include "command.h"
+#include <qregexp.h>
 
+#include "command.h"
+#include "qprocess.h"
+
+#ifdef TESTCOMMAND
+#define LINBO_CMD(arg) QStringList("echo linbo_cmd") << (arg);
+#else
 #define LINBO_CMD(arg) QStringList("linbo_cmd") << (arg);
+#endif
 
 // this appends a quoted space in case item is empty and resolves
 // problems with linbo_cmd's weird "shift"-usage
@@ -119,6 +126,31 @@ QStringList Command::mklinboupdatecommand() {
   saveappend( command, config.get_server() );
   saveappend( command, config.get_cache() );
   return command;
+}
+
+QString Command::doSimpleCommand(const QString &cmd)
+{
+    return doSimpleCommand(cmd, NULL);
+}
+
+QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
+{
+    QProcess *process = new QProcess();
+    QStringList command = LINBO_CMD(cmd);
+    if( arg != NULL) {
+        saveappend( command, arg);
+    }
+    process->start( command.join(" ") );
+#ifdef TESTCOMMAND
+    while( !process->waitForFinished(10000) ){
+        cerr << "Der Testprozess wurde nicht korrekt durchgeführt.";
+     }
+#else
+    while( !process->waitForFinished(10000) ){
+        cerr << "Der Prozess wurde nicht korrekt durchgeführt.";
+     }
+#endif
+    return QString(process->readAllStandardOutput()).remove(QRegExp("[\\n\\r\\t]"));
 }
 
 Command::Command(Configuration *conf)

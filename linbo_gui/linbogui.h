@@ -56,9 +56,12 @@ private:
     vector<int> buttons_config;
     vector<bool> buttons_config_save;
 
+    void showInfos();
+    void showOSs();
+
 public:
     globals config();
-    vector<linbopushbutton*> p_buttons;
+    vector<QAbstractButton*> p_buttons;
     // 0 = disabled
     // 1 = enabled
     // 2 = admin button
@@ -72,13 +75,28 @@ public:
 
     void readFromStdout();
     void readFromStderr();
-    void enableButtons();
-    void resetButtons();
     void disableButtons();
-    void restoreButtonsState();
-    void tabWatcher(QWidget *currentWidget);
+    void resetButtons();
     bool isAdminTab(int tabIndex);
     bool isLogTab(int tabIndex);
+
+public slots:
+    void do_register(int result);
+    void restoreButtonsState();
+    void enableButtons();
+
+private slots:
+
+
+    void on_halt_clicked();
+
+    void on_reboot_clicked();
+
+    void on_update_clicked();
+
+    void on_systeme_currentChanged(int index);
+
+    void on_doregister_clicked();
 
 private:
     Ui::LinboGUI *ui;

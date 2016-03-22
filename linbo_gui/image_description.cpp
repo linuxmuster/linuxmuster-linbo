@@ -20,19 +20,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 #include "image_description.h"
 
+#include <qregexp.h>
+
 globals::globals():roottimeout(120) {
-  autopartition = 0;
-  autoinitcache = 0;
-  backgroundfontcolor = "white";
-  consolefontcolorstdout = "white";
-  consolefontcolorstderr = "red";
-  downloadtype = "rsync";
-  autoformat = 0;
+    autopartition = 0;
+    autoinitcache = 0;
+    backgroundfontcolor = "white";
+    consolefontcolorstdout = "white";
+    consolefontcolorstderr = "red";
+    downloadtype = "rsync";
+    autoformat = 0;
 }
 
 globals::~globals() {}
 const QString& globals::get_server() const { return server; }
 const QString& globals::get_cache() const { return cache; }
+const QString& globals::get_hd() const { return hd; }
 const QString& globals::get_hostgroup() const { return hostgroup; }
 const QString& globals::get_kerneloptions() const { return kerneloptions; }
 const QString& globals::get_systemtype() const { return systemtype; }
@@ -45,7 +48,11 @@ const QString& globals::get_consolefontcolorstderr() { return consolefontcolorst
 const QString& globals::get_downloadtype() { return downloadtype; };
 const bool& globals::get_autoformat() { return autoformat; };
 void globals::set_server( const QString& new_server ) { server = new_server; }
-void globals::set_cache( const QString& new_cache ) { cache = new_cache; }
+void globals::set_cache( const QString& new_cache ) {
+    cache = new_cache;
+    hd = cache;
+    hd.remove(QRegExp("p?[0-9]{1,2}"));
+}
 void globals::set_hostgroup( const QString& new_hostgroup ) { hostgroup = new_hostgroup; }
 void globals::set_kerneloptions(const QString &new_kerneloptions) { kerneloptions = new_kerneloptions;}
 void globals::set_systemtype(const QString &new_systemtype) { systemtype = new_systemtype; }
@@ -57,7 +64,6 @@ void globals::set_consolefontcolorstdout( const QString& new_consolefontcolorstd
 void globals::set_consolefontcolorstderr( const QString& new_consolefontcolorstderr ) { consolefontcolorstderr = new_consolefontcolorstderr; };
 void globals::set_downloadtype( const QString& new_downloadtype ) { downloadtype = new_downloadtype; };
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
-
 
 diskpartition::diskpartition() {}
 diskpartition::~diskpartition() {}
@@ -105,8 +111,8 @@ void image_item::set_defaultaction( const QString& new_defaultaction ) { default
 void image_item::set_hidden( const bool& new_hidden ) { hidden = new_hidden; }
 
 os_item::os_item() { 
-  image_history.clear();
-  iconname = QString("defaulticon.png");
+    image_history.clear();
+    iconname = QString("defaulticon.png");
 }
 os_item::~os_item() { /* nothing to do */ }
 
@@ -127,9 +133,9 @@ void os_item::add_history_entry( image_item& ie ) { image_history.push_back( ie 
 
 // Return the first image in image_history where "start" is enabled.
 unsigned int os_item::find_current_image() const {
- for(unsigned int i = 0; i < image_history.size(); i++) {
-  if(image_history[i].get_startbutton()) return i;
- }
- return 0;
+    for(unsigned int i = 0; i < image_history.size(); i++) {
+        if(image_history[i].get_startbutton()) return i;
+    }
+    return 0;
 }
 

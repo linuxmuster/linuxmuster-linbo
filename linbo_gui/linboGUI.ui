@@ -26,6 +26,21 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
@@ -84,8 +99,7 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>Host: lapfschuett</string>
@@ -100,9 +114,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>Gruppe: mobil</string>
@@ -117,9 +133,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>IP: 10.16.3.51</string>
@@ -134,9 +152,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>MAC: AA:BB:CC:DD:EE:FF</string>
@@ -171,9 +191,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>HD: /dev/sda1</string>
@@ -188,9 +210,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>Cache: </string>
@@ -205,9 +229,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>CPU: Intel(R) Core(TM) 2 Duo CPU T9300</string>
@@ -222,9 +248,11 @@ background-color: rgb(170, 170, 127);</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 85, 0);
-background-color: rgb(170, 170, 127);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>RAM: 501MB</string>
@@ -254,11 +282,14 @@ background-color: rgb(170, 170, 127);</string>
        <height>300</height>
       </size>
      </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
      <property name="tabShape">
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="benutzertab">
       <property name="enabled">
@@ -270,12 +301,15 @@ background-color: rgb(170, 170, 127);</string>
         <verstretch>1</verstretch>
        </sizepolicy>
       </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
       <attribute name="title">
        <string>Benutzer</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
-        <widget class="QScrollArea" name="scrollArea_2">
+        <widget class="QScrollArea" name="osarea">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>1</horstretch>
@@ -299,175 +333,10 @@ background-color: rgb(170, 170, 127);</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>738</width>
-            <height>283</height>
+            <width>750</width>
+            <height>313</height>
            </rect>
           </property>
-          <widget class="QWidget" name="widget" native="true">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>10</y>
-             <width>301</width>
-             <height>121</height>
-            </rect>
-           </property>
-           <widget class="QToolButton" name="standard1">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>80</width>
-              <height>80</height>
-             </rect>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Std</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/default.png</normaloff>:/icons/default.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>64</width>
-              <height>64</height>
-             </size>
-            </property>
-           </widget>
-           <widget class="QLabel" name="name1">
-            <property name="geometry">
-             <rect>
-              <x>100</x>
-              <y>20</y>
-              <width>191</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font: 75 12pt &quot;Noto Sans&quot;;</string>
-            </property>
-            <property name="text">
-             <string>Gymhim Linux</string>
-            </property>
-           </widget>
-           <widget class="QToolButton" name="toolButton">
-            <property name="geometry">
-             <rect>
-              <x>240</x>
-              <y>40</y>
-              <width>48</width>
-              <height>48</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>...</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/information-22x22.png</normaloff>:/icons/information-22x22.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-           </widget>
-           <widget class="QToolButton" name="start1">
-            <property name="geometry">
-             <rect>
-              <x>90</x>
-              <y>40</y>
-              <width>48</width>
-              <height>48</height>
-             </rect>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>48</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Start</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/start-22x22.png</normaloff>:/icons/start-22x22.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-           </widget>
-           <widget class="QToolButton" name="neu1">
-            <property name="geometry">
-             <rect>
-              <x>190</x>
-              <y>40</y>
-              <width>48</width>
-              <height>48</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Neu</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/new+start-22x22.png</normaloff>:/icons/new+start-22x22.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-           </widget>
-           <widget class="QToolButton" name="sync1">
-            <property name="geometry">
-             <rect>
-              <x>140</x>
-              <y>40</y>
-              <width>48</width>
-              <height>48</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Sync</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/sync+start-22x22.png</normaloff>:/icons/sync+start-22x22.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-           </widget>
-          </widget>
          </widget>
         </widget>
        </item>
@@ -521,8 +390,8 @@ background-color: rgb(170, 170, 127);</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>576</width>
-            <height>283</height>
+            <width>582</width>
+            <height>313</height>
            </rect>
           </property>
          </widget>
@@ -677,6 +546,21 @@ background-color: rgb(170, 170, 127);</string>
            <height>280</height>
           </size>
          </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(176, 176, 176);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="lineWidth">
+          <number>3</number>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOn</enum>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -684,7 +568,7 @@ background-color: rgb(170, 170, 127);</string>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="linboVersion">
+    <widget class="QLabel" name="version">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>1</horstretch>

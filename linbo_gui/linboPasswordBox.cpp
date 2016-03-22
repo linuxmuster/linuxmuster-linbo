@@ -96,8 +96,8 @@ void linboPasswordBox::postcmd() {
 
 	for( unsigned int i = 0; i < app->p_buttons.size(); i++ )
 	  {
-	    
-	    linboDialog* tmpDialog = app->p_buttons[i]->getLinboDialog();
+        /* FIXME
+        linboDialog* tmpDialog = app->p_buttons[i]->getLinboDialog();
 	    if( tmpDialog  ) {
 	      // in this case, we have a sub-dialogue
 	      tmp = tmpDialog->getCommand();
@@ -119,7 +119,7 @@ void linboPasswordBox::postcmd() {
 	    // this is for the case we have no associated linbo dialog
 	    if( app->p_buttons[i] ) {
 	      tmp.clear();
-	      tmp = app->p_buttons[i]->getCommand();
+          //FIXME: tmp = app->p_buttons[i]->getCommand();
 	      
 	      // fifth argument is password
 	      if( tmp.size() > 4 ) {
@@ -128,10 +128,10 @@ void linboPasswordBox::postcmd() {
 		    tmp[1] == QString("register") ) {
 		  // change upload password
           tmp[4] = ui->passwordInput->text();
-		  app->p_buttons[i]->setCommand( tmp );
+          //FIXME: app->p_buttons[i]->setCommand( tmp );
 		}
 	      }
-	    }  
+        }  */
 	  }
 	
 	app->enableButtons();
