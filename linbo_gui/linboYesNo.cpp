@@ -8,7 +8,7 @@
 
 linboYesNo::linboYesNo(  QWidget* parent ) : linboDialog(), ui(new Ui::linboYesNo)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
 
   process = new QProcess( this );
 
@@ -65,7 +65,7 @@ void linboYesNo::postcmd() {
     progwindow->raise();
 
     
-    //FIXME: progwindow->setActiveWindow();
+    progwindow->activateWindow();
     progwindow->setUpdatesEnabled( TRUE );
     progwindow->setEnabled( true );
 

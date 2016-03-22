@@ -7,7 +7,7 @@
 linboMsg::linboMsg(  QWidget* parent ) : linboDialog(), ui(new Ui::linboMsg)
 {
 
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
 
   process = new QProcess();
   if( parent )

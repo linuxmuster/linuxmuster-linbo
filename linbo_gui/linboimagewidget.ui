@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <author>Frank Schütte</author>
+ <class>LinboImageWidget</class>
+          <widget class="QWidget" name="LinboImageWidget" native="true">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>561</width>
+             <height>61</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>560</width>
+             <height>60</height>
+            </size>
+           </property>
+           <widget class="QWidget" name="">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>551</width>
+              <height>42</height>
+             </rect>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QLabel" name="lName">
+               <property name="text">
+                <string>GymHim Linux 13.2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="linbopushbutton" name="tbCreate">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>160</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Erstellen</string>
+               </property>
+               <property name="icon">
+                <iconset resource="linbo_icons.qrc">
+                 <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="linbopushbutton" name="tbUpload">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>160</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Hochladen</string>
+               </property>
+               <property name="icon">
+                <iconset resource="linbo_icons.qrc">
+                 <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+ <customwidgets>
+  <customwidget>
+   <class>linbopushbutton</class>
+   <extends>QPushButton</extends>
+   <header>linboPushButton.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="linbo_icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>

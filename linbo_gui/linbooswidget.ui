@@ -11,7 +11,7 @@
     <height>110</height>
    </rect>
   </property>
-  <widget class="QToolButton" name="tbDefault">
+  <widget class="linbopushbutton" name="tbDefault">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -32,11 +32,8 @@
      <height>80</height>
     </size>
    </property>
-   <property name="text">
-    <string>Std</string>
-   </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="linbo_icons.qrc">
      <normaloff>:/icons/default.png</normaloff>:/icons/default.png</iconset>
    </property>
    <property name="iconSize">
@@ -68,7 +65,7 @@
     <string>Gymhim Linux</string>
    </property>
   </widget>
-  <widget class="QToolButton" name="tbInfo">
+  <widget class="linbopushbutton" name="tbInfo">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -77,11 +74,8 @@
      <height>48</height>
     </rect>
    </property>
-   <property name="text">
-    <string>...</string>
-   </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="linbo_icons.qrc">
      <normaloff>:/icons/information-22x22.png</normaloff>:/icons/information-22x22.png</iconset>
    </property>
    <property name="iconSize">
@@ -91,7 +85,7 @@
     </size>
    </property>
   </widget>
-  <widget class="QToolButton" name="tbStart">
+  <widget class="linbopushbutton" name="tbStart">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -106,11 +100,8 @@
      <height>48</height>
     </size>
    </property>
-   <property name="text">
-    <string>Start</string>
-   </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="linbo_icons.qrc">
      <normaloff>:/icons/start-22x22.png</normaloff>:/icons/start-22x22.png</iconset>
    </property>
    <property name="iconSize">
@@ -120,7 +111,7 @@
     </size>
    </property>
   </widget>
-  <widget class="QToolButton" name="tbNew">
+  <widget class="linbopushbutton" name="tbNew">
    <property name="geometry">
     <rect>
      <x>190</x>
@@ -129,11 +120,8 @@
      <height>48</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Neu</string>
-   </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="linbo_icons.qrc">
      <normaloff>:/icons/new+start-22x22.png</normaloff>:/icons/new+start-22x22.png</iconset>
    </property>
    <property name="iconSize">
@@ -143,7 +131,7 @@
     </size>
    </property>
   </widget>
-  <widget class="QToolButton" name="tbSync">
+  <widget class="linbopushbutton" name="tbSync">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -152,11 +140,8 @@
      <height>48</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Sync</string>
-   </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="linbo_icons.qrc">
      <normaloff>:/icons/sync+start-22x22.png</normaloff>:/icons/sync+start-22x22.png</iconset>
    </property>
    <property name="iconSize">
@@ -167,8 +152,15 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>linbopushbutton</class>
+   <extends>QPushButton</extends>
+   <header>linboPushButton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
-  <include location="icons.qrc"/>
+  <include location="linbo_icons.qrc"/>
  </resources>
  <connections/>
 </ui>

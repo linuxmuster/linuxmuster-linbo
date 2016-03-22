@@ -4,7 +4,7 @@
   <comment></comment>
   <exportmacro></exportmacro>
   <class>linboMsg</class>
-  <widget class="QDialog" name="linboMsg">
+  <widget class="QWidget" name="linboMsg">
     <property name="geometry">
       <rect>
         <x>0</x>

@@ -10,9 +10,9 @@
 #include "linboPasswordBox.h"
 #include "ui_linboPasswordBox.h"
 
-linboPasswordBox::linboPasswordBox(  QDialog* parent ) : QWidget(parent), linboDialog(), ui(new Ui::linboPasswordBox)
+linboPasswordBox::linboPasswordBox(  QWidget* parent ) : QWidget(parent), linboDialog(), ui(new Ui::linboPasswordBox)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
 
   connect(ui->passwordInput,SIGNAL(returnPressed()),this,SLOT(postcmd()));
 
@@ -96,7 +96,6 @@ void linboPasswordBox::postcmd() {
 
 	for( unsigned int i = 0; i < app->p_buttons.size(); i++ )
 	  {
-        /* FIXME
         linboDialog* tmpDialog = app->p_buttons[i]->getLinboDialog();
 	    if( tmpDialog  ) {
 	      // in this case, we have a sub-dialogue
@@ -119,7 +118,7 @@ void linboPasswordBox::postcmd() {
 	    // this is for the case we have no associated linbo dialog
 	    if( app->p_buttons[i] ) {
 	      tmp.clear();
-          //FIXME: tmp = app->p_buttons[i]->getCommand();
+          tmp = app->p_buttons[i]->getCommand();
 	      
 	      // fifth argument is password
 	      if( tmp.size() > 4 ) {
@@ -128,10 +127,10 @@ void linboPasswordBox::postcmd() {
 		    tmp[1] == QString("register") ) {
 		  // change upload password
           tmp[4] = ui->passwordInput->text();
-          //FIXME: app->p_buttons[i]->setCommand( tmp );
+          app->p_buttons[i]->setCommand( tmp );
 		}
 	      }
-        }  */
+        }
 	  }
 	
 	app->enableButtons();

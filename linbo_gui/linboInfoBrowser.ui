@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>linboInfoBrowser</class>
- <widget class="QDialog" name="linboInfoBrowser">
+ <widget class="QWidget" name="linboInfoBrowser">
   <property name="geometry">
    <rect>
     <x>0</x>

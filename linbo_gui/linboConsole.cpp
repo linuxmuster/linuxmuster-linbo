@@ -11,7 +11,7 @@
 
 linboConsole::linboConsole(  QWidget* parent ) : linboDialog(), ui(new Ui::linboConsole)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
 
   mysh = new QProcess( this );
   mysh->setReadChannelMode(QProcess::MergedChannels);

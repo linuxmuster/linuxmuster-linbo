@@ -14,7 +14,7 @@
 
 linboImageSelector::linboImageSelector(  QWidget* parent ) : linboDialog(), ui(new Ui::linboImageSelector)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
   process = new QProcess( this );
 
   progwindow = new linboProgress(0);
@@ -243,7 +243,7 @@ void linboImageSelector::postcmd() {
     progwindow->show();
     progwindow->raise();
    
-    //FIXME: progwindow->setActiveWindow();
+    progwindow->activateWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
     
@@ -285,7 +285,7 @@ void linboImageSelector::postcmd() {
       logConsole->writeStdErr( QString("Eintrag nicht gefunden") );
     }
   } else {
-    logConsole->writeStdErr( QString("Upload nicht ausgew‰hlt") );
+    logConsole->writeStdErr( QString("Upload nicht ausgew√§hlt") );
   }
   upload = false;
 

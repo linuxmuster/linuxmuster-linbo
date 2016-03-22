@@ -47,7 +47,7 @@ private:
     QString logfilepath, fonttemplate;
     bool root, withicons, outputvisible;
     QProcess* process;
-    QDialog* myQPasswordBox;
+    QWidget* myQPasswordBox;
     linboPasswordBox* myLPasswordBox;
     linbopushbutton *autostart, *autopartition, *autoinitcache;
     int preTab, autostarttimeout;
@@ -58,10 +58,11 @@ private:
 
     void showInfos();
     void showOSs();
+    void showImages();
 
 public:
     globals config();
-    vector<QAbstractButton*> p_buttons;
+    vector<linbopushbutton*> p_buttons;
     // 0 = disabled
     // 1 = enabled
     // 2 = admin button

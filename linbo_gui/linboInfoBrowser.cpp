@@ -8,7 +8,7 @@
 
 linboInfoBrowser::linboInfoBrowser(QWidget* parent ) : linboDialog(), ui(new Ui::linboInfoBrowser)
 {
-   ui->setupUi((QDialog*)this);
+   ui->setupUi(this);
 
    process = new QProcess( this );
 

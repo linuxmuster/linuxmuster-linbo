@@ -69,7 +69,7 @@ void linbopushbutton::setLinboDialog( linboDialog* newDialog )
   myLinboDialog = newDialog;
 }
 
-void linbopushbutton::setQDialog( QDialog* newDialog )
+void linbopushbutton::setQDialog( QWidget* newDialog )
 {
   myQDialog = newDialog;
 }
@@ -96,7 +96,7 @@ void linbopushbutton::lclicked()
       //myMainApp->setEnabled( false );
       myQDialog->show();
       myQDialog->raise();
-      //FIXME: myQDialog->setActiveWindow();
+      myQDialog->activateWindow();
       myQDialog->setEnabled( true ); 
 
   }
@@ -110,7 +110,7 @@ void linbopushbutton::lclicked()
     progwindow->raise();
     // progwindow->setTextBrowser( Console );
   
-    //FIXME: progwindow->setActiveWindow();
+    progwindow->activateWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
   }
@@ -160,7 +160,7 @@ QStringList linbopushbutton::getCommand() {
   return arguments;
 }
 
-QDialog* linbopushbutton::getQDialog()
+QWidget* linbopushbutton::getQDialog()
 {
   return myQDialog;
 }

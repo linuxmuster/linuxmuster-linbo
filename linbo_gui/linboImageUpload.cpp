@@ -11,7 +11,7 @@
 
 linboImageUpload::linboImageUpload(  QWidget* parent ) : linboDialog(), ui(new Ui::linboImageUpload)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
   process = new QProcess( this );
 
   if( parent )
@@ -86,7 +86,7 @@ void linboImageUpload::postcmd() {
     progwindow->show();
     progwindow->raise();
     
-    //FIXME: progwindow->setActiveWindow();
+    progwindow->activateWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
        

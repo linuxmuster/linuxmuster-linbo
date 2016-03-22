@@ -1,7 +1,7 @@
 #include <qfile.h>
 #include <qtextstream.h>
 
-#include <plugins/oswidget/linbooswidget.h>
+#include "linbooswidget.h"
 
 #include "linbogui.h"
 #include "ui_linbogui.h"
@@ -9,9 +9,12 @@
 #include "configuration.h"
 #include "command.h"
 #include "linboRegisterBox.h"
+#include "linboPasswordBox.h"
+#include "linboimagewidget.h"
 
 LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
-    conf(),command(), process(new QProcess(this)), logConsole(new linboLogConsole),
+    conf(),command(), process(new QProcess(this)),
+    myQPasswordBox(), myLPasswordBox(), logConsole(new linboLogConsole),
     ui(new Ui::LinboGUI)
 {
     ui->setupUi(this);
@@ -52,6 +55,18 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
     p_buttons.push_back(ui->reboot);
     buttons_config.push_back(ui->reboot->isEnabled() ? 1 : 0);
 
+    // administrator buttons
+    p_buttons.push_back(ui->console);
+    buttons_config.push_back(ui->console->isEnabled() ? 1 : 0);
+    p_buttons.push_back(ui->partition);
+    buttons_config.push_back(ui->partition->isEnabled() ? 1 : 0);
+    p_buttons.push_back(ui->initcache);
+    buttons_config.push_back(ui->initcache->isEnabled() ? 1 : 0);
+    p_buttons.push_back(ui->doregister);
+    buttons_config.push_back(ui->doregister->isEnabled() ? 1 : 0);
+    p_buttons.push_back(ui->logout);
+    buttons_config.push_back(ui->logout->isEnabled() ? 1 : 0);
+
     // we can set this now since our globals have been read
     logConsole->setLinboLogConsole( conf->config.get_consolefontcolorstdout(),
                                     conf->config.get_consolefontcolorstderr(),
@@ -78,6 +93,8 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
     showInfos();
 
     showOSs();
+
+    showImages();
 
     ui->systeme->setCurrentIndex(0);
 }
@@ -235,11 +252,19 @@ void LinboGUI::on_systeme_currentChanged(int index)
     if( !isRoot() ) {
         if( isAdminTab(index)) {
             // if our partition button is disabled, there is a linbo_cmd running
-            if( p_buttons[ ( p_buttons.size() - 1 ) ]->isEnabled() ) {
+            if( process->state() != QProcess::Running ) {
                 ui->systeme->setCurrentIndex( preTab );
+                if( myQPasswordBox == 0) {
+                    myLPasswordBox = new linboPasswordBox( this );
+                    myQPasswordBox = (QWidget*)(myLPasswordBox);
+                    myLPasswordBox->setMainApp(this );
+                    myLPasswordBox->setTextBrowser( conf->config.get_consolefontcolorstdout(),
+                                    conf->config.get_consolefontcolorstderr(),
+                                    ui->log );
+                }
                 myQPasswordBox->show();
                 myQPasswordBox->raise();
-               //FIXME:  myQPasswordBox->setActiveWindow();
+               myQPasswordBox->activateWindow();
                 myQPasswordBox->setEnabled( true );
             }
             else {
@@ -267,7 +292,16 @@ void LinboGUI::do_register(int result)
 
 void LinboGUI::showOSs()
 {
+    //FIXME: howto place several OS Widgets
     QWidget *osarea = ui->osarea;
     LinboOSWidget *os = new LinboOSWidget(osarea);
     osarea->adjustSize();
+}
+
+void LinboGUI::showImages()
+{
+    //FIXME: howto place several Image Widgets
+    QWidget *imagearea = ui->imagearea;
+    LinboImageWidget *img = new LinboImageWidget(imagearea);
+    imagearea->adjustSize();
 }

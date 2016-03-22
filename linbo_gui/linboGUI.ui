@@ -289,7 +289,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="benutzertab">
       <property name="enabled">
@@ -333,8 +333,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>750</width>
-            <height>313</height>
+            <width>96</width>
+            <height>26</height>
            </rect>
           </property>
          </widget>
@@ -360,7 +360,7 @@
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QScrollArea" name="scrollArea">
+        <widget class="QScrollArea" name="imagearea">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>1</horstretch>
@@ -400,7 +400,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QPushButton" name="console">
+          <widget class="linbopushbutton" name="console">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -423,7 +423,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="initcache">
+          <widget class="linbopushbutton" name="initcache">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -446,7 +446,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="partition">
+          <widget class="linbopushbutton" name="partition">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -469,7 +469,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="doregister">
+          <widget class="linbopushbutton" name="doregister">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -508,7 +508,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="logout">
+          <widget class="linbopushbutton" name="logout">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -611,12 +611,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QToolButton" name="update">
+      <widget class="linbopushbutton" name="update">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LINBO aktualisieren&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Aktualisieren</string>
        </property>
        <property name="icon">
         <iconset resource="linbo_icons.qrc">
@@ -631,15 +628,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="reboot">
+      <widget class="linbopushbutton" name="reboot">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Neu starten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="styleSheet">
         <string notr="true">image: url(:/icons/system-reboot-32x32.png);</string>
-       </property>
-       <property name="text">
-        <string>Neu starten</string>
        </property>
        <property name="icon">
         <iconset resource="linbo_icons.qrc">
@@ -654,15 +648,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="halt">
+      <widget class="linbopushbutton" name="halt">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ausschalten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="styleSheet">
         <string notr="true">image: url(:/icons/system-shutdown-32x32.png);</string>
-       </property>
-       <property name="text">
-        <string>Anhalten</string>
        </property>
        <property name="icon">
         <iconset resource="linbo_icons.qrc">
@@ -681,6 +672,13 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>linbopushbutton</class>
+   <extends>QPushButton</extends>
+   <header>linboPushButton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="linbo_icons.qrc"/>
  </resources>

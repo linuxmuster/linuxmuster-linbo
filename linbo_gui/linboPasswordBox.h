@@ -41,7 +41,7 @@ private:
   linboLogConsole *logConsole;
 
 public:
-  linboPasswordBox( QDialog* parent = 0 );
+  linboPasswordBox( QWidget* parent = 0 );
 
    ~linboPasswordBox();
 

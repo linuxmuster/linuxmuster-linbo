@@ -10,7 +10,7 @@
 
 linboRegisterBox::linboRegisterBox(  QWidget* parent ) : linboDialog(), ui(new Ui::linboRegisterBox)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
 
   process = new QProcess( this );
   progwindow = new linboProgress(0);
@@ -118,7 +118,7 @@ void linboRegisterBox::postcmd() {
       progwindow->show();
       progwindow->raise();
 
-      //FIXME: progwindow->setActiveWindow();
+      progwindow->activateWindow();
       progwindow->setUpdatesEnabled( true );
       progwindow->setEnabled( true );
       

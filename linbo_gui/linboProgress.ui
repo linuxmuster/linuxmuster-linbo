@@ -1,6 +1,6 @@
 <ui version="4.0" >
  <class>linboProgress</class>
- <widget class="QDialog" name="linboProgress" >
+ <widget class="QWidget" name="linboProgress" >
   <property name="geometry" >
    <rect>
     <x>0</x>

@@ -35,10 +35,9 @@ private:
   QTextEdit* Console;
   QProcess *process;
   QTimer *timer;
-  QDialog* myQDialog,*myParent;
+  QWidget* myQDialog,*myParent;
   linboDialog* myLinboDialog;
   QWidget *myMainApp;
-  // QDialog *myMainApp;
   LinboGUI* app;
   bool progress;
   linbopushbutton* neighbour;
@@ -59,8 +58,8 @@ public:
   void setMainApp( QWidget* newMainApp );
   void setLinboDialog( linboDialog* newDialog );
   linboDialog* getLinboDialog();
-  void setQDialog( QDialog* newDialog );
-  QDialog* getQDialog();
+  void setQDialog( QWidget* newDialog );
+  QWidget* getQDialog();
   void setCommand(const QStringList& arglist);
   QStringList getCommand();
   void setProgress( const bool& newProgress );

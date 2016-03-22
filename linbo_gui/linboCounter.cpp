@@ -8,7 +8,7 @@
 linboCounter::linboCounter(  QWidget* parent ) : linboDialog(), ui(new Ui::linboCounter)
 {
 
-  ui->setupUi((QDialog *)this);
+  ui->setupUi(this);
     counter = ui->counter;
     logoutButton = ui->logoutButton;
     timeoutCheck = ui->timeoutCheck;

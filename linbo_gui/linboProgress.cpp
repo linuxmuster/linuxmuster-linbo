@@ -10,7 +10,7 @@
 
 linboProgress::linboProgress(  QWidget* parent ): QWidget(parent), ui(new Ui::linboProgress)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
   myTimer = new QTimer(this);
   
   connect( ui->cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );

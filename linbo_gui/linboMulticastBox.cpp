@@ -13,7 +13,7 @@
 
 linboMulticastBox::linboMulticastBox(  QWidget* parent ) : linboDialog(), ui(new Ui::linboMulticastBox)
 {
-  ui->setupUi((QDialog*)this);
+  ui->setupUi(this);
   
   process = new QProcess( this );
 
@@ -105,7 +105,7 @@ void linboMulticastBox::postcmd() {
     progwindow->show();
     progwindow->raise();
 
-    //FIXME: progwindow->setActiveWindow();
+    progwindow->activateWindow();
     progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
       
