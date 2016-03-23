@@ -9,7 +9,7 @@
 #include <QProcess>
 #include <qstring.h>
 #include <QTextEdit>
-#include <Qt3Support/Q3TextBrowser>
+#include <QTextBrowser>
 #include "linbogui.h"
 #include "linboProgress.h"
 #include "linboDialog.h"

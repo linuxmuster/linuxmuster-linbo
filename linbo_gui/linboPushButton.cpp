@@ -10,7 +10,6 @@ linbopushbutton::linbopushbutton( QWidget* parent,
 {
   connect(this, SIGNAL(clicked()), this, SLOT(lclicked()));
 
-  // myprocess = new Q3Process( this )
   process = new QProcess( this );
 
   progwindow = new linboProgress(0);
