@@ -1,6 +1,7 @@
 #include <qprogressbar.h>
 #include <qapplication.h>
 #include <QtGui>
+#include <QDesktopWidget>
 #include <QByteArray>
 #include "linboPushButton.h"
 #include "linboProgress.h"

@@ -5,6 +5,7 @@
 #include <qlcdnumber.h>
 #include <qapplication.h>
 #include <QtGui>
+#include <QDesktopWidget>
 #include <qcheckbox.h>
 
 #include "linboPasswordBox.h"

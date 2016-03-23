@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <QtGui>
+#include <QDesktopWidget>
 #include <QRect>
 #include <qapplication.h>
 

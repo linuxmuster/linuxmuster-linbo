@@ -4,6 +4,7 @@
 #include <qradiobutton.h>
 
 #include <QtGui>
+#include <QDesktopWidget>
 #include <iostream>
 
 #include "linboMulticastBox.h"

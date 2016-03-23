@@ -2,6 +2,7 @@
 #include <qapplication.h>
 #include <QtGui>
 #include <qtextstream.h>
+#include <QDesktopWidget>
 
 #include "linboInfoBrowser.h"
 #include "ui_linboInfoBrowser.h"

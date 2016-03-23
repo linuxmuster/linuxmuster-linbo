@@ -1,6 +1,7 @@
 #include <qapplication.h>
 #include <unistd.h>
 #include <QtGui>
+#include <QDesktopWidget>
 
 #include "linboCounter.h"
 #include "ui_linboCounter.h"

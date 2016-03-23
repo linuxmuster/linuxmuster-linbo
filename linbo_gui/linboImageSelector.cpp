@@ -6,6 +6,7 @@
 #include <QtGui>
 #include <qradiobutton.h>
 #include <QTextStream>
+#include <QDesktopWidget>
 
 #include "linboImageSelector.h"
 #include "ui_linboImageSelector.h"

@@ -2,6 +2,8 @@
 #include <qprogressbar.h>
 #include <qapplication.h>
 #include <QtGui>
+#include <QDesktopWidget>
+
 #include "linboPushButton.h"
 #include "linboYesNo.h"
 

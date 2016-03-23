@@ -3,6 +3,7 @@
 #include <qapplication.h>
 #include <qlistwidget.h>
 #include <QtGui>
+#include <QDesktopWidget>
 
 #include "linboImageUpload.h"
 #include "ui_linboImageUpload.h"

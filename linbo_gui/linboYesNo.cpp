@@ -1,8 +1,9 @@
 #include <unistd.h>
 #include <QtGui>
-
+#include <QDesktopWidget>
 #include <qprogressbar.h>
 #include <qapplication.h>
+
 #include "linboYesNo.h"
 #include "ui_linboYesNo.h"
 
@@ -66,10 +67,9 @@ void linboYesNo::postcmd() {
 
     
     progwindow->activateWindow();
-    progwindow->setUpdatesEnabled( TRUE );
+    progwindow->setUpdatesEnabled( true );
     progwindow->setEnabled( true );
 
-    // myMainApp->setEnabled( false );
     app->disableButtons();
 
     QStringList processargs( arguments );
