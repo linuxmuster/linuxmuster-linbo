@@ -39,7 +39,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="linbo_icons.qrc">:/icons/computer-64x64.png</pixmap>
+          <pixmap>:/icons/computer-64x64.png</pixmap>
          </property>
         </widget>
        </item>
@@ -142,7 +142,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="linbo_icons.qrc">:/icons/drive-harddisk-64x64.png</pixmap>
+          <pixmap>:/icons/drive-harddisk-64x64.png</pixmap>
          </property>
         </widget>
        </item>
@@ -393,7 +393,7 @@ background-color: rgba(255, 255, 255, 0);</string>
             <string>Konsole öffnen</string>
            </property>
            <property name="icon">
-            <iconset resource="linbo_icons.qrc">
+            <iconset>
              <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
            </property>
           </widget>
@@ -416,7 +416,7 @@ background-color: rgba(255, 255, 255, 0);</string>
             <string>Cache aktualisieren</string>
            </property>
            <property name="icon">
-            <iconset resource="linbo_icons.qrc">
+            <iconset>
              <normaloff>:/icons/cache-22x22.png</normaloff>:/icons/cache-22x22.png</iconset>
            </property>
           </widget>
@@ -439,7 +439,7 @@ background-color: rgba(255, 255, 255, 0);</string>
             <string>Partitionieren</string>
            </property>
            <property name="icon">
-            <iconset resource="linbo_icons.qrc">
+            <iconset>
              <normaloff>:/icons/partition-22x22.png</normaloff>:/icons/partition-22x22.png</iconset>
            </property>
           </widget>
@@ -462,7 +462,7 @@ background-color: rgba(255, 255, 255, 0);</string>
             <string>Registrieren...</string>
            </property>
            <property name="icon">
-            <iconset resource="linbo_icons.qrc">
+            <iconset>
              <normaloff>:/icons/register-22x22.png</normaloff>:/icons/register-22x22.png</iconset>
            </property>
           </widget>
@@ -511,7 +511,7 @@ background-color: rgba(255, 255, 255, 0);</string>
        <enum>Qt::LeftToRight</enum>
       </property>
       <attribute name="title">
-       <string>Page</string>
+       <string>Log</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
@@ -641,7 +641,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LINBO aktualisieren&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="icon">
-        <iconset resource="linbo_icons.qrc">
+        <iconset>
          <normaloff>:/icons/system-update-128x128.png</normaloff>:/icons/system-update-128x128.png</iconset>
        </property>
        <property name="iconSize">
@@ -661,7 +661,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         <string notr="true">image: url(:/icons/system-reboot-32x32.png);</string>
        </property>
        <property name="icon">
-        <iconset resource="linbo_icons.qrc">
+        <iconset>
          <normaloff>:/icons/system-reboot-128x128.png</normaloff>:/icons/system-reboot-128x128.png</iconset>
        </property>
        <property name="iconSize">
@@ -681,7 +681,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         <string notr="true">image: url(:/icons/system-shutdown-32x32.png);</string>
        </property>
        <property name="icon">
-        <iconset resource="linbo_icons.qrc">
+        <iconset>
          <normaloff>:/icons/system-shutdown-128x128.png</normaloff>:/icons/system-shutdown-128x128.png</iconset>
        </property>
        <property name="iconSize">
@@ -704,8 +704,6 @@ background-color: rgba(255, 255, 255, 0);</string>
    <header>linboPushButton.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="linbo_icons.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

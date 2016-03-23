@@ -37,7 +37,9 @@ public:
     void clearPassword();
 
     QStringList mkuploadcommand();
-    QStringList mkregistercommand();
+    QStringList mkpreregistercommand();
+    QStringList mkregistercommand(QString& roomName, QString& clientName,
+                                  QString& ipAddress, QString& clientGroup);
 };
 
 #endif // COMMAND_H

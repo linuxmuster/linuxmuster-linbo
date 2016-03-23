@@ -272,16 +272,35 @@ void LinboGUI::on_systeme_currentChanged(int index)
 
 void LinboGUI::on_doregister_clicked()
 {
-    linboRegisterBox *regdlg = new linboRegisterBox( this );
-    connect(regdlg,SIGNAL(finished(int)),this,SLOT(do_register(int)));
-    regdlg->show();
+    // Die vorgeschlagenen Daten fuer die Rechneraufnahme lesen und anzeigen
+    ifstream newdata;
+    QString registerData;
+    QStringList registerDataList;
+    char line[1024];
+    command->doSimpleCommand(command->mkpreregistercommand().join(" "));
+    newdata.open("/tmp/newregister", ios::in);
+    if (newdata.is_open()) {
+        newdata.getline(line,1024,'\n');
+        registerData = QString::fromAscii( line, -1 ).trimmed();
+        newdata.close();
+        registerDataList = registerData.split(',');
+    }
+    linboRegisterBox *regdlg;
+    if( registerDataList.size() >= 4 ){
+        regdlg = new linboRegisterBox( this, registerDataList[0], registerDataList[1],
+                registerDataList[2], registerDataList[3]);
+    }
+    else {
+        regdlg = new linboRegisterBox( this );
+    }
+    connect(regdlg,SIGNAL(finished(QString&, QString&, QString&, QString)),
+            this,SLOT(do_register(QString&, QString&, QString&, QString)));
+    regdlg->exec();
 }
 
-void LinboGUI::do_register(int result)
+void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup)
 {
-    if(result == QDialog::Accepted){
-
-    }
+    command->mkregistercommand(roomName, clientName, ipAddress, clientGroup);
 }
 
 void LinboGUI::showOSs()

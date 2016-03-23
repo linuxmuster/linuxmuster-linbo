@@ -12,44 +12,42 @@
 #include "linboLogConsole.h"
 
 namespace Ui {
-    class linboProgress;
+class linboProgress;
 }
 
 class linboLogConsole;
 
 class linboProgress : public QWidget
 {
-  Q_OBJECT
+    Q_OBJECT
 
 private:
-  QProcess *myProcess;
-  QTextEdit* Console;
-  QWidget *myParent;
-  QTimer* myTimer;
-  int time, minutes,seconds;
-  QString minutestr,secondstr;
-  linboLogConsole *logConsole;
+    QProcess *process;
+    linboLogConsole *logConsole;
+    int timerId;
+    QTextEdit* Console;
+    int time, minutes,seconds;
+    QString minutestr,secondstr;
 
 public:
-  linboProgress( QWidget* parent = 0 );
+    linboProgress( QWidget* parent = 0, QProcess *new_process = 0, linboLogConsole *new_log = 0 );
 
-  ~linboProgress();
+    ~linboProgress();
 
-  void setProcess( QProcess* newProcess );
-  void setTextBrowser( const QString& new_consolefontcolorstdout,
-		       const QString& new_consolefontcolorstderr,
-		       QTextEdit* newBrowser );
     void setProgress(int i);
     void setShowCancelButton(bool show);
+    void setProcess(QProcess *new_process);
 
 public slots:
-  void killLinboCmd();
-  void startTimer();
-  void processTimer();
-  void processFinished( int retval,
-                        QProcess::ExitStatus status);
+    void killLinboCmd();
+    void startTimer();
+    void processFinished( int retval,
+                          QProcess::ExitStatus status);
+protected:
+    void timerEvent(QTimerEvent *event);
+
 private:
-  Ui::linboProgress *ui;
+    Ui::linboProgress *ui;
 
 };
 #endif

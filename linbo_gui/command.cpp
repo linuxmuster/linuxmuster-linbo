@@ -128,6 +128,28 @@ QStringList Command::mklinboupdatecommand() {
   return command;
 }
 
+QStringList Command::mkpreregistercommand()
+{
+    QStringList command = LINBO_CMD("preregister");
+    saveappend(command, conf->config.get_server());
+    return command;
+}
+
+QStringList Command::mkregistercommand(QString& roomName, QString& clientName,
+                                       QString& ipAddress, QString& clientGroup)
+{
+    QStringList command = LINBO_CMD("register");
+    saveappend(command, "register");
+    saveappend(command, conf->config.get_server());
+    saveappend(command, "linbo");
+    saveappend(command, this->password);
+    saveappend(command, roomName);
+    saveappend(command, clientName);
+    saveappend(command, ipAddress);
+    saveappend(command, clientGroup);
+    return command;
+}
+
 QString Command::doSimpleCommand(const QString &cmd)
 {
     return doSimpleCommand(cmd, NULL);

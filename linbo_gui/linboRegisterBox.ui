@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>linboRegisterBox</class>
- <widget class="QWidget" name="linboRegisterBox">
+ <widget class="QDialog" name="linboRegisterBox">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,142 +16,84 @@
   <property name="windowTitle">
    <string>Rechner registrieren</string>
   </property>
-  <widget class="QLabel" name="textLabel2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>171</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Raumbezeichnung</string>
-   </property>
-   <property name="wordWrap">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="roomName">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>50</y>
-     <width>240</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="textLabel3">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>100</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Rechnername</string>
-   </property>
-   <property name="wordWrap">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="clientName">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>140</y>
-     <width>241</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="textLabel3_2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>190</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>IP-Adresse</string>
-   </property>
-   <property name="wordWrap">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="ipAddress">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>230</y>
-     <width>241</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="textLabel3_2_2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>280</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Rechnergruppe</string>
-   </property>
-   <property name="wordWrap">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="clientGroup">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>320</y>
-     <width>241</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="registerButton">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>370</y>
-     <width>121</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Lädt die Rechnerinformationen auf den Server hoch</string>
-   </property>
-   <property name="text">
-    <string>Registrieren</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="cancelButton">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>370</y>
-     <width>91</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Abbrechen ohne Rechnerregistrierung</string>
-   </property>
-   <property name="text">
-    <string>Abbruch</string>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="textLabel2">
+     <property name="text">
+      <string>Raumbezeichnung</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="roomName"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="textLabel3">
+     <property name="text">
+      <string>Rechnername</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="clientName"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="textLabel3_2">
+     <property name="text">
+      <string>IP-Adresse</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ipAddress"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="textLabel3_2_2">
+     <property name="text">
+      <string>Rechnergruppe</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="clientGroup"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="registerButton">
+       <property name="toolTip">
+        <string>Lädt die Rechnerinformationen auf den Server hoch</string>
+       </property>
+       <property name="text">
+        <string>Registrieren</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="toolTip">
+        <string>Abbrechen ohne Rechnerregistrierung</string>
+       </property>
+       <property name="text">
+        <string>Abbruch</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
@@ -161,5 +106,38 @@
   <tabstop>cancelButton</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>linboRegisterBox</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>231</x>
+     <y>387</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>238</x>
+     <y>300</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>registerButton</sender>
+   <signal>clicked()</signal>
+   <receiver>linboRegisterBox</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>76</x>
+     <y>384</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2</x>
+     <y>342</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

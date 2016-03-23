@@ -9,91 +9,82 @@
 #include "linboProgress.h"
 #include "ui_linboProgress.h"
 
-linboProgress::linboProgress(  QWidget* parent ): QWidget(parent), ui(new Ui::linboProgress)
+linboProgress::linboProgress(  QWidget* parent, QProcess* new_process, linboLogConsole* new_log ):
+    QWidget(parent), process(new_process), logConsole(new_log), timerId(0),
+    ui(new Ui::linboProgress)
 {
-  ui->setupUi(this);
-  myTimer = new QTimer(this);
-  
-  connect( ui->cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
-  connect( myTimer, SIGNAL(timeout()), this, SLOT(processTimer()) );
+    ui->setupUi(this);
+    connect( ui->cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
 
-  logConsole = new linboLogConsole(0);
+    Qt::WindowFlags flags;
+    flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
+    setWindowFlags( flags );
 
-  if( parent )
-    myParent = parent;
-
-  Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
-  setWindowFlags( flags );
-
-  QRect qRect(QApplication::desktop()->screenGeometry());
-  int xpos=qRect.width()/2-this->width()/2;
-  int ypos=qRect.height()/2-this->height()/2;
-  this->move(xpos,ypos);
-  this->setFixedSize( this->width(), this->height() );
-  ui->progressBar->setMinimum( 0 );
-  ui->progressBar->setMaximum( 100 );
+    QRect qRect(QApplication::desktop()->screenGeometry());
+    int xpos=qRect.width()/2-this->width()/2;
+    int ypos=qRect.height()/2-this->height()/2;
+    this->move(xpos,ypos);
+    this->setFixedSize( this->width(), this->height() );
+    ui->progressBar->setMinimum( 0 );
+    ui->progressBar->setMaximum( 100 );
 }
 
 linboProgress::~linboProgress() {
-  // nothing to do
+    // nothing to do
 }
 
 
 
 void linboProgress::setProcess( QProcess* newProcess ) {
-  if( newProcess != 0 ) {
-    myProcess = newProcess;
-  }
+    if( newProcess != 0 ) {
+        process = newProcess;
+    }
 }
 
 void linboProgress::killLinboCmd() {
 
-  myProcess->terminate();
-  myTimer->stop();
-  QTimer::singleShot( 10000, myProcess, SLOT( close() ) );
-}
+    process->terminate();
 
-void linboProgress::setTextBrowser( const QString& new_consolefontcolorstdout,
-					const QString& new_consolefontcolorstderr,
-					QTextEdit* newBrowser )
-{
-  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
-				  new_consolefontcolorstderr,
-				  newBrowser );
+    QTimer::singleShot( 10000, this, SLOT( close() ) );
 }
 
 void linboProgress::startTimer() {
-  time = 0;
-  myTimer->stop();
-  myTimer->start( 1000 );
+    if( timerId != 0) {
+        this->killTimer(timerId);
+    }
+    timerId = QObject::startTimer( 1000 );
 }
 
 
-void linboProgress::processTimer() {
-  time++;
-  
-  minutes = (int)(time / 60);
-  seconds = (int)(time % 60);
+void linboProgress::timerEvent(QTimerEvent *event) {
+    if( event->timerId() == timerId ){
+        time++;
 
-  if( minutes < 10 )
-    minutestr = QString("0") + QString::number( minutes );
-  else
-    minutestr = QString::number( minutes );
+        minutes = (int)(time / 60);
+        seconds = (int)(time % 60);
 
-  if( seconds < 10 )
-    secondstr = QString("0") + QString::number( seconds );
-  else
-    secondstr = QString::number( seconds );
- 
-  
-  ui->processTime->setText( minutestr + QString(":") + secondstr );
+        if( minutes < 10 )
+            minutestr = QString("0") + QString::number( minutes );
+        else
+            minutestr = QString::number( minutes );
+
+        if( seconds < 10 )
+            secondstr = QString("0") + QString::number( seconds );
+        else
+            secondstr = QString::number( seconds );
+
+
+        ui->processTime->setText( minutestr + QString(":") + secondstr );
+    }
 }
 
 void linboProgress::processFinished( int retval,
-					 QProcess::ExitStatus status) {
-  myTimer->stop();
-  this->close();
+                                     QProcess::ExitStatus status) {
+    if( timerId != 0) {
+        this->killTimer( timerId );
+        timerId = 0;
+    }
+    this->close();
 }
 
 void linboProgress::setProgress(int i)

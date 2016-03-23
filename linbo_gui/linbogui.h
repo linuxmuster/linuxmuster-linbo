@@ -20,6 +20,7 @@
 #include "linboMsg.h"
 #include "linboCounter.h"
 #include "linboLogConsole.h"
+#include "linboProgress.h"
 
 #define ADMINTAB ui->systeme->count()-2
 #define LOGTAB ui->systeme->count()-1
@@ -28,8 +29,9 @@ namespace Ui {
 class LinboGUI;
 }
 
-class linbopushbutton;
 class linboLogConsole;
+class linbopushbutton;
+class linboProgress;
 
 class LinboGUI : public QWidget
 {
@@ -44,6 +46,7 @@ private:
     QString logfilepath, fonttemplate;
     bool root, withicons, outputvisible;
     QProcess* process;
+    linboProgress* progress;
     linbopushbutton *autostart, *autopartition, *autoinitcache;
     int preTab, autostarttimeout, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
@@ -76,7 +79,7 @@ public:
     bool isLogTab(int tabIndex);
 
 public slots:
-    void do_register(int result);
+    void do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup);
     void restoreButtonsState();
     void disableButtons();
     void enableButtons();
