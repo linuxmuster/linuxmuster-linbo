@@ -1,5 +1,7 @@
+#include <QMessageBox>
 #include <qfile.h>
 #include <qtextstream.h>
+#include <qobject.h>
 
 #include "linbooswidget.h"
 
@@ -9,12 +11,12 @@
 #include "configuration.h"
 #include "command.h"
 #include "linboRegisterBox.h"
-#include "linboPasswordBox.h"
 #include "linboimagewidget.h"
+#include "login.h"
 
 LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
     conf(),command(), process(new QProcess(this)),
-    myQPasswordBox(), myLPasswordBox(), logConsole(new linboLogConsole),
+    logConsole(new linboLogConsole),
     ui(new Ui::LinboGUI)
 {
     ui->setupUi(this);
@@ -23,7 +25,8 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
 
     // reset root - we're an user now
     root = false;
-
+    // automatic logout after roottimeout;
+    roottimeout = 600;
     // we want to see icons
     withicons = true;
 
@@ -254,18 +257,9 @@ void LinboGUI::on_systeme_currentChanged(int index)
             // if our partition button is disabled, there is a linbo_cmd running
             if( process->state() != QProcess::Running ) {
                 ui->systeme->setCurrentIndex( preTab );
-                if( myQPasswordBox == 0) {
-                    myLPasswordBox = new linboPasswordBox( this );
-                    myQPasswordBox = (QWidget*)(myLPasswordBox);
-                    myLPasswordBox->setMainApp(this );
-                    myLPasswordBox->setTextBrowser( conf->config.get_consolefontcolorstdout(),
-                                    conf->config.get_consolefontcolorstderr(),
-                                    ui->log );
-                }
-                myQPasswordBox->show();
-                myQPasswordBox->raise();
-               myQPasswordBox->activateWindow();
-                myQPasswordBox->setEnabled( true );
+                Login *dlg = new Login( this );
+                connect(dlg, SIGNAL(acceptLogin(QString)), this, SLOT(performLogin(QString)));
+                dlg->exec();
             }
             else {
                 ui->systeme->setCurrentIndex( preTab );
@@ -304,4 +298,75 @@ void LinboGUI::showImages()
     QWidget *imagearea = ui->imagearea;
     LinboImageWidget *img = new LinboImageWidget(imagearea);
     imagearea->adjustSize();
+}
+
+void LinboGUI::performLogin(QString passwd)
+{
+#ifdef TESTCOMMAND
+    if( passwd.compare(QString("muster")) == 0 ){
+#else
+    if( command->doAuthenticateCommand( &passwd ) ) {
+#endif
+        root = true;
+        ui->cbTimeout->setEnabled( true );
+        ui->cbTimeout->setChecked( true );
+        ui->timeoutCounter->setEnabled( true );
+        ui->timeoutCounter->display( roottimeout );
+        logoutTimer = this->startTimer( 1000 );
+        ui->systeme->setCurrentIndex( ADMINTAB );
+    }
+    else {
+        QMessageBox::information( this, QString("Login"),
+                                  QString("Das angegebene Passwort ist falsch."),
+                                  QMessageBox::Ok);
+    }
+}
+
+void LinboGUI::performLogout()
+{
+    if( logoutTimer != 0 ){
+        this->killTimer( logoutTimer );
+        logoutTimer = 0;
+    }
+    root = false;
+    command->clearPassword();
+    ui->cbTimeout->setEnabled( false );
+    ui->timeoutCounter->setEnabled( false );
+    ui->timeoutCounter->display( 0 );
+    if( ui->systeme->currentIndex() == ADMINTAB ) {
+        ui->systeme->setCurrentIndex(0);
+    }
+}
+
+void LinboGUI::on_logout_clicked()
+{
+    performLogout();
+}
+
+void LinboGUI::timerEvent(QTimerEvent *event)
+{
+    if( event->timerId() == logoutTimer ) {
+        int time = ui->timeoutCounter->intValue();
+        if( --time <= 0 ){
+            performLogout();
+        }
+        else {
+            ui->timeoutCounter->display( time );
+        }
+    }
+}
+
+void LinboGUI::on_cbTimeout_toggled(bool checked)
+{
+    ui->timeoutCounter->setEnabled( checked );
+    if( checked ) {
+        ui->timeoutCounter->display( roottimeout );
+        logoutTimer = this->startTimer( 1000 );
+    }
+    else {
+        if( logoutTimer != 0 ) {
+            this->killTimer( logoutTimer );
+            logoutTimer = 0;
+        }
+    }
 }

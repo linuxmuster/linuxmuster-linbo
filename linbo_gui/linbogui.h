@@ -19,7 +19,6 @@
 #include "linboPushButton.h"
 #include "linboMsg.h"
 #include "linboCounter.h"
-#include "linboPasswordBox.h"
 #include "linboLogConsole.h"
 
 #define ADMINTAB ui->systeme->count()-2
@@ -30,7 +29,7 @@ class LinboGUI;
 }
 
 class linbopushbutton;
-class linboPasswordBox;
+class linboLogConsole;
 
 class LinboGUI : public QWidget
 {
@@ -38,19 +37,15 @@ class LinboGUI : public QWidget
 private:
     Configuration* conf;
     Command* command;
-
     linboCounter* myCounter;
-    QTimer* myTimer;
     QTimer* myAutostartTimer;
     linboMsg *waiting;
     QString linestdout, linestderr;
     QString logfilepath, fonttemplate;
     bool root, withicons, outputvisible;
     QProcess* process;
-    QWidget* myQPasswordBox;
-    linboPasswordBox* myLPasswordBox;
     linbopushbutton *autostart, *autopartition, *autoinitcache;
-    int preTab, autostarttimeout;
+    int preTab, autostarttimeout, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
 
     vector<int> buttons_config;
@@ -85,6 +80,8 @@ public slots:
     void restoreButtonsState();
     void disableButtons();
     void enableButtons();
+    void performLogin(QString passwd);
+    void performLogout();
 
 private slots:
 
@@ -98,6 +95,13 @@ private slots:
     void on_systeme_currentChanged(int index);
 
     void on_doregister_clicked();
+
+    void on_logout_clicked();
+
+    void on_cbTimeout_toggled(bool checked);
+
+protected:
+    void timerEvent(QTimerEvent *event);
 
 private:
     Ui::LinboGUI *ui;

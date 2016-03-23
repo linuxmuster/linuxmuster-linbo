@@ -11,7 +11,6 @@
 #include <qdialog.h>
 #include "linboProgress.h"
 #include "linboYesNo.h"
-#include "linboPasswordBox.h"
 #include "linboMsg.h"
 #include "linboInputBox.h"
 #include "linboDialog.h"

@@ -14,6 +14,7 @@ class Command
 {
 private:
     Configuration *conf;
+    QString password;
 
     void saveappend( QStringList& command, const QString& item );
 
@@ -32,7 +33,11 @@ public:
 
     QString doSimpleCommand(const QString& cmd);
     QString doSimpleCommand(const QString& cmd, const QString& arg);
+    bool doAuthenticateCommand(const QString& password);
+    void clearPassword();
 
+    QStringList mkuploadcommand();
+    QStringList mkregistercommand();
 };
 
 #endif // COMMAND_H

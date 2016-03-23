@@ -153,8 +153,31 @@ QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
     return QString(process->readAllStandardOutput()).remove(QRegExp("[\\n\\r\\t]"));
 }
 
+bool Command::doAuthenticateCommand(const QString &password)
+{
+    QStringList command = LINBO_CMD("authenticate");
+    saveappend(command, conf->config.get_server());
+    saveappend(command, "linbo");
+    saveappend(command, password);
+    saveappend(command, "linbo");
+    QProcess *process = new QProcess();
+    process->start( command.join(" ") );
+    while( !process->waitForFinished(10000)) {}
+    if( process->exitCode() == 0 ) {
+        this->password = password;
+        return true;
+    } else {
+        this->password = "";
+        return false;
+    }
+}
+
 Command::Command(Configuration *conf)
 {
     this->conf = conf;
 }
 
+void Command::clearPassword()
+{
+    this->password = "";
+}

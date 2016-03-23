@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>794</width>
-    <height>597</height>
+    <height>571</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,53 +26,11 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QLabel" name="titel">
-      <property name="minimumSize">
-       <size>
-        <width>769</width>
-        <height>28</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::Panel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <property name="text">
-       <string>LINBO</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
      <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -99,7 +57,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>Host: lapfschuett</string>
@@ -118,7 +77,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>Gruppe: mobil</string>
@@ -137,7 +97,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>IP: 10.16.3.51</string>
@@ -156,7 +117,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>MAC: AA:BB:CC:DD:EE:FF</string>
@@ -195,7 +157,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>HD: /dev/sda1</string>
@@ -214,7 +177,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>Cache: </string>
@@ -233,7 +197,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>CPU: Intel(R) Core(TM) 2 Duo CPU T9300</string>
@@ -252,7 +217,8 @@
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>RAM: 501MB</string>
@@ -289,7 +255,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="benutzertab">
       <property name="enabled">
@@ -333,8 +299,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>750</width>
-            <height>313</height>
+            <width>738</width>
+            <height>273</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
@@ -395,10 +361,15 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>582</width>
-            <height>313</height>
+            <width>576</width>
+            <height>273</height>
            </rect>
           </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_3"/>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -573,29 +544,78 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="version">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>1</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="autoFillBackground">
-      <bool>false</bool>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Panel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="text">
-      <string>linuxmuster-linbo 2.3.0-21</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="version">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="text">
+        <string>linuxmuster-linbo 2.3.0-21</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="cbTimeout">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>181</width>
+         <height>31</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Zeit gesteuerte Abmeldung</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLCDNumber" name="timeoutCounter">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>121</width>
+         <height>31</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">

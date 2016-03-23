@@ -36,12 +36,12 @@ SOURCES += main.cpp\
     linboPushButton.cpp \
     linboProgress.cpp \
     linboMulticastBox.cpp \
-    linboPasswordBox.cpp \
     linboRegisterBox.cpp \
     linboYesNo.cpp \
     linboConsole.cpp \
     linbooswidget.cpp \
-    linboimagewidget.cpp
+    linboimagewidget.cpp \
+    login.cpp
 
 HEADERS  += linbogui.h\
         anmeldefenster.h \
@@ -61,12 +61,12 @@ HEADERS  += linbogui.h\
     linboPushButton.h \
     linboDialog.h \
     linboMulticastBox.h \
-    linboPasswordBox.h \
     linboProgress.h \
     linboRegisterBox.h \
     linboYesNo.h \
     linbooswidget.h \
-    linboimagewidget.h
+    linboimagewidget.h \
+    login.h
 
 FORMS    += linbogui.ui\
         anmeldefenster.ui \
@@ -80,12 +80,12 @@ FORMS    += linbogui.ui\
     linboInputBox.ui \
     linboMsg.ui \
     linboMulticastBox.ui \
-    linboPasswordBox.ui \
     linboProgress.ui \
     linboRegisterBox.ui \
     linboYesNo.ui \
     linbooswidget.ui \
-    linboimagewidget.ui
+    linboimagewidget.ui \
+    login.ui
 
 RESOURCES += \
     linbo_icons.qrc \
