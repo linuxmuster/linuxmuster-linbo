@@ -305,7 +305,7 @@ void LinboGUI::performLogin(QString passwd)
 #ifdef TESTCOMMAND
     if( passwd.compare(QString("muster")) == 0 ){
 #else
-    if( command->doAuthenticateCommand( &passwd ) ) {
+    if( command->doAuthenticateCommand( passwd ) ) {
 #endif
         root = true;
         ui->cbTimeout->setEnabled( true );
