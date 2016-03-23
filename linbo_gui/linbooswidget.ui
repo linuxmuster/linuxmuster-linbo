@@ -43,28 +43,6 @@
     </size>
    </property>
   </widget>
-  <widget class="QLabel" name="lName">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>20</y>
-     <width>191</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">font: 75 12pt &quot;Noto Sans&quot;;</string>
-   </property>
-   <property name="text">
-    <string>Gymhim Linux</string>
-   </property>
-  </widget>
   <widget class="linbopushbutton" name="tbInfo">
    <property name="geometry">
     <rect>
@@ -149,6 +127,37 @@
      <width>32</width>
      <height>32</height>
     </size>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lName">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>10</y>
+     <width>201</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <underline>false</underline>
+    </font>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
+   </property>
+   <property name="text">
+    <string>GymHim Linux</string>
+   </property>
+   <property name="frame">
+    <bool>false</bool>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

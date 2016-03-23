@@ -289,7 +289,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="benutzertab">
       <property name="enabled">
@@ -333,10 +333,15 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>96</width>
-            <height>26</height>
+            <width>750</width>
+            <height>313</height>
            </rect>
           </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout"/>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>

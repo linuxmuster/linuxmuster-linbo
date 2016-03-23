@@ -76,7 +76,6 @@ public:
 
     void readFromStdout();
     void readFromStderr();
-    void disableButtons();
     void resetButtons();
     bool isAdminTab(int tabIndex);
     bool isLogTab(int tabIndex);
@@ -84,6 +83,7 @@ public:
 public slots:
     void do_register(int result);
     void restoreButtonsState();
+    void disableButtons();
     void enableButtons();
 
 private slots:

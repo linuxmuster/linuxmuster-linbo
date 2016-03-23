@@ -41,8 +41,8 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
     logfilepath = QString("/tmp/linbo.log");
 
     // connect to process
-    connect(process,SIGNAL(started()),this,SLOT(disableButtons));
-    connect(process,SIGNAL(finished(int)),this,SLOT(restoreButtonsState));
+    connect(process,SIGNAL(started()),this,SLOT(disableButtons()));
+    connect(process,SIGNAL(finished(int)),this,SLOT(restoreButtonsState()));
 
     // clear buttons array
     p_buttons.clear();
