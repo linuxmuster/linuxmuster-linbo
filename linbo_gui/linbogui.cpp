@@ -290,7 +290,7 @@ void LinboGUI::showOSs()
     //FIXME: howto place several OS Widgets
     QWidget *osarea = ui->osarea;
     LinboOSWidget *os = new LinboOSWidget(osarea);
-    logConsole->writeStdOut(QString("operating system widget ")+os->accessibleName()
+    logConsole->writeStdOut(QString("operating system widget ")+os->windowFilePath()
                             +QString(" added"));
     osarea->adjustSize();
 }
@@ -300,7 +300,7 @@ void LinboGUI::showImages()
     //FIXME: howto place several Image Widgets
     QWidget *imagearea = ui->imagearea;
     LinboImageWidget *img = new LinboImageWidget(imagearea);
-    logConsole->writeStdOut(QString("image widget ")+img->accessibleName()
+    logConsole->writeStdOut(QString("image widget ")+img->windowFilePath()
                             +QString(" added"));
     imagearea->adjustSize();
 }
