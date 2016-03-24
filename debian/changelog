@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.0-30) babo-testing; urgency=low
+
+  * linbo_cmd.sh:
+    - prepare_fs(): removed preceding / in some RSYNC_EXCLUDE entries.
+    - partition(): removes linbo/grub update flags in /tmp after partitioning.
+    - prepare_grub(): be more verbose.
+  * grub pxe template: fixed loading of server side configs.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Mar 2016 16:40:12 +0100
+
 linuxmuster-linbo (2.3.0-29) babo-testing; urgency=low
 
   * init.sh: cachedev fix.
