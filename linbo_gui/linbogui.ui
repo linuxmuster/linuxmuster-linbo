@@ -445,7 +445,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           </widget>
          </item>
          <item>
-          <widget class="linbopushbutton" name="doregister">
+          <widget class="QPushButton" name="doregister">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -636,7 +636,7 @@ background-color: rgba(255, 255, 255, 0);</string>
       </spacer>
      </item>
      <item>
-      <widget class="linbopushbutton" name="update">
+      <widget class="QToolButton" name="update">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LINBO aktualisieren&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>

@@ -16,10 +16,8 @@ linboProgress::linboProgress(  QWidget* parent, QProcess* new_process, linboLogC
     ui->setupUi(this);
     connect( ui->cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
     if( process != 0 ){
-        if( process->state() == QProcess::Running ){
-            connect( process, SIGNAL(finished(int, QProcess::ExitStatus)),
-                     this, SLOT(processFinished(int,QProcess::ExitStatus)));
-        }
+        connect( process, SIGNAL(finished(int, QProcess::ExitStatus)),
+                 this, SLOT(processFinished(int,QProcess::ExitStatus)));
     }
     Qt::WindowFlags flags;
     flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
@@ -81,6 +79,9 @@ void linboProgress::timerEvent(QTimerEvent *event) {
 
         ui->processTime->setText( minutestr + QString(":") + secondstr );
     }
+    if( process != 0 && process->state() == QProcess::NotRunning){
+        processFinished(process->exitCode(),process->exitStatus());
+    }
 }
 
 void linboProgress::processFinished( int retval, QProcess::ExitStatus status) {
@@ -88,6 +89,8 @@ void linboProgress::processFinished( int retval, QProcess::ExitStatus status) {
         this->killTimer( timerId );
         timerId = 0;
     }
+    logConsole->writeStdOut(process->program() + " " + process->arguments().join(" ")
+                            + " was finished");
     logConsole->writeResult(retval, status, retval);
 
     this->close();

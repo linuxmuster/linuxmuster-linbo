@@ -47,19 +47,12 @@ private:
     int preTab, autostarttimeout, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
 
-    vector<int> buttons_config;
-    vector<bool> buttons_config_save;
-
     void showInfos();
     void showOSs();
     void showImages();
 
 public:
     globals config();
-    vector<linbopushbutton*> p_buttons;
-    // 0 = disabled
-    // 1 = enabled
-    // 2 = admin button
 
     bool isRoot() const;
     void showImagingTab();
@@ -103,6 +96,7 @@ protected:
     void timerEvent(QTimerEvent *event);
 
 private:
+    void doCommand(const QStringList& command, bool interruptible = false);
     Ui::LinboGUI *ui;
 };
 

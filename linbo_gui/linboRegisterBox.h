@@ -22,7 +22,7 @@ signals:
     void finished(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup);
 
 private slots:
-    void accept();
+    virtual void accept();
 
 private:
     Ui::linboRegisterBox *ui;

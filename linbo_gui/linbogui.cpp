@@ -10,6 +10,7 @@
 #include "registrierungsdialog.h"
 #include "configuration.h"
 #include "command.h"
+#include "linboProgress.h"
 #include "linboRegisterBox.h"
 #include "linboimagewidget.h"
 #include "login.h"
@@ -46,29 +47,6 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
     // connect to process
     connect(process,SIGNAL(started()),this,SLOT(disableButtons()));
     connect(process,SIGNAL(finished(int)),this,SLOT(restoreButtonsState()));
-
-    // clear buttons array
-    p_buttons.clear();
-    buttons_config.clear();
-
-    p_buttons.push_back(ui->update);
-    buttons_config.push_back(ui->update->isEnabled() ? 1 : 0);
-    p_buttons.push_back(ui->halt);
-    buttons_config.push_back(ui->halt->isEnabled() ? 1 : 0);
-    p_buttons.push_back(ui->reboot);
-    buttons_config.push_back(ui->reboot->isEnabled() ? 1 : 0);
-
-    // administrator buttons
-    p_buttons.push_back(ui->console);
-    buttons_config.push_back(ui->console->isEnabled() ? 1 : 0);
-    p_buttons.push_back(ui->partition);
-    buttons_config.push_back(ui->partition->isEnabled() ? 1 : 0);
-    p_buttons.push_back(ui->initcache);
-    buttons_config.push_back(ui->initcache->isEnabled() ? 1 : 0);
-    p_buttons.push_back(ui->doregister);
-    buttons_config.push_back(ui->doregister->isEnabled() ? 1 : 0);
-    p_buttons.push_back(ui->logout);
-    buttons_config.push_back(ui->logout->isEnabled() ? 1 : 0);
 
     // we can set this now since our globals have been read
     logConsole->setLinboLogConsole( conf->config.get_consolefontcolorstdout(),
@@ -132,41 +110,19 @@ void LinboGUI::readFromStderr()
 
 
 void LinboGUI::enableButtons() {
-    root = true;
-    for( unsigned int i = 0; i < p_buttons.size(); i++ ) {
-        if( buttons_config[i] == 2 )
-            p_buttons[i]->setEnabled( false );
-        else
-            p_buttons[i]->setEnabled( true );
-    }
+    //FIXME: remove - nothing to do
 }
 
 void LinboGUI::resetButtons() {
-    root = false;
-    ui->systeme->setCurrentIndex( preTab );
-    for( unsigned int i = 0; i < p_buttons.size(); i++ ) {
-        if( buttons_config[i] == 2 )
-            p_buttons[i]->setEnabled( true );
-        else
-            p_buttons[i]->setEnabled( buttons_config[i] );
-
-        buttons_config_save[i] = p_buttons[i]->isEnabled();
-    }
+    //FIXME: remove - nothing to do
 }
 
 void LinboGUI::disableButtons() {
-    for( unsigned int i = 0; i < p_buttons.size(); i++ ) {
-        // save buttons state
-
-        buttons_config_save[i] = p_buttons[i]->isEnabled();
-        p_buttons[i]->setEnabled( false );
-    }
+    //FIXME: remove -  nothing to do
 }
 
 void LinboGUI::restoreButtonsState() {
-    for( unsigned int i = 0; i < p_buttons.size(); i++ ) {
-        p_buttons[i]->setEnabled( buttons_config_save[i] );
-    }
+    //FIXME: remove - nothing to do
 }
 
 bool LinboGUI::isAdminTab(int tabIndex) {
@@ -229,7 +185,13 @@ void LinboGUI::on_reboot_clicked()
 void LinboGUI::on_update_clicked()
 {
       logConsole->writeStdOut( QString("update entered") );
-      process->start( command->mklinboupdatecommand().join(" ") );
+#ifdef TESTCOMMAND
+      QStringList cmd;
+      cmd <<"sleep 10";
+#else
+      QStringList cmd = command->mklinboupdatecommand();
+#endif
+      doCommand( cmd );
 }
 
 void LinboGUI::on_systeme_currentChanged(int index)
@@ -255,11 +217,13 @@ void LinboGUI::on_systeme_currentChanged(int index)
 void LinboGUI::on_doregister_clicked()
 {
     // Die vorgeschlagenen Daten fuer die Rechneraufnahme lesen und anzeigen
-    ifstream newdata;
-    QString registerData;
     QStringList registerDataList;
-    char line[1024];
     command->doSimpleCommand(command->mkpreregistercommand().join(" "));
+#ifdef TESTCOMMAND
+    registerDataList << QString("Testraum") << QString("testclient")
+                     << QString("192.168.1.1") << QString("pc_group");
+#else
+    char line[1024];
     newdata.open("/tmp/newregister", ios::in);
     if (newdata.is_open()) {
         newdata.getline(line,1024,'\n');
@@ -267,6 +231,7 @@ void LinboGUI::on_doregister_clicked()
         newdata.close();
         registerDataList = registerData.split(',');
     }
+#endif
     linboRegisterBox *regdlg;
     if( registerDataList.size() >= 4 ){
         regdlg = new linboRegisterBox( this, registerDataList[0], registerDataList[1],
@@ -275,14 +240,14 @@ void LinboGUI::on_doregister_clicked()
     else {
         regdlg = new linboRegisterBox( this );
     }
-    connect(regdlg,SIGNAL(finished(QString&, QString&, QString&, QString)),
-            this,SLOT(do_register(QString&, QString&, QString&, QString)));
+    connect(regdlg,SIGNAL(finished(QString&, QString&, QString&, QString&)),
+            this,SLOT(do_register(QString&, QString&, QString&, QString&)));
     regdlg->exec();
 }
 
 void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup)
 {
-    command->mkregistercommand(roomName, clientName, ipAddress, clientGroup);
+    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true);
 }
 
 void LinboGUI::showOSs()
@@ -374,4 +339,12 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
             logoutTimer = 0;
         }
     }
+}
+
+void LinboGUI::doCommand(const QStringList& command, bool interruptible)
+{
+    logConsole->writeStdOut( command.join(" ") + QString(" started"));
+    process->start( command.join(" ") );
+    progress = new linboProgress( this, process, logConsole );
+    progress->setShowCancelButton( interruptible );
 }
