@@ -263,7 +263,7 @@ void LinboGUI::on_doregister_clicked()
     newdata.open("/tmp/newregister", ios::in);
     if (newdata.is_open()) {
         newdata.getline(line,1024,'\n');
-        registerData = QString::fromAscii( line, -1 ).trimmed();
+        registerData = QString::fromUtf8( line, -1 ).trimmed();
         newdata.close();
         registerDataList = registerData.split(',');
     }
