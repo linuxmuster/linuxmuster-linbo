@@ -60,7 +60,7 @@ void linboYesNo::postcmd() {
   app = static_cast<LinboGUI*>( myMainApp );
 
   if( app ) {
-    progwindow->setProcess( process );
+    //FIXME: remove - progwindow->setProcess( process );
 
     progwindow->show();
     progwindow->raise();

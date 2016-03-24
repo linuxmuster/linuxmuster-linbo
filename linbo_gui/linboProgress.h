@@ -20,6 +20,7 @@ class linboProgress : public QDialog
 
 private:
     QProcess *process;
+    bool connected;
     linboLogConsole *logConsole;
     int timerId;
     QTextEdit* Console;
@@ -27,7 +28,7 @@ private:
     QString minutestr,secondstr;
 
 public:
-    linboProgress( QWidget* parent = 0, QProcess *new_process = 0, linboLogConsole *new_log = 0 );
+    linboProgress( QWidget* parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0 );
 
     ~linboProgress();
 
@@ -37,8 +38,10 @@ public:
 
 public slots:
     void killLinboCmd();
-    void processFinished( int retval,
-                          QProcess::ExitStatus status);
+
+private slots:
+    void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
+
 protected:
     void timerEvent(QTimerEvent *event);
 

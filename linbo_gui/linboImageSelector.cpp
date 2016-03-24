@@ -234,7 +234,7 @@ void linboImageSelector::postcmd() {
 
   if( app ) {
     // do something
-    progwindow->setProcess( process );
+    //FIXME: remove progwindow->setProcess( process );
     // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
     progwindow->show();
     progwindow->raise();

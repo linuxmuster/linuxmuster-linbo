@@ -44,10 +44,6 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
     // logfilepath
     logfilepath = QString("/tmp/linbo.log");
 
-    // connect to process
-    connect(process,SIGNAL(started()),this,SLOT(disableButtons()));
-    connect(process,SIGNAL(finished(int)),this,SLOT(restoreButtonsState()));
-
     // we can set this now since our globals have been read
     logConsole->setLinboLogConsole( conf->config.get_consolefontcolorstdout(),
                                     conf->config.get_consolefontcolorstderr(),
@@ -343,8 +339,8 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
 
 void LinboGUI::doCommand(const QStringList& command, bool interruptible)
 {
-    logConsole->writeStdOut( command.join(" ") + QString(" started"));
-    process->start( command.join(" ") );
-    progress = new linboProgress( this, process, logConsole );
+    QStringList *cmd = new QStringList(command);
+    progress = new linboProgress( this, cmd, logConsole );
     progress->setShowCancelButton( interruptible );
+    progress->exec();
 }

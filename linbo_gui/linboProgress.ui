@@ -1,92 +1,140 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>linboProgress</class>
- <widget class="QWidget" name="linboProgress" >
-  <property name="geometry" >
+ <widget class="QDialog" name="linboProgress">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
-    <height>125</height>
+    <width>412</width>
+    <height>170</height>
    </rect>
   </property>
-  <property name="cursor" >
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="cursor">
    <cursorShape>WaitCursor</cursorShape>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Warten...</string>
   </property>
-  <widget class="QLabel" name="progressLabel" >
-   <property name="geometry" >
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>430</width>
-     <height>20</height>
-    </rect>
+  <property name="modal">
+   <bool>false</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
    </property>
-   <property name="text" >
-    <string>Bitte Warten...</string>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap" >
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="cancelButton" >
-   <property name="geometry" >
-    <rect>
-     <x>190</x>
-     <y>90</y>
-     <width>100</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string>Abbruch</string>
-   </property>
-  </widget>
-  <widget class="QProgressBar" name="progressBar" >
-   <property name="geometry" >
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>451</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="value" >
-    <number>0</number>
-   </property>
-   <property name="textVisible" >
-    <bool>false</bool>
-   </property>
-   <property name="orientation" >
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="invertedAppearance" >
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="processTime" >
-   <property name="geometry" >
-    <rect>
-     <x>190</x>
-     <y>70</y>
-     <width>101</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string>00:00</string>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
+   <item>
+    <widget class="QLabel" name="progressLabel">
+     <property name="minimumSize">
+      <size>
+       <width>400</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Bitte Warten...</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="minimumSize">
+      <size>
+       <width>400</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+     <property name="textVisible">
+      <bool>false</bool>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="processTime">
+     <property name="text">
+      <string>00:00</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Abbruch</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
  <resources/>
  <connections/>

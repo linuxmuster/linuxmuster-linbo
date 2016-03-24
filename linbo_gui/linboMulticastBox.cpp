@@ -101,7 +101,7 @@ void linboMulticastBox::postcmd() {
     // do something
     // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
 
-    progwindow->setProcess( process );
+    //FIXME: remov e- progwindow->setProcess( process );
     progwindow->show();
     progwindow->raise();
 
