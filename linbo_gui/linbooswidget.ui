@@ -11,7 +11,7 @@
     <height>110</height>
    </rect>
   </property>
-  <widget class="linbopushbutton" name="tbDefault">
+  <widget class="QPushButton" name="tbDefault">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -43,7 +43,7 @@
     </size>
    </property>
   </widget>
-  <widget class="linbopushbutton" name="tbInfo">
+  <widget class="QPushButton" name="tbInfo">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -63,7 +63,7 @@
     </size>
    </property>
   </widget>
-  <widget class="linbopushbutton" name="tbStart">
+  <widget class="QPushButton" name="tbStart">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -89,7 +89,7 @@
     </size>
    </property>
   </widget>
-  <widget class="linbopushbutton" name="tbNew">
+  <widget class="QPushButton" name="tbNew">
    <property name="geometry">
     <rect>
      <x>190</x>
@@ -109,7 +109,7 @@
     </size>
    </property>
   </widget>
-  <widget class="linbopushbutton" name="tbSync">
+  <widget class="QPushButton" name="tbSync">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -161,13 +161,6 @@
    </property>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>linbopushbutton</class>
-   <extends>QPushButton</extends>
-   <header>linboPushButton.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="linbo_icons.qrc"/>
  </resources>

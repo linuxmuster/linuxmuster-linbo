@@ -3,7 +3,6 @@
 #include <QtGui>
 #include <QDesktopWidget>
 #include <QByteArray>
-#include "linboPushButton.h"
 #include "linboProgress.h"
 #include "linbogui.h"
 

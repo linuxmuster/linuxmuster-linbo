@@ -48,7 +48,7 @@
       </widget>
      </item>
      <item>
-      <widget class="linbopushbutton" name="tbCreate">
+      <widget class="QPushButton" name="tbCreate">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -71,7 +71,7 @@
       </widget>
      </item>
      <item>
-      <widget class="linbopushbutton" name="tbUpload">
+      <widget class="QPushButton" name="tbUpload">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -97,13 +97,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>linbopushbutton</class>
-   <extends>QPushButton</extends>
-   <header>linboPushButton.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="linbo_icons.qrc"/>
  </resources>

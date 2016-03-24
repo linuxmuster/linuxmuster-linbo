@@ -9,7 +9,6 @@
 
 #include "linboMulticastBox.h"
 #include "linboProgress.h"
-#include "linboPushButton.h"
 #include "ui_linboMulticastBox.h"
 
 linboMulticastBox::linboMulticastBox(  QWidget* parent ) : linboDialog(), ui(new Ui::linboMulticastBox)

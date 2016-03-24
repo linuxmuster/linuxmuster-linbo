@@ -16,7 +16,6 @@
 #include "configuration.h"
 #include "command.h"
 #include "image_description.h"
-#include "linboPushButton.h"
 #include "linboLogConsole.h"
 #include "linboProgress.h"
 
@@ -28,7 +27,6 @@ class LinboGUI;
 }
 
 class linboLogConsole;
-class linbopushbutton;
 class linboProgress;
 
 class LinboGUI : public QWidget
@@ -43,7 +41,7 @@ private:
     bool root, withicons, outputvisible;
     QProcess* process;
     linboProgress* progress;
-    linbopushbutton *autostart, *autopartition, *autoinitcache;
+    QPushButton *autostart, *autopartition, *autoinitcache;
     int preTab, autostarttimeout, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
 

@@ -4,7 +4,6 @@
 #include <QtGui>
 #include <QDesktopWidget>
 
-#include "linboPushButton.h"
 #include "linboYesNo.h"
 
 #include "linboInputBox.h"
@@ -73,38 +72,7 @@ void linboInputBox::precmd() {
 void linboInputBox::postcmd() {
   this->hide();
   
-  if( !ui->input->text().isEmpty() ) {
 
-    // change image name
-    QStringList tmp;
-    linbopushbutton* neighbour = (static_cast<linbopushbutton*>(this->parentWidget()))->getNeighbour();
-
-    if( linboDialog* neighbourDialog = neighbour->getLinboDialog()  ) {
-      // in this case, we have a sub-dialogue
-      tmp = neighbourDialog->getCommand();
-      
-      if( tmp[1] == QString("upload") ) {
-        // change file name
-        tmp[6] = ui->input->text();
-        neighbourDialog->setCommand( tmp );
-        
-        if( dynamic_cast<linboYesNo*>( neighbour->getQDialog() ) ) {
-          // we know now, the neighbour is an button with a yesno-box
-          static_cast<linboYesNo*>((QWidget*)neighbour->getQDialog())->setQuestionText("Image " + ui->input->text() + " hochladen?");
-        }
-      }
-    }
-  
-    // change the command of the main button
-    tmp = neighbour->getCommand();  
-
-    if( tmp[1] == QString("upload") ) {
-      // change upload password
-      tmp[6] = ui->input->text();
-      neighbour->setCommand( tmp );
-    }
-  }  
-        
   if( !ui->input->text().isEmpty() && myMainApp ) {
     app = static_cast<LinboGUI*>( myMainApp );
     myCommand[3]=ui->input->text();

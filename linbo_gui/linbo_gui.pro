@@ -31,7 +31,6 @@ SOURCES += main.cpp\
     linboInfoBrowser.cpp \
     linboInputBox.cpp \
     linboLogConsole.cpp \
-    linboPushButton.cpp \
     linboProgress.cpp \
     linboMulticastBox.cpp \
     linboRegisterBox.cpp \
@@ -54,7 +53,6 @@ HEADERS  += linbogui.h\
     linboInfoBrowser.h \
     linboInputBox.h \
     linboLogConsole.h \
-    linboPushButton.h \
     linboDialog.h \
     linboMulticastBox.h \
     linboProgress.h \

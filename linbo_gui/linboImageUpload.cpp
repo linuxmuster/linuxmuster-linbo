@@ -7,7 +7,6 @@
 
 #include "linboImageUpload.h"
 #include "ui_linboImageUpload.h"
-#include "linboPushButton.h"
 #include "linboYesNo.h"
 
 linboImageUpload::linboImageUpload(  QWidget* parent ) : linboDialog(), ui(new Ui::linboImageUpload)

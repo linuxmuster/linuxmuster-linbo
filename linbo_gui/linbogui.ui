@@ -376,7 +376,7 @@ background-color: rgba(255, 255, 255, 0);</string>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="linbopushbutton" name="console">
+          <widget class="QPushButton" name="console">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -399,7 +399,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           </widget>
          </item>
          <item>
-          <widget class="linbopushbutton" name="initcache">
+          <widget class="QPushButton" name="initcache">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -422,7 +422,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           </widget>
          </item>
          <item>
-          <widget class="linbopushbutton" name="partition">
+          <widget class="QPushButton" name="partition">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -484,7 +484,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           </spacer>
          </item>
          <item>
-          <widget class="linbopushbutton" name="logout">
+          <widget class="QPushButton" name="logout">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -653,7 +653,7 @@ background-color: rgba(255, 255, 255, 0);</string>
       </widget>
      </item>
      <item>
-      <widget class="linbopushbutton" name="reboot">
+      <widget class="QToolButton" name="reboot">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Neu starten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -673,7 +673,7 @@ background-color: rgba(255, 255, 255, 0);</string>
       </widget>
      </item>
      <item>
-      <widget class="linbopushbutton" name="halt">
+      <widget class="QToolButton" name="halt">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ausschalten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -697,13 +697,6 @@ background-color: rgba(255, 255, 255, 0);</string>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>linbopushbutton</class>
-   <extends>QPushButton</extends>
-   <header>linboPushButton.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

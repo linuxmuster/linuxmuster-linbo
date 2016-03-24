@@ -11,7 +11,6 @@
 #include "linboImageSelector.h"
 #include "ui_linboImageSelector.h"
 #include "linboImageUpload.h"
-#include "linboPushButton.h"
 
 linboImageSelector::linboImageSelector(  QWidget* parent ) : linboDialog(), ui(new Ui::linboImageSelector)
 {
@@ -174,10 +173,7 @@ void linboImageSelector::postcmd() {
 
   selection = ui->listBox->currentItem()->text();
 
-  linbopushbutton* neighbour = (static_cast<linbopushbutton*>(myParent))->getNeighbour();
-
   neighbourDialog = 0;
-  neighbourDialog = neighbour->getLinboDialog();
 
   if( selection != "[Neuer Dateiname]"  ) {
     // user choosed to rebuild an existing image
