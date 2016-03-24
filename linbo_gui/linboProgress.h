@@ -2,11 +2,8 @@
 #define LINBOPROGRESS_H
 
 #include <qobject.h>
-#include <qwidget.h>
 #include <qdialog.h>
 #include <QProcess>
-#include <QTimer>
-#include <qpushbutton.h>
 #include <QTextEdit>
 
 #include "linboLogConsole.h"
@@ -17,7 +14,7 @@ class linboProgress;
 
 class linboLogConsole;
 
-class linboProgress : public QWidget
+class linboProgress : public QDialog
 {
     Q_OBJECT
 
@@ -40,7 +37,6 @@ public:
 
 public slots:
     void killLinboCmd();
-    void startTimer();
     void processFinished( int retval,
                           QProcess::ExitStatus status);
 protected:

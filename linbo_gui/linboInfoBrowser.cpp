@@ -13,7 +13,7 @@ linboInfoBrowser::linboInfoBrowser(QWidget* parent ) : linboDialog(), ui(new Ui:
 
    process = new QProcess( this );
 
-   logConsole = new linboLogConsole(0);
+   logConsole = new linboLogConsole();
 
    if( parent)
      myParent = parent;

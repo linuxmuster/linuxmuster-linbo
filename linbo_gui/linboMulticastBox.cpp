@@ -27,7 +27,7 @@ linboMulticastBox::linboMulticastBox(  QWidget* parent ) : linboDialog(), ui(new
 
   progwindow = new linboProgress(0);
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   // connect SLOT for finished process
   connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
@@ -117,7 +117,6 @@ void linboMulticastBox::postcmd() {
 
     logConsole->writeStdErr( QString("Executing ") + command  + QString(" ") +  processargs.join(" ") );
 
-    progwindow->startTimer();
     process->start( command, processargs );
 
     process->waitForStarted();

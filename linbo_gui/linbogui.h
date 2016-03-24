@@ -17,8 +17,6 @@
 #include "command.h"
 #include "image_description.h"
 #include "linboPushButton.h"
-#include "linboMsg.h"
-#include "linboCounter.h"
 #include "linboLogConsole.h"
 #include "linboProgress.h"
 
@@ -39,9 +37,7 @@ class LinboGUI : public QWidget
 private:
     Configuration* conf;
     Command* command;
-    linboCounter* myCounter;
     QTimer* myAutostartTimer;
-    linboMsg *waiting;
     QString linestdout, linestderr;
     QString logfilepath, fonttemplate;
     bool root, withicons, outputvisible;

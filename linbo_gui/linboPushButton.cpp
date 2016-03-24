@@ -14,7 +14,7 @@ linbopushbutton::linbopushbutton( QWidget* parent,
 
   progwindow = new linboProgress(0);
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   myQDialog = 0;
   myLinboDialog = 0;
@@ -133,7 +133,6 @@ void linbopushbutton::lclicked()
       
       logConsole->writeStdErr( QString("Executing ") + command  + processargs.join(" ") );
 
-      progwindow->startTimer();
       process->start( command, processargs );
 
       // important: give process time to start up

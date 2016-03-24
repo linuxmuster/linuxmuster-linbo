@@ -10,12 +10,17 @@
 #include "ui_linboProgress.h"
 
 linboProgress::linboProgress(  QWidget* parent, QProcess* new_process, linboLogConsole* new_log ):
-    QWidget(parent), process(new_process), logConsole(new_log), timerId(0),
+    QDialog(parent), process(new_process), logConsole(new_log), timerId(0),
     ui(new Ui::linboProgress)
 {
     ui->setupUi(this);
     connect( ui->cancelButton,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
-
+    if( process != 0 ){
+        if( process->state() == QProcess::Running ){
+            connect( process, SIGNAL(finished(int, QProcess::ExitStatus)),
+                     this, SLOT(processFinished(int,QProcess::ExitStatus)));
+        }
+    }
     Qt::WindowFlags flags;
     flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
     setWindowFlags( flags );
@@ -27,6 +32,7 @@ linboProgress::linboProgress(  QWidget* parent, QProcess* new_process, linboLogC
     this->setFixedSize( this->width(), this->height() );
     ui->progressBar->setMinimum( 0 );
     ui->progressBar->setMaximum( 100 );
+    timerId = startTimer( 1000 );
 }
 
 linboProgress::~linboProgress() {
@@ -36,8 +42,15 @@ linboProgress::~linboProgress() {
 
 
 void linboProgress::setProcess( QProcess* newProcess ) {
-    if( newProcess != 0 ) {
-        process = newProcess;
+    if( process ){
+        disconnect(this, SLOT(finished(int,QProcess::ExitStatus)));
+    }
+    process = newProcess;
+    if( process != 0 ){
+        if( process->state() == QProcess::Running ){
+            connect( process, SIGNAL(finished(int, QProcess::ExitStatus)),
+                     this, SLOT(processFinished(int,QProcess::ExitStatus)));
+        }
     }
 }
 
@@ -47,14 +60,6 @@ void linboProgress::killLinboCmd() {
 
     QTimer::singleShot( 10000, this, SLOT( close() ) );
 }
-
-void linboProgress::startTimer() {
-    if( timerId != 0) {
-        this->killTimer(timerId);
-    }
-    timerId = QObject::startTimer( 1000 );
-}
-
 
 void linboProgress::timerEvent(QTimerEvent *event) {
     if( event->timerId() == timerId ){
@@ -78,12 +83,13 @@ void linboProgress::timerEvent(QTimerEvent *event) {
     }
 }
 
-void linboProgress::processFinished( int retval,
-                                     QProcess::ExitStatus status) {
+void linboProgress::processFinished( int retval, QProcess::ExitStatus status) {
     if( timerId != 0) {
         this->killTimer( timerId );
         timerId = 0;
     }
+    logConsole->writeResult(retval, status, retval);
+
     this->close();
 }
 

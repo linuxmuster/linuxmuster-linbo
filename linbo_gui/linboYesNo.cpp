@@ -15,7 +15,7 @@ linboYesNo::linboYesNo(  QWidget* parent ) : linboDialog(), ui(new Ui::linboYesN
 
   progwindow = new linboProgress(0);
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   if( parent )
     myParent = parent;
@@ -76,8 +76,6 @@ void linboYesNo::postcmd() {
     QString command = processargs.takeFirst();
 
     logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
-
-    progwindow->startTimer();
 
     process->start( command, processargs );
 

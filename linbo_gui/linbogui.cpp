@@ -75,24 +75,6 @@ LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
                                     conf->config.get_consolefontcolorstderr(),
                                     ui->log );
 
-    // since some tabs can be hidden, we have to maintain this counter
-    int nextPosForTabInsert = 0;
-    int horizontalOffset = 0;
-    // this is for separating the elements
-    int innerVerticalOffset = 32;
-
-    for( unsigned int i = 0; i < conf->elements.size(); i++ ) {
-        // this determines our vertical offset
-        if( i % 2 == 1 ) {
-            // an odd element is moved to the right
-            horizontalOffset = 300;
-        } else {
-            horizontalOffset = 0;
-        }
-
-
-    }
-
     showInfos();
 
     showOSs();

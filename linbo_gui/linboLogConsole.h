@@ -38,8 +38,7 @@ private:
 
 
 public:
-  linboLogConsole( QWidget* parent = 0,
-                   const char* name = 0 );
+  linboLogConsole();
 	
   ~linboLogConsole();
 

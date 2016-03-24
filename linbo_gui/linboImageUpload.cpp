@@ -38,7 +38,7 @@ linboImageUpload::linboImageUpload(  QWidget* parent ) : linboDialog(), ui(new U
 
   progwindow = new linboProgress(0);
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   QRect qRect(QApplication::desktop()->screenGeometry());
   // open in the center of our screen
@@ -99,7 +99,6 @@ void linboImageUpload::postcmd() {
 
     logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
 
-    progwindow->startTimer();
     process->start( command, processargs );
 
     while( process->state() == QProcess::Running ) {

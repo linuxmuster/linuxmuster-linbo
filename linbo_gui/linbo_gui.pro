@@ -26,13 +26,11 @@ SOURCES += main.cpp\
     configuration.cpp \
     command.cpp \
     image_description.cpp \
-    linboCounter.cpp \
     linboImageSelector.cpp \
     linboImageUpload.cpp \
     linboInfoBrowser.cpp \
     linboInputBox.cpp \
     linboLogConsole.cpp \
-    linboMsg.cpp \
     linboPushButton.cpp \
     linboProgress.cpp \
     linboMulticastBox.cpp \
@@ -51,13 +49,11 @@ HEADERS  += linbogui.h\
     command.h \
     image_description.h \
     linboConsole.h \
-    linboCounter.h \
     linboImageSelector.h \
     linboImageUpload.h \
     linboInfoBrowser.h \
     linboInputBox.h \
     linboLogConsole.h \
-    linboMsg.h \
     linboPushButton.h \
     linboDialog.h \
     linboMulticastBox.h \
@@ -73,12 +69,10 @@ FORMS    += linbogui.ui\
     registrierungsdialog.ui \
     fortschrittdialog.ui \
     linboConsole.ui \
-    linboCounter.ui \
     linboImageSelector.ui \
     linboImageUpload.ui \
     linboInfoBrowser.ui \
     linboInputBox.ui \
-    linboMsg.ui \
     linboMulticastBox.ui \
     linboProgress.ui \
     linboRegisterBox.ui \

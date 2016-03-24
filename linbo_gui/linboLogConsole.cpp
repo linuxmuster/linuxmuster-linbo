@@ -22,8 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 #include "linboLogConsole.h"
 
-linboLogConsole::linboLogConsole(  QWidget* parent,  
-				   const char* name )
+linboLogConsole::linboLogConsole()
 {
   consolefontcolorstdout =  QColor( QString("white") );
   consolefontcolorstderr =  QColor( QString("red") );

@@ -33,7 +33,7 @@ linboInputBox::linboInputBox(  QWidget* parent ) : linboDialog(), ui(new Ui::lin
 
   progwindow = new linboProgress(0);
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   Qt::WindowFlags flags;
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint ;

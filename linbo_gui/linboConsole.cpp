@@ -32,7 +32,7 @@ linboConsole::linboConsole(  QWidget* parent ) : linboDialog(), ui(new Ui::linbo
   flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
   setWindowFlags( flags );
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   QRect qRect(QApplication::desktop()->screenGeometry());
   // open in the upper left of our screen
@@ -111,6 +111,6 @@ void linboConsole::readFromStderr()
 
 void linboConsole::processFinished( int retval,
 					QProcess::ExitStatus status) {
-  // nothing to do
+  logConsole->writeResult(retval, status, retval);
   static_cast<LinboGUI*>(myMainApp)->restoreButtonsState();
 }

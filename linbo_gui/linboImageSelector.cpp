@@ -20,7 +20,7 @@ linboImageSelector::linboImageSelector(  QWidget* parent ) : linboDialog(), ui(n
 
   progwindow = new linboProgress(0);
 
-  logConsole = new linboLogConsole(0);
+  logConsole = new linboLogConsole();
 
   if( parent )
     myParent = parent;
@@ -118,7 +118,6 @@ void linboImageSelector::selectionWatcher() {
       QStringList processargs( arguments );
       QString command = processargs.takeFirst();
       
-      progwindow->startTimer();
       process->start( command, processargs );
       
 
@@ -259,7 +258,6 @@ void linboImageSelector::postcmd() {
 
     logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
     
-    progwindow->startTimer();
     process->start( command, processargs );
 
     // important: give process time to start up
@@ -330,7 +328,6 @@ void linboImageSelector::writeInfo() {
   QStringList processargs( arguments );
   QString command = processargs.takeFirst();
 
-  progwindow->startTimer();
   process->start( command, processargs );
 
   // important: give process time to start up
