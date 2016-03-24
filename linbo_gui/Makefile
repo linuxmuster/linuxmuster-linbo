@@ -91,7 +91,11 @@ $(GUI_BUILD32)/linbo_gui: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB)
 $(GUI_BUILD64)/linbo_gui: $(LINBO_SRC) $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB)
 	@echo "[1mBuilding 64bit linbo_gui...[0m";
 	install -D $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD64)/icons/linbo_wallpaper.png;
-	QTDIR=$(QT_BUILD64)/qtbase QTLIB=$(QT_BUILD64)/qtbase/lib QTBIN=$(QT_BUILD64)/qtbase/bin cd $(GUI_BUILD64) && ../$(QT_BUILD64)/qtbase/bin/qmake -makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-64 $(GUI_SRC)/linbo_gui.pro
+	QTDIR=$(QT_BUILD64)/qtbase \
+	QTLIB=$(QT_BUILD64)/qtbase/lib \
+	QTBIN=$(QT_BUILD64)/qtbase/bin \
+	cd $(GUI_BUILD64) && ../$(QT_BUILD64)/qtbase/bin/qmake \
+	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-64 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
 	cd $(GUI_BUILD64) && make clean && make && strip linbo_gui
 
 build-gui32: $(GUI_BUILD32)/linbo_gui

@@ -220,6 +220,8 @@ void LinboGUI::on_doregister_clicked()
                      << QString("192.168.1.1") << QString("pc_group");
 #else
     char line[1024];
+    ifstream newdata;
+    QString registerData;
     newdata.open("/tmp/newregister", ios::in);
     if (newdata.is_open()) {
         newdata.getline(line,1024,'\n');
