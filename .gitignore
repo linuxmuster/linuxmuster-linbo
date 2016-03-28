@@ -3,10 +3,10 @@ src64
 kernel
 kernel64
 cache
-linbo_gui32
-linbo_gui64
 *-stamp
 .directory
 build*
+sysroot
+sysroot64
 toolchain
 qt-*
