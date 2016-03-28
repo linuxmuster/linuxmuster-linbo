@@ -106,7 +106,7 @@ $(GUI_BUILD64)/linbo_gui: $(LINBO_SRC) build-qt64
 	QTDIR=$(QT_BUILD64)/qtbase \
 	QTLIB=$(QT_BUILD64)/qtbase/lib \
 	QTBIN=$(QT_BUILD64)/qtbase/bin \
-	cd $(GUI_BUILD64) && PATH=/usr/bin:/bin ../$(QT_BUILD64)/qtbase/bin/qmake \
+	cd $(GUI_BUILD64) && PATH=/usr/bin:/bin $(QT_BUILD64)/qtbase/bin/qmake \
 	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-64 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
 	cd $(GUI_BUILD64) && make clean && make && strip linbo_gui
 
