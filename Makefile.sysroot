@@ -1,0 +1,75 @@
+#!/usr/bin/make -f#
+# Frank Schütte
+# 2016
+# GPL v3
+#
+
+include common.mk
+
+BIN64_DEBS= libc6 libc6-dev libstdc++6 libstdc++-4.8-dev libgcc1 libgcc-4.8-dev \
+	    libasan0 libatomic1 libgomp1 libitm1 libquadmath0 libtsan0 \
+	    libudev1 libudev-dev
+
+#acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
+#           ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
+#           grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
+#           libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
+#           ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
+#           udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
+#           zlib1g zlib1g-dev
+
+BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
+           ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
+           grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
+           libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
+           ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
+           udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
+           zlib1g zlib1g-dev
+
+# targets
+
+	# download and unpack sources
+
+configure: configure32 configure64
+
+configure32:
+	# 32bit binaries
+	echo "[1mInstalling 32bit binaries...[0m"
+	for i in $(BIN32_DEBS) ; do \
+		pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb | tail -1` ; \
+		if [ -z $$pkg ]; then \
+			( cd $(CACHEDIR) ; echo "[1mDownloading $${i}:i386 ...[0m" ; apt-get download $${i}:i386 ) ; \
+			rm -rf $(SYSROOT)/usr/share/doc/$$i ; \
+		fi ; \
+		if [ ! -d $(SYSROOT)/usr/share/doc/$$i ]; then \
+			pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb | tail -1` ; \
+			echo "[1mUnpacking $$pkg ...[0m" ; \
+			dpkg -x $$pkg $(SYSROOT) ; \
+		fi ; \
+	done
+
+configure64:
+	# 64bit binaries
+	echo "[1mInstalling 64bit headers...[0m"
+	for i in $(BIN64_DEBS) ; do \
+		pkg=`ls -1tr $(CACHEDIR)/$${i}_*_amd64.deb | tail -1` ; \
+		if [ -z $$pkg ]; then \
+			( cd $(CACHEDIR) ; echo "[1mDownloading $${i}:amd64 ...[0m" ; apt-get download $${i}:amd64 ) ; \
+			rm -rf $(SYSROOT64)/usr/share/doc/$$i ; \
+		fi ; \
+		if [ ! -d $(SYSROOT64)/usr/share/doc/$$i ]; then \
+			pkg=`ls -1tr $(CACHEDIR)/$${i}_*_amd64.deb | tail -1` ; \
+			echo "[1mUnpacking $$pkg ...[0m" ; \
+			dpkg -x $$pkg $(SYSROOT64) ; \
+		fi ; \
+	done
+
+build:
+
+distclean: clean
+
+clean: 
+
+install:
+
+.PHONY: build clean install configure
