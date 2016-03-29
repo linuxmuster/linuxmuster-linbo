@@ -90,6 +90,8 @@ private slots:
 
     void on_cbTimeout_toggled(bool checked);
 
+    void on_console_clicked();
+
 protected:
     void timerEvent(QTimerEvent *event);
 

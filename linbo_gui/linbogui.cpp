@@ -10,6 +10,7 @@
 #include "registrierungsdialog.h"
 #include "configuration.h"
 #include "command.h"
+#include "linboConsole.h"
 #include "linboProgress.h"
 #include "linboRegisterBox.h"
 #include "linboimagewidget.h"
@@ -345,4 +346,10 @@ void LinboGUI::doCommand(const QStringList& command, bool interruptible)
     progress = new linboProgress( this, cmd, logConsole );
     progress->setShowCancelButton( interruptible );
     progress->exec();
+}
+
+void LinboGUI::on_console_clicked()
+{
+    linboConsole console( this );
+    console.exec();
 }

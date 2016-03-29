@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     linboConsole.cpp \
     linbooswidget.cpp \
     linboimagewidget.cpp \
-    login.cpp
+    login.cpp \
+    consolewidget.cpp
 
 HEADERS  += linbogui.h\
         anmeldefenster.h \
@@ -60,7 +61,8 @@ HEADERS  += linbogui.h\
     linboYesNo.h \
     linbooswidget.h \
     linboimagewidget.h \
-    login.h
+    login.h \
+    consolewidget.h
 
 FORMS    += linbogui.ui\
         anmeldefenster.ui \
