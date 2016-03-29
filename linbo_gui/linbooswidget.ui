@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>301</width>
+    <width>345</width>
     <height>110</height>
    </rect>
   </property>
@@ -19,152 +19,127 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>301</width>
+    <width>345</width>
     <height>110</height>
    </size>
   </property>
-  <widget class="QPushButton" name="tbDefault">
+  <widget class="QSplitter" name="splitter_3">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>80</width>
+     <x>7</x>
+     <y>8</y>
+     <width>292</width>
      <height>80</height>
     </rect>
    </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
-   <property name="minimumSize">
-    <size>
-     <width>80</width>
-     <height>80</height>
-    </size>
-   </property>
-   <property name="icon">
-    <iconset resource="linbo_icons.qrc">
-     <normaloff>:/icons/default.png</normaloff>:/icons/default.png</iconset>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>64</width>
-     <height>64</height>
-    </size>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="tbInfo">
-   <property name="geometry">
-    <rect>
-     <x>240</x>
-     <y>40</y>
-     <width>48</width>
-     <height>48</height>
-    </rect>
-   </property>
-   <property name="icon">
-    <iconset resource="linbo_icons.qrc">
-     <normaloff>:/icons/information-22x22.png</normaloff>:/icons/information-22x22.png</iconset>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="tbStart">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>40</y>
-     <width>48</width>
-     <height>48</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>48</width>
-     <height>48</height>
-    </size>
-   </property>
-   <property name="icon">
-    <iconset resource="linbo_icons.qrc">
-     <normaloff>:/icons/start-22x22.png</normaloff>:/icons/start-22x22.png</iconset>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="tbNew">
-   <property name="geometry">
-    <rect>
-     <x>190</x>
-     <y>40</y>
-     <width>48</width>
-     <height>48</height>
-    </rect>
-   </property>
-   <property name="icon">
-    <iconset resource="linbo_icons.qrc">
-     <normaloff>:/icons/new+start-22x22.png</normaloff>:/icons/new+start-22x22.png</iconset>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="tbSync">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>40</y>
-     <width>48</width>
-     <height>48</height>
-    </rect>
-   </property>
-   <property name="icon">
-    <iconset resource="linbo_icons.qrc">
-     <normaloff>:/icons/sync+start-22x22.png</normaloff>:/icons/sync+start-22x22.png</iconset>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lName">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>10</y>
-     <width>201</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="autoFillBackground">
-    <bool>false</bool>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
-   </property>
-   <property name="text">
-    <string>GymHim Linux</string>
-   </property>
-   <property name="frame">
-    <bool>false</bool>
-   </property>
-   <property name="readOnly">
-    <bool>true</bool>
-   </property>
+   <widget class="QPushButton" name="tbDefault">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>80</width>
+      <height>80</height>
+     </size>
+    </property>
+    <property name="icon">
+     <iconset resource="linbo_icons.qrc">
+      <normaloff>:/icons/default.png</normaloff>:/icons/default.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>64</width>
+      <height>64</height>
+     </size>
+    </property>
+   </widget>
+   <widget class="QSplitter" name="splitter_2">
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+    <widget class="QLineEdit" name="lName">
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
+     </property>
+     <property name="text">
+      <string>GymHim Linux</string>
+     </property>
+     <property name="frame">
+      <bool>false</bool>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QPushButton" name="tbStart">
+      <property name="minimumSize">
+       <size>
+        <width>48</width>
+        <height>48</height>
+       </size>
+      </property>
+      <property name="icon">
+       <iconset resource="linbo_icons.qrc">
+        <normaloff>:/icons/start-22x22.png</normaloff>:/icons/start-22x22.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>32</width>
+        <height>32</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="tbSync">
+      <property name="icon">
+       <iconset resource="linbo_icons.qrc">
+        <normaloff>:/icons/sync+start-22x22.png</normaloff>:/icons/sync+start-22x22.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>32</width>
+        <height>32</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="tbNew">
+      <property name="icon">
+       <iconset resource="linbo_icons.qrc">
+        <normaloff>:/icons/new+start-22x22.png</normaloff>:/icons/new+start-22x22.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>32</width>
+        <height>32</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="tbInfo">
+      <property name="icon">
+       <iconset resource="linbo_icons.qrc">
+        <normaloff>:/icons/information-22x22.png</normaloff>:/icons/information-22x22.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>32</width>
+        <height>32</height>
+       </size>
+      </property>
+     </widget>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <resources>

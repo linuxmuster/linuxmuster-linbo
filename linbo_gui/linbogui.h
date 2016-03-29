@@ -72,6 +72,9 @@ public slots:
     void enableButtons();
     void performLogin(QString passwd);
     void performLogout();
+    void doStart(int nr);
+    void doSync(int nr);
+    void doNew(int nr);
 
 private slots:
 

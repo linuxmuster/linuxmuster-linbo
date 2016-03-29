@@ -255,8 +255,7 @@ void LinboGUI::showOSs()
     int row = 0;
     int col = 0;
     for(std::vector<os_item>::iterator it = conf->elements.begin(); it != conf->elements.end(); ++it) {
-        LinboOSWidget *os = new LinboOSWidget(ui->osarea);
-        os->setOsname(it->get_name());
+        LinboOSWidget *os = new LinboOSWidget(ui->osarea, (MAXOSCOLUMN+1)*row+col, &*it);
         ui->osareaLayout->addWidget(os, row, col);
         os->show();
         col++;
@@ -364,4 +363,19 @@ void LinboGUI::on_console_clicked()
 {
     linboConsole console( this );
     console.exec();
+}
+
+void LinboGUI::doStart(int nr)
+{
+    doCommand(command->mkstartcommand(nr), false);
+}
+
+void LinboGUI::doSync(int nr)
+{
+    doCommand(command->mksyncstartcommand(nr), false);
+}
+
+void LinboGUI::doNew(int nr)
+{
+    doCommand(command->mksyncstartcommand(nr), false);
 }

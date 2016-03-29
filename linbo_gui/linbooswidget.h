@@ -4,6 +4,9 @@
 #include <qwidget.h>
 #include <qlabel.h>
 #include <qtoolbutton.h>
+#include <qicon.h>
+
+#include "image_description.h"
 
 namespace Ui {
     class LinboOSWidget;
@@ -12,24 +15,39 @@ namespace Ui {
 class LinboOSWidget : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(QString osname READ osname WRITE setOsname NOTIFY osnameChanged)
 
-public:
-    LinboOSWidget(QWidget *parent = 0);
-    QString osname() const;
-
-public slots:
-    void setOsname(const QString& new_osname);
-
-signals:
-    void osnameChanged(const QString& new_osname);
-    void doDefault();
-    void doStart();
-    void doSync();
-    void doNew();
-    void doInfo();
+    enum DefaultButton {
+        Start, Sync, New
+    };
 
 private:
+    int nr;
+    os_item* item;
+    DefaultButton defaultButton;
+
+public:
+    LinboOSWidget(QWidget *parent = 0, int newnr = 0, os_item *newItem = 0);
+    ~LinboOSWidget();
+
+signals:
+    void doStart(int nr);
+    void doSync(int nr);
+    void doNew(int nr);
+
+private slots:
+    void on_tbDefault_clicked();
+
+    void on_tbStart_clicked();
+
+    void on_tbSync_clicked();
+
+    void on_tbNew_clicked();
+
+    void on_tbInfo_clicked();
+
+private:
+    DefaultButton buttonFromAction(const QString& defaultAction);
+    void composeDefaultIcon();
     Ui::LinboOSWidget *ui;
 };
 

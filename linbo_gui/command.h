@@ -22,9 +22,10 @@ public:
     Command(Configuration *conf);
     ~Command();
 
-    QStringList mksyncstartcommand(int osnr, int imnr);
-    QStringList mksynccommand(int osnr, int imnr);
-    QStringList mksyncrcommand(int osnr, int imnr);
+    QStringList mkstartcommand(int osnr, int imnr = -1);
+    QStringList mksyncstartcommand(int osnr, int imnr = -1);
+    QStringList mksynccommand(int osnr, int imnr = -1);
+    QStringList mksyncrcommand(int osnr, int imnr = -1);
     QStringList mkpartitioncommand();
     QStringList mkpartitioncommand_noformat();
     // type is 0 for rsync, 1 for multicast, 3 for bittorrent
