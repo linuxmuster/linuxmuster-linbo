@@ -15,7 +15,7 @@
 #include "linboimagewidget.h"
 #include "login.h"
 
-LinboGUI::LinboGUI(QWidget *parent): QWidget(parent),
+LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
     logConsole(new linboLogConsole),
     ui(new Ui::LinboGUI)

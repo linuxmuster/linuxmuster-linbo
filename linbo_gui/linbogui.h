@@ -1,7 +1,7 @@
 #ifndef LINBOGUI_H
 #define LINBOGUI_H
 
-#include <QWidget>
+#include <QMainWindow>
 #include <qstring.h>
 #include <QProcess>
 #include <QTimer>
@@ -29,7 +29,7 @@ class LinboGUI;
 class linboLogConsole;
 class linboProgress;
 
-class LinboGUI : public QWidget
+class LinboGUI : public QMainWindow
 {
     Q_OBJECT
 private:

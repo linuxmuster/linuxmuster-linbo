@@ -138,12 +138,6 @@
      <height>32</height>
     </rect>
    </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-     <underline>false</underline>
-    </font>
-   </property>
    <property name="autoFillBackground">
     <bool>false</bool>
    </property>

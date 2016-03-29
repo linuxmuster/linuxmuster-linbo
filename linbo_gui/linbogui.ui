@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>LinboGUI</class>
- <widget class="QWidget" name="LinboGUI">
+ <widget class="QMainWindow" name="LinboGUI">
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Linbo</string>
+  </property>
+ <widget class="QWidget" name="centralwidget">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -553,11 +565,6 @@ background-color: rgba(255, 255, 255, 0);</string>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>
@@ -585,11 +592,6 @@ background-color: rgba(255, 255, 255, 0);</string>
          <width>181</width>
          <height>31</height>
         </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
        </property>
        <property name="text">
         <string>Zeit gesteuerte Abmeldung</string>
@@ -695,6 +697,7 @@ background-color: rgba(255, 255, 255, 0);</string>
     </layout>
    </item>
   </layout>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
