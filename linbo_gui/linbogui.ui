@@ -2,7 +2,7 @@
 <ui version="4.0">
  <class>LinboGUI</class>
  <widget class="QMainWindow" name="LinboGUI">
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -10,322 +10,233 @@
     <height>600</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Linbo</string>
   </property>
- <widget class="QWidget" name="centralwidget">
-  <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
-  </property>
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>794</width>
-    <height>571</height>
-   </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-    <horstretch>1</horstretch>
-    <verstretch>1</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="windowTitle">
-   <string>LinboGUI</string>
-  </property>
-  <property name="autoFillBackground">
-   <bool>true</bool>
-  </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="hosticon">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="pixmap">
-          <pixmap>:/icons/computer-64x64.png</pixmap>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QLineEdit" name="rechner">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="acceptDrops">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>Host: lapfschuett</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="gruppe">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>Gruppe: mobil</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="ip">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>IP: 10.16.3.51</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="mac">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>MAC: AA:BB:CC:DD:EE:FF</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QLabel" name="hdicon">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="lineWidth">
-          <number>1</number>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="pixmap">
-          <pixmap>:/icons/drive-harddisk-64x64.png</pixmap>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QLineEdit" name="hd">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>HD: /dev/sda1</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="cache">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>Cache: </string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="cpu">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>CPU: Intel(R) Core(TM) 2 Duo CPU T9300</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="ram">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-           </property>
-           <property name="text">
-            <string>RAM: 501MB</string>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTabWidget" name="systeme">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>1</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>500</width>
-       <height>300</height>
-      </size>
-     </property>
-     <property name="autoFillBackground">
-      <bool>false</bool>
-     </property>
-     <property name="tabShape">
-      <enum>QTabWidget::Rounded</enum>
-     </property>
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <widget class="QWidget" name="benutzertab">
-      <property name="enabled">
-       <bool>true</bool>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>1</horstretch>
+     <verstretch>1</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>LinboGUI</string>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>1</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <attribute name="title">
-       <string>Benutzer</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QScrollArea" name="osarea">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>1</horstretch>
-           <verstretch>1</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(255, 255, 255,255);</string>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents_2">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>738</width>
-            <height>273</height>
-           </rect>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="hosticon">
+          <property name="text">
+           <string/>
           </property>
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout"/>
-           </item>
-          </layout>
+          <property name="pixmap">
+           <pixmap resource="linbo_icons.qrc">:/icons/computer-64x64.png</pixmap>
+          </property>
          </widget>
-        </widget>
-       </item>
-      </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLineEdit" name="rechner">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="acceptDrops">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>Host: lapfschuett</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="gruppe">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>Gruppe: mobil</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="ip">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>IP: 10.16.3.51</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="mac">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>MAC: AA:BB:CC:DD:EE:FF</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="hdicon">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="lineWidth">
+           <number>1</number>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="linbo_icons.qrc">:/icons/drive-harddisk-64x64.png</pixmap>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLineEdit" name="hd">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>HD: /dev/sda1</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="cache">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>Cache: </string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="cpu">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>CPU: Intel(R) Core(TM) 2 Duo CPU T9300</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="ram">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+            </property>
+            <property name="text">
+             <string>RAM: 501MB</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
-     <widget class="QWidget" name="administratortab">
+    </item>
+    <item>
+     <widget class="QTabWidget" name="systeme">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>1</horstretch>
@@ -334,372 +245,502 @@ background-color: rgba(255, 255, 255, 0);</string>
       </property>
       <property name="minimumSize">
        <size>
-        <width>780</width>
-        <height>287</height>
+        <width>500</width>
+        <height>300</height>
        </size>
       </property>
-      <attribute name="title">
-       <string>Administrator</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QScrollArea" name="imagearea">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>1</horstretch>
-           <verstretch>1</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>590</width>
-           <height>270</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(255, 255, 255);</string>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>576</width>
-            <height>273</height>
-           </rect>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_3"/>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QPushButton" name="console">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>160</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Konsole öffnen</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="initcache">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>160</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Cache aktualisieren</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/icons/cache-22x22.png</normaloff>:/icons/cache-22x22.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="partition">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>160</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Partitionieren</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/icons/partition-22x22.png</normaloff>:/icons/partition-22x22.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="doregister">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>160</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Registrieren...</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/icons/register-22x22.png</normaloff>:/icons/register-22x22.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Minimum</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="logout">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>160</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Abmelden</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="logtab">
-      <property name="layoutDirection">
-       <enum>Qt::LeftToRight</enum>
+      <property name="autoFillBackground">
+       <bool>false</bool>
       </property>
-      <attribute name="title">
-       <string>Log</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QTextEdit" name="log">
-         <property name="minimumSize">
-          <size>
-           <width>750</width>
-           <height>280</height>
-          </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(176, 176, 176);</string>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="lineWidth">
-          <number>3</number>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <item>
-      <widget class="QLabel" name="version">
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="benutzertab">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
+         <verstretch>1</verstretch>
         </sizepolicy>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="text">
-        <string>linuxmuster-linbo 2.3.0-21</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
+       <attribute name="title">
+        <string>Benutzer</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QScrollArea" name="osareaview">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>1</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>768</width>
+            <height>306</height>
+           </size>
+          </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255,255);</string>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustIgnored</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="osarea">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>744</width>
+             <height>302</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>744</width>
+             <height>302</height>
+            </size>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <layout class="QGridLayout" name="osareaLayout">
+              <property name="leftMargin">
+               <number>20</number>
+              </property>
+              <property name="topMargin">
+               <number>20</number>
+              </property>
+              <property name="rightMargin">
+               <number>20</number>
+              </property>
+              <property name="bottomMargin">
+               <number>20</number>
+              </property>
+              <property name="spacing">
+               <number>20</number>
+              </property>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
       </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="cbTimeout">
-       <property name="enabled">
-        <bool>false</bool>
+      <widget class="QWidget" name="administratortab">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>181</width>
-         <height>31</height>
+         <width>780</width>
+         <height>287</height>
         </size>
        </property>
-       <property name="text">
-        <string>Zeit gesteuerte Abmeldung</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
+       <attribute name="title">
+        <string>Administrator</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QScrollArea" name="imageareaview">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+            <horstretch>1</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>590</width>
+            <height>270</height>
+           </size>
+          </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255);</string>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="imagearea">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>576</width>
+             <height>302</height>
+            </rect>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="imageareaLayout">
+              <property name="leftMargin">
+               <number>6</number>
+              </property>
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <property name="rightMargin">
+               <number>6</number>
+              </property>
+              <property name="bottomMargin">
+               <number>6</number>
+              </property>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QPushButton" name="console">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>160</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Konsole öffnen</string>
+            </property>
+            <property name="icon">
+             <iconset resource="linbo_icons.qrc">
+              <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="initcache">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>160</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Cache aktualisieren</string>
+            </property>
+            <property name="icon">
+             <iconset resource="linbo_icons.qrc">
+              <normaloff>:/icons/cache-22x22.png</normaloff>:/icons/cache-22x22.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="partition">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>160</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Partitionieren</string>
+            </property>
+            <property name="icon">
+             <iconset resource="linbo_icons.qrc">
+              <normaloff>:/icons/partition-22x22.png</normaloff>:/icons/partition-22x22.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="doregister">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>160</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Registrieren...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="linbo_icons.qrc">
+              <normaloff>:/icons/register-22x22.png</normaloff>:/icons/register-22x22.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Minimum</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="logout">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>160</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Abmelden</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
-     </item>
-     <item>
-      <widget class="QLCDNumber" name="timeoutCounter">
-       <property name="enabled">
-        <bool>false</bool>
+      <widget class="QWidget" name="logtab">
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
        </property>
-       <property name="minimumSize">
-        <size>
-         <width>121</width>
-         <height>31</height>
-        </size>
-       </property>
+       <attribute name="title">
+        <string>Log</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QTextEdit" name="log">
+          <property name="minimumSize">
+           <size>
+            <width>750</width>
+            <height>280</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(176, 176, 176);</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="lineWidth">
+           <number>3</number>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::MinimumExpanding</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QToolButton" name="update">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LINBO aktualisieren&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>:/icons/system-update-128x128.png</normaloff>:/icons/system-update-128x128.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>64</width>
-         <height>64</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="reboot">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Neu starten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">image: url(:/icons/system-reboot-32x32.png);</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>:/icons/system-reboot-128x128.png</normaloff>:/icons/system-reboot-128x128.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>64</width>
-         <height>64</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="halt">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ausschalten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">image: url(:/icons/system-shutdown-32x32.png);</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>:/icons/system-shutdown-128x128.png</normaloff>:/icons/system-shutdown-128x128.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>64</width>
-         <height>64</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-  </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QLabel" name="version">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="text">
+         <string>linuxmuster-linbo 2.3.0-21</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbTimeout">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>181</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Zeit gesteuerte Abmeldung</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLCDNumber" name="timeoutCounter">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>121</width>
+          <height>31</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::MinimumExpanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="update">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LINBO aktualisieren&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="icon">
+         <iconset resource="linbo_icons.qrc">
+          <normaloff>:/icons/system-update-128x128.png</normaloff>:/icons/system-update-128x128.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>64</width>
+          <height>64</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="reboot">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Neu starten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">image: url(:/icons/system-reboot-32x32.png);</string>
+        </property>
+        <property name="icon">
+         <iconset resource="linbo_icons.qrc">
+          <normaloff>:/icons/system-reboot-128x128.png</normaloff>:/icons/system-reboot-128x128.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>64</width>
+          <height>64</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="halt">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ausschalten&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">image: url(:/icons/system-shutdown-32x32.png);</string>
+        </property>
+        <property name="icon">
+         <iconset resource="linbo_icons.qrc">
+          <normaloff>:/icons/system-shutdown-128x128.png</normaloff>:/icons/system-shutdown-128x128.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>64</width>
+          <height>64</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="linbo_icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -251,22 +251,34 @@ void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAd
 
 void LinboGUI::showOSs()
 {
-    //FIXME: howto place several OS Widgets
-    QWidget *osarea = ui->osarea;
-    LinboOSWidget *os = new LinboOSWidget(osarea);
-    logConsole->writeStdOut(QString("operating system widget ")+os->windowFilePath()
-                            +QString(" added"));
-    osarea->adjustSize();
+    const int MAXOSCOLUMN = 1;
+    int row = 0;
+    int col = 0;
+    for(std::vector<os_item>::iterator it = conf->elements.begin(); it != conf->elements.end(); ++it) {
+        LinboOSWidget *os = new LinboOSWidget(ui->osarea);
+        os->setOsname(it->get_name());
+        ui->osareaLayout->addWidget(os, row, col);
+        os->show();
+        col++;
+        if(col > MAXOSCOLUMN){
+            col = 0;
+            row++;
+        }
+    }
+    ui->osarea->adjustSize();
 }
 
 void LinboGUI::showImages()
 {
-    //FIXME: howto place several Image Widgets
-    QWidget *imagearea = ui->imagearea;
-    LinboImageWidget *img = new LinboImageWidget(imagearea);
-    logConsole->writeStdOut(QString("image widget ")+img->windowFilePath()
-                            +QString(" added"));
-    imagearea->adjustSize();
+    int row = 0;
+    for(std::vector<os_item>::iterator it = conf->elements.begin(); it != conf->elements.end(); ++it) {
+        LinboImageWidget *img = new LinboImageWidget(ui->imagearea);
+        img->setOsname(it->get_name());
+        ui->imageareaLayout->addWidget(img, row, 0);
+        img->show();
+        row++;
+    }
+    ui->imagearea->adjustSize();
 }
 
 void LinboGUI::performLogin(QString passwd)
