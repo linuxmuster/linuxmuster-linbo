@@ -2,7 +2,6 @@
 d60bc657206b07ad84d926649d6417dc  chntpw-source-140201.zip
 46d186707c7767db664afe681f8eaad6  ms-sys-2.3.0.tar.gz
 f11d563816249d730a00498983485f3a  ntfs-3g_ntfsprogs-2014.2.15.tgz
-545d6600e5de5e5fd64214e75036dfef  qt-everywhere-opensource-src-5.5.1.7z
 15304031d7f41e1c0794762d0053e55c  cloop_3.14.1.2.tar.xz
 05c2fae98fb3b596667f602f70dc1755  cloop-utils_3.14.1.2+b1_i386.deb
 3bea345cf0c780e28df26c059cb3eea9  gptfdisk_1.0.0-1_amd64.deb
@@ -10,3 +9,4 @@ eed88eace5e9dbe1dfc451f5768e5042  gptfdisk_1.0.0-1_i386.deb
 0247b6a7b314f8edeb618159fa95f9cb  parted-3.2.tar.xz
 6aa49f47a99207a5066d747a6100f220  lsaSecrets-master.zip
 4d5c94399b2a6e3b6a565a21df06333a  linux-4.2.0.tar.xz
+6e109cbfd2e586213e44a996f0ab7ff3  qt-everywhere-opensource-src-5.6.0.7z

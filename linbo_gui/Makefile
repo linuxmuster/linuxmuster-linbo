@@ -17,16 +17,17 @@ endif
 QT_ARCHIVE_NAME=$(shell grep qt- $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
 QT_ARCHIVE=$(CACHEDIR)/$(QT_ARCHIVE_NAME)
 QT_VERS=$(shell echo $(QT_ARCHIVE_NAME) | sed -e 's/qt-everywhere-opensource-src-//' -e 's/.7z//')
-QT_URL=http://download.qt-project.org/official_releases/qt/5.5/$(QT_VERS)/single
+QT_MAJOR=$(shell echo $(QT_VERS) | awk -F\. '{ print $$1"."$$2 }')
+QT_URL=http://download.qt-project.org/official_releases/qt/$(QT_MAJOR)/$(QT_VERS)/single
 QT_SRC=$(CURDIR)/$(shell echo $(QT_ARCHIVE_NAME) | sed -e 's/.7z//')
 QT_BUILD32=$(BUILDDIR)/build-qt32
 QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu-
 QT_BUILD64=$(BUILDDIR)/build-qt64
 QT_BUILD64OPTS=-sysroot $(SYSROOT64) 
 QT_OPTS=-debug -qpa linuxfb -linuxfb -static -opensource -confirm-license -nomake examples \
-	-verbose -no-dbus -no-largefile -no-qml-debug -no-accessibility -qt-freetype \
+	-no-dbus -no-largefile -no-qml-debug -no-accessibility -qt-freetype \
 	-no-harfbuzz -no-iconv -no-gif -no-libjpeg -qt-libpng -no-nis -no-sql-mysql \
-	-no-sql-sqlite -nomake tools
+	-no-sql-sqlite -nomake tools -no-libinput
 
 #	-opensource -confirm-license -release -static -no-accessibility -no-pulseaudio \
 #	-no-alsa -no-gtkstyle -no-fontconfig -no-xcb-xlib -no-xcb \

@@ -198,7 +198,7 @@ void LinboGUI::on_systeme_currentChanged(int index)
             // if our partition button is disabled, there is a linbo_cmd running
             if( process->state() != QProcess::Running ) {
                 ui->systeme->setCurrentIndex( preTab );
-                Login *dlg = new Login( this );
+                Login *dlg = new Login( );
                 connect(dlg, SIGNAL(acceptLogin(QString)), this, SLOT(performLogin(QString)));
                 dlg->exec();
             }
