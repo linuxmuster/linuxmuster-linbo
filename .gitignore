@@ -1,8 +1,7 @@
 src
 src64
-kernel
-kernel64
 cache
+linux-*
 *-stamp
 .directory
 build*

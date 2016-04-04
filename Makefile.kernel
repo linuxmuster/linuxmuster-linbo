@@ -13,168 +13,96 @@ VESAMODE=785 # 640x480, 64k colors
 # VESAMODE=0 # VGA16
 # VESAMODE=791 # 1024x768, 64k colors # Currently not working
 KERNEL_ARCHIVE_NAME=$(shell grep " linux-" $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
+KERNEL_ARCHIVE=$(CACHEDIR)/$(KERNEL_ARCHIVE_NAME)
 KVERS=$(shell echo $(KERNEL_ARCHIVE_NAME) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
+KERNELDIR=$(CURDIR)/linux-$(KVERS)
 KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
-KERNEL_DIR=kernel/linux-$(KVERS)
 #KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
 KERNEL_URL=$(LML_URL)
 
+# kernel32
+BUILD32:=$(BUILDDIR)/linux32-$(KVERS)
 # kernel64
-KERNEL64_DIR=kernel64/linux-$(KVERS)
+BUILD64:=$(BUILDDIR)/linux64-$(KVERS)
 
-# cloop
-CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
-#CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-#CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
-CLOOP_URL=$(LML_URL)
-
-# cloop utils 32bit
-CLOOPUTILS_DEB=$(shell grep cloop-utils_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOPUTILS_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
-
-# cloop64
-#CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+DIRS:=$(CACHEDIR) $(KERNELDIR) $(BUILD32) $(BUILD64)
 
 # targets
 
-configure: configure32 configure64
+$(DIRS):
+	for i in $(DIRS); do \
+	    mkdir -p $$i; \
+	done;
 
-preconfigure:
-	# make necessary build dirs
-	mkdir -p cache || true
-	mkdir -p kernel || true
-	mkdir -p kernel64 || true
+$(KERNEL_ARCHIVE): | $(DIRS)
+	wget --directory-prefix=$(CACHEDIR) $(KERNEL_URL)/$(KERNEL_ARCHIVE_NAME)
+	( cd $(CACHEDIR); grep $(KERNEL_ARCHIVE_NAME) $(DEBIANDIR)/md5sums.src | md5sum -c )
 
-configure32: preconfigure
-	# cloop
-	-@if [ ! -d $(CLOOP_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-	fi
+$(KERNELDIR)/Makefile: $(KERNEL_ARCHIVE)
+	echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m"
+	tar xf $(KERNEL_ARCHIVE) -C $(CURDIR)
+#	mv $(CURDIR)/linux-$(KMAINVERS) $(CURDIR)/linux-$(KVERS)
 
-	# cloop-utils
-	-@if [ ! -e cache/$(CLOOPUTILS_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(CLOOPUTILS_DEB) ...[0m" ; wget $(CLOOPUTILS_URL)/$(CLOOPUTILS_DEB) ) ; \
-		rm -rf $(BIN32_DIR)/usr/share/doc/cloop-utils ; \
-	fi
-	-@if [ ! -d $(BIN32_DIR)/usr/share/doc/cloop-utils ]; then \
-		echo "[1mUnpacking cloop-utils ...[0m" ; \
-		dpkg -x cache/$(CLOOPUTILS_DEB) $(BIN32_DIR) ; \
-	fi
-	# kernel
-	-@if [ ! -d $(KERNEL_DIR) ]; then \
-		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
-		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
-		( cd kernel && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
-		echo "[1mPatching kernel sources...[0m" ; \
-		( cd $(KERNEL_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
-		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
-	fi
+$(BUILD32)/.config: $(KERNELDIR)/Makefile $(CONFDIR)/kernel.conf $(CONFDIR)/initramfs_kernel.conf
+	rm -f $(BUILD64)/usr/initramfs_data.cpio.gz
+	cp $(CONFDIR)/initramfs_kernel.conf $(BUILDDIR)/initramfs_kernel.conf
+	cp $(CONFDIR)/kernel.conf $(BUILD32)/.config
+	(cd $(KERNELDIR); ARCH=i386 CFLAGS=-m32 make O=$(BUILD32) oldconfig )
 
-configure64: preconfigure
-	# cloop64
-	-@if [ ! -d $(CLOOP64_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
-		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
-	fi
-	# kernel64
-	-@if [ ! -d $(KERNEL64_DIR) ]; then \
-		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
-		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(KERNEL_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KERNEL_ARCHIVE) -C kernel64; \
-		( cd kernel64 && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
-		echo "[1mPatching 64bit kernel sources...[0m" ; \
-		( cd $(KERNEL64_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
-		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
-	fi
+$(BUILD64)/.config: $(KERNELDIR)/Makefile $(CONFDIR)/kernel64.conf $(CONFDIR)/initramfs_kernel.conf
+	rm -f $(BUILD64)/usr/initramfs_data.cpio.gz
+	cp $(CONFDIR)/initramfs_kernel.conf $(BUILDDIR)/initramfs_kernel.conf
+	cp $(CONFDIR)/kernel64.conf $(BUILD64)/.config
+	(cd $(KERNELDIR); ARCH=x86_64 make O=$(BUILD64) oldconfig )
+
+configure: config32 config64
+
+config32: $(BUILD32)/.config 
+
+config64: $(BUILD64)/.config
 
 build: build32 build64
 
-build32:
-	# linbo kernel
-	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
-	        echo "[1mBuilding LINBO kernel...[0m" ; \
-	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
-	        rm -rf ../modules/* || true ; \
-	        cd $(KERNEL_DIR) ; \
-	        ln -snf ../initramfs_kernel.conf . ; \
-	        :> ../initramfs_kernel.conf ; \
-	        rm -f usr/initramfs_data.cpio.gz || true ; \
-	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=i386 CFLAGS=-m32 make bzImage modules ; \
-	fi
-	# cloop module
-	-@if [ ! -e $(CLOOP_DIR)/cloop.ko ]; then \
-	        echo "[1mBuilding cloop module...[0m" ; \
-	        rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
-	        cd $(CLOOP_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
-	fi
+build32: $(BUILD32)/vmlinuz 
 
-build64:
-	# linbo kernel64
-	-@if [ ! -e $(KERNEL64_DIR)/vmlinux ]; then \
-	        echo "[1mBuilding 64bit LINBO kernel...[0m" ; \
-	        rm -f $(CLOOP64_DIR)/cloop.ko || true ; \
-	        rm -rf ../modules/* || true ; \
-	        cd $(KERNEL64_DIR) ; \
-	        ln -snf ../initramfs_kernel.conf . ; \
-	        :> ../initramfs_kernel.conf ; \
-	        rm -f usr/initramfs_data.cpio.gz || true ; \
-	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=x86_64 make bzImage modules ; \
-	fi
-	# cloop64 module
-	-@if [ ! -e $(CLOOP64_DIR)/cloop.ko ]; then \
-	        echo "[1mBuilding 64bit cloop module...[0m" ; \
-	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
-	fi
-	# cloop64 utils
-	-@if [ ! -e $(CLOOP64_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
-	        echo "[1mBuilding 64bit cloop utils...[0m" ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( ARCH=x86_64 make utils ) ; \
-	fi
+build64: $(BUILD64)/vmlinuz
+
+$(BUILD32)/vmlinuz: $(BUILD32)/.config $(BUILDDIR)/initramfs_kernel.conf
+	echo "[1mBuilding 32bit LINBO kernel...[0m"
+	( cd $(KERNELDIR) ; ARCH=i386 CFLAGS=-m32 make O=$(BUILD32) bzImage modules )
+
+$(BUILD64)/vmlinuz: $(BUILD64)/.config $(BUILDDIR)/initramfs_kernel.conf
+	echo "[1mBuilding 64bit LINBO kernel...[0m"
+	( cd $(KERNELDIR) ; ARCH=x86_64 make O=$(BUILD64) bzImage modules )
 
 distclean: clean
-
-	rm -rf kernel || true
-	rm -rf kernel64 || true
+	rm -rf $(KERNEL_DIR)
 
 clean: 
+	rm -rf $(BUILD32)
+	rm -rf $(BUILD64)
+	rm -f $(BUILDDIR)/initramfs_kernel.conf
 
 install: install32 install64
 
-install32: build32
-	# kernel
-	( cd $(KERNEL_DIR) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT) )
-	# cloop module
-	mkdir -p $(SYSROOT)/lib/modules/$(KVERS)/kernel/drivers/block && \
-	cp $(CLOOP_DIR)/cloop.ko $(SYSROOT)/lib/modules/$(KVERS)/kernel/drivers/block/
-	# depmod
-	-/sbin/depmod -a -b $(SYSROOT) $(KVERS)
+install32: $(SYSROOT32)/lib/modules/modules.dep 
 
-install64: 
-	# kernel64
-	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install )
-	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install )
-	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install )
-	mkdir -p $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block && \
-	cp $(CLOOP64_DIR)/cloop.ko $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block/
-	# depmod
-	-/sbin/depmod -a -b $(SYSROOT64) $(KVERS)
+install64: $(SYSROOT64)/lib/modules/modules.dep
 
-.PHONY: build clean install configure
+$(SYSROOT32)/lib/modules/modules.dep: $(BUILD32)/vmlinuz
+	( cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT32) modules_install )
+	( cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_HDR_PATH=$(SYSROOT32)/usr headers_install )
+	( cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_PATH=$(SYSROOT32) install )
+	/sbin/depmod -a -b $(SYSROOT32) $(KVERS)
+
+$(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz
+	( cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install )
+	( cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install )
+	( cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install )
+	/sbin/depmod -a -b $(SYSROOT64) $(KVERS)
+
+.PHONY: $(DIRS)
+.PHONY: distclean clean
+.PHONY: build build32 build64
+.PHONY: install install32 install64
+.PHONY: configure config32 config64

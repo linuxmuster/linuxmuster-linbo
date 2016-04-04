@@ -81,4 +81,5 @@ clean:
 
 install:
 
-.PHONY: build clean install configure
+.PHONY: build distclean clean install 
+.PHONY: configure configure32 configure64
