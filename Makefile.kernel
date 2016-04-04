@@ -170,7 +170,7 @@ install32: build32
 install64: 
 	# kernel64
 	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install )
-	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64) headers_install )
+	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install )
 	( cd $(KERNEL64_DIR) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install )
 	mkdir -p $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP64_DIR)/cloop.ko $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block/
