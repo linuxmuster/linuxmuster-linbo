@@ -33,8 +33,6 @@ BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
 
 # targets
 
-	# download and unpack sources
-
 configure: configure32 configure64
 
 configure32:
@@ -73,6 +71,12 @@ configure64:
 		fi ; \
 	done
 
+config-dfb64: $(DIRECTFB)/configure
+	( cd $(DIRECTFB) ; PKG_CONFIG_LIBDIR=$(SYSROOT64)/usr/lib/pkgconfig \
+	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT64)/usr/share/aclocal" \
+	CPPFLAGS=-I$(SYSROOT64)/usr/include LDFLAGS=-L$(SYSROOT64)/usr/lib \
+	./configure --prefix=$(SYSROOT64) $(DIRECTFB_OPTS) )
+
 build:
 
 distclean: clean
@@ -81,5 +85,5 @@ clean:
 
 install:
 
-.PHONY: build distclean clean install 
+.PHONY: download build distclean clean install
 .PHONY: configure configure32 configure64

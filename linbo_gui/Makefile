@@ -24,7 +24,7 @@ QT_BUILD32=$(BUILDDIR)/build-qt32
 QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu-
 QT_BUILD64=$(BUILDDIR)/build-qt64
 QT_BUILD64OPTS=-sysroot $(SYSROOT64) 
-QT_OPTS=-debug -qpa directfb -linuxfb -static -opensource -confirm-license -nomake examples \
+QT_OPTS=-debug -qpa linuxfb -linuxfb -static -opensource -confirm-license -nomake examples \
 	-no-dbus -no-largefile -no-qml-debug -no-accessibility -qt-freetype \
 	-no-harfbuzz -no-iconv -no-gif -no-libjpeg -qt-libpng -no-nis -no-sql-mysql \
 	-no-sql-sqlite -nomake tools -libinput -verbose
@@ -65,7 +65,10 @@ config-qt64: $(QT_BUILD64)/Makefile
 
 $(QT_BUILD64)/Makefile: $(QT_SRC)/configure
 	mkdir -p $(QT_BUILD64);
-	cd $(QT_BUILD64) && echo -e "yes\n" | $(QT_SRC)/configure -prefix /usr $(QT_OPTS) $(QT_BUILD64OPTS)
+	( cd $(QT_BUILD64) ; PKG_CONFIG_LIBDIR=$(SYSROOT64)/usr/lib/pkgconfig \
+	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT64)/usr/share/aclocal" \
+	CPPFLAGS=-I$(SYSROOT64)/usr/include LDFLAGS=-L$(SYSROOT64)/usr/lib \
+	echo -e "yes\n" | $(QT_SRC)/configure -prefix /usr $(QT_OPTS) $(QT_BUILD64OPTS) )
 
 configure-gui:
 	mkdir -p $(GUI_BUILD32);
