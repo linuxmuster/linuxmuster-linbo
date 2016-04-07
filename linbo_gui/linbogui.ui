@@ -309,8 +309,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>744</width>
-             <height>302</height>
+             <width>752</width>
+             <height>324</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -371,7 +371,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         <item>
          <widget class="QScrollArea" name="imageareaview">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>1</horstretch>
             <verstretch>1</verstretch>
            </sizepolicy>
@@ -399,8 +399,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>576</width>
-             <height>302</height>
+             <width>578</width>
+             <height>324</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">

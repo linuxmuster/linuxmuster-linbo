@@ -33,7 +33,6 @@ SOURCES += main.cpp\
     linboLogConsole.cpp \
     linboProgress.cpp \
     linboMulticastBox.cpp \
-    linboRegisterBox.cpp \
     linboYesNo.cpp \
     linboConsole.cpp \
     linbooswidget.cpp \
@@ -57,7 +56,6 @@ HEADERS  += linbogui.h\
     linboDialog.h \
     linboMulticastBox.h \
     linboProgress.h \
-    linboRegisterBox.h \
     linboYesNo.h \
     linbooswidget.h \
     linboimagewidget.h \
@@ -75,7 +73,6 @@ FORMS    += linbogui.ui\
     linboInputBox.ui \
     linboMulticastBox.ui \
     linboProgress.ui \
-    linboRegisterBox.ui \
     linboYesNo.ui \
     linbooswidget.ui \
     linboimagewidget.ui \
