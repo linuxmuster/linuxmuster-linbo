@@ -1,7 +1,7 @@
 #ifndef FOLGEAKTION_H
 #define FOLGEAKTION_H
 
-public enum FolgeAktion {
+enum FolgeAktion {
     None,
     Reboot,
     Shutdown

@@ -13,8 +13,6 @@
 #include <QFile>
 
 #include "linbogui.h"
-#include "linboDialog.h"
-#include "linboLogConsole.h"
 #include "folgeaktion.h"
 
 namespace Ui {
@@ -22,7 +20,7 @@ namespace Ui {
 }
 class LinboGUI;
 
-class linboImageSelector : public QDialog, public linboDialog
+class linboImageSelector : public QDialog
 {
   Q_OBJECT
 
@@ -31,7 +29,7 @@ private:
   bool upload;
 
 public:
-  linboImageSelector( QWidget* parent = 0, Command* newCommand);
+  linboImageSelector( QWidget* parent = 0, Command* newCommand = 0);
 
   ~linboImageSelector();
 

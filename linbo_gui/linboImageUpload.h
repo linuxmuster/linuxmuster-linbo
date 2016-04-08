@@ -5,7 +5,6 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qvariant.h>
-#include <qwidget.h>
 #include <qdialog.h>
 #include <QTextEdit>
 #include <qstringlist.h>
@@ -14,55 +13,36 @@
 #include <QProcess>
 
 #include "linbogui.h"
-#include "linboDialog.h"
-#include "linboLogConsole.h"
+#include "folgeaktion.h"
+#include "image_description.h"
 
 namespace Ui {
-    class linboImageUpload;
+class linboImageUpload;
 }
 class LinboGUI;
 
-class linboImageUpload : public QWidget, public linboDialog
+class linboImageUpload : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 private:
-  QString line;
-  QStringList arguments;
-  QProcess *process;
-  LinboGUI* app;
-  QWidget *myMainApp,*myParent;
-  QTextEdit *Console;
-  linboProgress *progwindow;
-  linboLogConsole* logConsole;
-  
-
-public slots:
-  void readFromStdout();
-  void readFromStderr();
-  virtual void precmd();
-  virtual void postcmd();
-  void processFinished( int retval,
-                        QProcess::ExitStatus status);
+    int nr;
+    vector<image_item> image;
 
 public:
-  linboImageUpload( QWidget* parent = 0);
+    linboImageUpload( QWidget* parent = 0, int newnr = 0, vector<image_item>* newImage = 0);
+    ~linboImageUpload();
+
     QListWidgetItem *findImageItem(QString imageName);
-    void insertImageItem(QListWidgetItem imageItem);
-    void insertImageItem(QString imageName);
-    void setCurrentImageItem(QListWidgetItem* imageItem);
 
-  ~linboImageUpload();
+signals:
+    void finished(int nr, const QString& imageName, FolgeAktion aktion);
 
-  void setTextBrowser( const QString& new_consolefontcolorstdout,
-		       const QString& new_consolefontcolorstderr,
-		       QTextEdit* newBrowser );
-  virtual void setCommand(const QStringList& arglist);
-  virtual QStringList getCommand();
-  virtual void setMainApp( QWidget* newMainApp );
+private slots:
+    void on_okButton_clicked();
 
 private:
-  Ui::linboImageUpload *ui;
+    Ui::linboImageUpload *ui;
 
 };
 #endif

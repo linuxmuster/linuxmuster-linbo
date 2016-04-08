@@ -396,12 +396,12 @@ void LinboGUI::doCreateDialog(int nr)
 
 void LinboGUI::doUploadDialog(int nr)
 {
-    linboImageUpload* dlg = new linboImageUpload( this );
+    linboImageUpload* dlg = new linboImageUpload( this, nr, this->conf->elements[nr] );
     connect(dlg, &linboImageUpload::finished, this, &LinboGUI::doUpload);
     dlg->exec();
 }
 
-void LinboGUI::doCreate(int nr, const QString &imageName, const QString &description, bool isnew, bool upload, FolgeAktion folgeAktion)
+void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion folgeAktion)
 {
     QString baseImage = imageName.left(imageName.lastIndexOf(".")) + QString(".cloop");
     if(isnew){
@@ -433,7 +433,13 @@ void LinboGUI::doCreate(int nr, const QString &imageName, const QString &descrip
         system("busybox shutdown");
 }
 
-void LinboGUI::doUpload(int nr, const QString &imageName)
+void LinboGUI::doUpload(int nr, const QString &imageName, FolgeAktion aktion)
 {
+    doCommand( command->mkuploadcommand());
 
+    if (aktion == FolgeAktion::Shutdown) {
+        system("busybox poweroff");
+    } else if (aktion == FolgeAktion::Reboot) {
+        system("busybox reboot");
+    }
 }

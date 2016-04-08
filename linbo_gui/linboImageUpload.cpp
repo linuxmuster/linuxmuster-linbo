@@ -9,150 +9,21 @@
 #include "ui_linboImageUpload.h"
 #include "linboYesNo.h"
 
-linboImageUpload::linboImageUpload(  QWidget* parent ) : linboDialog(), ui(new Ui::linboImageUpload)
+linboImageUpload::linboImageUpload(  QWidget* parent, int newnr, vector<image_item>* newImage ) : QDialog(parent),
+     nr(newnr), image(newImage), ui(new Ui::linboImageUpload)
 {
-  ui->setupUi(this);
-  process = new QProcess( this );
-
-  if( parent )
-    myParent = parent;
-
-  connect( ui->cancelButton, SIGNAL(pressed()), this, SLOT(close()) );
-  connect( ui->okButton, SIGNAL(pressed()), this, SLOT(postcmd()) );
-
-  // connect SLOT for finished process
-  connect( process, SIGNAL(finished(int, QProcess::ExitStatus) ),
-           this, SLOT(processFinished(int, QProcess::ExitStatus)) );
-
-  // connect stdout and stderr to linbo console
-  connect( process, SIGNAL(readyReadStandardOutput()),
-	   this, SLOT(readFromStdout()) );
-  connect( process, SIGNAL(readyReadStandardError()),
-	   this, SLOT(readFromStderr()) );
-
-
-  Qt::WindowFlags flags;
-  flags = Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint;
-  setWindowFlags( flags );
-
-  progwindow = new linboProgress(0);
-
-  logConsole = new linboLogConsole();
-
-  QRect qRect(QApplication::desktop()->screenGeometry());
-  // open in the center of our screen
-  int xpos=qRect.width()/2-this->width()/2;
-  int ypos=qRect.height()/2-this->height()/2;
-  this->move(xpos,ypos);
-  this->setFixedSize( this->width(), this->height() );
+    ui->setupUi(this);
+    if( image != NULL){
+        for(int i=0; i < image.size(); i++){
+            ui->listBox->addItem();
+        }
+    }
 }
 
 linboImageUpload::~linboImageUpload()
 {
+    delete ui;
 } 
-
-void linboImageUpload::setTextBrowser( const QString& new_consolefontcolorstdout,
-				      const QString& new_consolefontcolorstderr,
-				      QTextEdit* newBrowser )
-{
-  logConsole->setLinboLogConsole( new_consolefontcolorstdout,
-				  new_consolefontcolorstderr,
-				  newBrowser );
-}
-
-void linboImageUpload::setMainApp( QWidget* newMainApp ) {
-  myMainApp = newMainApp;
-}
-
-
-void linboImageUpload::precmd() {
-  // nothing to do
-}
-
-
-void linboImageUpload::postcmd() {
-  
-  app = static_cast<LinboGUI*>( myMainApp );
-  
-  this->hide();
-  arguments[6] = ui->listBox->currentItem()->text();
-
-  
-  if( app ) {
-    // do something
-
-    //FIXME: remove - progwindow->setProcess( process );
-    // connect( process, SIGNAL(processExited()), progwindow, SLOT(close()));
-    progwindow->show();
-    progwindow->raise();
-    
-    progwindow->activateWindow();
-    progwindow->setUpdatesEnabled( true );
-    progwindow->setEnabled( true );
-       
-    app->disableButtons();
-
-
-    QStringList processargs( arguments );
-    QString command = processargs.takeFirst();
-
-    logConsole->writeStdErr( QString("Executing ") + command + processargs.join(" ") );
-
-    process->start( command, processargs );
-
-    while( process->state() == QProcess::Running ) {
-      for( int i = 0; i <= 100; i++ ) {
-        usleep(10000);
-        progwindow->setProgress(i);
-        progwindow->update();
-        
-        qApp->processEvents();
-      } 
-    }
-  }
-
-  if ( ui->checkShutdown->isChecked() ) {
-    system("busybox poweroff");
-  } else if ( ui->checkReboot->isChecked() ) {
-    system("busybox reboot");
-  }
-
-  this->close(); 
-}
-
-void linboImageUpload::setCommand(const QStringList& arglist)
-{
-  arguments = arglist; 
-}
-
-QStringList linboImageUpload::getCommand()
-{
-  return arguments; 
-}
-
-void linboImageUpload::readFromStdout()
-{
-  logConsole->writeStdOut( process->readAllStandardOutput() );
-}
-
-void linboImageUpload::readFromStderr()
-{
-  logConsole->writeStdErr( process->readAllStandardError() );
-}
-
-void linboImageUpload::processFinished( int retval,
-                                             QProcess::ExitStatus status) {
-
-  logConsole->writeResult( retval, status, process->error() );
-			   
-  app->restoreButtonsState();
-
-  if( progwindow ) {
-    progwindow->close();
-  }
-
-
-}
 
 QListWidgetItem* linboImageUpload::findImageItem(QString imageItem)
 {
@@ -164,12 +35,17 @@ QListWidgetItem* linboImageUpload::findImageItem(QString imageItem)
     }
 }
 
-void linboImageUpload::insertImageItem(QString imageName)
+void linboImageUpload::on_okButton_clicked()
 {
-    ui->listBox->addItem(new QListWidgetItem(imageName));
-}
+    QString imageName = ui->listBox->currentItem()->text();
+    FolgeAktion aktion;
+    if( ui->checkReboot->isChecked())
+        aktion = FolgeAktion::Reboot;
+    else if( ui->checkShutdown->isChecked())
+        aktion = FolgeAktion::Shutdown;
+    else
+        aktion = FolgeAktion::None;
 
-void linboImageUpload::setCurrentImageItem(QListWidgetItem* imageItem)
-{
-    ui->listBox->setCurrentItem(imageItem, QItemSelectionModel::SelectCurrent);
+    emit(finished(nr, imageName, aktion));
+    this->accept();
 }

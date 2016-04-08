@@ -78,7 +78,7 @@ public slots:
     void doSync(int nr);
     void doNew(int nr);
     void doCreateDialog(int nr);
-    void doCreate(int nr, const QString &imageName, const QString &description, bool isnew, bool upload, FolgeAktion folgeAktion);
+    void doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion folgeAktion);
     void doUploadDialog(int nr);
 
 private slots:
