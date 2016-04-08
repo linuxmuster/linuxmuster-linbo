@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20.03.2015
+# 19.03.2016
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -91,6 +91,7 @@ read_cmdline(){
  case "$CMDLINE" in *\ splash*) splash=yes;; esac
  case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
  case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
+ case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
 }
 
 # initial setup
@@ -123,7 +124,7 @@ init_setup(){
  fi
 
  mount -t sysfs /sys /sys
- mount -n -o mode=0755 -t tmpfs tmpfs /dev
+ mount -t devtmpfs devtmpfs /dev
  if [ -e /etc/udev/links.conf ]; then
   udev_extra_nodes
  fi
@@ -150,7 +151,7 @@ trycopyfromdevice(){
   mount -r "$device" /cache &>/dev/null || return 1
  fi
  for i in $files; do
-  if [ -e /cache/"$i" -a -s /cache/linbo ]; then
+  if [ -e /cache/"$i" ] && [ -s /cache/linbo -o -s /cache/linbo64 ]; then
    RC=0
    cp -af /cache/"$i" . >/dev/null 2>&1
   fi
@@ -161,11 +162,12 @@ trycopyfromdevice(){
 
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
- local major="" minor="" blocks="" device="" relax=""
- if [ -b "$cache" ]; then
-  trycopyfromdevice "$cache" "$1" && return 0
+ local cachdev="$(printcache)"
+ if [ -b "$cachedev" ]; then
+  trycopyfromdevice "$cachedev" "$1" && return 0
  fi
- cat /proc/partitions | grep -v ^major | while read major minor blocks device relax; do
+ local major="" minor="" blocks="" device="" relax=""
+ grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
   if [ -b "/dev/$device" ]; then
    trycopyfromdevice "/dev/$device" "$1" && return 0
   fi
@@ -186,18 +188,23 @@ Cache = $cache" -i "$1"
 
 # print cache partition
 printcache(){
- local cachedev=""
- if [ -n "$cache" ]; then
-  cachedev="$cache"
- else
-  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cache" -a -b "$cache" ]; then
+  echo "$cache"
+  return 0
  fi
- [ -b "$cachedev" ] && echo "$cachedev"
+ [ -s /start.conf ] || return 1
+ local cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cachedev" -a -b "$cachedev" ]; then
+  echo "$cachedev"
+  return 0
+ fi
+ return 1
 }
 
 # copytocache file - copies start.conf to local cache
 copytocache(){
  local cachedev="$(printcache)"
+ [ -z "$cachedev" ] && return 1
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
@@ -215,7 +222,8 @@ copytocache(){
    # save hostname for offline use
    echo "Saving hostname $(hostname) to cache."
    hostname > /cache/hostname
-   [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
+   # deprecated
+   #[ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
   *)
@@ -244,7 +252,8 @@ copyextra(){
 # Try to read the first valid ip address from all up network interfaces
 get_ipaddr(){
  local ip=""
- while read line; do
+ local line
+ ifconfig | while read line; do
   case "$line" in *inet\ addr:*)
    ip="${line##*inet addr:}"
    ip="${ip%% *}"
@@ -252,9 +261,7 @@ get_ipaddr(){
    [ -n "$ip" ] && { echo "$ip"; return 0; }
    ;;
   esac
- done <<.
-$(ifconfig)
-.
+ done
  return 1
 }
 
@@ -309,14 +316,6 @@ get_server(){
  done <<.
 $(route -n)
 .
- return 1
-}
-
-# check if reboot is set in start.conf (deprecated)
-isreboot(){
- if [ -s /start.conf ]; then
-  grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
- fi
  return 1
 }
 
@@ -426,25 +425,41 @@ save_winact(){
  rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
 }
 
-# remove linbo reboot flag, save windows activation tokens
+# save windows activation tokens
 do_housekeeping(){
- local device="" properties="" cachedev="$(printcache)"
+ local device="" 
+ local cachedev="$(printcache)"
  if ! mount "$cachedev" /cache; then
   echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
   return 1
  fi
- sfdisk -l 2> /dev/null | grep ^/dev | grep -v "$cachedev" | grep -v Extended | grep -v "Linux swap" | while read device properties; do
+ grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
   if mount "$device" /mnt 2> /dev/null; then
-   if ls /mnt/.*.reboot &> /dev/null; then
-    echo "Entferne Reboot-Flag von $device."
-    rm -f /mnt/.*.reboot
-   fi
    # save windows activation files
    ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
    umount /mnt
   fi
  done
  mount | grep -v grep | grep -q /cache && umount /cache
+}
+
+# update linbo and install it locally
+do_linbo_update(){
+ local server="$1"
+ local cachedev="$(printcache)"
+ local customcfg="/cache/boot/grub/custom.cfg"
+ local rebootflag="/tmp/.linbo.reboot"
+ # save current custom.cfg
+ linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
+ # test if linbofs or custom.cfg were updated on local boot
+ if [ -n "$localboot" -a -e "$rebootflag" ]; then
+  echo "Lokale LINBO/GRUB-Konfiguration wurde aktualisiert. Starte neu ..."
+  cd /
+  umount -a &> /dev/null
+  /sbin/reboot -f
+ else
+  [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
+ fi
 }
 
 # disable auto functions from cmdline
@@ -519,9 +534,17 @@ network(){
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
+   # check if using vlan
+   if [ -n "$vlanid" ]; then
+    vconfig add "$dev" "$vlanid" &> /dev/null
+    dhcpdev="$dev.$vlanid"
+    ip link set dev "$dhcpdev" up
+   else
+    dhcpdev="$dev"
+   fi
    # dhcp retries
    [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dev" $dhcpretry &> /dev/null
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null
    # set mtu
    [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
   done
@@ -538,11 +561,17 @@ network(){
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
-  echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
   echo "Downloading configuration files from $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
   done
+  # set flag for working network connection
+  if [ -s start.conf ]; then
+   echo "Network connection to $server successfully established."
+   echo > /tmp/network.ok
+  fi
+  # linbo update
+  do_linbo_update "$server"
   # also look for other needed files
   for i in "torrent-client.conf" "multicast.list"; do
    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
@@ -567,16 +596,13 @@ network(){
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
+ # if start.conf could not be downloaded
  if [ ! -s start.conf ]; then
   # No new version / no network available, look for cached copies of start.conf and icons folder.
   copyfromcache "start.conf icons"
- else
-  # flag for network connection
-  echo "Network connection to $server successfully established."
-  echo > /tmp/network.ok
+  # Still nothing new, revert to old version.
+  [ ! -s start.conf ] && mv -f start.conf.dist start.conf
  fi
- # Still nothing new, revert to old version.
- [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  # disable auto functions if noauto is given
@@ -609,6 +635,7 @@ hwsetup(){
  #
  # Udev starten
  echo > /sys/kernel/uevent_helper
+ mkdir -p /run/udev
  udevd --daemon
  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
  udevadm trigger
@@ -673,6 +700,9 @@ if [ -z  "$splash" ]; then
 fi
 
 # splash mode
+
+# convert wallpaper to splash image
+pngtopnm /icons/linbo_wallpaper.png > /etc/splash.pnm
 
 # no kernel messages, no screen blanking
 setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0

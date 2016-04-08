@@ -3,8 +3,8 @@
 # This is a busybox 1.1.3 script
 # (C) Klaus Knopper 2007
 # License: GPL V2
-# tschmitt@linuxmuster.net
-# 01.02.2014
+# thomas@linuxmuster.net
+# 02.11.2015
 #
 
 # Reset fb color mode
@@ -33,7 +33,9 @@ case "$CMDLINE" in *\ debug*)
 esac
 
 # Start LINBO GUI
-DISPLAY=""
-case "$(fbset -i 2>/dev/null)" in *640\ 480\ 4*) DISPLAY="-display VGA16:0";; esac
+#DISPLAY=""
+# not necessary anymore?
+#case "$(fbset 2>/dev/null)" in *640x480*) DISPLAY="-display VGA16:0";; esac
 export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
-exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
+#exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
+exec linbo_gui -qws >/tmp/linbo_gui.$$.log 2>&1

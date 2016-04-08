@@ -1,4 +1,5 @@
 #include "linboInfoBrowserImpl.hh"
+#include <unistd.h>
 #include <qapplication.h>
 #include <QtGui>
 #include <q3textstream.h>

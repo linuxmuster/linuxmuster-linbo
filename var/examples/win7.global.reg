@@ -1,10 +1,18 @@
 Windows Registry Editor Version 5.00
-; $Id: win7.global.reg 1052 2011-04-12 15:41:42Z tschmitt $
+; tschmitt@linuxmuster.net
+; 26.10.2015
+
+; Win7/Samba 3.4.x - Workstation Share, AutoDisconnect ausschalten
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\lanmanserver\parameters]
+"AutoShareWks"=dword:00000001
+"AutoDisconnect"=dword:FFFFFFFF
 
 ; notwendig, damit der Domaenenbeitritt klappt
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\LanmanWorkstation\Parameters]
 "DNSNameResolutionRequired"=dword:00000000
 "DomainCompatibilityMode"=dword:00000001
+"RequireSecuritySignature"=dword:00000000
+"EnableSecuritySignature"=dword:00000000
 
 ; notwendig, damit der Domaenenbeitritt klappt
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
@@ -21,9 +29,14 @@ Windows Registry Editor Version 5.00
 "WaitForNetwork"=dword:00000000
 "CompatibleRUPSecurity"=dword:00000001
 
+; optional, schaltet Security Center Meldungen ab
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\wscsvc]
+"Start"=dword:00000003
+
 ; optional, deaktiviert UAC
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 "EnableLUA"=dword:00000000'
+"LocalAccountTokenFilterPolicy"=dword:00000001
 
 ; optional, deaktiviert den automatischen Neustart bei Bluescreen
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\CrashControl]
@@ -56,3 +69,13 @@ Windows Registry Editor Version 5.00
 ; optional, deaktiviert die automatische Windowsaktivierung
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\Activation]
 "Manual"=dword:00000001
+
+; optional, Sysprep Optimierungen
+[HKEY_LOCAL_MACHINE\SYSTEM\Setup]
+"RestartSetup"=dword:00000000
+"SetupType"=dword:00000000
+"SystemSetupInProgress"=dword:00000000
+"SetupPhase"=dword:00000000
+"CmdLine"=""
+"OOBEInProgress"=dword:00000000
+

@@ -2,11 +2,11 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: bc, bison, build-essential, bvi, coreutils, debhelper, dosfstools, dpkg-dev, dropbear, e2fsprogs, ethtool, fakeroot, flex, g++, gcc, gettext, grep, gzip, libacl1-dev, libattr1-dev, libaudio-dev, libcups2-dev, libdevmapper-dev, libfontconfig1-dev, libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev, libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev, libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6, libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev, libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, nasm, ncurses-base, patchutils, perl, reiserfsprogs, sysvinit-utils, tar, udev, udpcast, unzip, util-linux, wget, xserver-xorg-input-vmmouse, xz-lzma, zlib1g-dev
+Build-Depends: acl, bc, bison, build-essential, bvi, coreutils, ctorrent, debhelper, dosfstools, dpkg-dev, dropbear, e2fsprogs, efibootmgr, ethtool, fakeroot, flex, g++, gcc, gettext, grep, grub-pc, grub-ipxe, grub-efi-amd64-bin, gzip, libacl1-dev, libattr1-dev, libaudio-dev, libcups2-dev, libdevmapper-dev, libfontconfig1-dev, libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev, libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev, libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6, libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev, libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, nasm, ncurses-base, netpbm, patchutils, perl, reiserfsprogs, rsync, sysvinit-utils, tar, udev, udpcast, unzip, util-linux, uuid-runtime, wget, xserver-xorg-input-vmmouse, zlib1g-dev, xz-utils, uuid-dev, binutils-multiarch, lib32stdc++-4.8-dev, lib32z1-dev, lib32readline6-dev, lib32ncurses5-dev, libattr1:i386, libblkid1:i386, libselinux1:i386, e2fslibs:i386, libcomerr2:i386, libmount1:i386, libacl1:i386, libpopt0:i386, libkmod2:i386, libdbus-1-3:i386, libnih1:i386, libnih-dbus1:i386, libcgmanager0:i386, libudev1:i386, libdevmapper1.02.1:i386, liblzma5:i386
 
 Package: linuxmuster-linbo
 Architecture: all
-Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh, sed, screen, mkisofs, dosfstools, atftpd (>= 0.7.dfsg-11.1), udpcast, xz-utils, zip, mbr, wakeonlan
+Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh, sed, screen, mkisofs, syslinux, dosfstools, atftpd (>= 0.7.dfsg-11.1) | tftpd, udpcast, xz-utils, zip, mbr, wakeonlan
 Suggests: isc-dhcp-server | dhcp3-server
 Recommends: wodim, ldap-utils
 Description: LINBO PXE boot files

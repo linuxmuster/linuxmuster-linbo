@@ -2,19 +2,14 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 22.03.2015
+# 08.03.2016
 #
 
 # read in linuxmuster.net specific environment
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
-LOGFILE=rsync-pre-download.log
-if [ -n "$LINBODIR" ]; then
- LOGFILE="$LINBODIR/log/$LOGFILE"
-else
- LOGFILE="/var/log/$LOGFILE"
-fi
+LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
 
 # Debug
 exec >>$LOGFILE 2>&1
@@ -26,7 +21,14 @@ FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
 EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
+
+compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
+
+# recognize upload of windows activation tokens
 stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
+
+# recognize download request of local grub.cfg
+stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
@@ -34,11 +36,17 @@ echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
 
-compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
-
 case $EXT in
 
- # write machine password hash to host's samba/ldap account
+ # handle machine account password
+# *.mpw)
+  # set machine account password
+#  MACHINEPW="12345678"
+#  echo -e "${MACHINEPW}\n${MACHINEPW}\n" | smbpasswd -e -s "$compname$"
+#  MACHINEPW="$(pwgen -s 10 1)"
+#  if ! sophomorix-passwd --force --user "$compname$" --pass "$MACHINEPW" | grep -qi "error"; then
+#   echo "$MACHINEPW" > "$FILE"
+#  fi
  *.macct)
   LDAPMODIFY="$(which ldapmodify)"
   LDAPSEARCH="$(which ldapsearch)"
@@ -60,6 +68,22 @@ case $EXT in
   fi
  ;;
 
+ # fetch logfiles from client
+ *.log)
+  host_logfile="$(basename "$FILE")"
+  echo "Upload request for $host_logfile."
+  src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
+  tgt_logfile="$LINBOLOGDIR/$host_logfile"
+  linbo-scp -v "${RSYNC_HOST_NAME}:$src_logfile" "$FILE" || RC="1"
+  if [ -s "$FILE" ]; then
+   echo "## Log session begin: $(date) ##" >> "$tgt_logfile"
+   cat "$FILE" >> "$tgt_logfile"
+   echo "## Log session end: $(date) ##" >> "$tgt_logfile"
+  fi
+  rm -f "$FILE"
+  touch "$FILE"
+ ;;
+
  # provide host's opsi key for download
  *.opsikey)
   # invoked by linbo_cmd on postsync
@@ -78,7 +102,6 @@ case $EXT in
  # handle windows product key request
  *.winkey)
   # get key from workstations and write it to temporary file
-  compname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
   if [ -n "$compname" ]; then
    winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
    officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
@@ -126,6 +149,15 @@ case $EXT in
    echo "Sorry. Upload of $FILE failed."
   fi
   rm -f "$PIDFILE"
+ ;;
+
+ # prepare download of local grub.cfg
+ grub-local)
+  grubcfg_tpl="$LINBOTPLDIR/grub.cfg.local"
+  group="$(basename "$FILE" | awk -F\. '{ print $2 }')"
+  startconf="$LINBODIR/start.conf.$group"
+  append="$(linbo_kopts "$startconf") localboot"
+  sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
  ;;
 
  *) ;;

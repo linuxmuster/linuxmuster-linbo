@@ -1,48 +1,53 @@
-# LINBO start.conf Beispiel fuer Windows XP
-# Windows XP System auf Partition 1 (FAT32)
+# LINBO start.conf Beispiel fuer Remote Cache
+# Windows 7 System auf Partition 1 (NTFS)
 # Daten auf Partition 2
 # Cache Remote auf Server
 
 [LINBO]                         # globale Konfiguration
-Cache = //10.16.1.1/linbo-repo  # Cache auf server smb share
 Server = 10.16.1.1              # IP des TFTP-Servers, der Images vorhaelt
+Group = gruppe                  # Name der Rechnergruppe
+# Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
+Cache = //10.16.1.1/linbo-repo  # Cache auf 10.16.1.1 in linbo-repo SMB-Share
+SystemType = bios               # Moegliche Werte: bios|bios64|efi32|efi64
 RootTimeout = 600               # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no              # keine automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no                 # kein automatisches Formatieren aller Partitionen beim LINBO-Start
-AutoInitCache = no              # kein automatisches Befüllen des Caches beim LINBO-Start
-DownloadType = multicast        # Image-Download per torrent|multicast|rsync, default ist rsync
-#KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
-KernelOptions =
+AutoInitCache = no              # kein automatisches Befuellen des Caches beim LINBO-Start
+DownloadType = torrent          # Image-Download per torrent|multicast|rsync, default ist rsync
+KernelOptions = quiet splash    # spezielle LINBO Kerneloptionen ergaenzen (z. B. acpi=off, irqpoll)
 
-[Partition]                     # Start einer Partitionsdefinition, Windows XP
+[Partition]                     # Start einer Partitionsdefinition, Windows 7
 Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
-Size = 5000000                  # Partitionsgroesse in kB (Bsp.: ca. 5G)
-Id = c                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = vfat                   # Dateisystem auf der Partition
-Bootable = no                   # Bootable-Flag
+Label = windows                 # Partitionslabel
+Size = 50G                      # Partitionsgroesse 50G, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
+Id = 7                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ntfs                   # Dateisystem auf der Partition
+Bootable = yes                  # Bootable-Flag
 
 [Partition]                     # Start einer Partitionsdefinition, Datenpartition
 Dev = /dev/sda2                 # Device-Name der Partition (sda2 = zweite Partition auf erster IDE-Platte)
+Label = daten                   # Partitionslabel
 Size =                          # Datenpartition nimmt den Rest der Platte ein
-Id = c                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = vfat                   # Dateisystem auf der Partition
+Id = 7                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
+FSType = ntfs                   # Dateisystem auf der Partition
 Bootable = no                   # Bootable-Flag
 
-[OS]                                 # Beginn einer Betriebssystemdefinition
-Name = Windows XP                    # Name des Betriebssystems
-Version =                            # Version (optional, frei waehlbar)
-Description = Windows XP SP1         # Beschreibung
-#Image = winxp.rsync                 # Dateiname des differentiellen Images (Erweiterung .rsync)
-Image =                              # erst eintragen, wenn es erzeugt werden soll
-BaseImage = winxp.cloop              # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1                     # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda1                     # Rootpartition, in die das BS installiert ist
-                                     # bei Windows ist Boot und Root immer dieselbe Partition
-Kernel = grub.exe                    # Relativer Pfad zum Kernel, bei Windows grub.exe
-Initrd =                             # Relativer Pfad zur Initrd, bei Windows immer leer
-Append =                             # bleibt bei Windows leer
-StartEnabled = yes                   # "Start"-Button anzeigen
-SyncEnabled = yes                    # "Sync+Start"-Button anzeigen
-NewEnabled = yes                     # "Neu+Start"-Button anzeigen
-Hidden = yes                         # verstecke OS-Reiter
-Autostart = no                       # kein automatischer synchronisierter Start des Betriebssystems
+[OS]                            # Beginn einer Betriebssystemdefinition
+Name = Windows 7                # Name des Betriebssystems
+Version =                       # Version (unbenutzt, leer lassen)
+Description = Windows 7 SP1     # Beschreibung
+IconName = winxp.png            # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                         # differentielles Image (Erweiterung .rsync), Verwendung nicht empfohlen
+BaseImage = win7.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1                # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda1                # Rootpartition, in die das BS installiert ist
+Kernel = auto                   # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
+Initrd =                        # Windows: leer
+Append =                        # Windows: leer
+StartEnabled = yes              # "Start"-Button anzeigen
+SyncEnabled = yes               # "Sync+Start"-Button anzeigen
+NewEnabled = yes                # "Neu+Start"-Button anzeigen
+Autostart = no                  # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5            # Timeout in Sekunden für Benutzerabbruch bei Autostart
+DefaultAction = sync            # Standardaktion bei Autostart: start|sync|new
+Hidden = yes                    # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

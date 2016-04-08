@@ -1,3 +1,296 @@
+linuxmuster-linbo (2.3.0-30) babo-testing; urgency=low
+
+  * linbo_cmd.sh:
+    - prepare_fs(): removed preceding / in some RSYNC_EXCLUDE entries.
+    - partition(): removes linbo/grub update flags in /tmp after partitioning.
+    - prepare_grub(): be more verbose.
+  * grub pxe template: fixed loading of server side configs.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Mar 2016 16:40:12 +0100
+
+linuxmuster-linbo (2.3.0-29) babo-testing; urgency=low
+
+  * init.sh: cachedev fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 19 Mar 2016 11:39:03 +0100
+
+linuxmuster-linbo (2.3.0-28) babo-testing; urgency=low
+
+  * Merged pull request #49 from fschuette:
+    - fix for #574 and correct bootloader installation after sync.
+    - removed obsolete colordepth 32 patch for 64bit linbo_gui.
+  * Merged pull request Fixgui64 #50 from fschuette.
+  * 64bit kernel & busybox rebuild.
+  * init.sh: minor code improvements.
+  * initramfs64.conf: added dev, proc, sys & tmp directories.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 18 Mar 2016 15:49:28 +0100
+
+linuxmuster-linbo (2.3.0-27) babo-testing; urgency=low
+
+  * kernel rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 10 Mar 2016 10:51:18 +0100
+
+linuxmuster-linbo (2.3.0-26) babo-testing; urgency=low
+
+  * fixed hostname in client logfile.
+  * removed ssmtp.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Mar 2016 15:01:36 +0100
+
+linuxmuster-linbo (2.3.0-25) babo-testing; urgency=low
+
+  * implemented rsync based client logging, see
+    http://www.linuxmuster.net/flyspray/task/571
+  * minor postinst clean up.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Mar 2016 13:52:09 +0100
+
+linuxmuster-linbo (2.3.0-24) babo-testing; urgency=low
+
+  * merged fix-563 from fschuette, closes #563 & #570:
+    - http://www.linuxmuster.net/flyspray/task/563
+    - http://www.linuxmuster.net/flyspray/task/570
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Mar 2016 11:10:34 +0100
+
+linuxmuster-linbo (2.3.0-23) babo-testing; urgency=low
+
+  * merged fix-mmc from fschuette, fixes several mmcblk device issues
+    (closes #555).
+  * merged fix-553 from fschuette, adds 32bit chroot capability to
+    64bit linbo (closes #553).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Feb 2016 18:14:27 +0100
+
+linuxmuster-linbo (2.3.0-22) babo-testing; urgency=low
+
+  * fixed cache not being set correctly in offline mode.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 18 Feb 2016 16:49:31 +0100
+
+linuxmuster-linbo (2.3.0-21) babo-testing; urgency=low
+
+  * various fixes and improvements concerning to linbo update (closing #547).
+  * various fixes concerning to systems using remote cache.
+  * fixed offline issue with udhcp discover.
+  * improved upgrade process from linbo 2.2.
+  * various fixes and improvements in grub.cfg templates concerning to local
+    and pxe boot process (closing #544).
+  * introduced a grub spool dir (/var/linbo/boot/grub/spool) for temporary
+    server based reboot fifos (pipes), needed for systems booting with remote
+    cache.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 Feb 2016 19:43:09 +0100
+
+linuxmuster-linbo (2.3.0-20) babo-testing; urgency=low
+
+  * debian/rules: build cloop module before cloop-utils (closes #511).
+  * debian/rules: fix ssmtp link (closes #513).
+  * kernel: added emmc-Support (closes #512).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 22 Dec 2015 18:45:00 +0100
+
+linuxmuster-linbo (2.3.0-19) babo-testing; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 Dec 2015 13:23:32 +0100
+
+linuxmuster-linbo (2.3.0-18) babo-testing; urgency=low
+
+  * linbo_cmd.sh, write_devicemap(): fixed syntax error.
+  * linbo_gui 32bit: fixed 32bit color depth.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 Dec 2015 13:15:27 +0100
+
+linuxmuster-linbo (2.3.0-17) babo-testing; urgency=low
+
+  * reverted machine password handling as in release 2.3.0-13.
+  * added support for /dev/mmcblk? and /dev/xvd? devices.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Nov 2015 16:07:16 +0100
+
+linuxmuster-linbo (2.3.0-16) babo-testing; urgency=low
+
+  * added support for grub themes.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 06 Nov 2015 21:46:01 +0100
+
+linuxmuster-linbo (2.3.0-15) babo-testing; urgency=low
+
+  * linbo_cmd.sh, get_disk_from_partition(): fixed support for vda disks.
+  * linbo.sh: framebuffer fix.
+  * added sync+start and neu+start entries to group specific grub config.
+  * linbo_wrapper.sh, format_partition(): removed call to linbo_cmd's partitioning routine.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 05 Nov 2015 13:45:12 +0100
+
+linuxmuster-linbo (2.3.0-14) babo-testing; urgency=low
+
+  * fixed 32bit cloop module.
+  * added automatical installation of linuxmuster-start-tasks on windows clients.
+  * reworked machine password handling for windows clients
+  * linuxmuster-win:
+    - added tool lsaSecretStore.exe.
+    - added script template set_machine_pw.cmd.tpl.
+  * win7.global.reg update.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Oct 2015 16:14:41 +0100
+
+linuxmuster-linbo (2.3.0-13) babo-testing; urgency=low
+
+  * linbo_cmd, update(): look for old legacy grub stuff, remove it and
+    force installation of grub 2 instead.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 13 Oct 2015 21:10:23 +0200
+
+linuxmuster-linbo (2.3.0-12) babo-testing; urgency=low
+
+  * linbofs:
+    - back to parted again for partitioning.
+    - busybox clean up.
+  * linbo_cmd: fixed partition alignment, extended/logical partition
+    creation and grub update for linux efi systems.
+  * grub.cfg.global: fixed 64bit kernel detection.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 09 Oct 2015 19:49:38 +0200
+
+linuxmuster-linbo (2.3.0-11) babo-testing; urgency=low
+
+  * linbofs: removed parted.
+  * linbo_cmd:
+    - uses fdisk/gdisk instead of parted, which causes errors with extended partitions.
+    - fixed efi bootorder.
+    - improved console output and logging.
+    - return code fixes.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Oct 2015 21:16:27 +0200
+
+linuxmuster-linbo (2.3.0-10) babo-testing; urgency=low
+
+  * added Maurice's windows 10 registry patch files.
+  * linbo_cmd:
+    - added acl utils (see #489 & #491).
+    - tmp fix (closes #471).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 06 Oct 2015 17:33:52 +0200
+
+linuxmuster-linbo (2.3.0-9) babo-testing; urgency=low
+
+  * linbofs: changed to gptfdisk's gdisk which is much smaller.
+  * linbo_cmd:
+    - improved save and restore of partition guid on efi systems.
+    - added update-grub to sync of linux efi systems.
+    - fixed get_partition_size for use with multiple disks.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 04 Oct 2015 23:01:58 +0200
+
+linuxmuster-linbo (2.3.0-8) babo-testing; urgency=low
+
+  * kernel update to 4.2.
+  * updated cloop modules & utils to 3.14.1.2.
+  * implemented direct boot for efi systems
+  * reworked boot stuff
+  * windows efi/bcd improvements
+  * added linuxmuster-win scripts to /var/linbo
+  * patch_registry fix
+  * implemented reboot only os start
+  * removed grub4dos & kexec
+  * start.conf examples update
+  * new workstations register fix (closes #486)
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 29 Sep 2015 17:46:22 +0200
+
+linuxmuster-linbo (2.3.0-7) babo-testing; urgency=low
+
+  * linbo_cmd:
+    - fixes for windows efi boot file restauration,
+    - added test for ntfs filesystem.
+    - added uuid save and restore of gpt partitions.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Sep 2015 15:25:40 +0200
+
+linuxmuster-linbo (2.3.0-6) babo-testing; urgency=low
+
+  * more efi boot improvements.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2015 14:12:25 +0200
+
+linuxmuster-linbo (2.3.0-5) babo-testing; urgency=low
+
+  * added linbo wallpaper and graphical grub boot menu.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 09 Sep 2015 16:37:37 +0200
+
+linuxmuster-linbo (2.3.0-4) babo-testing; urgency=low
+
+  * grub configuration:
+    * added uefi boot support for opensuse kernel & initrd
+    * improved windows efi boot handling
+  * fix for not updated local grub config (closes #480)
+  * preferred linbo localboot if installed locally
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Sep 2015 22:39:37 +0200
+
+linuxmuster-linbo (2.3.0-3) babo-testing; urgency=low
+
+  * activated kernel configuration for efi_vars and efi_fb.
+  * grub prefix to /boot/grub.
+  * creating grub net directory with grub-mknetdir.
+  * updated grub.cfg templates.
+  * substituted sfdisk with parted in linbofs.
+  * removed grldr stuff for windows partitions.
+  * added linbo update on boot time in init.sh, reboots on locally booted linbo if version was altered.
+  * added efibootmgr binary.
+  * reworked mkgrub() in linbo_cmd for grub2/efi.
+  * support of partition labels in start.conf (option label = <name>).
+  * support of partition size entries in MB, GB or TB (size = 200M, size = 20G, size = 1T).
+  * improved reboot workaround for linux systems.
+  * updated kexec tools to 2.0.10.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jul 2015 12:32:27 +0200
+
+linuxmuster-linbo (2.3.0-2) babo-testing; urgency=low
+
+  * changed pxe and local boot system from grub legacy and syslinux to grub2.
+  * boot splash image created from /icons/linbo_wallpaper.png on boot.
+  * added wallpapers in different resolutions.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2015 07:22:00 +0200
+
+linuxmuster-linbo (2.3.0-1) babo-testing; urgency=low
+
+  * changed to kernel 3.2.53 with backports 4.1.1-1, e1000e 3.2.4.2 and tg3 3.137h.
+  * minor build process improvements.
+  * minor changes to default.pxe configuration template.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 17 Jul 2015 12:39:00 +0200
+
+linuxmuster-linbo (2.3.0-0) babo-testing; urgency=low
+
+  * Frank Schuette:
+    * vlan support
+    * added 64bit boot
+    * changed to ubuntu 14.04 build system
+    * syslinux update to 6.03
+    * efi boot with syslinux
+    * added start.conf variable SystemType=bios|bios64|efi32|efi64 (Standard: bios fuer 32bit linbo)
+    * tg3 not needed, is already in kernel 3.11
+    * new kernel 3.16
+    * enable e1000e (32bit)
+  * tschmitt:
+    * added jweiher's pull request #29 "Auto increment IP and hostname on register" with modifications.
+    * Removed vbox modules from build.
+    * no more compiling ctorrent, cloop-utils and rsync, we take the binaries from build system from now on.
+    * removed obsolete windows 7 reactivation stuff from examples.
+    * updated graphics.
+    * postinst: adds new SystemType option to start.confs.
+    * minor modifications to build process.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 15 Jul 2015 14:27:00 +0200
+
 linuxmuster-linbo (2.2.16-0) babo; urgency=low
 
   * added patching of opsi server ip in case of windows client sync (closes #449).
