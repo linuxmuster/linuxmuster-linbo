@@ -14,7 +14,6 @@
 #include <QProcess>
 
 #include "linbogui.h"
-#include "linboProgress.h"
 #include "linboDialog.h"
 #include "linboLogConsole.h"
 

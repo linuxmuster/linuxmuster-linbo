@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QTimer>
 #include <QTextEdit>
+#include <QPushButton>
 #include <qdatetime.h>
 #include <qtimer.h>
 
@@ -17,7 +18,8 @@
 #include "command.h"
 #include "image_description.h"
 #include "linboLogConsole.h"
-#include "linboProgress.h"
+#include "fortschrittdialog.h"
+#include "folgeaktion.h"
 
 #define ADMINTAB ui->systeme->count()-2
 #define LOGTAB ui->systeme->count()-1
@@ -27,7 +29,7 @@ class LinboGUI;
 }
 
 class linboLogConsole;
-class linboProgress;
+class FortschrittDialog;
 
 class LinboGUI : public QMainWindow
 {
@@ -40,7 +42,7 @@ private:
     QString logfilepath, fonttemplate;
     bool root, withicons, outputvisible;
     QProcess* process;
-    linboProgress* progress;
+    FortschrittDialog* progress;
     QPushButton *autostart, *autopartition, *autoinitcache;
     int preTab, autostarttimeout, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
@@ -75,6 +77,9 @@ public slots:
     void doStart(int nr);
     void doSync(int nr);
     void doNew(int nr);
+    void doCreateDialog(int nr);
+    void doCreate(int nr, const QString &imageName, const QString &description, bool isnew, bool upload, FolgeAktion folgeAktion);
+    void doUploadDialog(int nr);
 
 private slots:
 
@@ -99,6 +104,8 @@ protected:
     void timerEvent(QTimerEvent *event);
 
 private:
+    void doCreate();
+    void doUpload();
     void doCommand(const QStringList& command, bool interruptible = false);
     Ui::LinboGUI *ui;
 };

@@ -37,6 +37,11 @@ public:
     bool doAuthenticateCommand(const QString& password);
     void clearPassword();
 
+    void doReadfileCommand(const QString &source, const QString &destination);
+    void doWritefileCommand(const QString &source, const QString &destination);
+
+
+    QStringList mkcreatecommand(int nr, const QString& imageName, const QString& baseImage);
     QStringList mkuploadcommand();
     QStringList mkpreregistercommand();
     QStringList mkregistercommand(QString& roomName, QString& clientName,

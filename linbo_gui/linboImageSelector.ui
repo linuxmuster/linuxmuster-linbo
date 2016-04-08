@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>linboImageSelector</class>
- <widget class="QWidget" name="linboImageSelector">
+ <widget class="QDialog" name="linboImageSelector">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>387</width>
-    <height>509</height>
+    <width>857</width>
+    <height>677</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,201 +16,227 @@
   <property name="whatsThis">
    <string/>
   </property>
-  <widget class="QLabel" name="textLabel2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>0</y>
-     <width>360</width>
-     <height>80</height>
-    </rect>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <property name="leftMargin">
+    <number>0</number>
    </property>
-   <property name="text">
-    <string>Vorhandenes Image neu erstellen oder [Neues Image] zur Erstellung einer neuen Image-Datei auswählen.
-
-Auswahl:</string>
+   <property name="topMargin">
+    <number>0</number>
    </property>
-   <property name="alignment">
-    <set>Qt::AlignVCenter</set>
+   <property name="rightMargin">
+    <number>0</number>
    </property>
-   <property name="wordWrap">
-    <bool>false</bool>
+   <property name="bottomMargin">
+    <number>0</number>
    </property>
-  </widget>
-  <widget class="QLabel" name="textLabel2_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>230</y>
-     <width>360</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Dateiname für neue Imagedatei eingeben:</string>
-   </property>
-   <property name="wordWrap">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="specialName">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>260</y>
-     <width>360</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Neu</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="descriptionLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>290</y>
-     <width>360</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Informationen zum Image:</string>
-   </property>
-   <property name="wordWrap">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="createButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>420</y>
-     <width>90</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Erstellt das ausgewählte Image&lt;br&gt;im lokalen Cache</string>
-   </property>
-   <property name="text">
-    <string>Erstellen</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="createUploadButton">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>420</y>
-     <width>160</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Erstellt das ausgewählte Image im lokalen Cache und lädt es &lt;br&gt; anschliessend auf den Server hoch</string>
-   </property>
-   <property name="text">
-    <string>Erstellen+Hochladen</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="cancelButton">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>420</y>
-     <width>90</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>Abbrechen ohne Imageerstellung</string>
-   </property>
-   <property name="text">
-    <string>Abbruch</string>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="infoEditor">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>320</y>
-     <width>361</width>
-     <height>71</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkReboot">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>400</y>
-     <width>67</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Reboot</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkShutdown">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>400</y>
-     <width>81</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Shutdown</string>
-   </property>
-  </widget>
-  <widget class="QListWidget" name="listBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>70</y>
-     <width>361</width>
-     <height>101</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="baseRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>180</y>
-     <width>251</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Neues Basisi&amp;mage</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <attribute name="buttonGroup">
-    <string notr="true">imageButtons</string>
-   </attribute>
-  </widget>
-  <widget class="QRadioButton" name="incrRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>210</y>
-     <width>251</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Differentie&amp;lles Image</string>
-   </property>
-   <attribute name="buttonGroup">
-    <string notr="true">imageButtons</string>
-   </attribute>
-  </widget>
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="lineWidth">
+      <number>3</number>
+     </property>
+     <property name="midLineWidth">
+      <number>3</number>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="dialogTitle">
+        <property name="font">
+         <font>
+          <family>Adobe Courier</family>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="lineWidth">
+         <number>2</number>
+        </property>
+        <property name="text">
+         <string>Image-Auswahl</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextEdit" name="textEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="html">
+         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Vorhandenes Image neu erstellen oder &lt;span style=&quot; color:#aa0000;&quot;&gt;[Neues Image]&lt;/span&gt; zur Erstellung einer neuen Image-Datei auswählen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Auswahl:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QListWidget" name="listBox"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Art:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QRadioButton" name="baseRadioButton">
+            <property name="text">
+             <string>Basisi&amp;mage</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">imageButtons</string>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="incrRadioButton">
+            <property name="text">
+             <string>Differentielles Image</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">imageButtons</string>
+            </attribute>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="textLabel2_2">
+          <property name="text">
+           <string>Datei:</string>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="specialName">
+          <property name="text">
+           <string>Neu</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="descriptionLabel">
+          <property name="text">
+           <string>Infos:</string>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QTextEdit" name="infoEditor"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Folgeaktion:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkReboot">
+          <property name="text">
+           <string>Reboot</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkShutdown">
+          <property name="text">
+           <string>Shutdown</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="createButton">
+          <property name="toolTip">
+           <string>Erstellt das ausgewählte Image&lt;br&gt;im lokalen Cache</string>
+          </property>
+          <property name="text">
+           <string>Erstellen</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="createUploadButton">
+          <property name="toolTip">
+           <string>Erstellt das ausgewählte Image im lokalen Cache und lädt es &lt;br&gt; anschliessend auf den Server hoch</string>
+          </property>
+          <property name="text">
+           <string>Erstellen+Hochladen</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="cancelButton">
+          <property name="toolTip">
+           <string>Abbrechen ohne Imageerstellung</string>
+          </property>
+          <property name="text">
+           <string>Abbruch</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
@@ -222,7 +248,24 @@ Auswahl:</string>
   <tabstop>cancelButton</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>linboImageSelector</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>699</x>
+     <y>646</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>698</x>
+     <y>677</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <buttongroups>
   <buttongroup name="imageButtons"/>
  </buttongroups>

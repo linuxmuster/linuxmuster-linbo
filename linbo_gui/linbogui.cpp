@@ -11,10 +11,13 @@
 #include "configuration.h"
 #include "command.h"
 #include "linboConsole.h"
-#include "linboProgress.h"
+#include "fortschrittdialog.h"
 #include "registrierungsdialog.h"
 #include "linboimagewidget.h"
 #include "login.h"
+#include "linboImageSelector.h"
+#include "linboImageUpload.h"
+#include "folgeaktion.h"
 
 LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
@@ -256,6 +259,9 @@ void LinboGUI::showOSs()
     int col = 0;
     for(std::vector<os_item>::iterator it = conf->elements.begin(); it != conf->elements.end(); ++it) {
         LinboOSWidget *os = new LinboOSWidget(ui->osarea, (MAXOSCOLUMN+1)*row+col, &*it);
+        connect(os, &LinboOSWidget::doStart, this, &LinboGUI::doStart);
+        connect(os, &LinboOSWidget::doSync, this, &LinboGUI::doSync);
+        connect(os, &LinboOSWidget::doNew, this, &LinboGUI::doNew);
         ui->osareaLayout->addWidget(os, row, col);
         os->show();
         col++;
@@ -271,8 +277,9 @@ void LinboGUI::showImages()
 {
     int row = 0;
     for(std::vector<os_item>::iterator it = conf->elements.begin(); it != conf->elements.end(); ++it) {
-        LinboImageWidget *img = new LinboImageWidget(ui->imagearea);
-        img->setOsname(it->get_name());
+        LinboImageWidget *img = new LinboImageWidget(ui->imagearea, row, &*it);
+        connect(img, &LinboImageWidget::doCreate, this, &LinboGUI::doCreateDialog);
+        connect(img, &LinboImageWidget::doUpload, this, &LinboGUI::doUploadDialog);
         ui->imageareaLayout->addWidget(img, row, 0);
         img->show();
         row++;
@@ -354,7 +361,7 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
 void LinboGUI::doCommand(const QStringList& command, bool interruptible)
 {
     QStringList *cmd = new QStringList(command);
-    progress = new linboProgress( this, cmd, logConsole );
+    progress = new FortschrittDialog( this, cmd, logConsole );
     progress->setShowCancelButton( interruptible );
     progress->exec();
 }
@@ -378,4 +385,55 @@ void LinboGUI::doSync(int nr)
 void LinboGUI::doNew(int nr)
 {
     doCommand(command->mksyncstartcommand(nr), false);
+}
+
+void LinboGUI::doCreateDialog(int nr)
+{
+    linboImageSelector* dlg = new linboImageSelector( this, command );
+    connect(dlg,&linboImageSelector::finished, this, &LinboGUI::doCreate);
+    dlg->exec();
+}
+
+void LinboGUI::doUploadDialog(int nr)
+{
+    linboImageUpload* dlg = new linboImageUpload( this );
+    connect(dlg, &linboImageUpload::finished, this, &LinboGUI::doUpload);
+    dlg->exec();
+}
+
+void LinboGUI::doCreate(int nr, const QString &imageName, const QString &description, bool isnew, bool upload, FolgeAktion folgeAktion)
+{
+    QString baseImage = imageName.left(imageName.lastIndexOf(".")) + QString(".cloop");
+    if(isnew){
+        //FIXME: insert new image entry where ?
+    }
+    doCommand(command->mkcreatecommand(nr, imageName, baseImage), true);
+
+    QString tmpName = QString("/tmp/") + imageName + QString(".desc");
+    QString destination = imageName + QWtring(".desc");
+
+    QFile* file = new QFile( tmpName );
+    if ( !file->open( QIODevice::WriteOnly ) ) {
+        logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
+    } else {
+        QTextStream ts( file );
+        ts << info;
+        file->flush();
+        file->close();
+    }
+    delete file;
+    command->doWritefileCommand(tmpName, destination);
+
+    if( upload ){
+        doCommand(command->mkuploadcommand(nr, imageName), true);
+    }
+    if(folgeAktion == FolgeAktion::Reboot)
+        system("busybox reboot");
+    else if(folgeAktion == FolgeAktion::Shutdown)
+        system("busybox shutdown");
+}
+
+void LinboGUI::doUpload(int nr, const QString &imageName)
+{
+
 }

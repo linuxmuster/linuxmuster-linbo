@@ -1,24 +1,28 @@
 #include "linboimagewidget.h"
 #include "ui_linboimagewidget.h"
 
-LinboImageWidget::LinboImageWidget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::LinboImageWidget)
+LinboImageWidget::LinboImageWidget(QWidget *parent, int newnr, os_item* newItem) :
+    QWidget(parent), nr(newnr), item(newItem), ui(new Ui::LinboImageWidget)
 {
     ui->setupUi(this);
-
-    connect(ui->lName,SIGNAL(textChanged(const QString&)),this,SIGNAL(osnameChanged(const QString&)));
-    connect(ui->tbCreate,SIGNAL(clicked()),this,SIGNAL(doCreate()));
-    connect(ui->tbUpload,SIGNAL(clicked()),this,SIGNAL(doUpload()));
-
-    setFocusProxy( ui->tbCreate );
+    if( item != NULL ){
+        ui->lName->setText(item->get_name());
+    } else {
+        ui->lName->setText("unnamed");
+    }
 }
 
-QString LinboImageWidget::osname() const
+LinboImageWidget::~LinboImageWidget()
 {
-    return ui->lName->text();
+    delete ui;
 }
 
-void LinboImageWidget::setOsname(const QString &new_osname)
+void LinboImageWidget::on_tbCreate_clicked()
 {
-    ui->lName->setText(new_osname);
+    emit(doCreate(nr));
+}
+
+void LinboImageWidget::on_tbUpload_clicked()
+{
+    emit(doUpload(nr));
 }

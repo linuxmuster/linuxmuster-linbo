@@ -30,7 +30,6 @@ SOURCES += main.cpp\
     linboInfoBrowser.cpp \
     linboInputBox.cpp \
     linboLogConsole.cpp \
-    linboProgress.cpp \
     linboMulticastBox.cpp \
     linboYesNo.cpp \
     linboConsole.cpp \
@@ -53,12 +52,12 @@ HEADERS  += linbogui.h\
     linboLogConsole.h \
     linboDialog.h \
     linboMulticastBox.h \
-    linboProgress.h \
     linboYesNo.h \
     linbooswidget.h \
     linboimagewidget.h \
     login.h \
-    consolewidget.h
+    consolewidget.h \
+    folgeaktion.h
 
 FORMS    += linbogui.ui\
     registrierungsdialog.ui \
@@ -69,7 +68,6 @@ FORMS    += linbogui.ui\
     linboInfoBrowser.ui \
     linboInputBox.ui \
     linboMulticastBox.ui \
-    linboProgress.ui \
     linboYesNo.ui \
     linbooswidget.ui \
     linboimagewidget.ui \

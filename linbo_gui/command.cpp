@@ -2,6 +2,7 @@
 
 #include "command.h"
 #include "qprocess.h"
+#include "image_description.h"
 
 #ifdef TESTCOMMAND
 #define LINBO_CMD(arg) QStringList("echo linbo_cmd") << (arg);
@@ -163,6 +164,21 @@ QStringList Command::mkregistercommand(QString& roomName, QString& clientName,
     return command;
 }
 
+QStringList Command::mkcreatecommand(int nr, const QString& imageName, const QString& baseImage)
+{
+    QStringList command = LINBO_CMD("create");
+    globals config = conf->config;
+    vector<os_item> os = conf->elements;
+    if( nr >= os.size()){
+        //FIXME: error no such os
+        return QStringListe();
+    }
+    saveappend(command, config.get_cache());
+    saveappend(command, imageName);
+    saveappend(command, baseImage);
+    saveappend(command, os[nr]);
+}
+
 QString Command::doSimpleCommand(const QString &cmd)
 {
     return doSimpleCommand(cmd, NULL);
@@ -205,6 +221,17 @@ bool Command::doAuthenticateCommand(const QString &password)
         this->password = "";
         return false;
     }
+}
+
+void Command::doReadfileCommand(const QString &source, const QString &destination)
+{
+    QStringList command = LINBO_CMD("readfile");
+    saveappend(command, conf->config.get_cache());
+    saveappend(command, source);
+    saveappend(command, destination);
+    QProcess *process = new QProcess();
+    process->start( command.join(" ") );
+    while( !process->waitForFinished(10000)) {}
 }
 
 Command::Command(Configuration *conf)

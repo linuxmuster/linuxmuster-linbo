@@ -3,6 +3,8 @@
 
 #include <qwidget.h>
 
+#include "image_description.h"
+
 namespace Ui {
     class LinboImageWidget;
 }
@@ -10,19 +12,22 @@ namespace Ui {
 class LinboImageWidget : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(QString osname READ osname WRITE setOsname NOTIFY osnameChanged)
+
+private:
+    int nr;
+    os_item* item;
 
 public:
-    LinboImageWidget(QWidget *parent = 0);
-    QString osname() const;
-
-public slots:
-    void setOsname(const QString& new_osname);
+    LinboImageWidget(QWidget *parent = 0, int newnr = 0, os_item* newItem = 0);
+    ~LinboImageWidget();
 
 signals:
-    void osnameChanged(const QString& new_osname);
-    void doCreate();
-    void doUpload();
+    void doUpload(int nr);
+    void doCreate(int nr);
+
+private slots:
+    void on_tbCreate_clicked();
+    void on_tbUpload_clicked();
 
 private:
     Ui::LinboImageWidget *ui;
