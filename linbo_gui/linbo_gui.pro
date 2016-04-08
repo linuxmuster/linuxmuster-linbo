@@ -19,7 +19,6 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        anmeldefenster.cpp\
         linbogui.cpp \
     registrierungsdialog.cpp \
     fortschrittdialog.cpp \
@@ -41,7 +40,6 @@ SOURCES += main.cpp\
     consolewidget.cpp
 
 HEADERS  += linbogui.h\
-        anmeldefenster.h \
     registrierungsdialog.h \
     fortschrittdialog.h \
     configuration.h \
@@ -63,7 +61,6 @@ HEADERS  += linbogui.h\
     consolewidget.h
 
 FORMS    += linbogui.ui\
-        anmeldefenster.ui \
     registrierungsdialog.ui \
     fortschrittdialog.ui \
     linboConsole.ui \
