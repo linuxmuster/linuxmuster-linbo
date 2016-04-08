@@ -70,7 +70,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="raum">
+         <widget class="QLineEdit" name="roomName">
           <property name="minimumSize">
            <size>
             <width>140</width>
@@ -87,7 +87,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="rechner">
+         <widget class="QLineEdit" name="clientName">
           <property name="minimumSize">
            <size>
             <width>140</width>
@@ -104,7 +104,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="ip">
+         <widget class="QLineEdit" name="ipAddress">
           <property name="minimumSize">
            <size>
             <width>140</width>
@@ -121,7 +121,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLineEdit" name="gruppe">
+         <widget class="QLineEdit" name="clientGroup">
           <property name="minimumSize">
            <size>
             <width>140</width>

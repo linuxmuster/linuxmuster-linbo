@@ -12,7 +12,7 @@
 #include "command.h"
 #include "linboConsole.h"
 #include "linboProgress.h"
-#include "linboRegisterBox.h"
+#include "registrierungsdialog.h"
 #include "linboimagewidget.h"
 #include "login.h"
 
@@ -231,13 +231,13 @@ void LinboGUI::on_doregister_clicked()
         registerDataList = registerData.split(',');
     }
 #endif
-    linboRegisterBox *regdlg;
+    RegistrierungsDialog *regdlg;
     if( registerDataList.size() >= 4 ){
-        regdlg = new linboRegisterBox( this, registerDataList[0], registerDataList[1],
+        regdlg = new RegistrierungsDialog( this, registerDataList[0], registerDataList[1],
                 registerDataList[2], registerDataList[3]);
     }
     else {
-        regdlg = new linboRegisterBox( this );
+        regdlg = new RegistrierungsDialog( this );
     }
     connect(regdlg,SIGNAL(finished(QString&, QString&, QString&, QString&)),
             this,SLOT(do_register(QString&, QString&, QString&, QString&)));
