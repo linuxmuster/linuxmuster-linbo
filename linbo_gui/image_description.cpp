@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 
 #include "image_description.h"
+#include "downloadtype.h"
 
 #include <qregexp.h>
 
@@ -28,7 +29,7 @@ globals::globals():roottimeout(120) {
     backgroundfontcolor = "white";
     consolefontcolorstdout = "white";
     consolefontcolorstderr = "red";
-    downloadtype = "rsync";
+    downloadtype = DownloadType::RSync;
     autoformat = 0;
 }
 
@@ -45,7 +46,8 @@ const bool& globals::get_autoinitcache() { return autoinitcache; };
 const QString& globals::get_backgroundfontcolor() { return backgroundfontcolor; };
 const QString& globals::get_consolefontcolorstdout() { return consolefontcolorstdout; };
 const QString& globals::get_consolefontcolorstderr() { return consolefontcolorstderr; };
-const QString& globals::get_downloadtype() { return downloadtype; };
+const QString& globals::get_downloadtypeQString() { return downloadtypeQString[downloadtype]; };
+DownloadType globals::get_downloadtype() { return downloadtype; };
 const bool& globals::get_autoformat() { return autoformat; };
 void globals::set_server( const QString& new_server ) { server = new_server; }
 void globals::set_cache( const QString& new_cache ) {
@@ -62,7 +64,14 @@ void globals::set_autoinitcache( const bool& new_autoinitcache ) { autoinitcache
 void globals::set_backgroundfontcolor( const QString& new_backgroundfontcolor ) { backgroundfontcolor = new_backgroundfontcolor; };
 void globals::set_consolefontcolorstdout( const QString& new_consolefontcolorstdout ) { consolefontcolorstdout = new_consolefontcolorstdout; };
 void globals::set_consolefontcolorstderr( const QString& new_consolefontcolorstderr ) { consolefontcolorstderr = new_consolefontcolorstderr; };
-void globals::set_downloadtype( const QString& new_downloadtype ) { downloadtype = new_downloadtype; };
+void globals::set_downloadtype( const QString& new_downloadtype ) {
+    if(new_downloadtype.compare("Multicast") == 0)
+        downloadtype = DownloadType::Multicast;
+    else if(new_downloadtype.compare("Torrent") == 0)
+        downloadtype = DownloadType::Torrent;
+    else
+        downloadtype = DownloadType::RSync;
+};
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
 
 diskpartition::diskpartition() {}

@@ -27,7 +27,7 @@ class linboImageUpload : public QDialog
 
 private:
     int nr;
-    vector<image_item> image;
+    vector<image_item>* image;
 
 public:
     linboImageUpload( QWidget* parent = 0, int newnr = 0, vector<image_item>* newImage = 0);

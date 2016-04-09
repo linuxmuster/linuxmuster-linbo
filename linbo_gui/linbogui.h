@@ -20,6 +20,7 @@
 #include "linboLogConsole.h"
 #include "fortschrittdialog.h"
 #include "folgeaktion.h"
+#include "downloadtype.h"
 
 #define ADMINTAB ui->systeme->count()-2
 #define LOGTAB ui->systeme->count()-1
@@ -69,6 +70,8 @@ public:
 
 public slots:
     void do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup);
+    void doInitcacheDialog();
+    void doInitCache(bool formatCache, DownloadType type);
     void restoreButtonsState();
     void disableButtons();
     void enableButtons();
@@ -78,8 +81,11 @@ public slots:
     void doSync(int nr);
     void doNew(int nr);
     void doCreateDialog(int nr);
-    void doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion folgeAktion);
+    void doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion aktion);
     void doUploadDialog(int nr);
+    void doUpload(const QString& imageName, FolgeAktion aktion);
+    void doInfoDialog(int nr);
+    void doInfo(const QString& filename, const QString& desription);
 
 private slots:
 

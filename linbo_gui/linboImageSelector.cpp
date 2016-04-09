@@ -13,8 +13,8 @@
 #include "linboImageUpload.h"
 #include "folgeaktion.h"
 
-linboImageSelector::linboImageSelector(  QWidget* parent, Command* newCommand ) : QDialog(parent),
-    command(newCommand), upload(false), ui(new Ui::linboImageSelector)
+linboImageSelector::linboImageSelector(  QWidget* parent, int newnr, Command* newCommand ) : QDialog(parent),
+    nr(newnr), command(newCommand), upload(false), ui(new Ui::linboImageSelector)
 {
     ui->setupUi(this);
 }
@@ -77,10 +77,10 @@ void linboImageSelector::on_listBox_itemSelectionChanged()
     ui->specialName->setEnabled(neu);
 
     if(command != NULL){
-        item += QString(".desc");
-        QString destination(QString("/tmp/") + item);
+        item += command->DESCEXT;
+        QString destination(command->TMPDIR + item);
         command->doReadfileCommand(item, destination);
-        QFile* file = new QFile( myLoadCommand[4] );
+        QFile* file = new QFile( destination );
         // read content
         if( !file->open( QIODevice::ReadOnly ) ) {
             //FIXME: logConsole->writeStdErr( QString("Keine passende Beschreibung im Cache.") );

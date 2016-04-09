@@ -9,10 +9,13 @@
 
 #include "configuration.h"
 #include "image_description.h"
+#include "downloadtype.h"
 
 class Command
 {
 private:
+    static const QString USER;
+
     Configuration *conf;
     QString password;
 
@@ -22,14 +25,18 @@ public:
     Command(Configuration *conf);
     ~Command();
 
+    static const QString BASEIMGEXT;
+    static const QString INCIMGEXT;
+    static const QString DESCEXT;
+    static const QString TMPDIR;
+
     QStringList mkstartcommand(int osnr, int imnr = -1);
     QStringList mksyncstartcommand(int osnr, int imnr = -1);
     QStringList mksynccommand(int osnr, int imnr = -1);
     QStringList mksyncrcommand(int osnr, int imnr = -1);
     QStringList mkpartitioncommand();
     QStringList mkpartitioncommand_noformat();
-    // type is 0 for rsync, 1 for multicast, 3 for bittorrent
-    QStringList mkcacheinitcommand(const QString& type);
+    QStringList mkcacheinitcommand(bool formatCache, DownloadType type);
     QStringList mklinboupdatecommand();
 
     QString doSimpleCommand(const QString& cmd);
@@ -42,7 +49,7 @@ public:
 
 
     QStringList mkcreatecommand(int nr, const QString& imageName, const QString& baseImage);
-    QStringList mkuploadcommand();
+    QStringList mkuploadcommand(const QString& imageName);
     QStringList mkpreregistercommand();
     QStringList mkregistercommand(QString& roomName, QString& clientName,
                                   QString& ipAddress, QString& clientGroup);

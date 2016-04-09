@@ -24,12 +24,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include <qstring.h>
 #include <vector>
 #include <iostream>
+#include "downloadtype.h"
 
 using namespace std;
 
 class globals {
 private:
-  QString server, cache, hostgroup, downloadtype, backgroundfontcolor, consolefontcolorstdout, consolefontcolorstderr;
+  QString server, cache, hostgroup, backgroundfontcolor, consolefontcolorstdout, consolefontcolorstderr;
+  DownloadType downloadtype;
   QString kerneloptions,systemtype;
   unsigned int roottimeout;
   bool autopartition, autoinitcache, autoformat;
@@ -50,7 +52,8 @@ public:
   const QString& get_backgroundfontcolor();
   const QString& get_consolefontcolorstdout();
   const QString& get_consolefontcolorstderr();
-  const QString& get_downloadtype();
+  const QString& get_downloadtypeQString();
+  DownloadType get_downloadtype();
   const bool& get_autoformat();
   void set_server( const QString& new_server );
   void set_cache( const QString& new_cache );
@@ -64,6 +67,7 @@ public:
   void set_consolefontcolorstdout( const QString& new_consolefontcolorstdout );
   void set_consolefontcolorstderr( const QString& new_consolefontcolorstderr );
   void set_downloadtype( const QString& new_downloadtype );
+  void set_downloadtype( DownloadType new_downloadtype );
   void set_autoformat( const bool& new_autoformat );
 };
 

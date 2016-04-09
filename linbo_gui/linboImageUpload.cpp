@@ -7,15 +7,15 @@
 
 #include "linboImageUpload.h"
 #include "ui_linboImageUpload.h"
-#include "linboYesNo.h"
+#include "image_description.h"
 
 linboImageUpload::linboImageUpload(  QWidget* parent, int newnr, vector<image_item>* newImage ) : QDialog(parent),
      nr(newnr), image(newImage), ui(new Ui::linboImageUpload)
 {
     ui->setupUi(this);
     if( image != NULL){
-        for(int i=0; i < image.size(); i++){
-            ui->listBox->addItem();
+        for(int i=0; i < image->size(); i++){
+            ui->listBox->addItem(image->at(i).get_image());
         }
     }
 }

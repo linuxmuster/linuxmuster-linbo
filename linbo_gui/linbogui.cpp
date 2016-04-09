@@ -18,6 +18,10 @@
 #include "linboImageSelector.h"
 #include "linboImageUpload.h"
 #include "folgeaktion.h"
+#include "downloadtype.h"
+#include "image_description.h"
+#include "linboInfoBrowser.h"
+#include "linboMulticastBox.h"
 
 LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
@@ -387,21 +391,50 @@ void LinboGUI::doNew(int nr)
     doCommand(command->mksyncstartcommand(nr), false);
 }
 
+void LinboGUI::doInitcacheDialog()
+{
+    linboMulticastBox* dlg = new linboMulticastBox(this, conf->config.get_autoformat(), conf->config.get_downloadtype());
+    dlg->exec();
+}
+
+
+void LinboGUI::doInfoDialog(int nr)
+{
+    QString filename = conf->elements[nr].image_history[conf->elements[nr].find_current_image()].get_image();
+    QString description = QString("");
+    QFile* file = new QFile( filename );
+    // read content
+    if( !file->open( QIODevice::ReadOnly ) ) {
+      logConsole->writeStdErr( QString("Keine passende Beschreibung im Cache.") );
+    }
+    else {
+      QTextStream ts( file );
+      description = ts.readAll();
+      file->close();
+    }
+
+    linboInfoBrowser* dlg = new linboInfoBrowser( this, filename, description, !isRoot());
+    dlg->exec();
+}
+
 void LinboGUI::doCreateDialog(int nr)
 {
-    linboImageSelector* dlg = new linboImageSelector( this, command );
-    connect(dlg,&linboImageSelector::finished, this, &LinboGUI::doCreate);
+    linboImageSelector* dlg = new linboImageSelector( this, nr, command );
+    connect(dlg,SIGNAL(linboImageSelector::finished(int,const QString&, const QString&, bool, bool, FolgeAktion)),
+            this, SLOT(LinboGUI::doCreate(int, const QString&, const QString&, bool, bool, FolgeAktion)));
     dlg->exec();
 }
 
 void LinboGUI::doUploadDialog(int nr)
 {
-    linboImageUpload* dlg = new linboImageUpload( this, nr, this->conf->elements[nr] );
-    connect(dlg, &linboImageUpload::finished, this, &LinboGUI::doUpload);
+    vector<image_item> images = conf->elements[nr].image_history;
+    linboImageUpload* dlg = new linboImageUpload( this, nr, &images );
+    connect(dlg, SIGNAL(linboImageUpload::finished(int, const QString&, FolgeAktion)),
+            this, SLOT(LinboGUI::doUpload(const QString&, FolgeAktion)));
     dlg->exec();
 }
 
-void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion folgeAktion)
+void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion aktion)
 {
     QString baseImage = imageName.left(imageName.lastIndexOf(".")) + QString(".cloop");
     if(isnew){
@@ -409,15 +442,15 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
     }
     doCommand(command->mkcreatecommand(nr, imageName, baseImage), true);
 
-    QString tmpName = QString("/tmp/") + imageName + QString(".desc");
-    QString destination = imageName + QWtring(".desc");
+    QString tmpName = command->TMPDIR + imageName + command->DESCEXT;
+    QString destination = imageName + command->DESCEXT;
 
     QFile* file = new QFile( tmpName );
     if ( !file->open( QIODevice::WriteOnly ) ) {
         logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
     } else {
         QTextStream ts( file );
-        ts << info;
+        ts << description;
         file->flush();
         file->close();
     }
@@ -425,21 +458,43 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
     command->doWritefileCommand(tmpName, destination);
 
     if( upload ){
-        doCommand(command->mkuploadcommand(nr, imageName), true);
+        doCommand(command->mkuploadcommand(imageName), true);
     }
-    if(folgeAktion == FolgeAktion::Reboot)
+    if(aktion == FolgeAktion::Reboot)
         system("busybox reboot");
-    else if(folgeAktion == FolgeAktion::Shutdown)
+    else if(aktion == FolgeAktion::Shutdown)
         system("busybox shutdown");
 }
 
-void LinboGUI::doUpload(int nr, const QString &imageName, FolgeAktion aktion)
+void LinboGUI::doUpload(const QString &imageName, FolgeAktion aktion)
 {
-    doCommand( command->mkuploadcommand());
+    doCommand( command->mkuploadcommand(imageName) );
 
     if (aktion == FolgeAktion::Shutdown) {
         system("busybox poweroff");
     } else if (aktion == FolgeAktion::Reboot) {
         system("busybox reboot");
     }
+}
+
+void LinboGUI::doInfo(const QString& filename, const QString& description)
+{
+    QString tmpname = command->TMPDIR + filename;
+    QFile* file = new QFile( tmpname );
+    if ( !file->open( QIODevice::WriteOnly ) ) {
+        logConsole->writeStdErr( QString("Fehler beim Speichern der Beschreibung.") );
+    } else {
+        QTextStream ts( file );
+        ts << description;
+        file->flush();
+        file->close();
+    }
+    delete file;
+
+    command->doWritefileCommand(tmpname, filename);
+}
+
+void LinboGUI::doInitCache(bool formatCache, DownloadType type)
+{
+    doCommand( command->mkcacheinitcommand(formatCache, type) );
 }

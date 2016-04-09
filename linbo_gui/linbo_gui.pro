@@ -28,15 +28,14 @@ SOURCES += main.cpp\
     linboImageSelector.cpp \
     linboImageUpload.cpp \
     linboInfoBrowser.cpp \
-    linboInputBox.cpp \
     linboLogConsole.cpp \
     linboMulticastBox.cpp \
-    linboYesNo.cpp \
     linboConsole.cpp \
     linbooswidget.cpp \
     linboimagewidget.cpp \
     login.cpp \
-    consolewidget.cpp
+    consolewidget.cpp \
+    downloadtype.cpp
 
 HEADERS  += linbogui.h\
     registrierungsdialog.h \
@@ -48,16 +47,14 @@ HEADERS  += linbogui.h\
     linboImageSelector.h \
     linboImageUpload.h \
     linboInfoBrowser.h \
-    linboInputBox.h \
     linboLogConsole.h \
-    linboDialog.h \
     linboMulticastBox.h \
-    linboYesNo.h \
     linbooswidget.h \
     linboimagewidget.h \
     login.h \
     consolewidget.h \
-    folgeaktion.h
+    folgeaktion.h \
+    downloadtype.h
 
 FORMS    += linbogui.ui\
     registrierungsdialog.ui \
@@ -66,9 +63,7 @@ FORMS    += linbogui.ui\
     linboImageSelector.ui \
     linboImageUpload.ui \
     linboInfoBrowser.ui \
-    linboInputBox.ui \
     linboMulticastBox.ui \
-    linboYesNo.ui \
     linbooswidget.ui \
     linboimagewidget.ui \
     login.ui

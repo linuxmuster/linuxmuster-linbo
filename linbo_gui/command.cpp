@@ -3,12 +3,19 @@
 #include "command.h"
 #include "qprocess.h"
 #include "image_description.h"
+#include "downloadtype.h"
 
 #ifdef TESTCOMMAND
 #define LINBO_CMD(arg) QStringList("echo linbo_cmd") << (arg);
 #else
 #define LINBO_CMD(arg) QStringList("linbo_cmd") << (arg);
 #endif
+
+const QString Command::USER = "linbo";
+const QString Command::BASEIMGEXT = ".cloop";
+const QString Command::INCIMGEXT = ".rsync";
+const QString Command::DESCEXT = ".desc";
+const QString Command::TMPDIR = "/tmp/";
 
 // this appends a quoted space in case item is empty and resolves
 // problems with linbo_cmd's weird "shift"-usage
@@ -113,17 +120,13 @@ QStringList Command::mkpartitioncommand_noformat() {
   return command;
 }
 
-// type is 0 for rsync, 1 for multicast, 3 for bittorrent
-QStringList Command::mkcacheinitcommand(const QString& type) {
-  QStringList command = LINBO_CMD("initcache");
+QStringList Command::mkcacheinitcommand(bool formatCache, DownloadType type) {
+  QStringList command = LINBO_CMD(formatCache ? "initcache_format" : "initcache");
   globals config = conf->config;
   vector<os_item> os = conf->elements;
   saveappend( command, config.get_server() );
   saveappend( command, config.get_cache() );
-  if( ! type.isEmpty() )
-    command.append(type);
-  else
-    command.append("rsync");
+  saveappend( command, downloadtypeQString[type]);
 
   for(unsigned int i = 0; i < os.size(); i++) {
     saveappend( command, os[i].get_baseimage() );
@@ -171,12 +174,34 @@ QStringList Command::mkcreatecommand(int nr, const QString& imageName, const QSt
     vector<os_item> os = conf->elements;
     if( nr >= os.size()){
         //FIXME: error no such os
-        return QStringListe();
+        return QStringList();
     }
     saveappend(command, config.get_cache());
     saveappend(command, imageName);
     saveappend(command, baseImage);
-    saveappend(command, os[nr]);
+    saveappend(command, os[nr].get_boot());
+    saveappend(command, os[nr].get_root());
+    //FIXME: ist das korrekt zur Identifikation des richtigen Images?
+    int img = os[nr].find_current_image();
+    saveappend(command, os[nr].image_history[img].get_kernel());
+    saveappend(command, os[nr].image_history[img].get_initrd());
+    return command;
+}
+
+QStringList Command::mkuploadcommand(const QString& imageName)
+{
+    QStringList command = LINBO_CMD("upload");
+    globals config = conf->config;
+    if(password.isEmpty()){
+        //FIXME: error msg
+        return QStringList();
+    }
+    saveappend(command, config.get_server());
+    saveappend(command, USER);
+    saveappend(command, password);
+    saveappend(command, config.get_cache());
+    saveappend(command, imageName);
+    return command;
 }
 
 QString Command::doSimpleCommand(const QString &cmd)
@@ -229,6 +254,17 @@ void Command::doReadfileCommand(const QString &source, const QString &destinatio
     saveappend(command, conf->config.get_cache());
     saveappend(command, source);
     saveappend(command, destination);
+    QProcess *process = new QProcess();
+    process->start( command.join(" ") );
+    while( !process->waitForFinished(10000)) {}
+}
+
+void Command::doWritefileCommand(const QString &source, const QString &destination)
+{
+    QStringList command = LINBO_CMD("writefile");
+    saveappend(command, conf->config.get_cache());
+    saveappend(command, destination);
+    saveappend(command, source);
     QProcess *process = new QProcess();
     process->start( command.join(" ") );
     while( !process->waitForFinished(10000)) {}
