@@ -33,6 +33,7 @@ signals:
     void doStart(int nr);
     void doSync(int nr);
     void doNew(int nr);
+    void doInfo(int nr);
 
 private slots:
     void on_tbDefault_clicked();

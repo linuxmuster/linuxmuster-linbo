@@ -72,9 +72,6 @@ public slots:
     void do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup);
     void doInitcacheDialog();
     void doInitCache(bool formatCache, DownloadType type);
-    void restoreButtonsState();
-    void disableButtons();
-    void enableButtons();
     void performLogin(QString passwd);
     void performLogout();
     void doStart(int nr);

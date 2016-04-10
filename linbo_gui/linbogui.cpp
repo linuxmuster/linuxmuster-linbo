@@ -113,22 +113,6 @@ void LinboGUI::readFromStderr()
 
 
 
-void LinboGUI::enableButtons() {
-    //FIXME: remove - nothing to do
-}
-
-void LinboGUI::resetButtons() {
-    //FIXME: remove - nothing to do
-}
-
-void LinboGUI::disableButtons() {
-    //FIXME: remove -  nothing to do
-}
-
-void LinboGUI::restoreButtonsState() {
-    //FIXME: remove - nothing to do
-}
-
 bool LinboGUI::isAdminTab(int tabIndex) {
     return (tabIndex == ADMINTAB);
 }
@@ -266,6 +250,7 @@ void LinboGUI::showOSs()
         connect(os, &LinboOSWidget::doStart, this, &LinboGUI::doStart);
         connect(os, &LinboOSWidget::doSync, this, &LinboGUI::doSync);
         connect(os, &LinboOSWidget::doNew, this, &LinboGUI::doNew);
+        connect(os, &LinboOSWidget::doInfo, this, &LinboGUI::doInfoDialog);
         ui->osareaLayout->addWidget(os, row, col);
         os->show();
         col++;

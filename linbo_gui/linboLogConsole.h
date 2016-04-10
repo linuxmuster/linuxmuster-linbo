@@ -33,27 +33,37 @@ class linboLogConsole
 {
 
 private:
-  QColor consolefontcolorstdout, consolefontcolorstderr;
-  QTextEdit* Console;
+    QColor consolefontcolorstdout, consolefontcolorstderr;
+    QTextEdit* Console;
 
 
 public:
-  linboLogConsole();
-	
-  ~linboLogConsole();
+    linboLogConsole(const QString& new_consolefontcolorstdout = NULL,
+                    const QString& new_consolefontcolorstderr = NULL,
+                    QTextEdit* new_console = NULL);
 
-  // TODO: error handling
-  void setLinboLogConsole( const QString& new_consolefontcolorstdout,
-			   const QString& new_consolefontcolorstderr,
-			   QTextEdit* new_console );
+    ~linboLogConsole();
 
-  void writeStdOut( const QByteArray& stdoutdata );
-  void writeStdOut( const QString& stdoutdata );
-  void writeStdErr( const QByteArray& stderrdata );
-  void writeStdErr( const QString& stderrdata );
-  void writeResult( const int& processRetval,
-		    QProcess::ExitStatus status,
-		    const int& errorstatus );
+    static const QColor& COLORSTDOUT;
+    static const QColor& COLORSTDERR;
+
+    // TODO: error handling
+    void setLinboLogConsole( const QString& new_consolefontcolorstdout,
+                             const QString& new_consolefontcolorstderr,
+                             QTextEdit* new_console );
+    void setLinboLogConsole( const QColor& new_consolefontcolorstdout,
+                             const QColor& new_consolefontcolorstderr,
+                             QTextEdit* new_console );
+
+    void writeStdOut( const QByteArray& stdoutdata );
+    void writeStdOut( const QString& stdoutdata );
+    void writeStdErr( const QByteArray& stderrdata );
+    void writeStdErr( const QString& stderrdata );
+    void writeResult( const int& processRetval,
+                      QProcess::ExitStatus status,
+                      const int& errorstatus );
+    const QColor& get_colorstdout();
+    const QColor& get_colorstderr();
 
 };
 #endif

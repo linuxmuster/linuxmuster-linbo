@@ -13,13 +13,13 @@ filename(newFilename), ui(new Ui::linboInfoBrowser)
    ui->setupUi(this);
    ui->editor->setText(newInfo);
     if ( newReadOnly ) {
-      ui->saveButton->setText("Speichern");
-      ui->saveButton->setEnabled( true );
-      ui->editor->setReadOnly( false );
+        ui->saveButton->setText("Schliessen");
+        ui->saveButton->setEnabled( true );
+        ui->editor->setReadOnly( true );
     } else {
-      ui->saveButton->setText("Schliessen");
-      ui->saveButton->setEnabled( true );
-      ui->editor->setReadOnly( true );
+        ui->saveButton->setText("Speichern");
+        ui->saveButton->setEnabled( true );
+        ui->editor->setReadOnly( false );
     }
 }
 

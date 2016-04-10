@@ -8,6 +8,7 @@
 #include <QTime>
 
 #include "linboLogConsole.h"
+#include "folgeaktion.h"
 
 namespace Ui {
 class FortschrittDialog;
@@ -21,13 +22,13 @@ class FortschrittDialog : public QDialog
 private:
     QProcess *process;
     bool connected;
-    linboLogConsole *logConsole;
+    linboLogConsole *logConsole, *logDetails;
     int timerId;
-    QTextEdit* Console;
-    QTime time;
 
 public:
-    explicit FortschrittDialog(QWidget *parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0 );
+    explicit FortschrittDialog(QWidget *parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0,
+                               const QString& aktion  = NULL, FolgeAktion folgeAktion = FolgeAktion::None,
+                               bool newDetails = false);
     ~FortschrittDialog();
 
     void setProgress(int i);
@@ -38,6 +39,8 @@ public slots:
     void killLinboCmd();
 
 private slots:
+    void processReadyReadStandardError();
+    void processReadyReadStandardOutput();
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 protected:

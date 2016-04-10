@@ -22,11 +22,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 #include "linboLogConsole.h"
 
-linboLogConsole::linboLogConsole()
+const QColor& linboLogConsole::COLORSTDOUT = QColor( QString("white") );
+const QColor& linboLogConsole::COLORSTDERR = QColor( QString("red") );
+
+linboLogConsole::linboLogConsole(const QString &new_consolefontcolorstdout,
+                                 const QString &new_consolefontcolorstderr,
+                                 QTextEdit *new_console):
+    consolefontcolorstdout(),consolefontcolorstderr(),Console(new_console)
 {
-  consolefontcolorstdout =  QColor( QString("white") );
-  consolefontcolorstderr =  QColor( QString("red") );
-  Console = 0;
+  consolefontcolorstdout =  new_consolefontcolorstdout == NULL ? COLORSTDOUT
+                                                          : QColor( new_consolefontcolorstdout );
+  consolefontcolorstderr =  new_consolefontcolorstderr == NULL ? COLORSTDERR
+                                                          : QColor( new_consolefontcolorstderr );
 }
 
 linboLogConsole::~linboLogConsole() {
@@ -40,6 +47,18 @@ void linboLogConsole::setLinboLogConsole( const QString& new_consolefontcolorstd
 
   consolefontcolorstdout =  QColor( new_consolefontcolorstdout );
   consolefontcolorstderr =  QColor( new_consolefontcolorstderr );
+
+  if ( new_console != 0 )
+    Console = new_console;
+
+}
+
+void linboLogConsole::setLinboLogConsole( const QColor& new_consolefontcolorstdout,
+                      const QColor& new_consolefontcolorstderr,
+                      QTextEdit* new_console ) {
+
+  consolefontcolorstdout =  new_consolefontcolorstdout;
+  consolefontcolorstderr =  new_consolefontcolorstderr;
 
   if ( new_console != 0 )
     Console = new_console;
@@ -125,3 +144,14 @@ void linboLogConsole::writeResult( const int& processRetval,
   }
 
 }
+
+const QColor& linboLogConsole::get_colorstdout()
+{
+    return consolefontcolorstdout;
+}
+
+const QColor& linboLogConsole::get_colorstderr()
+{
+    return consolefontcolorstderr;
+}
+

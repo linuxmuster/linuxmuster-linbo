@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     linboimagewidget.cpp \
     login.cpp \
     consolewidget.cpp \
-    downloadtype.cpp
+    downloadtype.cpp \
+    folgeaktion.cpp
 
 HEADERS  += linbogui.h\
     registrierungsdialog.h \

@@ -122,12 +122,10 @@ LinboOSWidget::DefaultButton LinboOSWidget::buttonFromAction(const QString& defa
 
 LinboOSWidget::~LinboOSWidget()
 {
-    //nothing to be done
+    delete ui;
 }
 
 void LinboOSWidget::on_tbInfo_clicked()
 {
-    QMessageBox dlg(QMessageBox::Information, "Info",
-                    "Dieser Dialog ist  nicht implementiert.", QMessageBox::Ok, this);
-    dlg.exec();
+    emit doInfo(nr);
 }
