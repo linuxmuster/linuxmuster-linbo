@@ -26,17 +26,16 @@ class linboImageUpload : public QDialog
     Q_OBJECT
 
 private:
-    int nr;
-    vector<image_item>* image;
+    vector<image_item>* history;
 
 public:
-    linboImageUpload( QWidget* parent = 0, int newnr = 0, vector<image_item>* newImage = 0);
+    linboImageUpload( QWidget* parent = 0, vector<image_item>* new_history = 0);
     ~linboImageUpload();
 
     QListWidgetItem *findImageItem(QString imageName);
 
 signals:
-    void finished(int nr, const QString& imageName, FolgeAktion aktion);
+    void finished(const QString& imageName, FolgeAktion aktion);
 
 private slots:
     void on_okButton_clicked();

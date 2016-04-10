@@ -13,10 +13,21 @@
 #include "linboImageUpload.h"
 #include "folgeaktion.h"
 
-linboImageSelector::linboImageSelector(  QWidget* parent, int newnr, Command* newCommand ) : QDialog(parent),
-    nr(newnr), command(newCommand), upload(false), ui(new Ui::linboImageSelector)
+const QString& linboImageSelector::NEWNAME = QString("[Neuer Dateiname]");
+
+linboImageSelector::linboImageSelector(  QWidget* parent, int newnr,
+                                         vector<image_item>* new_history,
+                                         Command* newCommand ) : QDialog(parent),
+    nr(newnr), history(new_history), command(newCommand), upload(false),
+    ui(new Ui::linboImageSelector)
 {
     ui->setupUi(this);
+    if(history != NULL){
+        for(vector<image_item>::iterator it = history->begin(); it != history->end();++it)
+            ui->listBox->addItem(((image_item)*it).get_image());
+    }
+    ui->listBox->addItem(NEWNAME);
+    ui->listBox->setCurrentRow(0);
 }
 
 linboImageSelector::~linboImageSelector()
@@ -31,15 +42,15 @@ void linboImageSelector::finish() {
 
     imageName = ui->listBox->currentItem()->text();
 
-    isnew = imageName.compare("[Neuer Dateiname]") == 0;
+    isnew = imageName.compare(NEWNAME) == 0;
 
     if( isnew ){
         imageName = ui->specialName->text();
         if( imageName.isEmpty() )
             return;
-        if( ui->incrRadioButton->isChecked() && ! imageName.endsWith(".rsync"))
+        if( ui->incrRadioButton->isChecked() && ! imageName.endsWith(Command::INCIMGEXT))
             imageName += QString(".rsync");
-        else if ( ui->baseRadioButton->isChecked() && ! imageName.endsWith(".cloop")) {
+        else if ( ui->baseRadioButton->isChecked() && ! imageName.endsWith(Command::BASEIMGEXT)) {
             imageName += QString(".cloop");
         }
     }
@@ -71,7 +82,7 @@ void linboImageSelector::on_listBox_itemSelectionChanged()
     if( ui->listBox->currentItem() == NULL)
         return;
     QString item(ui->listBox->currentItem()->text());
-    bool neu = item.compare(QString("[Neuer Dateiname]")) == 0;
+    bool neu = item.compare(NEWNAME) == 0;
     ui->baseRadioButton->setEnabled(neu);
     ui->incrRadioButton->setEnabled(neu);
     ui->specialName->setEnabled(neu);

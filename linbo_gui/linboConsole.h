@@ -3,11 +3,6 @@
 
 #include <qobject.h>
 #include <qdialog.h>
-#include <QProcess>
-#include <qstring.h>
-#include <QTextEdit>
-#include <QTextBrowser>
-#include <qplaintextedit.h>
 
 #include "linboLogConsole.h"
 

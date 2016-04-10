@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <QMessageBox>
 #include <qfile.h>
 #include <qtextstream.h>
@@ -376,12 +378,17 @@ void LinboGUI::doNew(int nr)
     doCommand(command->mksyncstartcommand(nr), false);
 }
 
-void LinboGUI::doInitcacheDialog()
+void LinboGUI::on_initcache_clicked()
 {
     linboMulticastBox* dlg = new linboMulticastBox(this, conf->config.get_autoformat(), conf->config.get_downloadtype());
+    connect(dlg, &linboMulticastBox::finished, this, &LinboGUI::doInitCache);
     dlg->exec();
 }
 
+void LinboGUI::on_partition_clicked()
+{
+    doCommand(command->mkpartitioncommand(), false);
+}
 
 void LinboGUI::doInfoDialog(int nr)
 {
@@ -404,31 +411,34 @@ void LinboGUI::doInfoDialog(int nr)
 
 void LinboGUI::doCreateDialog(int nr)
 {
-    linboImageSelector* dlg = new linboImageSelector( this, nr, command );
-    connect(dlg,SIGNAL(linboImageSelector::finished(int,const QString&, const QString&, bool, bool, FolgeAktion)),
-            this, SLOT(LinboGUI::doCreate(int, const QString&, const QString&, bool, bool, FolgeAktion)));
+    vector<image_item>* history = &conf->elements[nr].image_history;
+    linboImageSelector* dlg = new linboImageSelector( this, nr, history, command );
+    connect(dlg,SIGNAL(finished(int, const QString&, const QString&, bool, bool, FolgeAktion)),
+            this, SLOT(doCreate(int, const QString&, const QString&, bool, bool, FolgeAktion)));
     dlg->exec();
 }
 
 void LinboGUI::doUploadDialog(int nr)
 {
-    vector<image_item> images = conf->elements[nr].image_history;
-    linboImageUpload* dlg = new linboImageUpload( this, nr, &images );
-    connect(dlg, SIGNAL(linboImageUpload::finished(int, const QString&, FolgeAktion)),
-            this, SLOT(LinboGUI::doUpload(const QString&, FolgeAktion)));
+    vector<image_item> history = conf->elements[nr].image_history;
+    linboImageUpload* dlg = new linboImageUpload( this, &history );
+    connect(dlg, SIGNAL(finished(const QString&, FolgeAktion)),
+            this, SLOT(doUpload(const QString&, FolgeAktion)));
     dlg->exec();
 }
 
 void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion aktion)
 {
-    QString baseImage = imageName.left(imageName.lastIndexOf(".")) + QString(".cloop");
-    if(isnew){
-        //FIXME: insert new image entry where ?
-    }
+    QString baseImage = imageName.left(imageName.lastIndexOf(".")) + Command::BASEIMGEXT;
     doCommand(command->mkcreatecommand(nr, imageName, baseImage), true);
+    if(isnew){
+        os_item os = conf->elements[nr];
+        image_item new_image;
+        os.image_history.push_back(new_image);
+    }
 
-    QString tmpName = command->TMPDIR + imageName + command->DESCEXT;
-    QString destination = imageName + command->DESCEXT;
+    QString tmpName = Command::TMPDIR + imageName + Command::DESCEXT;
+    QString destination = imageName + Command::DESCEXT;
 
     QFile* file = new QFile( tmpName );
     if ( !file->open( QIODevice::WriteOnly ) ) {
@@ -453,7 +463,7 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
 
 void LinboGUI::doUpload(const QString &imageName, FolgeAktion aktion)
 {
-    doCommand( command->mkuploadcommand(imageName) );
+    doCommand( command->mkuploadcommand( imageName), true );
 
     if (aktion == FolgeAktion::Shutdown) {
         system("busybox poweroff");

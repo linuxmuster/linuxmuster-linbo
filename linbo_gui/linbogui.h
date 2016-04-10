@@ -70,7 +70,6 @@ public:
 
 public slots:
     void do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup);
-    void doInitcacheDialog();
     void doInitCache(bool formatCache, DownloadType type);
     void performLogin(QString passwd);
     void performLogout();
@@ -102,6 +101,10 @@ private slots:
     void on_cbTimeout_toggled(bool checked);
 
     void on_console_clicked();
+
+    void on_initcache_clicked();
+
+    void on_partition_clicked();
 
 protected:
     void timerEvent(QTimerEvent *event);

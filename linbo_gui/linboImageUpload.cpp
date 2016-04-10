@@ -9,14 +9,16 @@
 #include "ui_linboImageUpload.h"
 #include "image_description.h"
 
-linboImageUpload::linboImageUpload(  QWidget* parent, int newnr, vector<image_item>* newImage ) : QDialog(parent),
-     nr(newnr), image(newImage), ui(new Ui::linboImageUpload)
+linboImageUpload::linboImageUpload(  QWidget* parent, vector<image_item>* new_history ) : QDialog(parent),
+     history(new_history), ui(new Ui::linboImageUpload)
 {
     ui->setupUi(this);
-    if( image != NULL){
-        for(int i=0; i < image->size(); i++){
-            ui->listBox->addItem(image->at(i).get_image());
+    if( history != NULL){
+        for(vector<image_item>::iterator it = history->begin();it != history->end();++it){
+            ui->listBox->addItem(((image_item)*it).get_image());
         }
+        if(ui->listBox->count() > 0)
+            ui->listBox->setCurrentRow(0);
     }
 }
 
@@ -46,6 +48,6 @@ void linboImageUpload::on_okButton_clicked()
     else
         aktion = FolgeAktion::None;
 
-    emit(finished(nr, imageName, aktion));
+    emit(finished(imageName, aktion));
     this->accept();
 }

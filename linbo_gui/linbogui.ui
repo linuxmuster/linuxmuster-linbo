@@ -297,7 +297,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           </property>
           <property name="minimumSize">
            <size>
-            <width>600</width>
+            <width>500</width>
             <height>200</height>
            </size>
           </property>
@@ -308,21 +308,27 @@ background-color: rgba(255, 255, 255, 0);</string>
            <string notr="true">background-color: rgb(255, 255, 255,255);</string>
           </property>
           <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
+           <enum>Qt::ScrollBarAsNeeded</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>
           <property name="sizeAdjustPolicy">
-           <enum>QAbstractScrollArea::AdjustIgnored</enum>
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
           </property>
           <property name="widgetResizable">
            <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
           <widget class="QWidget" name="osarea">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>744</width>
-             <height>302</height>
+             <width>756</width>
+             <height>277</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -333,27 +339,27 @@ background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="minimumSize">
             <size>
-             <width>744</width>
-             <height>302</height>
+             <width>600</width>
+             <height>200</height>
             </size>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
              <layout class="QGridLayout" name="osareaLayout">
               <property name="leftMargin">
-               <number>20</number>
+               <number>5</number>
               </property>
               <property name="topMargin">
-               <number>20</number>
+               <number>5</number>
               </property>
               <property name="rightMargin">
-               <number>20</number>
+               <number>5</number>
               </property>
               <property name="bottomMargin">
-               <number>20</number>
+               <number>5</number>
               </property>
               <property name="spacing">
-               <number>20</number>
+               <number>5</number>
               </property>
              </layout>
             </item>
@@ -401,7 +407,7 @@ background-color: rgba(255, 255, 255, 0);</string>
            <string notr="true">background-color: rgb(255, 255, 255);</string>
           </property>
           <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
+           <enum>Qt::ScrollBarAsNeeded</enum>
           </property>
           <property name="widgetResizable">
            <bool>true</bool>
@@ -411,7 +417,7 @@ background-color: rgba(255, 255, 255, 0);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>499</width>
+             <width>516</width>
              <height>277</height>
             </rect>
            </property>

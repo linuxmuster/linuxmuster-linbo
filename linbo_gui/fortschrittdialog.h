@@ -43,6 +43,8 @@ private slots:
     void processReadyReadStandardOutput();
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
+    void on_buttonBox_clicked(QAbstractButton *button);
+
 protected:
     void timerEvent(QTimerEvent *event);
 

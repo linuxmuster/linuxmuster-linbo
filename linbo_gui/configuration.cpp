@@ -66,6 +66,8 @@ void Configuration::read_os( os_item& tmp_os, image_item& tmp_image ) {
     else if(key.compare("autostarttimeout") == 0)   tmp_image.set_autostarttimeout(value.toInt());
     else if(key.compare("hidden") == 0)   tmp_image.set_hidden(toBool(value));
   }
+  if(tmp_image.get_image().isEmpty())
+      tmp_image.set_image(tmp_os.get_baseimage());
 }
 
 void Configuration::read_partition( diskpartition& p ) {

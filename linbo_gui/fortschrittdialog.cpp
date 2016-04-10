@@ -29,8 +29,6 @@ FortschrittDialog::FortschrittDialog(  QWidget* parent, QStringList* command, li
         ui->folgeAktion->setText(folgeAktionQString[folgeAktion]);
     }
     ui->details->setChecked(newDetails);
-    connect( ui->buttonBox,SIGNAL(clicked()),this,SLOT(killLinboCmd()) );
-
     connect( process, SIGNAL(finished(int,QProcess::ExitStatus)),
              this, SLOT(processFinished(int,QProcess::ExitStatus)));
     process->start(command->join(" "));
@@ -105,4 +103,9 @@ void FortschrittDialog::setShowCancelButton(bool show)
     else {
         ui->buttonBox->button(QDialogButtonBox::Cancel)->hide();
     }
+}
+
+void FortschrittDialog::on_buttonBox_clicked(QAbstractButton *button)
+{
+    killLinboCmd();
 }

@@ -6,6 +6,7 @@
 
 #include "folgeaktion.h"
 #include "command.h"
+#include "image_description.h"
 
 namespace Ui {
     class linboImageSelector;
@@ -17,13 +18,16 @@ class linboImageSelector : public QDialog
 
 private:
     int nr;
+    vector<image_item>* history;
   Command *command;
   bool upload;
 
 public:
-  linboImageSelector( QWidget* parent = 0, int newnr = 0, Command* newCommand = 0);
+  linboImageSelector( QWidget* parent = 0, int newnr = 0, vector<image_item>* new_history = 0, Command* newCommand = 0);
 
   ~linboImageSelector();
+
+  static const QString& NEWNAME;
 
 signals:
   void finished(int nr, const QString& imageName, const QString& info, bool isnew, bool upload, FolgeAktion folgeAktion);
