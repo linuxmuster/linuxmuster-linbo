@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.0-31) babo-testing; urgency=low
+
+  * linbo_cmd.sh, mk_efiboot(): provide grubx64.efi also for linux clients.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Apr 2016 20:06:52 +0200
+
 linuxmuster-linbo (2.3.0-30) babo-testing; urgency=low
 
   * linbo_cmd.sh:
