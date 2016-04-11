@@ -40,6 +40,7 @@ QT_FRAMEBUFFER_LIB=qtbase/plugins/platforms/libqlinuxfb.a
 # linbo_gui
 LINBO_SRC=$(CURDIR)/$(GUI_NAME)/*
 GUI_NAME=linbo_gui
+GUISRCDIR=$(CURDIR)/$(GUI_NAME)
 GUI_BUILD32=$(BUILDDIR)/build-$(GUI_NAME)-fb32
 GUI_BUILD64=$(BUILDDIR)/build-$(GUI_NAME)-fb64
 
@@ -131,6 +132,15 @@ distclean: clean
 clean: 
 	rm -f build-stamp configure-stamp
 
-install: build
+$(SYSROOT64)/usr/bin/linbo_gui: $(GUI_BUILD64)/linbo_gui
+	install -D -m 755 -u 0 -g 0 $(GUI_BUILD64)/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
-.PHONY: build clean install configure
+install: install32 install64
+
+$(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
+	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD32)/start.conf
+	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD64)/start.conf
+
+install-test: $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf
+
+.PHONY: build clean install install-test configure

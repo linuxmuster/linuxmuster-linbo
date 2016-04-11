@@ -38,14 +38,11 @@ class LinboGUI : public QMainWindow
 private:
     Configuration* conf;
     Command* command;
-    QTimer* myAutostartTimer;
-    QString linestdout, linestderr;
-    QString logfilepath, fonttemplate;
-    bool root, withicons, outputvisible;
+    QString logfilepath;
+    bool details, root, withicons, outputvisible;
     QProcess* process;
     FortschrittDialog* progress;
-    QPushButton *autostart, *autopartition, *autoinitcache;
-    int preTab, autostarttimeout, roottimeout, logoutTimer;
+    int preTab, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
 
     void showInfos();
@@ -57,7 +54,6 @@ public:
 
     bool isRoot() const;
     void showImagingTab();
-    void log( const QString& data );
 
     explicit LinboGUI(QWidget *parent = 0);
     ~LinboGUI();
@@ -73,6 +69,8 @@ public slots:
     void doInitCache(bool formatCache, DownloadType type);
     void performLogin(QString passwd);
     void performLogout();
+    void doAutostartDialog();
+    void doAutostart();
     void doStart(int nr);
     void doSync(int nr);
     void doNew(int nr);
@@ -112,7 +110,8 @@ protected:
 private:
     void doCreate();
     void doUpload();
-    void doCommand(const QStringList& command, bool interruptible = false);
+    void doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
+                   FolgeAktion aktion = FolgeAktion::None, bool* details = NULL);
     Ui::LinboGUI *ui;
 };
 

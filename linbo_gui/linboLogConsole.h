@@ -33,14 +33,19 @@ class linboLogConsole
 {
 
 private:
+    static const QString STDLOGFILEPATH;
+
     QColor consolefontcolorstdout, consolefontcolorstderr;
     QTextEdit* Console;
+    QString logfilepath;
 
+    void log( const QString& data );
 
 public:
     linboLogConsole(const QString& new_consolefontcolorstdout = NULL,
                     const QString& new_consolefontcolorstderr = NULL,
-                    QTextEdit* new_console = NULL);
+                    QTextEdit* new_console = NULL,
+                    const QString& logfilepath = NULL);
 
     ~linboLogConsole();
 
@@ -50,10 +55,12 @@ public:
     // TODO: error handling
     void setLinboLogConsole( const QString& new_consolefontcolorstdout,
                              const QString& new_consolefontcolorstderr,
-                             QTextEdit* new_console );
+                             QTextEdit* new_console,
+                             const QString& new_logfilepath = NULL);
     void setLinboLogConsole( const QColor& new_consolefontcolorstdout,
                              const QColor& new_consolefontcolorstderr,
-                             QTextEdit* new_console );
+                             QTextEdit* new_console,
+                             const QString& new_logfilepath = NULL);
 
     void writeStdOut( const QByteArray& stdoutdata );
     void writeStdOut( const QString& stdoutdata );

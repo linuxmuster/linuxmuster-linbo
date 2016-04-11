@@ -143,6 +143,12 @@ void Configuration::init(const char name[])
 	        if(i==elements.size()) { // Not included yet -> new image
 	          tmp_os.image_history.push_back(tmp_image);
 	          elements.push_back(tmp_os);
+              if(tmp_image.get_autostart() && tmp_image.get_autostarttimeout() != 0){
+                  config.set_autostart(&tmp_image);
+                  config.set_autostarttimeout(tmp_image.get_autostarttimeout());
+                  config.set_autostartosname(tmp_os.get_name());
+                  config.set_autostartosnr(elements.size()-1);
+              }
 	        }
 	      }
         } else if(tmp_qstring.toLower().compare("[linbo]") == 0) {

@@ -4,6 +4,7 @@
 #include <qfile.h>
 #include <qtextstream.h>
 #include <qobject.h>
+#include <qtimer.h>
 
 #include "linbooswidget.h"
 
@@ -24,6 +25,7 @@
 #include "image_description.h"
 #include "linboInfoBrowser.h"
 #include "linboMulticastBox.h"
+#include "autostart.h"
 
 LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
@@ -34,30 +36,33 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf = new Configuration();
     command = new Command(conf);
 
+    details = false;
+
     // reset root - we're an user now
     root = false;
     // automatic logout after roottimeout;
     roottimeout = 600;
+
     // we want to see icons
     withicons = true;
 
     // show command output on LINBO console
     outputvisible = true;
 
-    // default setting -> no image selected for autostart
-    autostart = 0;
-    autostarttimeout = 0;
-
     // first "last visited" tab is start tab
     preTab = 0;
 
     // logfilepath
+#ifdef TESTCOMMAND
+    logfilepath = QString("./linbo.log");
+#else
     logfilepath = QString("/tmp/linbo.log");
+#endif
 
     // we can set this now since our globals have been read
     logConsole->setLinboLogConsole( conf->config.get_consolefontcolorstdout(),
                                     conf->config.get_consolefontcolorstderr(),
-                                    ui->log );
+                                    ui->log, logfilepath);
 
     showInfos();
 
@@ -66,6 +71,11 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     showImages();
 
     ui->systeme->setCurrentIndex(0);
+
+    //process autostart
+    if(conf->config.get_autostart() != NULL && conf->config.get_autostarttimeout() != 0){
+        QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
+    }
 }
 
 LinboGUI::~LinboGUI()
@@ -81,21 +91,8 @@ void LinboGUI::showImagingTab() {
     ui->systeme->setCurrentIndex( ADMINTAB );
 }
 
-void LinboGUI::log( const QString& data ) {
-    // write to our logfile
-    QFile logfile( logfilepath  );
-    logfile.open( QIODevice::WriteOnly | QIODevice::Append );
-    QTextStream logstream( &logfilepath );
-    logstream << data << "\n";
-    logfile.flush();
-    logfile.close();
-}
-
 void LinboGUI::readFromStdout()
 {
-    // TODO: reactivate log
-    // log( linestdout );
-
     if( outputvisible ) {
         logConsole->writeStdOut( process->readAllStandardOutput() );
     }
@@ -103,14 +100,9 @@ void LinboGUI::readFromStdout()
 
 void LinboGUI::readFromStderr()
 {
-    // TODO: reactivate log
-    // log( linestderr );
-
     if( outputvisible ) {
-
         logConsole->writeStdErr( process->readAllStandardError() );
     }
-
 }
 
 
@@ -181,7 +173,7 @@ void LinboGUI::on_update_clicked()
 #else
       QStringList cmd = command->mklinboupdatecommand();
 #endif
-      doCommand( cmd );
+      doCommand( cmd, false, QString("update"), FolgeAktion::None, &details );
 }
 
 void LinboGUI::on_systeme_currentChanged(int index)
@@ -239,7 +231,7 @@ void LinboGUI::on_doregister_clicked()
 
 void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup)
 {
-    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true);
+    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren..."), FolgeAktion::None, &details);
 }
 
 void LinboGUI::showOSs()
@@ -349,10 +341,10 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
     }
 }
 
-void LinboGUI::doCommand(const QStringList& command, bool interruptible)
+void LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, FolgeAktion aktion, bool* details)
 {
     QStringList *cmd = new QStringList(command);
-    progress = new FortschrittDialog( this, cmd, logConsole );
+    progress = new FortschrittDialog( this, cmd, logConsole, titel, aktion, details );
     progress->setShowCancelButton( interruptible );
     progress->exec();
 }
@@ -361,6 +353,11 @@ void LinboGUI::on_console_clicked()
 {
     linboConsole console( this );
     console.exec();
+}
+
+void LinboGUI::doAutostart()
+{
+    doCommand(command->mkstartcommand(conf->config.get_autostartosnr()), false);
 }
 
 void LinboGUI::doStart(int nr)
@@ -388,6 +385,13 @@ void LinboGUI::on_initcache_clicked()
 void LinboGUI::on_partition_clicked()
 {
     doCommand(command->mkpartitioncommand(), false);
+}
+
+void LinboGUI::doAutostartDialog()
+{
+    Autostart* dlg = new Autostart( this, conf->config.get_autostarttimeout(), QString("Autostart " + conf->config.get_autostartosname()));
+    connect( dlg, &Autostart::accepted, this, &LinboGUI::doAutostart);
+    dlg->exec();
 }
 
 void LinboGUI::doInfoDialog(int nr)

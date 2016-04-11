@@ -9,26 +9,33 @@
 #include "fortschrittdialog.h"
 #include "ui_fortschrittdialog.h"
 
-FortschrittDialog::FortschrittDialog(  QWidget* parent, QStringList* command, linboLogConsole* new_log,
+FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linboLogConsole* new_log,
                                        const QString& aktion, FolgeAktion folgeAktion,
-                                       bool newDetails):
-    QDialog(parent), process(new QProcess(this)), logConsole(new_log), logDetails(), timerId(0),
+                                       bool* newDetails):
+    QDialog(parent), details(newDetails), process(new QProcess(this)), logConsole(new_log), logDetails(), timerId(0),
     ui(new Ui::FortschrittDialog)
 {
     ui->setupUi(this);
+    if(details == NULL){
+        details = new bool(false);
+    }
+    ui->details->setChecked(*details);
     logDetails = new linboLogConsole();
     logDetails->setLinboLogConsole(logConsole == NULL ? linboLogConsole::COLORSTDOUT
                                                         : logConsole->get_colorstdout(),
                                      logConsole == NULL ? linboLogConsole::COLORSTDERR
                                                         : logConsole->get_colorstderr(),
-                                     ui->log);
+                                     ui->log, NULL);
     ui->aktion->setText(aktion == NULL ? QString("unbekannt") : aktion );
     if(folgeAktion == FolgeAktion::None) {
-        ui->folgeAktion->setDisabled(true);
+        ui->folgeAktion->hide();
     } else {
         ui->folgeAktion->setText(folgeAktionQString[folgeAktion]);
     }
-    ui->details->setChecked(newDetails);
+    connect( process, &QProcess::readyReadStandardOutput,
+             this, &FortschrittDialog::processReadyReadStandardOutput);
+    connect( process, &QProcess::readyReadStandardError,
+             this, &FortschrittDialog::processReadyReadStandardError);
     connect( process, SIGNAL(finished(int,QProcess::ExitStatus)),
              this, SLOT(processFinished(int,QProcess::ExitStatus)));
     process->start(command->join(" "));
@@ -107,5 +114,11 @@ void FortschrittDialog::setShowCancelButton(bool show)
 
 void FortschrittDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
-    killLinboCmd();
+    if( QDialogButtonBox::Cancel == ui->buttonBox->standardButton(button))
+        killLinboCmd();
+}
+
+void FortschrittDialog::on_details_toggled(bool checked)
+{
+    *details = checked;
 }

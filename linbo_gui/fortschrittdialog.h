@@ -20,6 +20,7 @@ class FortschrittDialog : public QDialog
 {
     Q_OBJECT
 private:
+    bool* details;
     QProcess *process;
     bool connected;
     linboLogConsole *logConsole, *logDetails;
@@ -28,7 +29,7 @@ private:
 public:
     explicit FortschrittDialog(QWidget *parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0,
                                const QString& aktion  = NULL, FolgeAktion folgeAktion = FolgeAktion::None,
-                               bool newDetails = false);
+                               bool* newDetails = NULL);
     ~FortschrittDialog();
 
     void setProgress(int i);
@@ -44,6 +45,8 @@ private slots:
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
     void on_buttonBox_clicked(QAbstractButton *button);
+
+    void on_details_toggled(bool checked);
 
 protected:
     void timerEvent(QTimerEvent *event);

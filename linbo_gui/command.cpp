@@ -28,7 +28,7 @@ void Command::saveappend( QStringList& command, const QString& item ) {
 }
 
 // Start image
-QStringList Command::mkstartcommand(int osnr, int imnr) {
+QStringList Command::mkstartcommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("start");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
@@ -41,7 +41,7 @@ QStringList Command::mkstartcommand(int osnr, int imnr) {
 }
 
 // Sync+start image
-QStringList Command::mksyncstartcommand(int osnr,int imnr) {
+QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr) {
   QStringList command = LINBO_CMD("syncstart");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
@@ -59,7 +59,7 @@ QStringList Command::mksyncstartcommand(int osnr,int imnr) {
 }
 
 // Sync image from cache
-QStringList Command::mksynccommand(int osnr, int imnr) {
+QStringList Command::mksynccommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("sync");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr];
@@ -76,7 +76,7 @@ QStringList Command::mksynccommand(int osnr, int imnr) {
 }
 
 // Sync image from server
-QStringList Command::mksyncrcommand(int osnr, int imnr) {
+QStringList Command::mksyncrcommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("syncr");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr];
@@ -167,7 +167,7 @@ QStringList Command::mkregistercommand(QString& roomName, QString& clientName,
     return command;
 }
 
-QStringList Command::mkcreatecommand(int nr, const QString& imageName, const QString& baseImage)
+QStringList Command::mkcreatecommand(unsigned int nr, const QString& imageName, const QString& baseImage)
 {
     QStringList command = LINBO_CMD("create");
     globals config = conf->config;

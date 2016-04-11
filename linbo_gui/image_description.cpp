@@ -31,6 +31,8 @@ globals::globals():roottimeout(120) {
     consolefontcolorstderr = "red";
     downloadtype = DownloadType::RSync;
     autoformat = 0;
+    autostart = 0;
+    autostarttimeout = 0;
 }
 
 globals::~globals() {}
@@ -55,6 +57,10 @@ void globals::set_cache( const QString& new_cache ) {
     hd = cache;
     hd.remove(QRegExp("p?[0-9]{1,2}"));
 }
+const image_item* globals::get_autostart(){return autostart;};
+int globals::get_autostarttimeout(){ return autostarttimeout; };
+const QString& globals::get_autostartosname(){ return autostartosname; };
+unsigned int globals::get_autostartosnr(){ return autostartosnr; };
 void globals::set_hostgroup( const QString& new_hostgroup ) { hostgroup = new_hostgroup; }
 void globals::set_kerneloptions(const QString &new_kerneloptions) { kerneloptions = new_kerneloptions;}
 void globals::set_systemtype(const QString &new_systemtype) { systemtype = new_systemtype; }
@@ -73,7 +79,10 @@ void globals::set_downloadtype( const QString& new_downloadtype ) {
         downloadtype = DownloadType::RSync;
 };
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
-
+void globals::set_autostart(image_item *item){ autostart = item; };
+void globals::set_autostarttimeout(int timeout){ autostarttimeout = timeout;};
+void globals::set_autostartosname(const QString& osname){ autostartosname = osname; };
+void globals::set_autostartosnr(unsigned int nr){ autostartosnr = nr; };
 diskpartition::diskpartition() {}
 diskpartition::~diskpartition() {}
 const QString& diskpartition::get_dev() const { return dev; }
