@@ -1344,7 +1344,6 @@ start(){
  local KERNEL="${3#/}"
  local i
  local partition="$2"
- local disk="${partition%%[1-9]*}"
  local cachedev="$6"
  local startflag="/tmp/.start"
  touch "$startflag"
