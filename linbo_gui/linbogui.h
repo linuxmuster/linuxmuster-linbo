@@ -19,7 +19,7 @@
 #include "image_description.h"
 #include "linboLogConsole.h"
 #include "fortschrittdialog.h"
-#include "folgeaktion.h"
+#include "aktion.h"
 #include "downloadtype.h"
 
 #define ADMINTAB ui->systeme->count()-2
@@ -75,9 +75,9 @@ public slots:
     void doSync(int nr);
     void doNew(int nr);
     void doCreateDialog(int nr);
-    void doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion aktion);
+    void doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, Aktion aktion);
     void doUploadDialog(int nr);
-    void doUpload(const QString& imageName, FolgeAktion aktion);
+    void doUpload(const QString& imageName, Aktion aktion);
     void doInfoDialog(int nr);
     void doInfo(const QString& filename, const QString& desription);
 
@@ -111,7 +111,7 @@ private:
     void doCreate();
     void doUpload();
     void doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
-                   FolgeAktion aktion = FolgeAktion::None, bool* details = NULL);
+                   Aktion aktion = Aktion::None, bool* details = NULL);
     Ui::LinboGUI *ui;
 };
 

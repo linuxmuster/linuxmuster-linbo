@@ -36,8 +36,8 @@ SOURCES += main.cpp\
     login.cpp \
     consolewidget.cpp \
     downloadtype.cpp \
-    folgeaktion.cpp \
-    autostart.cpp
+    autostart.cpp \
+    aktion.cpp
 
 HEADERS  += linbogui.h\
     registrierungsdialog.h \
@@ -55,9 +55,9 @@ HEADERS  += linbogui.h\
     linboimagewidget.h \
     login.h \
     consolewidget.h \
-    folgeaktion.h \
     downloadtype.h \
-    autostart.h
+    autostart.h \
+    aktion.h
 
 FORMS    += linbogui.ui\
     registrierungsdialog.ui \

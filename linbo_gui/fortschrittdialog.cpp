@@ -5,12 +5,12 @@
 #include <qbytearray.h>
 
 #include "linboLogConsole.h"
-#include "folgeaktion.h"
+#include "aktion.h"
 #include "fortschrittdialog.h"
 #include "ui_fortschrittdialog.h"
 
 FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linboLogConsole* new_log,
-                                       const QString& aktion, FolgeAktion folgeAktion,
+                                       const QString& titel, Aktion aktion,
                                        bool* newDetails):
     QDialog(parent), details(newDetails), process(new QProcess(this)), logConsole(new_log), logDetails(), timerId(0),
     ui(new Ui::FortschrittDialog)
@@ -26,11 +26,11 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linb
                                      logConsole == NULL ? linboLogConsole::COLORSTDERR
                                                         : logConsole->get_colorstderr(),
                                      ui->log, NULL);
-    ui->aktion->setText(aktion == NULL ? QString("unbekannt") : aktion );
-    if(folgeAktion == FolgeAktion::None) {
+    ui->aktion->setText(aktion == NULL ? QString("unbekannt") : titel );
+    if(aktion == Aktion::None) {
         ui->folgeAktion->hide();
     } else {
-        ui->folgeAktion->setText(folgeAktionQString[folgeAktion]);
+        ui->folgeAktion->setText(aktion.toQString());
     }
     connect( process, &QProcess::readyReadStandardOutput,
              this, &FortschrittDialog::processReadyReadStandardOutput);

@@ -119,9 +119,7 @@
        </layout>
       </item>
      </layout>
-     <zorder></zorder>
      <zorder>checkReboot</zorder>
-     <zorder></zorder>
      <zorder>listBox</zorder>
      <zorder>OSLabel</zorder>
      <zorder>label</zorder>

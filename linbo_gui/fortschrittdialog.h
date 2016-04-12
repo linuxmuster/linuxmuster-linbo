@@ -8,7 +8,7 @@
 #include <QTime>
 
 #include "linboLogConsole.h"
-#include "folgeaktion.h"
+#include "aktion.h"
 
 namespace Ui {
 class FortschrittDialog;
@@ -28,7 +28,7 @@ private:
 
 public:
     explicit FortschrittDialog(QWidget *parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0,
-                               const QString& aktion  = NULL, FolgeAktion folgeAktion = FolgeAktion::None,
+                               const QString& titel  = NULL, Aktion aktion = Aktion::None,
                                bool* newDetails = NULL);
     ~FortschrittDialog();
 

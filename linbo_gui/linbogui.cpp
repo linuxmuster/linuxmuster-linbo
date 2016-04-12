@@ -20,7 +20,7 @@
 #include "login.h"
 #include "linboImageSelector.h"
 #include "linboImageUpload.h"
-#include "folgeaktion.h"
+#include "aktion.h"
 #include "downloadtype.h"
 #include "image_description.h"
 #include "linboInfoBrowser.h"
@@ -173,7 +173,7 @@ void LinboGUI::on_update_clicked()
 #else
       QStringList cmd = command->mklinboupdatecommand();
 #endif
-      doCommand( cmd, false, QString("update"), FolgeAktion::None, &details );
+      doCommand( cmd, false, QString("update"), Aktion::None, &details );
 }
 
 void LinboGUI::on_systeme_currentChanged(int index)
@@ -231,7 +231,7 @@ void LinboGUI::on_doregister_clicked()
 
 void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup)
 {
-    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren..."), FolgeAktion::None, &details);
+    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren..."), Aktion::None, &details);
 }
 
 void LinboGUI::showOSs()
@@ -341,7 +341,7 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
     }
 }
 
-void LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, FolgeAktion aktion, bool* details)
+void LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, Aktion aktion, bool* details)
 {
     QStringList *cmd = new QStringList(command);
     progress = new FortschrittDialog( this, cmd, logConsole, titel, aktion, details );
@@ -431,7 +431,7 @@ void LinboGUI::doUploadDialog(int nr)
     dlg->exec();
 }
 
-void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, FolgeAktion aktion)
+void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, Aktion aktion)
 {
     QString baseImage = imageName.left(imageName.lastIndexOf(".")) + Command::BASEIMGEXT;
     doCommand(command->mkcreatecommand(nr, imageName, baseImage), true);
@@ -459,19 +459,19 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
     if( upload ){
         doCommand(command->mkuploadcommand(imageName), true);
     }
-    if(aktion == FolgeAktion::Reboot)
+    if(aktion == Aktion::Reboot)
         system("busybox reboot");
-    else if(aktion == FolgeAktion::Shutdown)
+    else if(aktion == Aktion::Shutdown)
         system("busybox shutdown");
 }
 
-void LinboGUI::doUpload(const QString &imageName, FolgeAktion aktion)
+void LinboGUI::doUpload(const QString &imageName, Aktion aktion)
 {
     doCommand( command->mkuploadcommand( imageName), true );
 
-    if (aktion == FolgeAktion::Shutdown) {
+    if (aktion == Aktion::Shutdown) {
         system("busybox poweroff");
-    } else if (aktion == FolgeAktion::Reboot) {
+    } else if (aktion == Aktion::Reboot) {
         system("busybox reboot");
     }
 }

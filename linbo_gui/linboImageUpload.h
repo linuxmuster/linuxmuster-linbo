@@ -13,7 +13,7 @@
 #include <QProcess>
 
 #include "linbogui.h"
-#include "folgeaktion.h"
+#include "aktion.h"
 #include "image_description.h"
 
 namespace Ui {
@@ -35,7 +35,7 @@ public:
     QListWidgetItem *findImageItem(QString imageName);
 
 signals:
-    void finished(const QString& imageName, FolgeAktion aktion);
+    void finished(const QString& imageName, Aktion aktion);
 
 private slots:
     void on_okButton_clicked();

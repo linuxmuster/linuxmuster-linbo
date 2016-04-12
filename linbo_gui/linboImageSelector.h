@@ -4,7 +4,7 @@
 #include <qobject.h>
 #include <qdialog.h>
 
-#include "folgeaktion.h"
+#include "aktion.h"
 #include "command.h"
 #include "image_description.h"
 
@@ -30,7 +30,7 @@ public:
   static const QString& NEWNAME;
 
 signals:
-  void finished(int nr, const QString& imageName, const QString& info, bool isnew, bool upload, FolgeAktion folgeAktion);
+  void finished(int nr, const QString& imageName, const QString& info, bool isnew, bool upload, Aktion folgeAktion);
 
 private slots:
   void on_listBox_itemSelectionChanged();

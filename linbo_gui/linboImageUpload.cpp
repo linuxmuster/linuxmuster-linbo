@@ -40,13 +40,13 @@ QListWidgetItem* linboImageUpload::findImageItem(QString imageItem)
 void linboImageUpload::on_okButton_clicked()
 {
     QString imageName = ui->listBox->currentItem()->text();
-    FolgeAktion aktion;
+    Aktion aktion;
     if( ui->checkReboot->isChecked())
-        aktion = FolgeAktion::Reboot;
+        aktion = Aktion::Reboot;
     else if( ui->checkShutdown->isChecked())
-        aktion = FolgeAktion::Shutdown;
+        aktion = Aktion::Shutdown;
     else
-        aktion = FolgeAktion::None;
+        aktion = Aktion::None;
 
     emit(finished(imageName, aktion));
     this->accept();

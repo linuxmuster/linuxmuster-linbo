@@ -11,7 +11,7 @@
 #include "linboImageSelector.h"
 #include "ui_linboImageSelector.h"
 #include "linboImageUpload.h"
-#include "folgeaktion.h"
+#include "aktion.h"
 
 const QString& linboImageSelector::NEWNAME = QString("[Neuer Dateiname]");
 
@@ -38,7 +38,7 @@ linboImageSelector::~linboImageSelector()
 void linboImageSelector::finish() {
     QString imageName, info;
     bool isnew;
-    FolgeAktion folgeAktion;
+    Aktion folgeAktion;
 
     imageName = ui->listBox->currentItem()->text();
 
@@ -63,14 +63,14 @@ void linboImageSelector::finish() {
         info = QString("Beschreibung");
     }
 
-    folgeAktion = FolgeAktion::None;
+    folgeAktion = Aktion::None;
 
     if ( ui->checkShutdown->isChecked() ) {
-        folgeAktion = FolgeAktion::Shutdown;
+        folgeAktion = Aktion::Shutdown;
     } else if ( ui->checkReboot->isChecked() ) {
-        folgeAktion = FolgeAktion::Reboot;
+        folgeAktion = Aktion::Reboot;
     } else {
-        folgeAktion = FolgeAktion::None;
+        folgeAktion = Aktion::None;
     }
     emit(finished(nr, imageName, info, isnew, upload, folgeAktion));
 }
