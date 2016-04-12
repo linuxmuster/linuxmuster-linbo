@@ -26,7 +26,7 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linb
                                      logConsole == NULL ? linboLogConsole::COLORSTDERR
                                                         : logConsole->get_colorstderr(),
                                      ui->log, NULL);
-    ui->aktion->setText(aktion == NULL ? QString("unbekannt") : titel );
+    ui->aktion->setText(titel == NULL ? QString("unbekannt") : titel );
     if(aktion == Aktion::None) {
         ui->folgeAktion->hide();
     } else {
