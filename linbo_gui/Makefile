@@ -27,7 +27,7 @@ QT_BUILD64OPTS=-sysroot $(SYSROOT64)
 QT_OPTS=-debug -qpa linuxfb -linuxfb -static -opensource -confirm-license -nomake examples \
 	-no-dbus -no-largefile -no-qml-debug -no-accessibility -qt-freetype \
 	-no-harfbuzz -no-iconv -no-gif -no-libjpeg -qt-libpng -no-nis -no-sql-mysql \
-	-no-sql-sqlite -nomake tools -libinput -verbose
+	-no-sql-sqlite -nomake tools -no-libinput -verbose
 #	-opensource -confirm-license -release -static -no-accessibility -no-pulseaudio \
 #	-no-alsa -no-gtkstyle -no-fontconfig -no-xcb-xlib -no-xcb \
 #	-no-nis -no-cups -verbose -qt-zlib -qt-libpng -no-gif -no-libjpeg \

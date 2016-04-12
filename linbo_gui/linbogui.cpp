@@ -35,6 +35,8 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     ui->setupUi(this);
     conf = new Configuration();
     command = new Command(conf);
+    
+    showMaximized();
 
     details = false;
 
