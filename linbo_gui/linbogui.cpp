@@ -126,7 +126,7 @@ void LinboGUI::showInfos()
     ui->gruppe->setText(QString("Gruppe: ") + conf->config.get_hostgroup());
     ui->ip->setText(QString("IP: ") + command->doSimpleCommand(QString("ip")));
     ui->mac->setText(QString("MAC: ") + command->doSimpleCommand(QString("mac")));
-
+    ui->battery->setText(QString("Batterie: ") + command->doSimpleCommand(QString("battery")));
     ui->cpu->setText(QString("CPU: ") + command->doSimpleCommand(QString("cpu")));
     ui->ram->setText(QString("RAM: ") + command->doSimpleCommand(QString("memory")));
     ui->cache->setText(QString("Cache: ") + command->doSimpleCommand(QString("size"),conf->config.get_cache()));

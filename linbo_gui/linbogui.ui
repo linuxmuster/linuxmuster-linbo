@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>794</width>
-    <height>608</height>
+    <width>806</width>
+    <height>604</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,226 +26,272 @@
    <property name="autoFillBackground">
     <bool>true</bool>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="leftMargin">
-     <number>5</number>
-    </property>
-    <property name="topMargin">
-     <number>5</number>
-    </property>
-    <property name="rightMargin">
-     <number>5</number>
-    </property>
-    <property name="bottomMargin">
-     <number>5</number>
-    </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="hosticon">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="linbo_icons.qrc">:/icons/computer-64x64.png</pixmap>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QLabel" name="hosticon">
-          <property name="text">
-           <string/>
+         <widget class="QLineEdit" name="rechner">
+          <property name="enabled">
+           <bool>false</bool>
           </property>
-          <property name="pixmap">
-           <pixmap resource="linbo_icons.qrc">:/icons/computer-64x64.png</pixmap>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
           </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QLineEdit" name="rechner">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="acceptDrops">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>Host: lapfschuett</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="gruppe">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>Gruppe: mobil</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="ip">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>IP: 10.16.3.51</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="mac">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>MAC: AA:BB:CC:DD:EE:FF</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QLabel" name="hdicon">
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
           <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="lineWidth">
-           <number>1</number>
+           <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
           </property>
           <property name="text">
-           <string/>
+           <string>Host: lapfschuett</string>
           </property>
-          <property name="pixmap">
-           <pixmap resource="linbo_icons.qrc">:/icons/drive-harddisk-64x64.png</pixmap>
+          <property name="frame">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QLineEdit" name="hd">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
+         <widget class="QLineEdit" name="gruppe">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
 background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>HD: /dev/sda1</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="cache">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
+          </property>
+          <property name="text">
+           <string>Gruppe: mobil</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="ip">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
 background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>Cache: </string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="cpu">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
+          </property>
+          <property name="text">
+           <string>IP: 10.16.3.51</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="mac">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
 background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>CPU: Intel(R) Core(TM) 2 Duo CPU T9300</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="ram">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(0, 0, 0);
+          </property>
+          <property name="text">
+           <string>MAC: AA:BB:CC:DD:EE:FF</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="battery">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
 background-color: rgba(255, 255, 255, 0);</string>
-            </property>
-            <property name="text">
-             <string>RAM: 501MB</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+          </property>
+          <property name="text">
+           <string>Batterie: 54 %</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
-      </widget>
-     </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="hdicon">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="lineWidth">
+         <number>1</number>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="linbo_icons.qrc">:/icons/drive-harddisk-64x64.png</pixmap>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QLineEdit" name="hd">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+          </property>
+          <property name="text">
+           <string>HD: /dev/sda1</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="cache">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+          </property>
+          <property name="text">
+           <string>Cache: </string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="cpu">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+          </property>
+          <property name="text">
+           <string>CPU: Intel(R) Core(TM) 2 Duo CPU T9300</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="ram">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
+          </property>
+          <property name="text">
+           <string>RAM: 501MB</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QTabWidget" name="systeme">
@@ -261,6 +307,11 @@ background-color: rgba(255, 255, 255, 0);</string>
         <height>300</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
       <property name="autoFillBackground">
        <bool>false</bool>
       </property>
@@ -268,7 +319,7 @@ background-color: rgba(255, 255, 255, 0);</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="benutzertab">
        <property name="enabled">
@@ -328,7 +379,7 @@ background-color: rgba(255, 255, 255, 0);</string>
              <x>0</x>
              <y>0</y>
              <width>756</width>
-             <height>277</height>
+             <height>265</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -396,7 +447,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           </property>
           <property name="minimumSize">
            <size>
-            <width>450</width>
+            <width>400</width>
             <height>200</height>
            </size>
           </property>
@@ -417,8 +468,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>516</width>
-             <height>277</height>
+             <width>542</width>
+             <height>265</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
@@ -454,8 +505,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>160</width>
-              <height>40</height>
+              <width>120</width>
+              <height>20</height>
              </size>
             </property>
             <property name="text">
@@ -477,8 +528,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>160</width>
-              <height>40</height>
+              <width>120</width>
+              <height>20</height>
              </size>
             </property>
             <property name="text">
@@ -500,8 +551,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>160</width>
-              <height>40</height>
+              <width>120</width>
+              <height>20</height>
              </size>
             </property>
             <property name="text">
@@ -523,8 +574,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>160</width>
-              <height>40</height>
+              <width>120</width>
+              <height>20</height>
              </size>
             </property>
             <property name="text">
@@ -562,8 +613,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>160</width>
-              <height>40</height>
+              <width>120</width>
+              <height>20</height>
              </size>
             </property>
             <property name="text">
@@ -585,9 +636,15 @@ background-color: rgba(255, 255, 255, 0);</string>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QTextEdit" name="log">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
-            <width>600</width>
+            <width>500</width>
             <height>200</height>
            </size>
           </property>
@@ -622,6 +679,11 @@ background-color: rgba(255, 255, 255, 0);</string>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
         <property name="autoFillBackground">
          <bool>false</bool>
         </property>
@@ -650,6 +712,11 @@ background-color: rgba(255, 255, 255, 0);</string>
           <height>31</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Zeit gesteuerte Abmeldung</string>
         </property>
@@ -671,6 +738,11 @@ background-color: rgba(255, 255, 255, 0);</string>
           <width>121</width>
           <height>31</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+         </font>
         </property>
        </widget>
       </item>
@@ -705,8 +777,8 @@ background-color: rgba(255, 255, 255, 0);</string>
         </property>
         <property name="iconSize">
          <size>
-          <width>64</width>
-          <height>64</height>
+          <width>50</width>
+          <height>50</height>
          </size>
         </property>
        </widget>
@@ -725,8 +797,8 @@ background-color: rgba(255, 255, 255, 0);</string>
         </property>
         <property name="iconSize">
          <size>
-          <width>64</width>
-          <height>64</height>
+          <width>50</width>
+          <height>50</height>
          </size>
         </property>
        </widget>
@@ -745,8 +817,8 @@ background-color: rgba(255, 255, 255, 0);</string>
         </property>
         <property name="iconSize">
          <size>
-          <width>64</width>
-          <height>64</height>
+          <width>50</width>
+          <height>50</height>
          </size>
         </property>
        </widget>
