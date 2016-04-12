@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 18.03.2016
+# 19.03.2016
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -163,8 +163,9 @@ trycopyfromdevice(){
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
  local cachdev="$(printcache)"
- [ -z "$cachedev" ] && return 1
- trycopyfromdevice "$cachedev" "$1" && return 0
+ if [ -b "$cachedev" ]; then
+  trycopyfromdevice "$cachedev" "$1" && return 0
+ fi
  local major="" minor="" blocks="" device="" relax=""
  grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
   if [ -b "/dev/$device" ]; then

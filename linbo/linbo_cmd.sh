@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 17.03.2016
+# 11.04.2016
 # GPL v3
 #
 
@@ -112,9 +112,9 @@ Papierkorb/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
 swapfile
-/tmp/*
+tmp/*
 var/log/ConsoleKit/history
-/var/tmp/*'
+var/tmp/*'
 
 bailout(){
  echo "DEBUG: bailout() called, linbo_cmd=$PID, my_pid=$$" >&2
@@ -805,6 +805,9 @@ partition(){
   grep ^"$disk" "$table" | sort > "/tmp/$diskname"
   mk_parted "/tmp/$diskname" || RC="1"
  done
+ rm -f /tmp/.update.done
+ rm -f /tmp/.grub-install
+ rm -f /tmp/.prepare_grub
  return "$RC"
 }
 
@@ -1031,13 +1034,6 @@ mk_winefiboot(){
   echo "Kann Windows-EFI-Bootdateien nicht restaurieren."
   RC="1"
  fi
- # change default windows bootloader to grub
- local grubefi="/boot/efi/EFI/grub/grubx64.efi"
- if [ -s "$grubefi" ]; then
-  echo "Stelle EFI-Standardboot wieder her."
-  mkdir -p /boot/efi/EFI/Boot
-  rsync /boot/efi/EFI/grub/grubx64.efi /boot/efi/EFI/Boot/bootx64.efi || RC="1"
- fi
  # create efi bootloader entry if missing
  create_efiboot "$bootloaderid" "$efipart" || RC="1"
  [ "$RC" = "0" ] && touch "$doneflag"
@@ -1057,6 +1053,7 @@ mk_linefiboot(){
  local RC="0"
  mkdir -p /mnt/boot/efi
  mount "$efipart" /mnt/boot/efi || return 1
+ mkdir -p /mnt/boot/efi/EFI
  grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
  umount /mnt/boot/efi
  [ "$RC" = "0" ] || touch "$doneflag"
@@ -1075,22 +1072,37 @@ mk_efiboot(){
  # repare efi configuration
  repair_efi "$efipart" || return 1
  # restore windows efi boot files
+ local RC="0"
  if [ "$(fstype $partition)" = "ntfs" ]; then
   bootloaderid="Windows Boot Manager"
-  mk_winefiboot "$partition" "$efipart" "$bootloaderid" || return 1
+  mk_winefiboot "$partition" "$efipart" "$bootloaderid" || RC="1"
  else # assume linux system
   bootloaderid="$(osname "$partition")"
-  [ -z "$bootloaderid" ] && return 1
-  mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid" || return 1
+  if [ -n "$bootloaderid" ]; then
+   mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid" || RC="1"
+  fi
+ fi
+ # install default efi boot file
+ local grubefi="/boot/efi/EFI/grub/grubx64.efi"
+ if [ -s "$grubefi" ]; then
+  echo "Stelle EFI-Standardboot wieder her."
+  local efibootdir="$(ls -d /boot/efi/EFI/B[Oo][Oo][Tt] 2>/dev/null)"
+  [ -z "$efibootdir" ] && efibootdir="/boot/efi/EFI/BOOT"
+  local bootefi="$(ls $efibootdir/[Bb][Oo][Oo][Tt][Xx]64.[Ee][Ff][Ii] 2>/dev/null)"
+  [ -z "$bootefi" ] && bootefi="$efibootdir/BOOTX64.EFI"
+  mkdir -p "$efibootdir"
+  rsync "$grubefi" "$bootefi" || RC="1"
  fi
  # set efi bootnext entry if invoked by start()
- if [ -e "$startflag" ]; then
-  set_efibootnext "$bootloaderid" || return 1
+ if [ -e "$startflag" -a -n "$bootloaderid" ]; then
+  set_efibootnext "$bootloaderid" || RC="1"
   # set bootorder
-  set_efibootorder || return 1
+  set_efibootorder || RC="1"
   # cause another grub-install
-  rm -f "$doneflag"
+  [ "$RC" = "0" ] && rm -f "$doneflag"
  fi
+ [ "$RC" = "1" ] && echo "Fehler beim Schreiben der EFI-Boot-Konfiguration."
+ return "$RC"
 }
 
 # mk_grubboot partition grubenv kernel initrd append
@@ -1156,24 +1168,33 @@ prepare_reboot(){
 prepare_grub(){
  local doneflag="/tmp/.prepare_grub"
  [ -e "$doneflag" ] && return 0
- echo "Aktualisiere Grub-Dateien im Cache."
+ echo "Aktualisiere Grub-Dateien im Cache:"
  local grubdir="$1"
  local grubenv="$2"
  local grubsharedir="$3"
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
  # write grub device.map file
+ echo -n " * Schreibe device.map ... "
  write_devicemap "$grubdir/device.map" || return 1
+ echo "Ok!"
  # provide default grub.cfg with current append params on localmode
  if localmode; then
+  echo -n " * Schreibe Grub-Konfiguration in localmode ... "
   local kopts="$(kerneloptions)"
   [ -z "$kopts" ] && kopts="splash quiet localboot"
   sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $(kerneloptions) localboot|g" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
+  echo "Ok!"
  fi
  # provide unicode font
+ echo -n " * Stelle unicode.pf2 bereit ... "
  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2" || return 1
+ echo "Ok!"
  # provide menu background image
+ echo -n " * Stelle Hintergrundgrafik bereit ... "
  rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || return 1
+ echo "Ok!"
  # reset grubenv
+ echo -n " * Schreibe Grub-Environment ... "
  local RC="0"
  if [ -s "$grubenv" ]; then
   for i in reboot reboot_kernel reboot_initrd reboot_append; do
@@ -1182,6 +1203,7 @@ prepare_grub(){
  else
   grub-editenv "$grubenv" create || RC="1"
  fi
+ echo "Ok!"
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -1331,7 +1353,6 @@ start(){
  local KERNEL="${3#/}"
  local i
  local partition="$2"
- local disk="${partition%%[1-9]*}"
  local cachedev="$6"
  local startflag="/tmp/.start"
  touch "$startflag"
@@ -2878,6 +2899,12 @@ mac(){
  echo "$mac"
 }
 
+# Find all available batteries, get their capacity and output capacity of first found battery
+battery()
+{
+ find /sys/class/power_supply/ -name 'BAT*' -exec cat {}/capacity \; | head -n 1
+}
+
 # register server user password variables...
 register(){
  local RC=1
@@ -3015,6 +3042,7 @@ case "$cmd" in
  cpu) cpu ;;
  memory) memory ;;
  mac) mac ;;
+ battery) battery ;;
  size) size "$@" ;;
  authenticate) authenticate "$@" ;;
  create) create "$@" ;;

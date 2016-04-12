@@ -1,3 +1,25 @@
+linuxmuster-linbo (2.3.0-31) babo-testing; urgency=low
+
+  * linbo_cmd.sh, mk_efiboot(): provide grubx64.efi also for linux clients.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Apr 2016 20:06:52 +0200
+
+linuxmuster-linbo (2.3.0-30) babo-testing; urgency=low
+
+  * linbo_cmd.sh:
+    - prepare_fs(): removed preceding / in some RSYNC_EXCLUDE entries.
+    - partition(): removes linbo/grub update flags in /tmp after partitioning.
+    - prepare_grub(): be more verbose.
+  * grub pxe template: fixed loading of server side configs.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Mar 2016 16:40:12 +0100
+
+linuxmuster-linbo (2.3.0-29) babo-testing; urgency=low
+
+  * init.sh: cachedev fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 19 Mar 2016 11:39:03 +0100
+
 linuxmuster-linbo (2.3.0-28) babo-testing; urgency=low
 
   * Merged pull request #49 from fschuette:

@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 12.02.2016
+# 24.03.2016
 #
 
 set timeout=0
@@ -16,7 +16,10 @@ insmod gfxmenu
 insmod minicmd
 insmod progress
 
-loadfont /boot/grub/fonts/unicode.pf2
+set font=/boot/grub/fonts/unicode.pf2
+if [ -s "$font" ]; then
+ loadfont "$font"
+fi
 
 terminal_output gfxterm
 
@@ -30,11 +33,10 @@ set prefix=/boot/grub
 menuentry 'Default' {
 
  # look for reboot grubenv pipe on server and execute it if present
- echo -n Loading remote grub environment ...
- if load_env -f "$prefix/spool/${net_pxe_hostname}.reboot"; then
-  echo
- else
-  clear
+ set remote_grubenv=$prefix/spool/${net_pxe_hostname}.reboot
+ if [ -s "$remote_grubenv" ]; then
+  echo -n Loading remote grub environment ...
+  load_env -f "$remote_grubenv"
  fi
 
  # if grub reboot variable is not set from server
@@ -45,7 +47,7 @@ menuentry 'Default' {
 
    # load background image locally if present
    if [ -e "$prefix/linbo_wallpaper.png" ]; then
-    bg_image="$prefix/linbo_wallpaper.png"
+    set bg_image="$prefix/linbo_wallpaper.png"
     background_image $bg_image
    fi
 
@@ -64,7 +66,7 @@ menuentry 'Default' {
  fi
 
  # if reboot is set try to load the os on the given partition
- if [ "${reboot_grub}" ]; then
+ if [ -n "${reboot_grub}" ]; then
 
   echo Booting operating system ...
   echo
@@ -112,35 +114,42 @@ menuentry 'Default' {
 
  fi
 
- # fallback to netboot if reboot was not set
+ # load local custom.cfg if present
+ set customcfg=$prefix/custom.cfg
+ if [ -s "$customcfg" ]; then
+  configfile $customcfg
+ fi
+
+ # finally fallback to netboot if previous boot methods were not successful
  set root="(tftp)"
+
+ # load background image from server if not done locally
+ if [ -z "$bg_image" ]; then
+  set bg_image="$prefix/linbo_wallpaper.png"
+  background_image $bg_image
+ fi
 
  # compute path to group specific config
  if [ "$grub_platform" = "efi" ]; then
   if [ -n "$net_efinet0_extensionspath" ]; then
-   set grubcfg="$prefix/${net_efinet0_extensionspath}.cfg"
+   set group="$net_efinet0_extensionspath"
   elif [ -n "$net_efinet1_extensionspath" ]; then
-   set grubcfg="$prefix/${net_efinet1_extensionspath}.cfg"
+   set group="$net_efinet1_extensionspath"
   elif [ -n "$net_efinet2_extensionspath" ]; then
-   set grubcfg="$prefix/${net_efinet2_extensionspath}.cfg"
+   set group="$net_efinet2_extensionspath"
   fi
  else
-  set grubcfg="$prefix/${net_pxe_extensionspath}.cfg"
+  set group="$net_pxe_extensionspath"
  fi
-
- # load background image from server if not done locally
- if [ -z "$bg_image" ]; then
-  bg_image="$prefix/linbo_wallpaper.png"
-  background_image $bg_image
- fi
+ set grubcfg="$prefix/${group}.cfg"
 
  # load group specific config from server
- if [ -s $grubcfg ]; then
+ if [ -s "$grubcfg" ]; then
   configfile $grubcfg
 
  # or netboot linbo directly
  else
-  
+
   # 32bit or 64bit kernel
   if cpuid -l; then
    set linbo_kernel=/linbo64
