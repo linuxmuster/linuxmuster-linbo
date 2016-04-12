@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>857</width>
-    <height>677</height>
+    <width>600</width>
+    <height>577</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>600</width>
+    <height>400</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Image erstellen</string>
@@ -84,6 +90,24 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -98,6 +122,9 @@ p, li { white-space: pre-wrap; }
       </item>
       <item>
        <layout class="QFormLayout" name="formLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetFixedSize</enum>
+        </property>
         <item row="0" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
@@ -106,7 +133,23 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QListWidget" name="listBox"/>
+         <widget class="QListWidget" name="listBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_2">
@@ -119,6 +162,12 @@ p, li { white-space: pre-wrap; }
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QRadioButton" name="baseRadioButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Basisi&amp;mage</string>
             </property>
@@ -132,6 +181,12 @@ p, li { white-space: pre-wrap; }
           </item>
           <item>
            <widget class="QRadioButton" name="incrRadioButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Differentielles Image</string>
             </property>
@@ -170,7 +225,23 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QTextEdit" name="infoEditor"/>
+         <widget class="QTextEdit" name="infoEditor">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -185,6 +256,12 @@ p, li { white-space: pre-wrap; }
         </item>
         <item>
          <widget class="QCheckBox" name="checkReboot">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Reboot</string>
           </property>
@@ -192,6 +269,12 @@ p, li { white-space: pre-wrap; }
         </item>
         <item>
          <widget class="QCheckBox" name="checkShutdown">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Shutdown</string>
           </property>
@@ -203,6 +286,12 @@ p, li { white-space: pre-wrap; }
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QPushButton" name="createButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="toolTip">
            <string>Erstellt das ausgewählte Image&lt;br&gt;im lokalen Cache</string>
           </property>
@@ -213,6 +302,12 @@ p, li { white-space: pre-wrap; }
         </item>
         <item>
          <widget class="QPushButton" name="createUploadButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="toolTip">
            <string>Erstellt das ausgewählte Image im lokalen Cache und lädt es &lt;br&gt; anschliessend auf den Server hoch</string>
           </property>
@@ -223,11 +318,17 @@ p, li { white-space: pre-wrap; }
         </item>
         <item>
          <widget class="QPushButton" name="cancelButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="toolTip">
            <string>Abbrechen ohne Imageerstellung</string>
           </property>
           <property name="text">
-           <string>Abbruch</string>
+           <string>Abbrechen</string>
           </property>
          </widget>
         </item>
