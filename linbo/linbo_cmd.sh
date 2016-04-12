@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 17.03.2016
+# 24.03.2016
 # GPL v3
 #
 
@@ -112,9 +112,9 @@ Papierkorb/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
 swapfile
-/tmp/*
+tmp/*
 var/log/ConsoleKit/history
-/var/tmp/*'
+var/tmp/*'
 
 bailout(){
  echo "DEBUG: bailout() called, linbo_cmd=$PID, my_pid=$$" >&2
@@ -805,6 +805,9 @@ partition(){
   grep ^"$disk" "$table" | sort > "/tmp/$diskname"
   mk_parted "/tmp/$diskname" || RC="1"
  done
+ rm -f /tmp/.update.done
+ rm -f /tmp/.grub-install
+ rm -f /tmp/.prepare_grub
  return "$RC"
 }
 
@@ -1156,24 +1159,33 @@ prepare_reboot(){
 prepare_grub(){
  local doneflag="/tmp/.prepare_grub"
  [ -e "$doneflag" ] && return 0
- echo "Aktualisiere Grub-Dateien im Cache."
+ echo "Aktualisiere Grub-Dateien im Cache:"
  local grubdir="$1"
  local grubenv="$2"
  local grubsharedir="$3"
  [ -e "$grubdir" ] || mkdir -p "$grubdir"
  # write grub device.map file
+ echo -n " * Schreibe device.map ... "
  write_devicemap "$grubdir/device.map" || return 1
+ echo "Ok!"
  # provide default grub.cfg with current append params on localmode
  if localmode; then
+  echo -n " * Schreibe Grub-Konfiguration in localmode ... "
   local kopts="$(kerneloptions)"
   [ -z "$kopts" ] && kopts="splash quiet localboot"
   sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $(kerneloptions) localboot|g" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
+  echo "Ok!"
  fi
  # provide unicode font
+ echo -n " * Stelle unicode.pf2 bereit ... "
  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2" || return 1
+ echo "Ok!"
  # provide menu background image
+ echo -n " * Stelle Hintergrundgrafik bereit ... "
  rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || return 1
+ echo "Ok!"
  # reset grubenv
+ echo -n " * Schreibe Grub-Environment ... "
  local RC="0"
  if [ -s "$grubenv" ]; then
   for i in reboot reboot_kernel reboot_initrd reboot_append; do
@@ -1182,6 +1194,7 @@ prepare_grub(){
  else
   grub-editenv "$grubenv" create || RC="1"
  fi
+ echo "Ok!"
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -2878,6 +2891,12 @@ mac(){
  echo "$mac"
 }
 
+# Find all available batteries, get their capacity and output capacity of first found battery
+battery()
+{
+ find /sys/class/power_supply/ -name 'BAT*' -exec cat {}/capacity \; | head -n 1
+}
+
 # register server user password variables...
 register(){
  local RC=1
@@ -3015,6 +3034,7 @@ case "$cmd" in
  cpu) cpu ;;
  memory) memory ;;
  mac) mac ;;
+ battery) battery ;;
  size) size "$@" ;;
  authenticate) authenticate "$@" ;;
  create) create "$@" ;;
