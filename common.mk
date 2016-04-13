@@ -6,7 +6,7 @@ LML_URL=http://pkg.linuxmuster.net/linbo-build-cache
 DEBUG=true
 
 # adapt to your setting
-CURDIR=/usr/src/linuxmuster-linbo
+CURDIR=/run/media/fschuett/SCHUETTE_SSD/linuxmuster-linbo
 
 CACHEDIR=$(CURDIR)/cache
 DEBIANDIR=$(CURDIR)/debian

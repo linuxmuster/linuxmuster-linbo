@@ -419,8 +419,8 @@ void LinboGUI::doCreateDialog(int nr)
 {
     vector<image_item>* history = &conf->elements[nr].image_history;
     linboImageSelector* dlg = new linboImageSelector( this, nr, history, command );
-    connect(dlg,SIGNAL(finished(int, const QString&, const QString&, bool, bool, FolgeAktion)),
-            this, SLOT(doCreate(int, const QString&, const QString&, bool, bool, FolgeAktion)));
+    connect(dlg,SIGNAL(finished(int, const QString&, const QString&, bool, bool, Aktion)),
+            this, SLOT(doCreate(int, const QString&, const QString&, bool, bool, Aktion)));
     dlg->exec();
 }
 
@@ -428,8 +428,8 @@ void LinboGUI::doUploadDialog(int nr)
 {
     vector<image_item> history = conf->elements[nr].image_history;
     linboImageUpload* dlg = new linboImageUpload( this, &history );
-    connect(dlg, SIGNAL(finished(const QString&, FolgeAktion)),
-            this, SLOT(doUpload(const QString&, FolgeAktion)));
+    connect(dlg, SIGNAL(finished(const QString&, Aktion)),
+            this, SLOT(doUpload(const QString&, Aktion)));
     dlg->exec();
 }
 
