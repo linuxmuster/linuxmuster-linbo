@@ -133,14 +133,18 @@ clean:
 	rm -f build-stamp configure-stamp
 
 $(SYSROOT64)/usr/bin/linbo_gui: $(GUI_BUILD64)/linbo_gui
-	install -D -m 755 -u 0 -g 0 $(GUI_BUILD64)/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
+	install -D $(GUI_BUILD64)/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
 install: install32 install64
 
-$(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
-	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD32)/start.conf
+$(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
 	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD64)/start.conf
 
-install-test: $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf
+$(GUI_BUILD64)/linbo_cmd: $(GUISRCDIR)/test/fake_cmd.sh
+	install -D $(GUISRCDIR)/test/fake_cmd.sh $(GUI_BUILD64)/linbo_cmd
+	install -D $(GUISRCDIR)/test/fake_cmd_create.sh $(GUI_BUILD64)/fake_cmd_create.sh
+	install -D $(GUISRCDIR)/test/fake_cmd_functions.sh $(GUI_BUILD64)/fake_cmd_functions.sh
+
+install-test: $(GUI_BUILD64)/linbo_cmd $(GUI_BUILD64)/start.conf
 
 .PHONY: build clean install install-test configure

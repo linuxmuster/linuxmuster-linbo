@@ -3,12 +3,6 @@
 # Project created by QtCreator 2016-02-17T17:53:31
 #
 #-------------------------------------------------
-CONFIG(release, debug|release) {
-    #This is a release build
-} else {
-    #This is a debug build
-    DEFINES += TESTCOMMAND=echo
-}
 
 QT       += core gui
 
