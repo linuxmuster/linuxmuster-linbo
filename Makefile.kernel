@@ -7,6 +7,8 @@
 
 include common.mk
 
+CURDIR=$(shell pwd)
+
 # kernel
 VESAMODE=785 # 640x480, 64k colors
 #VESAMODE=771 # 800x600, 256 colors
@@ -42,18 +44,19 @@ $(KERNELDIR)/Makefile: $(KERNEL_ARCHIVE)
 	echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m"
 	tar xf $(KERNEL_ARCHIVE) -C $(CURDIR)
 #	mv $(CURDIR)/linux-$(KMAINVERS) $(CURDIR)/linux-$(KVERS)
+	touch $(KERNELDIR)/Makefile
 
 $(BUILD32)/.config: $(KERNELDIR)/Makefile $(CONFDIR)/kernel.conf $(CONFDIR)/initramfs_kernel.conf
 	rm -f $(BUILD64)/usr/initramfs_data.cpio.gz
 	cp $(CONFDIR)/initramfs_kernel.conf $(BUILDDIR)/initramfs_kernel.conf
 	cp $(CONFDIR)/kernel.conf $(BUILD32)/.config
-	(cd $(KERNELDIR); ARCH=i386 CFLAGS=-m32 make O=$(BUILD32) oldconfig )
+	cd $(KERNELDIR); ARCH=i386 CFLAGS=-m32 make O=$(BUILD32) oldconfig
 
 $(BUILD64)/.config: $(KERNELDIR)/Makefile $(CONFDIR)/kernel64.conf $(CONFDIR)/initramfs_kernel.conf
 	rm -f $(BUILD64)/usr/initramfs_data.cpio.gz
 	cp $(CONFDIR)/initramfs_kernel.conf $(BUILDDIR)/initramfs_kernel.conf
 	cp $(CONFDIR)/kernel64.conf $(BUILD64)/.config
-	(cd $(KERNELDIR); ARCH=x86_64 make O=$(BUILD64) oldconfig )
+	cd $(KERNELDIR); ARCH=x86_64 make O=$(BUILD64) oldconfig
 
 configure: config32 config64
 
@@ -69,11 +72,11 @@ build64: $(BUILD64)/vmlinuz
 
 $(BUILD32)/vmlinuz: $(BUILD32)/.config $(BUILDDIR)/initramfs_kernel.conf
 	echo "[1mBuilding 32bit LINBO kernel...[0m"
-	( cd $(KERNELDIR) ; ARCH=i386 CFLAGS=-m32 make O=$(BUILD32) bzImage modules )
+	cd $(KERNELDIR) ; ARCH=i386 CFLAGS=-m32 make O=$(BUILD32) bzImage modules
 
 $(BUILD64)/vmlinuz: $(BUILD64)/.config $(BUILDDIR)/initramfs_kernel.conf
 	echo "[1mBuilding 64bit LINBO kernel...[0m"
-	( cd $(KERNELDIR) ; ARCH=x86_64 make O=$(BUILD64) bzImage modules )
+	cd $(KERNELDIR) ; ARCH=x86_64 make O=$(BUILD64) bzImage modules
 
 distclean: clean
 	rm -rf $(KERNEL_DIR)
@@ -90,15 +93,15 @@ install32: $(SYSROOT32)/lib/modules/modules.dep
 install64: $(SYSROOT64)/lib/modules/modules.dep
 
 $(SYSROOT32)/lib/modules/modules.dep: $(BUILD32)/vmlinuz
-	( cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT32) modules_install )
-	( cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_HDR_PATH=$(SYSROOT32)/usr headers_install )
-	( cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_PATH=$(SYSROOT32) install )
+	cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT32) modules_install
+	cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_HDR_PATH=$(SYSROOT32)/usr headers_install
+	cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_PATH=$(SYSROOT32) install
 	/sbin/depmod -a -b $(SYSROOT32) $(KVERS)
 
 $(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz
-	( cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install )
-	( cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install )
-	( cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install )
+	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install
+	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install
+	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install
 	/sbin/depmod -a -b $(SYSROOT64) $(KVERS)
 
 .PHONY: $(DIRS)

@@ -6,6 +6,8 @@
 
 include common.mk
 
+CURDIR=$(shell pwd)
+
 BIN64_DEBS= libc6 libc6-dev libstdc++6 libstdc++-4.8-dev libgcc1 libgcc-4.8-dev \
 	    libasan0 libatomic1 libgomp1 libitm1 libquadmath0 libtsan0 \
 	    libudev1 libudev-dev libxkbcommon0 libxkbcommon-dev xkb-data \
@@ -37,15 +39,19 @@ configure: configure32 configure64
 
 configure32:
 	# 32bit binaries
-	echo "[1mInstalling 32bit binaries...[0m"
+	echo "[1mInstalling 32bit headers...[0m"
 	for i in $(BIN32_DEBS) ; do \
-		pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb | tail -1` ; \
-		if [ -z $$pkg ]; then \
+		pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb 2>/dev/null | tail -1` ; \
+		pkgall=`ls -1tr $(CACHEDIR)/$${i}_*_all.deb 2>/dev/null | tail -1` ; \
+		if [ -z "$$pkg" -a -z "$$pkgall" ]; then \
 			( cd $(CACHEDIR) ; echo "[1mDownloading $${i}:i386 ...[0m" ; apt-get download $${i}:i386 ) ; \
 			rm -rf $(SYSROOT)/usr/share/doc/$$i ; \
 		fi ; \
 		if [ ! -d $(SYSROOT)/usr/share/doc/$$i ]; then \
-			pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb | tail -1` ; \
+			pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb 2>/dev/null | tail -1` ; \
+			if [ -z "$$pkg" ]; then \
+			    pkg=`ls -1tr $(CACHEDIR)/$${i}_*_all.deb 2>/dev/null | tail -1` ; \
+			fi ; \
 			echo "[1mUnpacking $$pkg ...[0m" ; \
 			dpkg -x $$pkg $(SYSROOT) ; \
 		fi ; \
@@ -71,11 +77,11 @@ configure64:
 		fi ; \
 	done
 
-config-dfb64: $(DIRECTFB)/configure
-	( cd $(DIRECTFB) ; PKG_CONFIG_LIBDIR=$(SYSROOT64)/usr/lib/pkgconfig \
-	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT64)/usr/share/aclocal" \
-	CPPFLAGS=-I$(SYSROOT64)/usr/include LDFLAGS=-L$(SYSROOT64)/usr/lib \
-	./configure --prefix=$(SYSROOT64) $(DIRECTFB_OPTS) )
+#config-dfb64: $(DIRECTFB)/configure
+#	( cd $(DIRECTFB) ; PKG_CONFIG_LIBDIR=$(SYSROOT64)/usr/lib/pkgconfig \
+#	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT64)/usr/share/aclocal" \
+#	CPPFLAGS=-I$(SYSROOT64)/usr/include LDFLAGS=-L$(SYSROOT64)/usr/lib \
+#	./configure --prefix=$(SYSROOT64) $(DIRECTFB_OPTS) )
 
 build:
 

@@ -7,11 +7,20 @@
 
 include common.mk
 
+CURDIR=$(shell pwd)
+
 DIRS = linbo_gui
 
 CONFIGDIRS=$(DIRS:%=config-%)
 BUILDDIRS=$(DIRS:%=build-%)
 CLEANDIRS=$(DIRS:%=clean-%)
+
+# sub makefiles
+SUBS = kernel sysroot
+
+CONFIGSUBS=$(SUBS:%=config-%)
+BUILDSUBS=$(SUBS:%=build-%)
+CLEANSUBS=$(SUBS:%=clean-%)
 
 # targets
 
@@ -26,14 +35,20 @@ configure-toolchain32:
 $(CONFIGDIRS): configure-toolchain32
 	make -C $(@:config-%=%) configure
 
-configure: configure-stamp configure-toolchain32 $(CONFIGDIRS)
+$(CONFIGSUBS): configure-toolchain32
+	make -f Makefile.$(@:config-%=%) configure
+
+configure: configure-stamp configure-toolchain32 $(CONFIGSUBS) $(CONFIGDIRS)
 configure-stamp:
 	touch configure-stamp
 
 $(BUILDDIRS):
 	make -C $(@:build-%=%) build
 
-build: build-stamp $(BUILDDIRS)
+$(BUILDSUBS):
+	make -f Makefile.$(@:build-%=%) build
+
+build: build-stamp $(BUILDSUBS) $(BUILDDIRS)
 
 build-stamp: configure-stamp
 	touch build-stamp
@@ -41,9 +56,12 @@ build-stamp: configure-stamp
 $(CLEANDIRS):
 	make -C $(@:clean-%=%) clean
 
+$(CLEANSUBS):
+	make -f Makefile.$(@:clean-%=%) clean
+
 distclean: clean
 
-clean: $(CLEANDIRS)
+clean: $(CLEANSUBS) $(CLEANDIRS)
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
 
 install: build
@@ -52,4 +70,5 @@ install: build
 .PHONY: subdirs $(BUILDDIRS)
 .PHONY: subdirs $(CONFIGDIRS)
 .PHONY: subdirs $(CLEANDIRS)
+.PHONY: $(CONFIGSUBS) $(BUILDSUBS) $(CLEANSUBS)
 .PHONY: build clean install configure

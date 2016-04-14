@@ -7,6 +7,8 @@
 
 include ../common.mk
 
+CURDIR=$(shell pwd)/..
+
 ifdef $(DEBUG)
     QT_DEBUG=-debug
 else
@@ -21,19 +23,13 @@ QT_MAJOR=$(shell echo $(QT_VERS) | awk -F\. '{ print $$1"."$$2 }')
 QT_URL=http://download.qt-project.org/official_releases/qt/$(QT_MAJOR)/$(QT_VERS)/single
 QT_SRC=$(CURDIR)/$(shell echo $(QT_ARCHIVE_NAME) | sed -e 's/.7z//')
 QT_BUILD32=$(BUILDDIR)/build-qt32
-QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu-
+QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu- -sysroot $(SYSROOT)
 QT_BUILD64=$(BUILDDIR)/build-qt64
 QT_BUILD64OPTS=-sysroot $(SYSROOT64) 
 QT_OPTS=-debug -qpa linuxfb -linuxfb -static -opensource -confirm-license -nomake examples \
 	-no-dbus -no-largefile -no-qml-debug -no-accessibility -qt-freetype \
 	-no-harfbuzz -no-iconv -no-gif -no-libjpeg -qt-libpng -no-nis -no-sql-mysql \
 	-no-sql-sqlite -nomake tools -no-libinput -verbose
-#	-opensource -confirm-license -release -static -no-accessibility -no-pulseaudio \
-#	-no-alsa -no-gtkstyle -no-fontconfig -no-xcb-xlib -no-xcb \
-#	-no-nis -no-cups -verbose -qt-zlib -qt-libpng -no-gif -no-libjpeg \
-#	-no-openssl -no-iconv -no-dbus -no-largefile -no-xinerama -no-xrender -no-freetype \
-#	-nomake examples -nomake tests -no-glib -no-eglfs -no-directfb -no-kms -no-libinput \
-#	-no-opengl -no-glib -no-xinput2 -qpa linuxfb -linuxfb -debug
 
 QT_FRAMEBUFFER_LIB=qtbase/plugins/platforms/libqlinuxfb.a
 
@@ -60,7 +56,10 @@ config-qt32: $(QT_BUILD32)/Makefile
 
 $(QT_BUILD32)/Makefile: $(QT_SRC)/configure
 	mkdir -p $(QT_BUILD32);
-	cd $(QT_BUILD32) && echo -e "yes\n" | PATH=$(TOOLCHAIN):$(PATH) $(QT_SRC)/configure -prefix $(shell pwd) $(QT_OPTS) $(QT_BUILD32OPTS)
+	( cd $(QT_BUILD32) ; PKG_CONFIG_LIBDIR=$(SYSROOT)/usr/lib/pkgconfig \
+	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT)/usr/share/aclocal" \
+	CPPFLAGS=-I$(SYSROOT)/usr/include LDFLAGS=-L$(SYSROOT)/usr/lib \
+	echo -e "yes\n" | $(QT_SRC)/configure -prefix /usr $(QT_OPTS) $(QT_BUILD32OPTS) )
 
 config-qt64: $(QT_BUILD64)/Makefile
 
@@ -91,18 +90,14 @@ $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB): $(QT_BUILD64)/Makefile
 	cd $(QT_BUILD64) && make -j 2;
 
 $(GUI_BUILD32)/linbo_gui: $(LINBO_SRC) build-qt32
-	echo "[1mBuilding 32bit linbo_gui...[0m";
-	cp $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD32)/icons/linbo_wallpaper.png;
-	( 
-	CFLAGS=-m32
-	QTDIR=$(QT_BUILD32)
-	QTLIB=$QTDIR/lib/
-	QTBIN=$QTDIR/bin/ 
-	cd $(GUI_BUILD32) && PATH=$(TOOLCHAIN):$(PATH) "$QTBIN"/qmake -makefile -spec "$QTDIR"/mkspecs/default $(GUI_SRC)/linbo_gui.pro
-	make clean
-	make
-	strip linbo_gui
-	)
+	@echo "[1mBuilding 32bit linbo_gui...[0m";
+	install -D $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD32)/icons/linbo_wallpaper.png;
+	QTDIR=$(QT_BUILD32)/qtbase \
+	QTLIB=$(QT_BUILD32)/qtbase/lib \
+	QTBIN=$(QT_BUILD32)/qtbase/bin \
+	cd $(GUI_BUILD32) && PATH=/usr/bin:/bin $(QT_BUILD32)/qtbase/bin/qmake \
+	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-64 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
+	cd $(GUI_BUILD32) && make clean && make && strip linbo_gui
 
 $(GUI_BUILD64)/linbo_gui: $(LINBO_SRC) build-qt64
 	@echo "[1mBuilding 64bit linbo_gui...[0m";

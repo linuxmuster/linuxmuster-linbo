@@ -5,9 +5,7 @@ LML_URL=http://pkg.linuxmuster.net/linbo-build-cache
 # uncomment for debugging
 DEBUG=true
 
-# adapt to your setting
-CURDIR=/run/media/fschuett/SCHUETTE_SSD/linuxmuster-linbo
-
+# define CURDIR in each makefile to point to main dir
 CACHEDIR=$(CURDIR)/cache
 DEBIANDIR=$(CURDIR)/debian
 CONFDIR=$(CURDIR)/conf
