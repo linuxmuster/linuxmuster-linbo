@@ -55,11 +55,7 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     preTab = 0;
 
     // logfilepath
-#ifdef TESTCOMMAND
-    logfilepath = QString("./linbo.log");
-#else
     logfilepath = QString("/tmp/linbo.log");
-#endif
 
     // we can set this now since our globals have been read
     logConsole->setLinboLogConsole( conf->config.get_consolefontcolorstdout(),
@@ -142,11 +138,7 @@ void LinboGUI::on_halt_clicked()
 {
     QStringList cmd;
       cmd.clear();
-#ifdef TESTCOMMAND
-      cmd = QStringList("echo busybox");
-#else
       cmd = QStringList("busybox");
-#endif
       cmd.append("poweroff");
       logConsole->writeStdOut( QString("shutdown entered") );
       process->start( cmd.join(" ") );
@@ -156,11 +148,7 @@ void LinboGUI::on_reboot_clicked()
 {
     QStringList cmd;
       cmd.clear();
-#ifdef TESTCOMMAND
-      cmd = QStringList("echo busybox");
-#else
       cmd = QStringList("busybox");
-#endif
       cmd.append("reboot");
       logConsole->writeStdOut( QString("reboot entered") );
       process->start( cmd.join(" ") );
@@ -169,12 +157,7 @@ void LinboGUI::on_reboot_clicked()
 void LinboGUI::on_update_clicked()
 {
       logConsole->writeStdOut( QString("update entered") );
-#ifdef TESTCOMMAND
-      QStringList cmd;
-      cmd <<"sleep 10";
-#else
       QStringList cmd = command->mklinboupdatecommand();
-#endif
       doCommand( cmd, false, QString("update"), Aktion::None, &details );
 }
 
@@ -203,10 +186,7 @@ void LinboGUI::on_doregister_clicked()
     // Die vorgeschlagenen Daten fuer die Rechneraufnahme lesen und anzeigen
     QStringList registerDataList;
     command->doSimpleCommand(command->mkpreregistercommand().join(" "));
-#ifdef TESTCOMMAND
-    registerDataList << QString("Testraum") << QString("testclient")
-                     << QString("192.168.1.1") << QString("pc_group");
-#else
+
     char line[1024];
     ifstream newdata;
     QString registerData;
@@ -217,7 +197,7 @@ void LinboGUI::on_doregister_clicked()
         newdata.close();
         registerDataList = registerData.split(',');
     }
-#endif
+
     RegistrierungsDialog *regdlg;
     if( registerDataList.size() >= 4 ){
         regdlg = new RegistrierungsDialog( this, registerDataList[0], registerDataList[1],
@@ -274,11 +254,7 @@ void LinboGUI::showImages()
 
 void LinboGUI::performLogin(QString passwd)
 {
-#ifdef TESTCOMMAND
-    if( passwd.compare(QString("muster")) == 0 ){
-#else
     if( command->doAuthenticateCommand( passwd ) ) {
-#endif
         root = true;
         ui->cbTimeout->setEnabled( true );
         ui->cbTimeout->setChecked( true );

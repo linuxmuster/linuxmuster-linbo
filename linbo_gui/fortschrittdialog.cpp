@@ -63,9 +63,6 @@ void FortschrittDialog::timerEvent(QTimerEvent *event) {
     if(event->timerId() == timerId){
         ui->processTime->setTime(ui->processTime->time().addSecs(1));
     }
-#ifdef TESTCOMMAND
-    ui->progressBar->setValue((ui->progressBar->value() + 10) % 100);
-#endif
 }
 
 void FortschrittDialog::processReadyReadStandardOutput()

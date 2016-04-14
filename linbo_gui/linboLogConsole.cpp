@@ -24,11 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 const QColor& linboLogConsole::COLORSTDOUT = QColor( QString("white") );
 const QColor& linboLogConsole::COLORSTDERR = QColor( QString("red") );
-#ifdef TESTCOMMAND
-const QString STDLOGFILEPATH = QString("./linbo.log");
-#else
 const QString STDLOGFILEPATH = QString("/tmp/linbo.log");
-#endif
 
 linboLogConsole::linboLogConsole(const QString &new_consolefontcolorstdout,
                                  const QString &new_consolefontcolorstderr,

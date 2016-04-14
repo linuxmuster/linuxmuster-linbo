@@ -5,11 +5,7 @@
 #include "image_description.h"
 #include "downloadtype.h"
 
-#ifdef TESTCOMMAND
-#define LINBO_CMD(arg) QStringList("echo linbo_cmd") << (arg);
-#else
 #define LINBO_CMD(arg) QStringList("linbo_cmd") << (arg);
-#endif
 
 const QString Command::USER = "linbo";
 const QString Command::BASEIMGEXT = ".cloop";
@@ -217,15 +213,9 @@ QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
         saveappend( command, arg);
     }
     process->start( command.join(" ") );
-#ifdef TESTCOMMAND
-    while( !process->waitForFinished(10000) ){
-        cerr << "Der Testprozess wurde nicht korrekt durchgeführt.";
-     }
-#else
     while( !process->waitForFinished(10000) ){
         cerr << "Der Prozess wurde nicht korrekt durchgeführt.";
      }
-#endif
     return QString(process->readAllStandardOutput()).remove(QRegExp("[\\n\\r\\t]"));
 }
 
