@@ -112,9 +112,7 @@ void Configuration::init(const char name[])
 {
     char filename[FILENAME_MAX];
     getcwd(filename,sizeof(filename));
-#ifndef TEST
     strcat(filename, "/");
-#endif
     strcat(filename, name);
       input.open( filename, ios_base::in );
       if( input.fail() ){
