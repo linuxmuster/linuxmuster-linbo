@@ -3,6 +3,7 @@
 #include <qdialog.h>
 #include <qprocess.h>
 #include <qbytearray.h>
+#include <qevent.h>
 
 #include "linboLogConsole.h"
 #include "aktion.h"
@@ -98,6 +99,18 @@ void FortschrittDialog::setProgress(int i)
 {
     ui->progressBar->setValue(i);
 }
+
+void FortschrittDialog::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Escape){
+        // ignorieren
+    }
+}
+
+//void FortschrittDialog::closeEvent(QCloseEvent *event)
+//{
+//    event->ignore();
+//}
 
 void FortschrittDialog::setShowCancelButton(bool show)
 {

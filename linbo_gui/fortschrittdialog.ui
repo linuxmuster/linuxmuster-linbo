@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>440</width>
-    <height>415</height>
+    <width>636</width>
+    <height>355</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,7 +62,7 @@
        <widget class="QProgressBar" name="progressBar">
         <property name="minimumSize">
          <size>
-          <width>400</width>
+          <width>600</width>
           <height>0</height>
          </size>
         </property>
@@ -112,6 +112,12 @@
        <widget class="QTextEdit" name="log">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>600</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="palette">
          <palette>

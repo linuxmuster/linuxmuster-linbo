@@ -216,7 +216,10 @@ QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
     while( !process->waitForFinished(10000) ){
         cerr << "Der Prozess wurde nicht korrekt durchgeführt.";
      }
-    return QString(process->readAllStandardOutput()).remove(QRegExp("[\\n\\r\\t]"));
+    QString result = QString(process->readAllStandardOutput());
+    result.remove(QRegExp("\\t"));
+    result.remove(QRegExp("[\\n\\r]{1,2}$"));
+    return result;
 }
 
 bool Command::doAuthenticateCommand(const QString &password)

@@ -35,6 +35,8 @@ public:
     void setProgress(int i);
     void setShowCancelButton(bool show);
     void setProcess(QProcess *new_process);
+    void keyPressEvent(QKeyEvent *);
+//    void closeEvent(QCloseEvent *);
 
 public slots:
     void killLinboCmd();

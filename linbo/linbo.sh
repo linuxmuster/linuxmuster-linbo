@@ -36,6 +36,6 @@ esac
 #DISPLAY=""
 # not necessary anymore?
 #case "$(fbset 2>/dev/null)" in *640x480*) DISPLAY="-display VGA16:0";; esac
-export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
+export QT_QPA_EVDEV_KEYBOARD_PARAMETERS="TTY:keymap=/usr/share/qt/german_keymap.qmap"
 #exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
-exec linbo_gui -qws >/tmp/linbo_gui.$$.log 2>&1
+exec linbo_gui >/tmp/linbo_gui.$$.log 2>&1

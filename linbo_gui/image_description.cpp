@@ -55,7 +55,7 @@ void globals::set_server( const QString& new_server ) { server = new_server; }
 void globals::set_cache( const QString& new_cache ) {
     cache = new_cache;
     hd = cache;
-    hd.remove(QRegExp("p?[0-9]{1,2}"));
+    hd.remove(QRegExp("p?[0-9]{1,2}$"));
 }
 const image_item* globals::get_autostart(){return autostart;};
 int globals::get_autostarttimeout(){ return autostarttimeout; };

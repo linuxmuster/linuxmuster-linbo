@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>497</width>
-    <height>53</height>
+    <width>330</width>
+    <height>42</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,6 +26,9 @@
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QLineEdit" name="lName">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -33,7 +36,8 @@
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
+      <string notr="true">background-color: rgba(255, 255, 255, 0);
+color: rgb(0,0,0);</string>
      </property>
      <property name="text">
       <string>GymHim Linux</string>
@@ -53,7 +57,7 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>2</width>
+       <width>20</width>
        <height>20</height>
       </size>
      </property>
@@ -69,8 +73,8 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>100</width>
-       <height>30</height>
+       <width>0</width>
+       <height>0</height>
       </size>
      </property>
      <property name="text">
@@ -92,8 +96,8 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>100</width>
-       <height>30</height>
+       <width>0</width>
+       <height>0</height>
       </size>
      </property>
      <property name="text">

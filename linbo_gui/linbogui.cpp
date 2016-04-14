@@ -125,7 +125,9 @@ void LinboGUI::showInfos()
     ui->ip->setText(QString("IP: ") + command->doSimpleCommand(QString("ip")));
     ui->mac->setText(QString("MAC: ") + command->doSimpleCommand(QString("mac")));
     ui->battery->setText(QString("Batterie: ") + command->doSimpleCommand(QString("battery")));
-    ui->cpu->setText(QString("CPU: ") + command->doSimpleCommand(QString("cpu")));
+    QString cpu = command->doSimpleCommand(QString("cpu"));
+    cpu.remove(QRegExp("[\r\n].*$"));
+    ui->cpu->setText(QString("CPU: ") + cpu);
     ui->ram->setText(QString("RAM: ") + command->doSimpleCommand(QString("memory")));
     ui->cache->setText(QString("Cache: ") + command->doSimpleCommand(QString("size"),conf->config.get_cache()));
     ui->hd->setText(QString("HD: ") + command->doSimpleCommand(QString("size"),conf->config.get_hd()));
