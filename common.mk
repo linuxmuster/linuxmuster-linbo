@@ -2,6 +2,9 @@
 
 LML_URL=http://pkg.linuxmuster.net/linbo-build-cache
 
+# linbo version
+LVERS=$(shell head -n 1 $(CURDIR)/debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
+
 # uncomment for debugging
 DEBUG=true
 

@@ -1,4 +1,6 @@
 #!/usr/bin/make -f#
+#
+# Dieses Makefile installiert alle Binaries in die jeweiligen sysroot-Verzeichnisse.
 # Frank Schütte
 # 2016
 # GPL v3
@@ -8,6 +10,10 @@ include common.mk
 
 CURDIR=$(shell pwd)
 
+# gemeinsame Pakete
+BIN_DEBS  = cloop-utils gptfdisk
+
+# speziell 64Bit
 BIN64_DEBS= libc6 libc6-dev libstdc++6 libstdc++-4.8-dev libgcc1 libgcc-4.8-dev \
 	    libasan0 libatomic1 libgomp1 libitm1 libquadmath0 libtsan0 \
 	    libudev1 libudev-dev libxkbcommon0 libxkbcommon-dev xkb-data \
@@ -25,6 +31,7 @@ BIN64_DEBS= libc6 libc6-dev libstdc++6 libstdc++-4.8-dev libgcc1 libgcc-4.8-dev 
 #           udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
 #           zlib1g zlib1g-dev
 
+# speziell 32Bit
 BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
            ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
            grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
@@ -39,8 +46,8 @@ configure: configure32 configure64
 
 configure32:
 	# 32bit binaries
-	echo "[1mInstalling 32bit headers...[0m"
-	for i in $(BIN32_DEBS) ; do \
+	echo "[1mInstalling 32bit packages to sysroot...[0m"
+	for i in $(BIN_DEBS) $(BIN32_DEBS) ; do \
 		pkg=`ls -1tr $(CACHEDIR)/$${i}_*_i386.deb 2>/dev/null | tail -1` ; \
 		pkgall=`ls -1tr $(CACHEDIR)/$${i}_*_all.deb 2>/dev/null | tail -1` ; \
 		if [ -z "$$pkg" -a -z "$$pkgall" ]; then \
@@ -59,8 +66,8 @@ configure32:
 
 configure64:
 	# 64bit binaries
-	echo "[1mInstalling 64bit headers...[0m"
-	for i in $(BIN64_DEBS) ; do \
+	echo "[1mInstalling 64bit packages to sysroot...[0m"
+	for i in $(BIN_DEBS) $(BIN64_DEBS) ; do \
 		pkg=`ls -1tr $(CACHEDIR)/$${i}_*_amd64.deb 2>/dev/null | tail -1` ; \
 		pkgall=`ls -1tr $(CACHEDIR)/$${i}_*_all.deb 2>/dev/null | tail -1` ; \
 		if [ -z "$$pkg" -a -z "$$pkgall" ]; then \
@@ -76,12 +83,6 @@ configure64:
 			dpkg -x $$pkg $(SYSROOT64) ; \
 		fi ; \
 	done
-
-#config-dfb64: $(DIRECTFB)/configure
-#	( cd $(DIRECTFB) ; PKG_CONFIG_LIBDIR=$(SYSROOT64)/usr/lib/pkgconfig \
-#	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT64)/usr/share/aclocal" \
-#	CPPFLAGS=-I$(SYSROOT64)/usr/include LDFLAGS=-L$(SYSROOT64)/usr/lib \
-#	./configure --prefix=$(SYSROOT64) $(DIRECTFB_OPTS) )
 
 build:
 

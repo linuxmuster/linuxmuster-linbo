@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 #
+# Makefile zur Erstellung der beiden Kernel 32-/64-bit
+# sowie des cloop-Moduls.
+# Beides wird dann in die jeweiligen sysroot-Verzeichnisse installiert.
 # Frank Schütte
 # 2016
 # GPL v3
@@ -27,7 +30,17 @@ BUILD32:=$(BUILDDIR)/linux32-$(KVERS)
 # kernel64
 BUILD64:=$(BUILDDIR)/linux64-$(KVERS)
 
-DIRS:=$(CACHEDIR) $(KERNELDIR) $(BUILD32) $(BUILD64)
+# cloop
+CLOOP_ARCHIVE_NAME=$(shell grep cloop_ $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
+CLOOP_ARCHIVE=$(CACHEDIR)/$(CLOOP_ARCHIVE_NAME)
+CLOOPDIR=$(CURDIR)/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+#CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
+CLOOP_URL=$(LML_URL)
+
+BUILDCL32:=$(BUILDDIR)/cloop32-$(KVERS)
+BUILDCL64:=$(BUILDDIR)/cloop64-$(KVERS)
+
+DIRS:=$(CACHEDIR) $(KERNELDIR) $(BUILD32) $(BUILD64) $(BUILDCL32) $(BUILDCL64)
 
 # targets
 
@@ -38,13 +51,22 @@ $(DIRS):
 
 $(KERNEL_ARCHIVE): | $(DIRS)
 	wget --directory-prefix=$(CACHEDIR) $(KERNEL_URL)/$(KERNEL_ARCHIVE_NAME)
-	( cd $(CACHEDIR); grep $(KERNEL_ARCHIVE_NAME) $(DEBIANDIR)/md5sums.src | md5sum -c )
+	cd $(CACHEDIR); grep $(KERNEL_ARCHIVE_NAME) $(DEBIANDIR)/md5sums.src | md5sum -c
+
+$(CLOOP_ARCHIVE): | $(DIRS)
+	wget --directory-prefix=$(CACHEDIR) $(CLOOP_URL)/$(CLOOP_ARCHIVE_NAME)
+	cd $(CACHEDIR); grep $(CLOOP_ARCHIVE_NAME) $(DEBIANDIR)/md5sums.src | md5sum -c
 
 $(KERNELDIR)/Makefile: $(KERNEL_ARCHIVE)
 	echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m"
 	tar xf $(KERNEL_ARCHIVE) -C $(CURDIR)
 #	mv $(CURDIR)/linux-$(KMAINVERS) $(CURDIR)/linux-$(KVERS)
 	touch $(KERNELDIR)/Makefile
+
+$(CLOOPDIR)/Makefile: $(CLOOP_ARCHIVE)
+	echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m"
+	tar xf $(CLOOP_ARCHIVE) -C $(CURDIR)
+	touch $(CLOOPDIR)/Makefile
 
 $(BUILD32)/.config: $(KERNELDIR)/Makefile $(CONFDIR)/kernel.conf $(CONFDIR)/initramfs_kernel.conf
 	rm -f $(BUILD64)/usr/initramfs_data.cpio.gz
@@ -57,6 +79,14 @@ $(BUILD64)/.config: $(KERNELDIR)/Makefile $(CONFDIR)/kernel64.conf $(CONFDIR)/in
 	cp $(CONFDIR)/initramfs_kernel.conf $(BUILDDIR)/initramfs_kernel.conf
 	cp $(CONFDIR)/kernel64.conf $(BUILD64)/.config
 	cd $(KERNELDIR); ARCH=x86_64 make O=$(BUILD64) oldconfig
+
+$(BUILDCL32)/Makefile: $(CLOOPDIR)/Makefile
+	cd $(BUILDCL32); cp -R $(CLOOPDIR)/* .
+	touch $(BUILDCL32)/Makefile
+
+$(BUILDCL64)/Makefile: $(CLOOPDIR)/Makefile
+	cd $(BUILDCL64); cp -R $(CLOOPDIR)/* .
+	touch $(BUILDCL64)/Makefile
 
 configure: config32 config64
 
@@ -78,28 +108,45 @@ $(BUILD64)/vmlinuz: $(BUILD64)/.config $(BUILDDIR)/initramfs_kernel.conf
 	echo "[1mBuilding 64bit LINBO kernel...[0m"
 	cd $(KERNELDIR) ; ARCH=x86_64 make O=$(BUILD64) bzImage modules
 
+$(BUILDCL32)/cloop.ko: $(BUILDCL32)/Makefile $(BUILD32)/Makefile
+	echo "[1mBuilding 32bit cloop module...[0m"
+	cd $(BUILDCL32); make KERNEL_DIR=$(BUILD32) clean
+	cd $(BUILDCL32); PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(BUILD32) cloop.ko
+
+$(BUILDCL64)/cloop.ko: $(BUILDCL64)/Makefile $(BUILD64)/Makefile
+	echo "[1mBuilding 64bit cloop module...[0m"
+	cd $(BUILDCL64); make KERNEL_DIR=$(BUILD64) clean
+	cd $(BUILDCL64); ARCH=x86_64 make KERNEL_DIR=$(BUILD64) cloop.ko
+
 distclean: clean
 	rm -rf $(KERNEL_DIR)
+	rm -rf $(CLOOPDIR)
 
 clean: 
 	rm -rf $(BUILD32)
 	rm -rf $(BUILD64)
 	rm -f $(BUILDDIR)/initramfs_kernel.conf
+	rm -rf $(BUILDCL32)
+	rm -rf $(BUILDCL64)
 
 install: install32 install64
 
-install32: $(SYSROOT32)/lib/modules/modules.dep 
+install32: $(SYSROOT)/lib/modules/modules.dep 
 
 install64: $(SYSROOT64)/lib/modules/modules.dep
 
-$(SYSROOT32)/lib/modules/modules.dep: $(BUILD32)/vmlinuz
-	cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT32) modules_install
-	cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_HDR_PATH=$(SYSROOT32)/usr headers_install
-	cd $(BUILD32) && mkdir -p $(SYSROOT32) ; make ARCH=i386 INSTALL_PATH=$(SYSROOT32) install
-	/sbin/depmod -a -b $(SYSROOT32) $(KVERS)
+$(SYSROOT)/lib/modules/modules.dep: $(BUILD32)/vmlinuz $(BUILDCL32)/cloop.ko
+	cd $(BUILD32) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT) modules_install
+	mkdir -p $(SYSROOT)/lib/modules/$(KVERS)/kernel/drivers/block
+	cp $(BUILDCL32)/cloop.ko $(SYSROOT)/lib/modules/$(KVERS)/kernel/drivers/block/
+	cd $(BUILD32) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_HDR_PATH=$(SYSROOT)/usr headers_install
+	cd $(BUILD32) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_PATH=$(SYSROOT) install
+	/sbin/depmod -a -b $(SYSROOT) $(KVERS)
 
-$(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz
+$(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz $(BUILDCL64)/cloop.ko
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install
+	mkdir -p $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block
+	cp $(BUILDCL64)/cloop.ko $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block/
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install
 	/sbin/depmod -a -b $(SYSROOT64) $(KVERS)

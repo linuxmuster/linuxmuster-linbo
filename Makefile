@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 #
+# Dieses Makefile ruft die anderen Makefiles auf und sammelt schließlich alle
+# Dateien aus den sysroot-Verzeichnissen ein.
+#
 # Frank Schütte
 # 2016
 # GPL v3

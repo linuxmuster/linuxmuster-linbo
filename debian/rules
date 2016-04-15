@@ -9,84 +9,7 @@ export DH_COMPAT=5
 
 CURDIR=$(shell pwd)
 
-LML_URL=http://pkg.linuxmuster.net/linbo-build-cache
-
-# linbo version
-LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
-
-# kernel
-VESAMODE=785 # 640x480, 64k colors
-#VESAMODE=771 # 800x600, 256 colors
-# VESAMODE=0 # VGA16
-# VESAMODE=791 # 1024x768, 64k colors # Currently not working
-KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
-KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
-KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
-KERNEL_DIR=kernel/linux-$(KVERS)
-#KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
-KERNEL_URL=$(LML_URL)
-
-# kernel64
-KERNEL64_DIR=kernel64/linux-$(KVERS)
-
-# cloop
-CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
-#CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-#CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
-CLOOP_URL=$(LML_URL)
-
-# cloop utils 32bit
-CLOOPUTILS_DEB=$(shell grep cloop-utils_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOPUTILS_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
-
-# cloop64
-#CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
-
-# backports
-#BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
-#BACKPORTS_DIR=kernel/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
-#BACKPORTS_URL=https://www.kernel.org/pub/linux/kernel/projects/backports/stable/v4.1.1/
-
-# backports 64bit
-#BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
-
-# intel e1000e driver
-#E1000E_ARCHIVE=$(shell grep e1000e- debian/md5sums.src | awk '{ print $$2 }')
-#E1000E_DIR=kernel/$(shell echo $(E1000E_ARCHIVE) | sed -e 's/.tar.gz//')
-#E1000E_URL=http://downloadmirror.intel.com/15817/eng
-
-# e1000e 64bit
-#E1000E64_DIR=kernel/$(shell echo $(E1000E_ARCHIVE) | sed -e 's/.tar.gz//')
-
-# broadcom tg3 driver
-#TG3_ARCHIVE=$(shell grep tg3- debian/md5sums.src | awk '{ print $$2 }')
-#TG3_DIR=kernel/$(shell echo $(TG3_ARCHIVE) | sed -e 's/.tar.gz//')
-#TG3_URL=$(LML_URL)
-
-# tg3 64bit
-#TG364_DIR=kernel64/$(shell echo $(TG3_ARCHIVE) | sed -e 's/.tar.gz//')
-
-# qt
-QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
-QT_VERS=$(shell echo $(QT_ARCHIVE) | sed -e 's/qt-everywhere-opensource-src-//' | sed -e 's/.7z//')
-QT_URL=http://download.qt-project.org/official_releases/qt/5.5/$(QT_VERS)/single
-QT_SRC=qt-$(QT_VERS)
-QTDIR=$(QT_SRC)
-QT_BUILD32=build-qt32
-QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu- -embedded x86
-QT_BUILD64=build-qt64
-QT_BUILD64OPTS=-embedded x86_64
-QT_OPTS=-prefix $QTDIR -opensource -release -static -no-accessibility -no-xmlpatterns -no-phonon -no-phonon-backend \
-	-no-webkit -no-exceptions -no-svg -no-scripttools -no-nis -no-cups -no-stl -verbose -qt-zlib -qt-libpng -no-gif -no-libjpeg \
-	-no-openssl -no-iconv -no-dbus -depths 4,8,16,32 -no-largefile -no-xinerama -no-xrender -no-freetype -no-opengl -no-glib \
-	-nomake examples -nomake demos -no-libmng -no-glib -nomake examples -nomake demos
-
-# linbo_gui
-GUI_SRC=linbo_gui
-GUI_BUILD32=build-$(GUI_SRC)-fb32
-BUI_BUILD64=build-$(GUI_SRC)-fb64
+include $(CURDIR)/common.mk
 
 # busybox
 BB_ARCHIVE=$(shell grep busybox- debian/md5sums.src | awk '{ print $$2 }')
@@ -145,53 +68,7 @@ LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
 # 64bit binaries
 BIN64_DIR=$(CURDIR)/src64/bin64
 
-# 32bit toolchain & binaries
-TOOLCHAIN=$(CURDIR)/toolchain
-BIN32_DIR=$(CURDIR)/src/bin32
-BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
-           ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
-           grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
-           libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
-           ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
-           udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
-           zlib1g zlib1g-dev
-
 # targets
-
-configure-toolchain32:
-	# setup 32bit build tool chain
-	ln -sf /usr/bin/ar $(TOOLCHAIN)/i386-linux-gnu-ar
-	ln -sf /usr/bin/strip $(TOOLCHAIN)/i386-linux-gnu-strip
-	#ln -sf i386-linux-gnu-gcc $(TOOLCHAIN)/gcc
-	#ln -sf i386-linux-gnu-g++ $(TOOLCHAIN)/g++
-	#ln -sf i386-linux-gnu-c++ $(TOOLCHAIN)/c++
-
-$(QT_URL)/$(QT_ARCHIVE):
-	cd cache && wget $(QT_URL)/$(QT_ARCHIVE);
-	cd cache && grep $(QT_ARCHIVE) ../debian/md5sums.src | md5sum -c;
-
-src-qt: $(QT_URL)/$(QT_ARCHIVE)
-	mkdir -p $(QT_SRC);
-	echo "[1mUnpacking $(QT_ARCHIVE)...[0m" ;
-	7z x cache/$(QT_ARCHIVE) -o$(QT_SRC);
-
-configure-qt32: src-qt configure-toolchain32
-	mkdir -p $(QT_BUILD32);
-	cd $(QT_BUILD32) && echo -e "yes\n" | $QTDIR=$(QT_BUILD32) PATH=$(TOOLCHAIN):$(PATH) $(QT_SRC)/configure $(QTOPTS) $(QT_BUILD32OPTS)
-
-configure-qt64: src-qt
-	mkdir -p $(QT_BUILD64);
-	cd $(QT_BUILD32) && echo -e "yes\n" | $QTDIR=$(QT_BUILD64) $(QT_SRC)/configure $(QTOPTS) $(QT_BUILD64OPTS)
-
-configure-qt: configure-qt32 configure-qt64
-
-configure-qui32:
-	mkdir -p $(GUI_BUILD32);
-
-configure-qui64:
-	mkdir -p $(GUI_BUILD64);
-
-configure-qui: configure-gui32 configure-gui64
 
 configure: configure-stamp configure-gui configure-toolchain32
 configure-stamp:
@@ -199,12 +76,8 @@ configure-stamp:
 
 	# make necessary build dirs
 	mkdir -p cache || true
-	mkdir -p kernel || true
-	mkdir -p kernel64 || true
 	mkdir -p src || true
 	mkdir -p src64 || true
-	mkdir -p $(BIN32_DIR) || true
-	mkdir -p $(BIN64_DIR) || true
 
 	# download and unpack sources
 
@@ -318,180 +191,7 @@ configure-stamp:
 		( cd src && unzip ../cache/$(LSASECRETS_ARCHIVE) ); \
 	fi
 
-	# cloop
-	-@if [ ! -d $(CLOOP_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-	fi
-
-	# cloop-utils
-	-@if [ ! -e cache/$(CLOOPUTILS_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(CLOOPUTILS_DEB) ...[0m" ; wget $(CLOOPUTILS_URL)/$(CLOOPUTILS_DEB) ) ; \
-		rm -rf $(BIN32_DIR)/usr/share/doc/cloop-utils ; \
-	fi
-	-@if [ ! -d $(BIN32_DIR)/usr/share/doc/cloop-utils ]; then \
-		echo "[1mUnpacking cloop-utils ...[0m" ; \
-		dpkg -x cache/$(CLOOPUTILS_DEB) $(BIN32_DIR) ; \
-	fi
-
-	# cloop with patch
-#	-@if [ ! -d $(CLOOP_DIR) ]; then \
-#		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-#		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-#		( cd $(CLOOP_DIR) && patch -p0 <../../patches/cloop32.patch ); \
-#		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-#	fi
-
-	# cloop64
-	-@if [ ! -d $(CLOOP64_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
-		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
-	fi
-
-	# kernel
-	-@if [ ! -d $(KERNEL_DIR) ]; then \
-		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
-		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
-		( cd kernel && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
-		echo "[1mPatching kernel sources...[0m" ; \
-		( cd $(KERNEL_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
-		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
-	fi
-
-	# kernel64
-	-@if [ ! -d $(KERNEL64_DIR) ]; then \
-		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
-		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(KERNEL_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KERNEL_ARCHIVE) -C kernel64; \
-		( cd kernel64 && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
-		echo "[1mPatching 64bit kernel sources...[0m" ; \
-		( cd $(KERNEL64_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
-		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
-	fi
-
-	# e1000e
-#	-@if [ ! -d $(E1000E_DIR) ]; then \
-#		( [ -e cache/$(E1000E_ARCHIVE) ] || ( cd cache && wget $(E1000E_URL)/$(E1000E_ARCHIVE) ) ); \
-#		( cd cache && grep $(E1000E_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(E1000E_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(E1000E_ARCHIVE) -C kernel; \
-#		ln -sf ../$(E1000E_DIR) kernel/e1000e; \
-#	fi
-
-	# e1000e64
-#	-@if [ ! -d $(E1000E64_DIR) ]; then \
-#		( [ -e cache/$(E1000E_ARCHIVE) ] || ( cd cache && wget $(E1000E_URL)/$(E1000E_ARCHIVE) ) ); \
-#		( cd cache && grep $(E1000E_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(E1000E_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(E1000E_ARCHIVE) -C kernel64; \
-#		ln -sf ../$(E1000E64_DIR) kernel64/e1000e; \
-#	fi
-
-	# tg3
-#	-@if [ ! -d $(TG3_DIR) ]; then \
-#		( [ -e cache/$(TG3_ARCHIVE) ] || ( cd cache && wget $(TG3_URL)/$(TG3_ARCHIVE) ) ); \
-#		( cd cache && grep $(TG3_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(TG3_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(TG3_ARCHIVE) -C kernel; \
-#		echo "[1mPatching tg3 sources...[0m" ; \
-#		( cd $(TG3_DIR) && for i in ../../patches/tg3/*; do patch -p1 <$$i; done ); \
-#		ln -sf ../$(TG3_DIR) kernel/tg3; \
-#	fi
-
-	# tg364
-#	-@if [ ! -d $(TG364_DIR) ]; then \
-#		( [ -e cache/$(TG3_ARCHIVE) ] || ( cd cache && wget $(TG3_URL)/$(TG3_ARCHIVE) ) ); \
-#		( cd cache && grep $(TG3_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(TG3_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(TG3_ARCHIVE) -C kernel64; \
-#		echo "[1mPatching tg3 sources...[0m" ; \
-#		( cd $(TG364_DIR) && for i in ../../patches/tg3/*; do patch -p1 <$$i; done ); \
-#		ln -sf ../$(TG3_DIR) kernel64/tg3; \
-#	fi
-
-	# backports
-#	-@if [ ! -d $(BACKPORTS_DIR) ]; then \
-#		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
-#		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel; \
-#		ln -sf ../$(BACKPORTS_DIR) kernel/backports; \
-#	fi
-
-	# backports64
-#	-@if [ ! -d $(BACKPORTS64_DIR) ]; then \
-#		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
-#		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel64; \
-#		ln -sf ../$(BACKPORTS64_DIR) kernel64/backports; \
-#	fi
-
-	# 32bit binaries
-	echo "[1mInstalling 32bit binaries...[0m"
-	for i in $(BIN32_DEBS) ; do \
-		pkg=`ls -1tr cache/$${i}_*_i386.deb | tail -1` ; \
-		if [ -z $$pkg ]; then \
-			( cd cache ; echo "[1mDownloading $${i}:i386 ...[0m" ; apt-get download $${i}:i386 ) ; \
-			rm -rf $(BIN32_DIR)/usr/share/doc/$$i ; \
-		fi ; \
-		if [ ! -d $(BIN32_DIR)/usr/share/doc/$$i ]; then \
-			pkg=`ls -1tr cache/$${i}_*_i386.deb | tail -1` ; \
-			echo "[1mUnpacking $$pkg ...[0m" ; \
-			dpkg -x $$pkg $(BIN32_DIR) ; \
-		fi ; \
-	done
-
 	touch configure-stamp
-
-build-qt32: configure-qt32
-	cd $(QT_BUILD32) && PATH=$(TOOLCHAIN):$(PATH) make -j 2;
-
-build-qt64: configure-qt64
-	cd $(QT_BUILD64) && make -j 2;
-
-build-qt: build-qt32 build-qt64
-
-build-gui32: build-qt32
-	echo "[1mBuilding 32bit linbo_gui...[0m";
-	cp var/icons/linbo_wallpaper_800x600.png linbo_gui32/icons/linbo_wallpaper.png;
-	( 
-	CFLAGS=-m32
-	QTDIR=$(QT_BUILD32)
-	QTLIB=$QTDIR/lib/
-	QTBIN=$QTDIR/bin/ 
-	cd $(GUI_BUILD32) && PATH=$(TOOLCHAIN):$(PATH) "$QTBIN"/qmake -makefile -spec "$QTDIR"/mkspecs/default $(GUI_SRC)/linbo_gui.pro
-	make clean
-	make
-	strip linbo_gui
-	)
-
-build-gui64: build-qt64
-	echo "[1mBuilding 64bit linbo_gui...[0m";
-	cp var/icons/linbo_wallpaper_800x600.png linbo_gui32/icons/linbo_wallpaper.png;
-	( 
-	QTDIR=$(QT_BUILD64)
-	QTLIB=$QTDIR/lib/
-	QTBIN=$QTDIR/bin/ 
-	cd $(GUI_BUILD64)
-	"$QTBIN"/qmake -makefile -spec "$QTDIR"/mkspecs/default $(GUI_SRC)/linbo_gui.pro
-	make clean
-	make
-	strip linbo_gui
-	)
-
-build-gui: build-gui32 build-gui64
 
 build: build-stamp
 build-stamp: configure-stamp build-gui
@@ -547,132 +247,16 @@ build-stamp: configure-stamp build-gui
 		( cd $(PARTED64_DIR) && ./configure --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && make && strip parted/parted ); \
 	fi
 
-	# linbo kernel
-	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
-	        echo "[1mBuilding LINBO kernel...[0m" ; \
-	        rm -f $(CLOOP_DIR)/cloop.ko || true ; \
-	        rm -rf ../modules/* || true ; \
-	        cd $(KERNEL_DIR) ; \
-	        ln -snf ../initramfs_kernel.conf . ; \
-	        :> ../initramfs_kernel.conf ; \
-	        rm -f usr/initramfs_data.cpio.gz || true ; \
-	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=i386 CFLAGS=-m32 make bzImage modules ; \
-	fi
-
-	# linbo kernel64
-	-@if [ ! -e $(KERNEL64_DIR)/vmlinux ]; then \
-	        echo "[1mBuilding 64bit LINBO kernel...[0m" ; \
-	        rm -f $(CLOOP64_DIR)/cloop.ko || true ; \
-	        rm -rf ../modules/* || true ; \
-	        cd $(KERNEL64_DIR) ; \
-	        ln -snf ../initramfs_kernel.conf . ; \
-	        :> ../initramfs_kernel.conf ; \
-	        rm -f usr/initramfs_data.cpio.gz || true ; \
-	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=x86_64 make bzImage modules ; \
-	fi
-
-	# cloop utils
-#	-@if [ ! -e $(CLOOP_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
-#	        echo "[1mBuilding cloop utils...[0m" ; \
-#	        ln -sf i386-linux-gnu/zconf.h $(BIN32_DIR)/usr/include/zconf.h ; \
-#	        cd $(CLOOP_DIR)/advancecomp-1.15 && \
-#	        ( PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 ./configure --libdir=$(BIN32_DIR)/usr/lib --includedir=$(BIN32_DIR)/usr/include --build=i386-linux-gnu --host=i386-linux-gnu ) ; \
-#			cd $(CURDIR)/$(CLOOP_DIR) && \
-#	        ( PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 LDFLAGS=-L$(BIN32_DIR)/usr/lib CPPFLAGS=-I$(BIN32_DIR)/usr/include CFLAGS=-m32 make utils ) ; \
-#	fi
-
-	# cloop module
-	-@if [ ! -e $(CLOOP_DIR)/cloop.ko ]; then \
-	        echo "[1mBuilding cloop module...[0m" ; \
-	        rm -f kernel/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
-	        cd $(CLOOP_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) clean ; PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 make KERNEL_DIR=$(CURDIR)/$(KERNEL_DIR) cloop.ko ) ; \
-	fi
-
-	# cloop64 module
-	-@if [ ! -e $(CLOOP64_DIR)/cloop.ko ]; then \
-	        echo "[1mBuilding 64bit cloop module...[0m" ; \
-	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
-	fi
-
-	# cloop64 utils
-	-@if [ ! -e $(CLOOP64_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
-	        echo "[1mBuilding 64bit cloop utils...[0m" ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( ARCH=x86_64 make utils ) ; \
-	fi
-
-	# e1000e module
-#	-@if [ ! -e $(E1000E_DIR)/src/e1000e.ko ]; then \
-#	        echo "ESC[1mBuilding e1000e module...ESC[0m" ; \
-#	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
-#	        cd $(E1000E_DIR)/src && \
-#	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-#	fi
-
-	# e1000e64 module
-#	-@if [ ! -e $(E1000E64_DIR)/src/e1000e.ko ]; then \
-#	        echo "ESC[1mBuilding 64bit e1000e module...ESC[0m" ; \
-#	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko || true ; \
-#	        cd $(E1000E64_DIR)/src && \
-#	        ( ARCH=x86_64 KSRC=$(CURDIR)/$(KERNEL64_DIR) make clean ; ARCH=x86_64 KSRC=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
-#	fi
-
-	# tg3 module
-#	-@if [ ! -e $(TG3_DIR)/tg3.ko ]; then \
-#	        echo "ESC[1mBuilding tg3 module...ESC[0m" ; \
-#	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/ethernet/broadcom/tg3.ko || true ; \
-#	        cd $(TG3_DIR) && \
-#	        ( ARCH=i386 KSRC=$(CURDIR)/$(KERNEL_DIR) make clean ; PATH=$(TOOLCHAIN):$(PATH) CC=$(TOOLCHAIN)/i386-linux-gnu-gcc ARCH=i386 KVER=$(KVERS) KSRC=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-#	fi
-
-	# tg364 module
-#	-@if [ ! -e $(TG364_DIR)/tg3.ko ]; then \
-#	        echo "ESC[1mBuilding 64bit tg3 module...ESC[0m" ; \
-#	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/ethernet/broadcom/tg3.ko || true ; \
-#	        cd $(TG364_DIR) && \
-#	        ( ARCH=x86_64 KSRC=$(CURDIR)/$(KERNEL64_DIR) make clean ; ARCH=x86_64 KVER=$(KVERS) KSRC=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
-#	fi
-
-	# backports
-#	-@if [ ! -e $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-#	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
-#	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-#	        cd $(BACKPORTS_DIR) && \
-#	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make clean ; \
-#	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make defconfig-alx ; \
-#	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-#	fi
-
-	# backports64
-#	-@if [ ! -e $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-#	        echo "ESC[1mBuilding 64bit alx module...ESC[0m" ; \
-#	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-#	        cd $(BACKPORTS64_DIR) && \
-#	        ( ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make clean ; \
-#	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make defconfig-alx ; \
-#	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
-#	fi
-
-
 	touch build-stamp
 
 distclean: clean
 
 	rm -rf src || true
 	rm -rf src64 || true
-	rm -rf kernel || true
-	rm -rf kernel64 || true
-	rm -rf $(QT_SRC) $(QT_BUILD32) $(QT_BUILD64) $(GUI_BUILD32) $(GUI_BUILD64)
 
 clean: 
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
 	dh_clean -d
 
 install: build
@@ -681,39 +265,6 @@ install: build
 	#dh_clean -k
 	dh_installdirs
 	dh_install
-	# kernel
-	( cd $(KERNEL_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
-	@echo "[1mLinking LINBO kernel to /var/linbo/linbo.[0m" ; \
-	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo
-	# kernel64
-	( cd $(KERNEL64_DIR) && mkdir -p ../modules ; ARCH=x86_64 make INSTALL_MOD_PATH=../modules modules_install )
-	@echo "[1mLinking 64bit LINBO kernel to /var/linbo/linbo64.[0m" ; \
-	cp $(KERNEL64_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo64
-	# cloop module
-	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
-	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
-	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
-	cp $(CLOOP64_DIR)/cloop.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block/
-	# e1000e module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e && \
-#	cp $(E1000E_DIR)/src/e1000e.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e/
-#	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e && \
-#	cp $(E1000E64_DIR)/src/e1000e.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/intel/e1000e/
-	# tg3 module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom && \
-#	cp $(TG3_DIR)/tg3.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
-#	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom && \
-#	cp $(TG364_DIR)/tg3.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/ethernet/broadcom/
-	# alx module
-#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(BACKPORTS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
-#	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-#	cp $(BACKPORTS64_DIR)/compat/compat.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
-	# depmod
-	-/sbin/depmod -a -b kernel/modules $(KVERS)
-	-/sbin/depmod -a -b kernel64/modules $(KVERS)
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding LINBOFS...[0m" ; \
