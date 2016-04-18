@@ -39,9 +39,14 @@ CLEANSUBS=$(SUBS:%=clean-%)
 DISTCLEANSUBS=$(SUBS:%=distclean-%)
 INSTALLSUBS=$(SUBS:%=install-%)
 
+CREATEDIRS:=$(BUILDDIR) $(SYSROOT) $(SYSROOT64)
+
 # targets
 
 all: build
+
+$(CREATEDIRS):
+	for dir in $(CREATEDIRS); do mkdir -p $$dir; done
 
 install-kernel:
 	make -f Makefile.kernel install
@@ -52,7 +57,7 @@ configure-toolchain32:
 	cp -f /usr/bin/ar $(TOOLCHAIN)/i386-linux-gnu-ar
 	cp -f /usr/bin/strip $(TOOLCHAIN)/i386-linux-gnu-strip
 
-$(CONFIGDIRS): configure-toolchain32
+$(CONFIGDIRS): configure-toolchain32 | $(CREATEDIRS)
 	make -C $(@:config-%=%) configure
 
 $(CONFIGSUBS): configure-toolchain32 install-kernel
@@ -88,10 +93,11 @@ $(DISTCLEANSUBS):
 	make -f Makefile.kernel distclean
 
 distclean: clean $(DISTCLEANSUBS) $(DISTCLEANDIRS)
+	rm -rf $(SYSROOT) $(SYSROOT64) $(BUILDDIR)
 
 clean: $(CLEANSUBS) $(CLEANDIRS)
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
-	rm -rf $(BUILDDIR)/boot
+	rm -rf $(BUILDDIR)/boot $(BUILDDIR)/initramfs.conf $(BUILDDIR)initramfs64.conf
 
 $(INSTALLDIRS):
 	make -C $(@:install-%=%) install
