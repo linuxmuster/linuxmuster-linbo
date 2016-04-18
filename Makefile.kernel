@@ -17,18 +17,10 @@ VESAMODE=785 # 640x480, 64k colors
 #VESAMODE=771 # 800x600, 256 colors
 # VESAMODE=0 # VGA16
 # VESAMODE=791 # 1024x768, 64k colors # Currently not working
-KERNEL_ARCHIVE_NAME=$(shell grep " linux-" $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
-KERNEL_ARCHIVE=$(CACHEDIR)/$(KERNEL_ARCHIVE_NAME)
-KVERS=$(shell echo $(KERNEL_ARCHIVE_NAME) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
 KERNELDIR=$(CURDIR)/linux-$(KVERS)
 KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
 #KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
 KERNEL_URL=$(LML_URL)
-
-# kernel32
-BUILD32:=$(BUILDDIR)/linux32-$(KVERS)
-# kernel64
-BUILD64:=$(BUILDDIR)/linux64-$(KVERS)
 
 # cloop
 CLOOP_ARCHIVE_NAME=$(shell grep cloop_ $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
@@ -52,8 +44,8 @@ $(DIRS):
 	done;
 
 $(KERNEL_ARCHIVE): | $(DIRS)
-	wget --directory-prefix=$(CACHEDIR) $(KERNEL_URL)/$(KERNEL_ARCHIVE_NAME)
-	cd $(CACHEDIR); grep $(KERNEL_ARCHIVE_NAME) $(DEBIANDIR)/md5sums.src | md5sum -c
+	wget --directory-prefix=$(CACHEDIR) $(KERNEL_URL)/$(notdir $(KERNEL_ARCHIVE))
+	cd $(CACHEDIR); grep $(notdir $(KERNEL_ARCHIVE)) $(DEBIANDIR)/md5sums.src | md5sum -c
 
 $(CLOOP_ARCHIVE): | $(DIRS)
 	wget --directory-prefix=$(CACHEDIR) $(CLOOP_URL)/$(CLOOP_ARCHIVE_NAME)

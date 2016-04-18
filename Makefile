@@ -13,13 +13,13 @@ include common.mk
 CURDIR=$(shell pwd)
 
 # grub required modules
-GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
- ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test
+GRUB_COMMON_MODULES="all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
+ ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test"
 
-GRUB_EFI32_MODULES=efi_gop efi_uga efinet tftp
-GRUB_EFI64_MODULES=efi_gop efi_uga efinet linuxefi tftp
+GRUB_EFI32_MODULES="efi_gop efi_uga efinet tftp"
+GRUB_EFI64_MODULES="efi_gop efi_uga efinet linuxefi tftp"
 
-GRUB_PC_MODULES=biosdisk ntldr pxe
+GRUB_PC_MODULES="biosdisk ntldr pxe"
 
 # common
 DIRS = linbo_gui
@@ -112,8 +112,8 @@ $(SYSROOT)/linbofs.lz:
 	cd $(SYSROOT); find usr/lib/grub/i386-pc usr/lib/grub/i386-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs.conf
-	find /etc/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
-	find /etc/udev -type f -printf "file /%p /%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
+	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
+	find /etc/udev -type f -printf "file %p %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); find lib/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); find lib/udev -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	echo "# modules" >> $(BUILDDIR)/initramfs.conf
@@ -122,8 +122,8 @@ $(SYSROOT)/linbofs.lz:
 	echo >> $(BUILDDIR)/initramfs.conf
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs.conf
 	cd $(BUILDBB32); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
-	cd $(BUiLDBB32); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
-	rm -f $(SYSROOT)/linbofs.lz; $(SYSROOT)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT)/linbofs.lz
+	cd $(BUILDBB32); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
+	cd $(SYSROOT); rm -f linbofs.lz; $(BUILD32)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT)/linbofs.lz
 
 $(SYSROOT64)/linbofs64.lz:
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
@@ -134,8 +134,8 @@ $(SYSROOT64)/linbofs64.lz:
 	cd $(SYSROOT64); find usr/lib/grub/i386-pc usr/lib/grub/i386-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs64.conf
-	find /etc/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
-	find /etc/udev -type f -printf "file /%p /%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
+	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
+	find /etc/udev -type f -printf "file %p %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find lib/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find lib/udev -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo "# modules" >> $(BUILDDIR)/initramfs64.conf
@@ -144,8 +144,8 @@ $(SYSROOT64)/linbofs64.lz:
 	echo >> $(BUILDDIR)/initramfs64.conf
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs64.conf
 	cd $(BUILDBB64); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
-	cd $(BUiLDBB64); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
-	rm -f $(SYSROOT64)/linbofs64.lz; $(SYSROOT64)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT64)/linbofs64.lz
+	cd $(BUILDBB64); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
+	cd $(SYSROOT64); rm -f linbofs64.lz; $(BUILD64)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT64)/linbofs64.lz
 
 install-grubnetdir: $(SYSROOT64)/usr/lib/grub/i386-pc $(SYSROOT)/usr/lib/grub/i386-efi $(SYSROOT64)/usr/lib/grub/x86_64-efi
 	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d $(SYSROOT64)/usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub

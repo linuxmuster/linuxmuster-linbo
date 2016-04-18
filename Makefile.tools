@@ -11,20 +11,9 @@ include $(CURDIR)/common.mk
 
 CURDIR=$(shell pwd)
 
-URLS := http://busybox.net/downloads/busybox-1.23.2.tar.bz2 \
-	http://pogostick.net/~pnh/ntpasswd/chntpw-source-140201.zip \
-	$(LML_URL)/ms-sys-2.3.0.tar.gz \
-	http://tuxera.com/opensource/ntfs-3g_ntfsprogs-2014.2.15.tgz \
-	http://ftp.gnu.org/gnu/parted/parted-3.2.tar.xz \
-	https://github.com/linuxmuster/lsaSecrets/archive/master.zip
+#URLS, SOURCES in common.mk
 
-ARCHIVES := $(addprefix $(CACHEDIR)/, $(notdir $(URLS)))
-
-SOURCES := $(shell echo $(basename $(notdir $(ARCHIVES))) | sed -e 's/.tar//g' | sed -e 's/master/lsaSecrets-master/')
-
-BB_DIR:=$(CURDIR)/$(firstword $(filter busybox-%, $(SOURCES)))
-BUILDBB32=$(BUILDDIR)/build-bb32
-BUILDBB64=$(BUILDDIR)/build-bb64
+#BB_DIR in common.mk
 
 CHNTPW_DIR=$(CURDIR)/$(shell echo $(firstword $(filter chntpw-%, $(SOURCES))) | sed -e 's/-source//')
 
@@ -82,7 +71,7 @@ $(BUILDBB32)/busybox $(BUILDBB64)/busybox: $(BUILDBB32)/.config $(BUILDBB64)/.co
 
 build-mssys: $(MSSYS_DIR)/bin/ms-sys
 
-$(MSSYS_DIR)/bin/ms-sys: $(MSSYS_DIR)
+$(MSSYS_DIR)/bin/ms-sys: | $(MSSYS_DIR)
 	echo "[1mBuilding ms-sys...[0m"
 	cd $(MSSYS_DIR); PATH=$(TOOLCHAIN):$(PATH) CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" \
 			LDFLAGS="$(LDFLAGS) -m32 --sysroot=$(SYSROOT)" make
@@ -90,31 +79,31 @@ $(MSSYS_DIR)/bin/ms-sys: $(MSSYS_DIR)
 
 build-chntpw: $(CHNTPW_DIR)/reged
 
-$(CHNTPW_DIR)/reged: $(CHNTPW_DIR)
+$(CHNTPW_DIR)/reged: | $(CHNTPW_DIR)
 	echo "[1mBuilding reged...[0m"
 	cd $(CHNTPW_DIR); PATH=$(TOOLCHAIN):$(PATH) make reged;
 	strip $(CHNTPW_DIR)/reged
 
-build-ntfs: $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS))
+build-ntfs: $(addprefix $(BUILDNTFS32)/, $(NTFS3G_BINS)) $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS))
 
-$(addprefix $(BUILDNTFS32)/, $(NTFS_BINS)): $(NTFS3G_DIR)
-	echo "[1mBuilding ntfs-3g...[0m"
+$(addprefix $(BUILDNTFS32)/, $(NTFS3G_BINS)): | $(NTFS3G_DIR)
+	echo "[1mBuilding 32bit ntfs-3g...[0m"
 	cd $(BUILDNTFS32); PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" \
 		$(NTFS3G_DIR)/configure --host=i386-linux-gnu --enable-really-static \
 		--enable-xattr-mappings --enable-posix-acls
 	cd $(BUILDNTFS32); PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" make
-	$(foreach bin, $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS)), strip $(bin); )
+	$(foreach bin, $(addprefix $(BUILDNTFS32)/, $(NTFS3G_BINS)), strip $(bin); )
 
-$(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)): $(NTFS3G_DIR)
+$(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)): | $(NTFS3G_DIR)
 	echo "[1mBuilding 64bit ntfs-3g...[0m"
 	cd $(BUILDNTFS64); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" $(NTFS3G_DIR)/configure --enable-really-static \
 		--enable-xattr-mappings --enable-posix-acls
 	cd $(BUILDNTFS64); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" make
-	$(foreach bin, $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)), strip $(bin); )
+	$(foreach bin, $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)), strip $(bin); )
 
 build-parted: $(BUILDPARTED64)/parted/parted
 
-$(BUILDPARTED64)/parted/parted: $(PARTED_DIR)
+$(BUILDPARTED64)/parted/parted: | $(PARTED_DIR)
 	echo "[1mBuilding 64bit parted...[0m"
 	cd $(BUILDPARTED64); $(PARTED_DIR)/configure --prefix="/usr" \
 		--disable-shared --disable-nls --disable-dynamic-loading --without-readline \
@@ -132,13 +121,15 @@ clean:
 install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(BUILDBB32)/busybox \
 	$(BUILDBB64)/busybox $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS))
 	cd $(BUILDBB32); make install DESTDIR=$(BUILDBB32)/_install
+	install -D -m 755 $(BUILDBB32)/busybox $(SYSROOT)/bin/busybox
 	cd $(BUILDBB64); make install DESTDIR=$(BUILDBB64)/_install
-	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/usr/bin/ms-sys
-	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT64)/usr/bin/ms-sys
-	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT)/usr/bin/reged
-	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT64)/usr/bin/reged
-	$(foreach file, $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS)), install -D -m 755 $(file) $(SYSROOT)/usr/bin/$(notdir $(file)))
-	$(foreach file, $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)), install -D -m 755 $(file) $(SYSROOT64)/usr/bin/$(notdir $(file)))
+	install -D -m 755 $(BUILDBB64)/busybox $(SYSROOT64)/bin/busybox
+	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/bin/ms-sys
+	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT64)/bin/ms-sys
+	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT)/bin/reged
+	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT64)/bin/reged
+	$(foreach file, $(addprefix $(BUILDNTFS32)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT)/bin/$(notdir $(file)); )
+	$(foreach file, $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT64)/bin/$(notdir $(file)); )
 	install -D -m 755 $(BUILDPARTED64)/parted/parted $(SYSROOT64)/usr/bin/parted
 
 .PHONY: all $(DIRS) distclean clean

@@ -136,6 +136,14 @@ $(SYSROOT64)/usr/bin/linbo_gui: $(GUI_BUILD64)/linbo_gui
 
 install: $(SYSROOT)/usr/bin/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
+install-qt: $(SYSROOT)/usr/lib/fonts/DejavuSans.ttf $(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf
+
+$(SYSROOT)/usr/lib/fonts/DejavuSans.ttf: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB)
+	cd $(QT_BUILD32); make install
+
+$(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB)
+	cd $(QT_BUILD64); make install
+
 $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
 	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD32)/start.conf
 	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD64)/start.conf
@@ -154,4 +162,4 @@ install-test: $(GUI_BUILD32)/linbo_cmd $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/
 .PHONY: build build-gui build-gui32 build-gui64 build-qt32 build-qt64
 .PHONY: clean distclean
 .PHONY: configure configure-gui config-qt32 config-qt64
-.PHONY: install install-test
+.PHONY: install install-test install-qt
