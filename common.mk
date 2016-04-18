@@ -12,6 +12,7 @@ DEBUG=true
 CACHEDIR=$(CURDIR)/cache
 DEBIANDIR=$(CURDIR)/debian
 CONFDIR=$(CURDIR)/conf
+PATCHDIR=$(CURDIR)/patches
 
 BUILDDIR=$(CURDIR)/build
 
@@ -20,3 +21,6 @@ SYSROOT64=$(CURDIR)/sysroot64
 
 # 32bit toolchain & binaries
 TOOLCHAIN=$(CURDIR)/toolchain
+
+# build arches
+ARCHES=i386 amd64

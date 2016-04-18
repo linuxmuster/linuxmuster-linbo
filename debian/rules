@@ -11,248 +11,23 @@ CURDIR=$(shell pwd)
 
 include $(CURDIR)/common.mk
 
-# busybox
-BB_ARCHIVE=$(shell grep busybox- debian/md5sums.src | awk '{ print $$2 }')
-BB_DIR=src/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
-BB_URL=http://busybox.net/downloads
-
-#busybox64
-BB64_DIR=src64/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
-
-# chntpw
-CHNTPW_ARCHIVE=$(shell grep chntpw- debian/md5sums.src | awk '{ print $$2 }')
-CHNTPW_DIR=src/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
-CHNTPW_URL=http://pogostick.net/~pnh/ntpasswd
-
-# chntpw64
-CHNTPW64_DIR=src64/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
-
-# ms-sys
-MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
-MSSYS_DIR=src/$(shell echo $(MSSYS_ARCHIVE) | sed -e 's/.tar.gz//')
-MSSYS_URL=$(LML_URL)
-
-# ntfs-3g
-NTFS3G_ARCHIVE=$(shell grep ntfs-3g_ntfsprogs- debian/md5sums.src | awk '{ print $$2 }')
-NTFS3G_DIR=src/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
-NTFS3G_URL=http://tuxera.com/opensource
-
-# ntfs-3g64
-NTFS3G64_DIR=src64/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
-
-# rsync
-RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
-RSYNC_DIR=src/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
-RSYNC_URL=http://rsync.samba.org/ftp/rsync/src
-
-# rsync64
-RSYNC64_DIR=src64/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
-
-# gnu parted
-PARTED_ARCHIVE=$(shell grep parted- debian/md5sums.src | awk '{ print $$2 }')
-#PARTED_DIR=src/$(shell echo $(PARTED_ARCHIVE) | sed -e 's/.tar.xz//')
-PARTED64_DIR=src64/$(shell echo $(PARTED_ARCHIVE) | sed -e 's/.tar.xz//')
-PARTED_URL=http://ftp.gnu.org/gnu/parted
-
-# gptfdisk
-GPTFDISK_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep i386 | awk '{ print $$2 }')
-GPTFDISK64_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep amd64 | awk '{ print $$2 }')
-GPTFDISK_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/i386
-GPTFDISK64_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/amd64
-
-# lsaSecrets
-LSASECRETS_ARCHIVE=$(shell grep lsaSecrets debian/md5sums.src | awk '{ print $$2 }')
-LSASECRETS_DIR=src/$(shell echo $(LSASECRETS_ARCHIVE) | sed -e 's/.zip//')
-LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
-
-# 64bit binaries
-BIN64_DIR=$(CURDIR)/src64/bin64
-
 # targets
 
-configure: configure-stamp configure-gui configure-toolchain32
+configure:
+	make configure
+
 configure-stamp:
 	dh_testdir
-
-	# make necessary build dirs
-	mkdir -p cache || true
-	mkdir -p src || true
-	mkdir -p src64 || true
-
-	# download and unpack sources
-
-	# busybox
-	-@if [ ! -d $(BB_DIR) ]; then \
-		( [ -e cache/$(BB_ARCHIVE) ] || ( cd cache && wget $(BB_URL)/$(BB_ARCHIVE) ) ); \
-		( cd cache && grep $(BB_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(BB_ARCHIVE)...[0m" ; \
-		tar xf cache/$(BB_ARCHIVE) -C src; \
-		echo "[1mPatching busybox sources...[0m" ; \
-		( cd $(BB_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
-		cp conf/busybox.conf $(BB_DIR)/.config; \
-		ln -sf ../$(BB_DIR) src/busybox; \
-	fi
-
-	# busybox64
-	-@if [ ! -d $(BB64_DIR) ]; then \
-		( [ -e cache/$(BB_ARCHIVE) ] || ( cd cache && wget $(BB_URL)/$(BB_ARCHIVE) ) ); \
-		( cd cache && grep $(BB_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(BB_ARCHIVE)...[0m" ; \
-		tar xf cache/$(BB_ARCHIVE) -C src64; \
-		echo "[1mPatching 64bit busybox sources...[0m" ; \
-		( cd $(BB64_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
-		cp conf/busybox.conf $(BB64_DIR)/.config; \
-		ln -sf ../$(BB64_DIR) src64/busybox; \
-	fi
-
-	# chntpw
-	-@if [ ! -d $(CHNTPW_DIR) ]; then \
-		( [ -e cache/$(CHNTPW_ARCHIVE) ] || ( cd cache && wget $(CHNTPW_URL)/$(CHNTPW_ARCHIVE) ) ); \
-		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(CHNTPW_ARCHIVE)...[0m" ; \
-		( cd src && unzip ../cache/$(CHNTPW_ARCHIVE) ); \
-		ln -sf ../$(CHNTPW_DIR) src/chntpw; \
-	fi
-
-	# chntpw64
-	-@if [ ! -d $(CHNTPW64_DIR) ]; then \
-		( [ -e cache/$(CHNTPW_ARCHIVE) ] || ( cd cache && wget $(CHNTPW_URL)/$(CHNTPW_ARCHIVE) ) ); \
-		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(CHNTPW_ARCHIVE)...[0m" ; \
-		( cd src64 && unzip ../cache/$(CHNTPW_ARCHIVE) ); \
-		ln -sf ../$(CHNTPW64_DIR) src64/chntpw; \
-		echo "[1mPatching chntpw64 sources...[0m" ; \
-		( cd $(CHNTPW64_DIR) && for i in ../../patches/chntpw64/*; do patch -p1 <$$i; done ); \
-	fi
-
-	# ms-sys
-	-@if [ ! -d $(MSSYS_DIR) ]; then \
-		( [ -e cache/$(MSSYS_ARCHIVE) ] || ( cd cache && wget $(MSSYS_URL)/$(MSSYS_ARCHIVE) ) ); \
-		( cd cache && grep $(MSSYS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(MSSYS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(MSSYS_ARCHIVE) -C src; \
-		echo "[1mPatching $(MSSYS_ARCHIVE)...[0m" ; \
-		( cd $(MSSYS_DIR) && patch -p0 <../../patches/ms-sys32.patch ); \
-		ln -sf ../$(MSSYS_DIR) src/ms-sys; \
-	fi
-
-	# ntfs-3g
-	-@if [ ! -d $(NTFS3G_DIR) ]; then \
-		( [ -e cache/$(NTFS3G_ARCHIVE) ] || ( cd cache && wget $(NTFS3G_URL)/$(NTFS3G_ARCHIVE) ) ); \
-		( cd cache && grep $(NTFS3G_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(NTFS3G_ARCHIVE)...[0m" ; \
-		tar xf cache/$(NTFS3G_ARCHIVE) -C src; \
-		ln -sf ../$(NTFS3G_DIR) src/ntfs-3g; \
-	fi
-
-	# ntfs-3g64
-	-@if [ ! -d $(NTFS3G64_DIR) ]; then \
-		( [ -e cache/$(NTFS3G_ARCHIVE) ] || ( cd cache && wget $(NTFS3G_URL)/$(NTFS3G_ARCHIVE) ) ); \
-		( cd cache && grep $(NTFS3G_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(NTFS3G_ARCHIVE)...[0m" ; \
-		tar xf cache/$(NTFS3G_ARCHIVE) -C src64; \
-		ln -sf ../$(NTFS3G64_DIR) src64/ntfs-3g; \
-	fi
-
-	# parted64
-	-@if [ ! -d $(PARTED64_DIR) ]; then \
-		( [ -e cache/$(PARTED_ARCHIVE) ] || ( cd cache && wget $(PARTED_URL)/$(PARTED_ARCHIVE) ) ); \
-		( cd cache && grep $(PARTED_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(PARTED_ARCHIVE)...[0m" ; \
-		tar xf cache/$(PARTED_ARCHIVE) -C src64; \
-		ln -sf ../$(PARTED64_DIR) src64/parted; \
-	fi
-
-	# gptfdisk
-	-@if [ ! -e cache/$(GPTFDISK_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(GPTFDISK_DEB) ...[0m" ; wget $(GPTFDISK_URL)/$(GPTFDISK_DEB) ) ; \
-		rm -rf $(BIN32_DIR)/usr/share/doc/gptfdisk ; \
-	fi
-	-@if [ ! -d $(BIN32_DIR)/usr/share/doc/gptfdisk ]; then \
-		echo "[1mUnpacking gptfdisk ...[0m" ; \
-		dpkg -x cache/$(GPTFDISK_DEB) $(BIN32_DIR) ; \
-	fi
-
-	# gptfdisk64
-	-@if [ ! -e cache/$(GPTFDISK64_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(GPTFDISK64_DEB) ...[0m" ; wget $(GPTFDISK64_URL)/$(GPTFDISK64_DEB) ) ; \
-		rm -rf $(BIN64_DIR)/usr/share/doc/gptfdisk ; \
-	fi
-	-@if [ ! -d $(BIN64_DIR)/usr/share/doc/gptfdisk ]; then \
-		echo "[1mUnpacking gptfdisk ...[0m" ; \
-		dpkg -x cache/$(GPTFDISK64_DEB) $(BIN64_DIR) ; \
-	fi
-
-	# lsaSecrets
-	-@if [ ! -d $(LSASECRETS_DIR) ]; then \
-		( [ -e cache/$(LSASECRETS_ARCHIVE) ] || ( cd cache && wget $(LSASECRETS_URL) -O $(LSASECRETS_ARCHIVE) ) ); \
-		( cd cache && grep $(LSASECRETS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(LSASECRETS_ARCHIVE)...[0m" ; \
-		( cd src && unzip ../cache/$(LSASECRETS_ARCHIVE) ); \
-	fi
-
 	touch configure-stamp
 
 build: build-stamp
-build-stamp: configure-stamp build-gui
+build-stamp: configure-stamp
 	dh_testdir
-
-	# build src components
-
-	# busybox
-	-@if [ ! -e $(BB_DIR)/_install/bin/busybox ]; then \
-		echo "[1mBuilding busybox...[0m" ; \
-		( cd $(BB_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 CROSS_COMPILE=i386-linux-gnu- make install ); \
-	fi
-
-	# busybox64
-	-@if [ ! -e $(BB64_DIR)/_install/bin/busybox ]; then \
-		echo "[1mBuilding 64bit busybox...[0m" ; \
-		( cd $(BB64_DIR) && make install ); \
-	fi
-
-	# ms-sys
-	-@if [ ! -e $(MSSYS_DIR)/bin/ms-sys ]; then \
-		echo "[1mBuilding ms-sys...[0m" ; \
-		( cd $(MSSYS_DIR) && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 make && strip bin/ms-sys ); \
-	fi
-
-	# chntpw
-	-@if [ ! -e $(CHNTPW_DIR)/reged ]; then \
- 		echo "[1mBuilding reged...[0m"; \
-		( cd $(CHNTPW_DIR) && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 make reged && strip reged ); \
-	fi
-
-	# chntpw64
-	-@if [ ! -e $(CHNTPW64_DIR)/reged ]; then \
- 		echo "[1mBuilding 64bit reged...[0m"; \
-		( cd $(CHNTPW64_DIR) && make reged && strip reged ); \
-	fi
-
-	# ntfs-3g
-	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
-		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
-	fi
-
-	# ntfs-3g64
-	-@if [ ! -e $(NTFS3G64_DIR)/src/ntfs-3g ]; then \
-		echo "[1mBuilding 64bit ntfs-3g...[0m" ; \
-		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
-	fi
-
-	# parted64
-	-@if [ ! -e $(PARTED64_DIR)/parted/parted ]; then \
-		echo "[1mBuilding 64bit parted...[0m" ; \
-		( cd $(PARTED64_DIR) && ./configure --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && make && strip parted/parted ); \
-	fi
+	make build
 
 	touch build-stamp
 
 distclean: clean
-
-	rm -rf src || true
-	rm -rf src64 || true
 
 clean: 
 	dh_testdir
@@ -261,6 +36,8 @@ clean:
 
 install: build
 	dh_testdir
+	make install
+	
 	dh_testroot
 	#dh_clean -k
 	dh_installdirs
@@ -268,26 +45,26 @@ install: build
 	# initrd
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding LINBOFS...[0m" ; \
-	cd $(KERNEL_DIR) ; \
+	cd $(SYSROOT) ; \
 	ln -snf ../initramfs.conf . ; \
 	:> ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# grub2 boot images" >> $(CURDIR)/kernel/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-efi/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-efi/|" >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|$(SYSROOT)/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd usr/lib/grub/i386-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-efi/|' | sed -e "s|\./|$(SYSROOT)/usr/lib/grub/i386-efi/|" >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	( cd ../../src/bin32 && find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p ../../src/bin32/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p $(SYSROOT)/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd lib/modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd $(BUILDBB32)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
 	# initrd 64bit
 	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
-	cd $(KERNEL64_DIR) ; \
+	cd $(SYSROOT64) ; \
 	ln -snf ../initramfs.conf ./initramfs.conf ; \
 	:> ../initramfs.conf ; \
 	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
@@ -302,7 +79,7 @@ install: build
 	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
+	( cd $(BUILDBB64)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
 	# package files
 	# /etc

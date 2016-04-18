@@ -37,8 +37,8 @@ QT_FRAMEBUFFER_LIB=qtbase/plugins/platforms/libqlinuxfb.a
 LINBO_SRC=$(CURDIR)/$(GUI_NAME)/*
 GUI_NAME=linbo_gui
 GUISRCDIR=$(CURDIR)/$(GUI_NAME)
-GUI_BUILD32=$(BUILDDIR)/build-$(GUI_NAME)-fb32
-GUI_BUILD64=$(BUILDDIR)/build-$(GUI_NAME)-fb64
+GUI_BUILD32=$(BUILDDIR)/build-gui32
+GUI_BUILD64=$(BUILDDIR)/build-gui64
 
 # targets
 
@@ -96,7 +96,7 @@ $(GUI_BUILD32)/linbo_gui: $(LINBO_SRC) build-qt32
 	QTLIB=$(QT_BUILD32)/qtbase/lib \
 	QTBIN=$(QT_BUILD32)/qtbase/bin \
 	cd $(GUI_BUILD32) && PATH=/usr/bin:/bin $(QT_BUILD32)/qtbase/bin/qmake \
-	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-64 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
+	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-32 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
 	cd $(GUI_BUILD32) && make clean && make && strip linbo_gui
 
 $(GUI_BUILD64)/linbo_gui: $(LINBO_SRC) build-qt64
@@ -122,24 +122,34 @@ build-stamp: configure-stamp build-gui
 
 distclean: clean
 
-	rm -rf $(QT_ARCHIVE) $(QT_SRC) $(QT_BUILD32) $(QT_BUILD64) $(GUI_BUILD32) $(GUI_BUILD64)
+	rm -rf $(QT_ARCHIVE) $(QT_SRC)
 
 clean: 
-	rm -f build-stamp configure-stamp
+	rm -f build-stamp configure-stamp $(QT_BUILD32) $(QT_BUILD64) $(GUI_BUILD32) $(GUI_BUILD64)
+
+$(SYSROOT)/usr/bin/linbo_gui: $(GUI_BUILD32)/linbo_gui
+	install -D $(GUI_BUILD32)/linbo_gui $(SYSROOT)/usr/bin/linbo_gui
 
 $(SYSROOT64)/usr/bin/linbo_gui: $(GUI_BUILD64)/linbo_gui
 	install -D $(GUI_BUILD64)/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
-install: install32 install64
+install: $(SYSROOT)/usr/bin/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
-$(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
+$(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
+	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD32)/start.conf
 	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD64)/start.conf
 
-$(GUI_BUILD64)/linbo_cmd: $(GUISRCDIR)/test/fake_cmd.sh
+$(GUI_BUILD32)/linbo_cmd $(GUI_BUILD64)/linbo_cmd: $(GUISRCDIR)/test/fake_cmd.sh
+	install -D $(GUISRCDIR)/test/fake_cmd.sh $(GUI_BUILD32)/linbo_cmd
+	install -D $(GUISRCDIR)/test/fake_cmd_create.sh $(GUI_BUILD32)/fake_cmd_create.sh
+	install -D $(GUISRCDIR)/test/fake_cmd_functions.sh $(GUI_BUILD32)/fake_cmd_functions.sh
 	install -D $(GUISRCDIR)/test/fake_cmd.sh $(GUI_BUILD64)/linbo_cmd
 	install -D $(GUISRCDIR)/test/fake_cmd_create.sh $(GUI_BUILD64)/fake_cmd_create.sh
 	install -D $(GUISRCDIR)/test/fake_cmd_functions.sh $(GUI_BUILD64)/fake_cmd_functions.sh
 
-install-test: $(GUI_BUILD64)/linbo_cmd $(GUI_BUILD64)/start.conf
+install-test: $(GUI_BUILD32)/linbo_cmd $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/linbo_cmd $(GUI_BUILD64)/start.conf
 
-.PHONY: build clean install install-test configure
+.PHONY: build
+.PHONY: clean
+.PHONY: configure
+.PHONY: install install-test

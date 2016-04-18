@@ -17,13 +17,15 @@ DIRS = linbo_gui
 CONFIGDIRS=$(DIRS:%=config-%)
 BUILDDIRS=$(DIRS:%=build-%)
 CLEANDIRS=$(DIRS:%=clean-%)
+INSTALLDIRS=$(DIRS:%=install-%)
 
 # sub makefiles
-SUBS = kernel sysroot
+SUBS = kernel sysroot tools
 
 CONFIGSUBS=$(SUBS:%=config-%)
 BUILDSUBS=$(SUBS:%=build-%)
 CLEANSUBS=$(SUBS:%=clean-%)
+INSTALLSUBS=$(SUBS:%=install-%)
 
 # targets
 
@@ -67,11 +69,17 @@ distclean: clean
 clean: $(CLEANSUBS) $(CLEANDIRS)
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
 
-install: build
+$(INSTALLDIRS):
+	make -C $(@:install-%=%) install
+
+$(INSTALLSUBS):
+	make -f Makefile.$(@:install-%=%) install
+
+install: $(INSTALLSUBS) $(INSTALLDIRS)
 
 .PHONY: subdirs $(DIRS)
 .PHONY: subdirs $(BUILDDIRS)
 .PHONY: subdirs $(CONFIGDIRS)
 .PHONY: subdirs $(CLEANDIRS)
-.PHONY: $(CONFIGSUBS) $(BUILDSUBS) $(CLEANSUBS)
+.PHONY: $(CONFIGSUBS) $(BUILDSUBS) $(CLEANSUBS) $(INSTALLSUBS)
 .PHONY: build clean install configure
