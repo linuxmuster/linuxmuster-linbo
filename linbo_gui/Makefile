@@ -16,12 +16,11 @@ else
 endif
 
 # qt
-QT_ARCHIVE_NAME=$(shell grep qt- $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
-QT_ARCHIVE=$(CACHEDIR)/$(QT_ARCHIVE_NAME)
-QT_VERS=$(shell echo $(QT_ARCHIVE_NAME) | sed -e 's/qt-everywhere-opensource-src-//' -e 's/.7z//')
+QT_ARCHIVE=$(CACHEDIR)/$(shell grep qt- $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
+QT_VERS=$(shell echo $(notdir $(QT_ARCHIVE)) | sed -e 's/qt-everywhere-opensource-src-//' -e 's/.7z//')
 QT_MAJOR=$(shell echo $(QT_VERS) | awk -F\. '{ print $$1"."$$2 }')
 QT_URL=http://download.qt-project.org/official_releases/qt/$(QT_MAJOR)/$(QT_VERS)/single
-QT_SRC=$(CURDIR)/$(shell echo $(QT_ARCHIVE_NAME) | sed -e 's/.7z//')
+QT_SRC=$(CURDIR)/$(shell echo $(notdir $(QT_ARCHIVE)) | sed -e 's/.7z//')
 QT_BUILD32=$(BUILDDIR)/build-qt32
 QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu- -sysroot $(SYSROOT)
 QT_BUILD64=$(BUILDDIR)/build-qt64
@@ -43,12 +42,12 @@ GUI_BUILD64=$(BUILDDIR)/build-gui64
 # targets
 
 $(QT_ARCHIVE):
-	wget --directory-prefix=$(CACHEDIR) $(QT_URL)/$(QT_ARCHIVE_NAME)
-	grep $(QT_ARCHIVE) $(DEBIANDIR)/md5sums.src | md5sum -c
+	wget --directory-prefix=$(CACHEDIR) $(QT_URL)/$(notdir $(QT_ARCHIVE))
+	cd $(CACHEDIR); grep $(notdir $(QT_ARCHIVE)) $(DEBIANDIR)/md5sums.src | md5sum -c
 
 $(QT_SRC)/configure: $(QT_ARCHIVE)
 	mkdir -p $(QT_SRC);
-	echo "[1mUnpacking $(QT_ARCHIVE_NAME)...[0m" ;
+	echo "[1mUnpacking $(notdir $(QT_ARCHIVE))...[0m" ;
 	7z x $(QT_ARCHIVE) -o$(CURDIR)
 	touch $(QT_SRC)/configure
 
@@ -125,7 +124,8 @@ distclean: clean
 	rm -rf $(QT_ARCHIVE) $(QT_SRC)
 
 clean: 
-	rm -f build-stamp configure-stamp $(QT_BUILD32) $(QT_BUILD64) $(GUI_BUILD32) $(GUI_BUILD64)
+	rm -f build-stamp configure-stamp
+	rm -rf $(QT_BUILD32) $(QT_BUILD64) $(GUI_BUILD32) $(GUI_BUILD64)
 
 $(SYSROOT)/usr/bin/linbo_gui: $(GUI_BUILD32)/linbo_gui
 	install -D $(GUI_BUILD32)/linbo_gui $(SYSROOT)/usr/bin/linbo_gui

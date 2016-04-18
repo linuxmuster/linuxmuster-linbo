@@ -17,19 +17,24 @@ DIRS = linbo_gui
 CONFIGDIRS=$(DIRS:%=config-%)
 BUILDDIRS=$(DIRS:%=build-%)
 CLEANDIRS=$(DIRS:%=clean-%)
+DISTCLEANDIRS=$(DIRS:%=distclean-%)
 INSTALLDIRS=$(DIRS:%=install-%)
 
 # sub makefiles
-SUBS = kernel sysroot tools
+SUBS = sysroot tools
 
 CONFIGSUBS=$(SUBS:%=config-%)
 BUILDSUBS=$(SUBS:%=build-%)
 CLEANSUBS=$(SUBS:%=clean-%)
+DISTCLEANSUBS=$(SUBS:%=distclean-%)
 INSTALLSUBS=$(SUBS:%=install-%)
 
 # targets
 
 all: build
+
+install-kernel:
+	make -f Makefile.kernel install
 
 configure-toolchain32:
 	# setup 32bit build tool chain
@@ -40,7 +45,7 @@ configure-toolchain32:
 $(CONFIGDIRS): configure-toolchain32
 	make -C $(@:config-%=%) configure
 
-$(CONFIGSUBS): configure-toolchain32
+$(CONFIGSUBS): configure-toolchain32 install-kernel
 	make -f Makefile.$(@:config-%=%) configure
 
 configure: configure-stamp configure-toolchain32 $(CONFIGSUBS) $(CONFIGDIRS)
@@ -63,8 +68,16 @@ $(CLEANDIRS):
 
 $(CLEANSUBS):
 	make -f Makefile.$(@:clean-%=%) clean
+	make -f Makefile.kernel clean
 
-distclean: clean
+$(DISTCLEANDIRS):
+	make -C $(@:distclean-%=%) distclean
+
+$(DISTCLEANSUBS):
+	make -f Makefile.$(@:distclean-%=%) distclean
+	make -f Makefile.kernel distclean
+
+distclean: clean $(DISTCLEANSUBS) $(DISTCLEANDIRS)
 
 clean: $(CLEANSUBS) $(CLEANDIRS)
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
@@ -82,4 +95,4 @@ install: $(INSTALLSUBS) $(INSTALLDIRS)
 .PHONY: subdirs $(CONFIGDIRS)
 .PHONY: subdirs $(CLEANDIRS)
 .PHONY: $(CONFIGSUBS) $(BUILDSUBS) $(CLEANSUBS) $(INSTALLSUBS)
-.PHONY: build clean install configure
+.PHONY: build clean install install-kernel configure

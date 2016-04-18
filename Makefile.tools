@@ -54,7 +54,7 @@ $(DIRS):
 
 $(ARCHIVES): | $(DIRS)
 	wget -nc --directory-prefix=$(CACHEDIR) $(URLS)
-	cd $(CACHEDIR); md5sum -c $(DEBIANDIR)/md5sums.src
+	cd $(CACHEDIR); $(foreach file, $(notdir $(ARCHIVES)),grep $(file) $(DEBIANDIR)/md5sums.src | md5sum -c ; )
 
 $(SOURCES): | $(ARCHIVES)
 	cd $(CURDIR); $(foreach archive, $(filter %.zip, $(ARCHIVES)), unzip -o $(archive);)
