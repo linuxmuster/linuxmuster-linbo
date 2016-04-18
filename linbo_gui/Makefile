@@ -40,6 +40,7 @@ GUI_BUILD32=$(BUILDDIR)/build-gui32
 GUI_BUILD64=$(BUILDDIR)/build-gui64
 
 # targets
+all: build
 
 $(QT_ARCHIVE):
 	wget --directory-prefix=$(CACHEDIR) $(QT_URL)/$(notdir $(QT_ARCHIVE))
@@ -88,7 +89,7 @@ build-qt64: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB)
 $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB): $(QT_BUILD64)/Makefile
 	cd $(QT_BUILD64) && make -j 2;
 
-$(GUI_BUILD32)/linbo_gui: $(LINBO_SRC) build-qt32
+$(GUI_BUILD32)/linbo_gui: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB) | $(LINBO_SRC)
 	@echo "[1mBuilding 32bit linbo_gui...[0m";
 	install -D $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD32)/icons/linbo_wallpaper.png;
 	QTDIR=$(QT_BUILD32)/qtbase \
@@ -98,7 +99,7 @@ $(GUI_BUILD32)/linbo_gui: $(LINBO_SRC) build-qt32
 	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-32 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
 	cd $(GUI_BUILD32) && make clean && make && strip linbo_gui
 
-$(GUI_BUILD64)/linbo_gui: $(LINBO_SRC) build-qt64
+$(GUI_BUILD64)/linbo_gui: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB) | $(LINBO_SRC)
 	@echo "[1mBuilding 64bit linbo_gui...[0m";
 	install -D $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD64)/icons/linbo_wallpaper.png;
 	QTDIR=$(QT_BUILD64)/qtbase \
@@ -106,7 +107,7 @@ $(GUI_BUILD64)/linbo_gui: $(LINBO_SRC) build-qt64
 	QTBIN=$(QT_BUILD64)/qtbase/bin \
 	cd $(GUI_BUILD64) && PATH=/usr/bin:/bin $(QT_BUILD64)/qtbase/bin/qmake \
 	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-64 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
-	cd $(GUI_BUILD64) && make clean && make && strip linbo_gui
+	cd $(GUI_BUILD64); make clean && make && strip linbo_gui
 
 build-gui32: $(GUI_BUILD32)/linbo_gui
 
@@ -149,7 +150,8 @@ $(GUI_BUILD32)/linbo_cmd $(GUI_BUILD64)/linbo_cmd: $(GUISRCDIR)/test/fake_cmd.sh
 
 install-test: $(GUI_BUILD32)/linbo_cmd $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/linbo_cmd $(GUI_BUILD64)/start.conf
 
-.PHONY: build
-.PHONY: clean
-.PHONY: configure
+.PHONY: all
+.PHONY: build build-gui build-gui32 build-gui64 build-qt32 build-qt64
+.PHONY: clean distclean
+.PHONY: configure configure-gui config-qt32 config-qt64
 .PHONY: install install-test

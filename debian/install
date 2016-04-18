@@ -1,0 +1,15 @@
+debian/default etc/default/linuxmuster-linbo
+debian/linbo-bittorrent.default etc/default/linbo-bittorrent
+debian/linbo-bittorrent.init etc/init.d/linbo-bittorrent
+debian/linbo-multicast etc/init.d/
+etc/ssh_config etc/linuxmuster/linbo/ssh_config
+etc/start.conf etc/linuxmuster/linbo/start.conf.default
+var/* var/linbo
+linbo/etc/linbo-version var/linbo
+lsaSecrets-master/bin/lsaSecretStore.exe var/linbo/linuxmuster-win
+debian/mkgrubnetdir.sh
+share/templates/grub.cfg.pxe var/linbo/boot/grub/grub.cfg
+/boot/ipxe.lkrn var/linbo/boot/grub/ipxe.lkrn
+/boot/ipxe.efi var/linbo/boot/grub/ipxe.efi
+share/* usr/share/linuxmuster-linbo/
+build/boot/grub/* var/linbo/boot/grub/

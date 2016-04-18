@@ -42,64 +42,6 @@ install: build
 	#dh_clean -k
 	dh_installdirs
 	dh_install
-	# initrd
-	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
-	@echo "[1mBuilding LINBOFS...[0m" ; \
-	cd $(SYSROOT) ; \
-	ln -snf ../initramfs.conf . ; \
-	:> ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# grub2 boot images" >> $(CURDIR)/kernel/initramfs.conf ; \
-	( cd usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|$(SYSROOT)/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel/initramfs.conf ; \
-	( cd usr/lib/grub/i386-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-efi/|' | sed -e "s|\./|$(SYSROOT)/usr/lib/grub/i386-efi/|" >>$(CURDIR)/kernel/initramfs.conf ; \
-	echo "# udev" >> ../initramfs.conf ; \
-	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	( find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p $(SYSROOT)/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	echo "# modules" >> ../initramfs.conf ; \
-	( cd lib/modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(BUILDBB32)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
-	# initrd 64bit
-	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
-	cd $(SYSROOT64) ; \
-	ln -snf ../initramfs.conf ./initramfs.conf ; \
-	:> ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# grub2 boot images" >> $(CURDIR)/kernel64/initramfs.conf ; \
-	( cd /usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
-	( cd /usr/lib/grub/x86_64-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/x86_64-efi/|' | sed -e "s|\./|/usr/lib/grub/x86_64-efi/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo "# udev" >> ../initramfs.conf ; \
-	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(BUILDBB64)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
-	# package files
-	# /etc
-	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
-	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
-	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
-	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/
-	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
-	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
-	# /var/linbo
-	cp -r var/* debian/linuxmuster-linbo/var/linbo
-	install -m 644 linbo/etc/linbo-version debian/linuxmuster-linbo/var/linbo
-	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo/var/linbo/linuxmuster-win
-	# grub netboot
-	debian/mkgrubnetdir.sh
-	install -m 644 share/templates/grub.cfg.pxe debian/linuxmuster-linbo/var/linbo/boot/grub/grub.cfg
-	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo/var/linbo/boot/grub/ipxe.lkrn
-	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo/var/linbo/boot/grub/ipxe.efi
-	# /usr/share/linuxmuster-linbo
-	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 
 # Build architecture-independent files here.
 binary-indep: build install

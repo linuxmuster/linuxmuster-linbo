@@ -47,7 +47,7 @@ DIRS:=$(CACHEDIR) $(BB_DIR) $(BUILDBB32) $(BUILDBB64) $(CHNTPW_DIR) $(MSSYS_DIR)
 
 # targets
 
-all:
+all: build
 
 $(DIRS):
 	mkdir -p $(DIRS)
@@ -84,7 +84,8 @@ build-mssys: $(MSSYS_DIR)/bin/ms-sys
 
 $(MSSYS_DIR)/bin/ms-sys: $(MSSYS_DIR)
 	echo "[1mBuilding ms-sys...[0m"
-	cd $(MSSYS_DIR); PATH=$(TOOLCHAIN):$(PATH) CFLAGS+="-m32 --sysroot=$(SYSROOT)" make
+	cd $(MSSYS_DIR); PATH=$(TOOLCHAIN):$(PATH) CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" \
+			LDFLAGS="$(LDFLAGS) -m32 --sysroot=$(SYSROOT)" make
 	strip $(MSSYS_DIR)/bin/ms-sys
 
 build-chntpw: $(CHNTPW_DIR)/reged
@@ -128,18 +129,19 @@ distclean: clean
 clean: 
 	rm -rf $(filter build, $(DIRS))
 
-install: build
-	cd $(BUILDBB32); make install DESTDIR=$(SYSROOT)
-	cd $(BUILDBB64); make install DESTDIR=$(SYSROOT64)
-	install -D -m 755 $(BUILDMSSYS)/bin/ms-sys $(SYSROOT)/usr/bin/ms-sys
-	install -D -m 755 $(BUILDMSSYS)/bin/ms-sys $(SYSROOT64)/usr/bin/ms-sys
+install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(BUILDBB32)/busybox \
+	$(BUILDBB64)/busybox $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS))
+	cd $(BUILDBB32); make install DESTDIR=$(BUILDBB32)/_install
+	cd $(BUILDBB64); make install DESTDIR=$(BUILDBB64)/_install
+	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/usr/bin/ms-sys
+	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT64)/usr/bin/ms-sys
 	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT)/usr/bin/reged
 	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT64)/usr/bin/reged
 	$(foreach file, $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS)), install -D -m 755 $(file) $(SYSROOT)/usr/bin/$(notdir $(file)))
 	$(foreach file, $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)), install -D -m 755 $(file) $(SYSROOT64)/usr/bin/$(notdir $(file)))
 	install -D -m 755 $(BUILDPARTED64)/parted/parted $(SYSROOT64)/usr/bin/parted
 
-.PHONY: all distclean clean
+.PHONY: all $(DIRS) distclean clean
 .PHONY: configure
 .PHONY: build build-busybox build-mssys build-chntpw build-ntfs build-parted
 .PHONY: install

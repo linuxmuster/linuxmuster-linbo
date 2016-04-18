@@ -44,6 +44,8 @@ DIRS:=$(CACHEDIR) $(KERNELDIR) $(BUILD32) $(BUILD64) $(BUILDCL32) $(BUILDCL64)
 
 # targets
 
+all: build
+
 $(DIRS):
 	for i in $(DIRS); do \
 	    mkdir -p $$i; \
@@ -151,7 +153,7 @@ $(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz $(BUILDCL64)/cloop.ko
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install
 	/sbin/depmod -a -b $(SYSROOT64) $(KVERS)
 
-.PHONY: $(DIRS)
+.PHONY: all $(DIRS)
 .PHONY: distclean clean
 .PHONY: build build32 build64
 .PHONY: install install32 install64
