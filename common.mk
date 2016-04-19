@@ -41,7 +41,7 @@ URLS := http://busybox.net/downloads/busybox-1.23.2.tar.bz2 \
 
 ARCHIVES := $(addprefix $(CACHEDIR)/, $(notdir $(URLS)))
 
-SOURCES := $(shell echo $(basename $(notdir $(ARCHIVES))) | sed -e 's/.tar//g' | sed -e 's/master/lsaSecrets-master/')
+SOURCES := $(shell echo $(basename $(notdir $(ARCHIVES))) | sed -e 's/.tar//g' | sed -e 's/master/lsaSecrets-master/' -e 's/chntpw-source-/chntpw-/' )
 
 # busybox
 BB_DIR:=$(CURDIR)/$(firstword $(filter busybox-%, $(SOURCES)))

@@ -23,9 +23,8 @@ KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
 KERNEL_URL=$(LML_URL)
 
 # cloop
-CLOOP_ARCHIVE_NAME=$(shell grep cloop_ $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
-CLOOP_ARCHIVE=$(CACHEDIR)/$(CLOOP_ARCHIVE_NAME)
-CLOOPDIR=$(CURDIR)/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+CLOOP_ARCHIVE=$(CACHEDIR)/$(shell grep cloop_ $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
+CLOOPDIR=$(CURDIR)/cloop-$(shell echo $(notdir $(CLOOP_ARCHIVE)) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
 #CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 CLOOP_URL=$(LML_URL)
 
@@ -44,12 +43,12 @@ $(DIRS):
 	done;
 
 $(KERNEL_ARCHIVE): | $(DIRS)
-	wget --directory-prefix=$(CACHEDIR) $(KERNEL_URL)/$(notdir $(KERNEL_ARCHIVE))
+	wget -nc --directory-prefix=$(CACHEDIR) $(KERNEL_URL)/$(notdir $(KERNEL_ARCHIVE))
 	cd $(CACHEDIR); grep $(notdir $(KERNEL_ARCHIVE)) $(DEBIANDIR)/md5sums.src | md5sum -c
 
 $(CLOOP_ARCHIVE): | $(DIRS)
-	wget --directory-prefix=$(CACHEDIR) $(CLOOP_URL)/$(CLOOP_ARCHIVE_NAME)
-	cd $(CACHEDIR); grep $(CLOOP_ARCHIVE_NAME) $(DEBIANDIR)/md5sums.src | md5sum -c
+	wget -nc --directory-prefix=$(CACHEDIR) $(CLOOP_URL)/$(notdir $(CLOOP_ARCHIVE))
+	cd $(CACHEDIR); grep $(notdir $(CLOOP_ARCHIVE)) $(DEBIANDIR)/md5sums.src | md5sum -c
 
 $(KERNELDIR)/Makefile: $(KERNEL_ARCHIVE)
 	echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m"

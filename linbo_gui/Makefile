@@ -134,15 +134,17 @@ $(SYSROOT)/usr/bin/linbo_gui: $(GUI_BUILD32)/linbo_gui
 $(SYSROOT64)/usr/bin/linbo_gui: $(GUI_BUILD64)/linbo_gui
 	install -D $(GUI_BUILD64)/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
-install: $(SYSROOT)/usr/bin/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
+install: $(SYSROOT)/usr/bin/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui $(SYSROOT)/usr/lib/fonts/DejavuSans.ttf $(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf
 
 install-qt: $(SYSROOT)/usr/lib/fonts/DejavuSans.ttf $(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf
 
 $(SYSROOT)/usr/lib/fonts/DejavuSans.ttf: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB)
 	cd $(QT_BUILD32); make install
+	touch $(wildcard $(SYSROOT)/usr/lib/fonts/*)
 
 $(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB)
 	cd $(QT_BUILD64); make install
+	touch $(wildcard $(SYSROOT64)/usr/lib/fonts/*)
 
 $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
 	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD32)/start.conf

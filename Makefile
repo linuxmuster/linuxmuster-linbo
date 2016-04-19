@@ -13,13 +13,13 @@ include common.mk
 CURDIR=$(shell pwd)
 
 # grub required modules
-GRUB_COMMON_MODULES="all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
- ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test"
+GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
+ ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test
 
-GRUB_EFI32_MODULES="efi_gop efi_uga efinet tftp"
-GRUB_EFI64_MODULES="efi_gop efi_uga efinet linuxefi tftp"
+GRUB_EFI32_MODULES=efi_gop efi_uga efinet tftp
+GRUB_EFI64_MODULES=efi_gop efi_uga efinet linuxefi tftp
 
-GRUB_PC_MODULES="biosdisk ntldr pxe"
+GRUB_PC_MODULES=biosdisk ntldr pxe
 
 # common
 DIRS = linbo_gui
@@ -48,6 +48,9 @@ all: build
 $(CREATEDIRS):
 	for dir in $(CREATEDIRS); do mkdir -p $$dir; done
 
+download-sysroot:
+	make -f Makefile.sysroot download
+
 install-kernel:
 	make -f Makefile.kernel install
 
@@ -60,7 +63,7 @@ configure-toolchain32:
 $(CONFIGDIRS): configure-toolchain32 | $(CREATEDIRS)
 	make -C $(@:config-%=%) configure
 
-$(CONFIGSUBS): configure-toolchain32 install-kernel
+$(CONFIGSUBS): configure-toolchain32 download-sysroot install-kernel
 	make -f Makefile.$(@:config-%=%) configure
 
 configure: configure-stamp configure-toolchain32 $(CONFIGSUBS) $(CONFIGDIRS)
@@ -137,7 +140,7 @@ $(SYSROOT64)/linbofs64.lz:
 	cat $(CURDIR)/conf/initramfs.conf > $(BUILDDIR)/initramfs64.conf
 	echo >> $(BUILDDIR)/initramfs64.conf
 	echo "# grub2 boot images" >> $(BUILDDIR)/initramfs64.conf
-	cd $(SYSROOT64); find usr/lib/grub/i386-pc usr/lib/grub/i386-efi \
+	cd $(SYSROOT64); find usr/lib/grub/i386-pc usr/lib/grub/x86_64-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs64.conf
 	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
@@ -163,4 +166,4 @@ install-grubnetdir: $(SYSROOT64)/usr/lib/grub/i386-pc $(SYSROOT)/usr/lib/grub/i3
 .PHONY: subdirs $(CONFIGDIRS)
 .PHONY: subdirs $(CLEANDIRS)
 .PHONY: $(CONFIGSUBS) $(BUILDSUBS) $(CLEANSUBS) $(INSTALLSUBS)
-.PHONY: build clean install install-kernel install-grubnetdir configure
+.PHONY: build clean install download-sysroot install-kernel install-grubnetdir configure
