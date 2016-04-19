@@ -137,7 +137,7 @@ $(SYSROOT)/linbofs.lz:
 $(SYSROOT64)/linbofs64.lz:
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding 64bit LINBOFS...[0m"
-	cat $(CURDIR)/conf/initramfs.conf > $(BUILDDIR)/initramfs64.conf
+	cat $(CURDIR)/conf/initramfs64.conf > $(BUILDDIR)/initramfs64.conf
 	echo >> $(BUILDDIR)/initramfs64.conf
 	echo "# grub2 boot images" >> $(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find usr/lib/grub/i386-pc usr/lib/grub/x86_64-efi \
@@ -154,7 +154,7 @@ $(SYSROOT64)/linbofs64.lz:
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs64.conf
 	cd $(BUILDBB64); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
 	cd $(BUILDBB64); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
-	cd $(SYSROOT64); rm -f linbofs64.lz; $(BUILD64)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT64)/linbofs64.lz
+	cd $(SYSROOT64); rm -f linbofs64.lz; $(BUILD64)/usr/gen_init_cpio $(BUILDDIR)/initramfs64.conf | lzma -zcv > $(SYSROOT64)/linbofs64.lz
 
 install-grubnetdir: $(SYSROOT64)/usr/lib/grub/i386-pc $(SYSROOT)/usr/lib/grub/i386-efi $(SYSROOT64)/usr/lib/grub/x86_64-efi
 	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d $(SYSROOT64)/usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub
