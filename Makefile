@@ -8,9 +8,9 @@
 # GPL v3
 #
 
-include common.mk
-
 CURDIR=$(shell pwd)
+
+include common.mk
 
 # grub required modules
 GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \

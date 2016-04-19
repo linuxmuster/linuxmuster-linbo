@@ -5,9 +5,9 @@
 # Frank Schütte
 # 2016
 
-include ../common.mk
-
 CURDIR=$(shell pwd)/..
+
+include ../common.mk
 
 ifdef $(DEBUG)
     QT_DEBUG=-debug
@@ -31,6 +31,7 @@ QT_OPTS=-debug -qpa linuxfb -linuxfb -static -opensource -confirm-license -nomak
 	-no-sql-sqlite -nomake tools -no-libinput -verbose
 
 QT_FRAMEBUFFER_LIB=qtbase/plugins/platforms/libqlinuxfb.a
+QT_FONT=usr/lib/fonts/DejaVuSans.ttf
 
 # linbo_gui
 LINBO_SRC=$(CURDIR)/$(GUI_NAME)/*
@@ -134,17 +135,14 @@ $(SYSROOT)/usr/bin/linbo_gui: $(GUI_BUILD32)/linbo_gui
 $(SYSROOT64)/usr/bin/linbo_gui: $(GUI_BUILD64)/linbo_gui
 	install -D $(GUI_BUILD64)/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui
 
-install: $(SYSROOT)/usr/bin/linbo_gui $(SYSROOT64)/usr/bin/linbo_gui $(SYSROOT)/usr/lib/fonts/DejavuSans.ttf $(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf
+install: $(addsuffix /usr/bin/linbo_gui, $(SYSROOT) $(SYSROOT64)) $(addsuffix /$(QT_FONT), $(SYSROOT) $(SYSROOT64))
 
-install-qt: $(SYSROOT)/usr/lib/fonts/DejavuSans.ttf $(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf
+install-qt: $(addsuffix /$(QT_FONT), $(SYSROOT) $(SYSROOT64))
 
-$(SYSROOT)/usr/lib/fonts/DejavuSans.ttf: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB)
+$(addsuffix /$(QT_FONT), $(SYSROOT) $(SYSROOT64)): $(addsuffix /$(QT_FRAMEBUFFER_LIB), $(QT_BUILD32) $(QT_BUILD64))
 	cd $(QT_BUILD32); make install
-	touch $(wildcard $(SYSROOT)/usr/lib/fonts/*)
-
-$(SYSROOT64)/usr/lib/fonts/DejavuSans.ttf: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB)
 	cd $(QT_BUILD64); make install
-	touch $(wildcard $(SYSROOT64)/usr/lib/fonts/*)
+	touch $(addsuffix /$(QT_FONT), $(SYSROOT) $(SYSROOT64))
 
 $(GUI_BUILD32)/start.conf $(GUI_BUILD64)/start.conf: $(GUISRCDIR)/test/start.conf
 	install -D $(GUISRCDIR)/test/start.conf $(GUI_BUILD32)/start.conf

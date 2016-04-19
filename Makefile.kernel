@@ -8,9 +8,9 @@
 # GPL v3
 #
 
-include common.mk
-
 CURDIR=$(shell pwd)
+
+include common.mk
 
 # kernel
 VESAMODE=785 # 640x480, 64k colors

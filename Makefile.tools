@@ -7,9 +7,9 @@
 # GPL v3
 #
 
-include $(CURDIR)/common.mk
-
 CURDIR=$(shell pwd)
+
+include $(CURDIR)/common.mk
 
 #URLS, SOURCES in common.mk
 

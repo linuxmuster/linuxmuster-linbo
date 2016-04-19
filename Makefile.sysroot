@@ -6,9 +6,9 @@
 # GPL v3
 #
 
-include common.mk
-
 CURDIR=$(shell pwd)
+
+include common.mk
 
 ALL_DEBS  = xkb-data
 
