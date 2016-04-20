@@ -42,8 +42,9 @@ install: build
 	#dh_clean -k
 	dh_installdirs
 	dh_install
+	dh_installinit
 	# manual installation files
-	install -D debian/linbo-bittorrent.default $(DESTDIR)/etc/default/linbo-bittorrent
+	install -D -m 644 debian/linbo-bittorrent.default $(DESTDIR)/etc/default/linbo-bittorrent
 	install -D -m 755 debian/linbo-multicast.init $(DESTDIR)/etc/init.d/linbo-multicast
 	install -D -m 755 debian/linbo-bittorrent.init $(DESTDIR)/etc/init.d/linbo-bittorrent
 	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
