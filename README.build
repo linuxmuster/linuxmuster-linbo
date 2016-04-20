@@ -12,11 +12,10 @@ apt-get install dpkg-dev
 
 Try to build:
 
-./buildpackage.sh
+dpkg-buildpackage
 
 Install all mentioned build dependencies (a lot of them).
 
 Now build:
 
-./buildpackage.sh
-
+dpkg-buildpackage

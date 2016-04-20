@@ -10,7 +10,7 @@ CURDIR=$(shell pwd)
 
 include common.mk
 
-ALL_DEBS  = xkb-data ncurses-base
+ALL_DEBS  = xkb-data ncurses-base grub-ipxe
 
 BIN32_DEBS= grub-efi-ia32-bin
 
