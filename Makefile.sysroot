@@ -12,7 +12,7 @@ include common.mk
 
 ALL_DEBS  = xkb-data ncurses-base grub-ipxe
 
-BIN32_DEBS= grub-efi-ia32-bin
+BIN32_DEBS= grub-efi-ia32-bin libparted0debian1 parted 
 
 BIN64_DEBS= grub-efi-amd64-bin
 
@@ -27,8 +27,8 @@ BIN_DEBS  = cloop-utils gdisk libstdc++-4.8-dev \
 	    acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
 	    ethtool grub-pc grub-pc-bin grub-common grub2-common \
 	    kmod libc-bin libicu52 libgpod-common libmtp-runtime \
-	    libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
-	    ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
+	    libnetpbm10 libpci3 libpng12-0 mount netpbm \
+	    ncurses-bin pcmciautils reiserfsprogs rsync sysvinit-utils \
 	    udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
 	    zlib1g zlib1g-dev \
 	    libreadline6 libtinfo5 e2fslibs libcomerr2 \

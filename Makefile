@@ -121,7 +121,7 @@ $(SYSROOT)/linbofs.lz:
 	cd $(SYSROOT); find usr/lib/grub/i386-pc usr/lib/grub/i386-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs.conf
-	find /etc/udev -type d -not -path "_install" -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
+	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	find /etc/udev -type f -printf "file %p %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); find lib/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); find lib/udev -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
@@ -130,7 +130,7 @@ $(SYSROOT)/linbofs.lz:
 	cd $(SYSROOT); find lib/modules -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	echo >> $(BUILDDIR)/initramfs.conf
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs.conf
-	cd $(BUILDBB32); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
+	cd $(BUILDBB32); find _install -type d -not -path "_install" -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
 	cd $(BUILDBB32); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); rm -f linbofs.lz; $(BUILD32)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT)/linbofs.lz
 
@@ -143,7 +143,7 @@ $(SYSROOT64)/linbofs64.lz:
 	cd $(SYSROOT64); find usr/lib/grub/i386-pc usr/lib/grub/x86_64-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs64.conf
-	find /etc/udev -type d -not -path "_install" -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
+	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	find /etc/udev -type f -printf "file %p %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find lib/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find lib/udev -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
@@ -152,7 +152,7 @@ $(SYSROOT64)/linbofs64.lz:
 	cd $(SYSROOT64); find lib/modules -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo >> $(BUILDDIR)/initramfs64.conf
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs64.conf
-	cd $(BUILDBB64); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
+	cd $(BUILDBB64); find _install -type d -not -path "_install" -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
 	cd $(BUILDBB64); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); rm -f linbofs64.lz; $(BUILD64)/usr/gen_init_cpio $(BUILDDIR)/initramfs64.conf | lzma -zcv > $(SYSROOT64)/linbofs64.lz
 

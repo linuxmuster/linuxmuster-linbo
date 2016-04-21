@@ -120,11 +120,11 @@ clean:
 
 install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(BUILDBB32)/busybox \
 	$(BUILDBB64)/busybox $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS))
-	cd $(BUILDBB32); make install DESTDIR=$(BUILDBB32)/_install
-	cd $(BUILDBB32); make install DESTDIR=$(SYSROOT)
+	cd $(BUILDBB32); make CONFIG_PREFIX=$(BUILDBB32)/_install install
+	cd $(BUILDBB32); make CONFIG_PREFIX=$(SYSROOT) install
 	install -D -m 755 $(BUILDBB32)/busybox $(SYSROOT)/bin/busybox
-	cd $(BUILDBB64); make install DESTDIR=$(BUILDBB64)/_install
-	cd $(BUILDBB64); make install DESTDIR=$(SYSROOT64)
+	cd $(BUILDBB64); make CONFIG_PREFIX=$(BUILDBB64)/_install install
+	cd $(BUILDBB64); make CONFIG_PREFIX=$(SYSROOT64) install
 	install -D -m 755 $(BUILDBB64)/busybox $(SYSROOT64)/bin/busybox
 	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/bin/ms-sys
 	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT64)/bin/ms-sys
