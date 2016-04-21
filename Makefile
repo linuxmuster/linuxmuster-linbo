@@ -121,7 +121,7 @@ $(SYSROOT)/linbofs.lz:
 	cd $(SYSROOT); find usr/lib/grub/i386-pc usr/lib/grub/i386-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs.conf
-	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
+	find /etc/udev -type d -not -path "_install" -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	find /etc/udev -type f -printf "file %p %p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); find lib/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); find lib/udev -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
@@ -143,7 +143,7 @@ $(SYSROOT64)/linbofs64.lz:
 	cd $(SYSROOT64); find usr/lib/grub/i386-pc usr/lib/grub/x86_64-efi \
 		-maxdepth 1 -name "*" -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo "# udev" >> $(BUILDDIR)/initramfs64.conf
-	find /etc/udev -type d -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
+	find /etc/udev -type d -not -path "_install" -printf "dir %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	find /etc/udev -type f -printf "file %p %p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find lib/udev -type d -printf "dir /%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); find lib/udev -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
