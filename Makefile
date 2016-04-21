@@ -100,7 +100,7 @@ distclean: clean $(DISTCLEANSUBS) $(DISTCLEANDIRS)
 
 clean: $(CLEANSUBS) $(CLEANDIRS)
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
-	rm -rf $(BUILDDIR)/boot $(BUILDDIR)/initramfs.conf $(BUILDDIR)initramfs64.conf
+	rm -rf $(BUILDDIR)/boot $(BUILDDIR)/initramfs.conf $(BUILDDIR)/initramfs64.conf
 
 $(INSTALLDIRS):
 	make -C $(@:install-%=%) install
