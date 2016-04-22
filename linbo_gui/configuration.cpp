@@ -57,7 +57,9 @@ void Configuration::read_os( os_item& tmp_os, image_item& tmp_image ) {
     else if(key.compare("root") == 0)         tmp_os.set_root(value);
     else if(key.compare("kernel") == 0)       tmp_image.set_kernel(value);
     else if(key.compare("initrd") == 0)       tmp_image.set_initrd(value);
-    else if(key.compare("append") == 0)       tmp_image.set_append(value);
+    else if(key.compare("append") == 0) {
+        tmp_image.set_append(value);
+    }
     else if(key.compare("syncenabled") == 0)  tmp_image.set_syncbutton(toBool(value));
     else if(key.compare("startenabled") == 0) tmp_image.set_startbutton(toBool(value));
     else if((key.compare("remotesyncenabled") == 0) || (key.compare("newenabled") == 0))   tmp_image.set_newbutton(toBool(value));

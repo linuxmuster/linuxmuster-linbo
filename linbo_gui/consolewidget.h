@@ -1,18 +1,19 @@
 #ifndef CONSOLEWIDGET_H
 #define CONSOLEWIDGET_H
 
-#include <qplaintextedit.h>
+#include <qtextedit.h>
 #include <qstring.h>
 #include <qprocess.h>
 #include <QScrollBar>
 #include <QtCore/QDebug>
 
-class ConsoleWidget: public QPlainTextEdit
+class ConsoleWidget: public QTextEdit
 {
 
     Q_OBJECT
 
 private:
+    static const QString PROMPT;
     QString command;
     QProcess *process;
 

@@ -37,7 +37,7 @@ QStringList Command::mkstartcommand(unsigned int osnr, int imnr) {
 }
 
 // Sync+start image
-QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr) {
+QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr, bool format) {
   QStringList command = LINBO_CMD("syncstart");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
@@ -51,6 +51,9 @@ QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr) {
   saveappend( command, im.get_kernel() );
   saveappend( command, im.get_initrd() );
   saveappend( command, im.get_append() );
+  if( format ){
+      saveappend( command, QString("force") );
+  }
   return command;
 }
 
@@ -152,7 +155,6 @@ QStringList Command::mkregistercommand(QString& roomName, QString& clientName,
                                        QString& ipAddress, QString& clientGroup)
 {
     QStringList command = LINBO_CMD("register");
-    saveappend(command, "register");
     saveappend(command, conf->config.get_server());
     saveappend(command, "linbo");
     saveappend(command, this->password);

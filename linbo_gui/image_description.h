@@ -125,7 +125,7 @@ private:
   int autostarttimeout;
   bool syncbutton, startbutton, newbutton, autostart,
     hidden; // show OS tab or not
-
+    const QString& quote(const QString& unquoted);
 public:
   image_item();
   ~image_item();

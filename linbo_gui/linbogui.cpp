@@ -138,29 +138,29 @@ void LinboGUI::showInfos()
 
 void LinboGUI::on_halt_clicked()
 {
+    logConsole->writeStdOut( QString("shutdown entered") );
     QStringList cmd;
-      cmd.clear();
-      cmd = QStringList("busybox");
-      cmd.append("poweroff");
-      logConsole->writeStdOut( QString("shutdown entered") );
-      process->start( cmd.join(" ") );
+    cmd.clear();
+    cmd = QStringList("busybox");
+    cmd.append("poweroff");
+    doCommand( cmd, false, QString("Rechner fährt herunter") );
 }
 
 void LinboGUI::on_reboot_clicked()
 {
+    logConsole->writeStdOut( QString("reboot entered") );
     QStringList cmd;
-      cmd.clear();
-      cmd = QStringList("busybox");
-      cmd.append("reboot");
-      logConsole->writeStdOut( QString("reboot entered") );
-      process->start( cmd.join(" ") );
+    cmd.clear();
+    cmd = QStringList("busybox");
+    cmd.append("reboot");
+    doCommand( cmd, false, QString("Rechner startet neu") );
 }
 
 void LinboGUI::on_update_clicked()
 {
       logConsole->writeStdOut( QString("update entered") );
       QStringList cmd = command->mklinboupdatecommand();
-      doCommand( cmd, false, QString("update"), Aktion::None, &details );
+      doCommand( cmd, false, QString("Linbo wird aktualisiert"), Aktion::None, &details );
 }
 
 void LinboGUI::on_systeme_currentChanged(int index)
@@ -215,7 +215,7 @@ void LinboGUI::on_doregister_clicked()
 
 void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup)
 {
-    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren..."), Aktion::None, &details);
+    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren"), Aktion::None, &details);
 }
 
 void LinboGUI::showOSs()
@@ -337,22 +337,22 @@ void LinboGUI::on_console_clicked()
 
 void LinboGUI::doAutostart()
 {
-    doCommand(command->mkstartcommand(conf->config.get_autostartosnr()), false);
+    doCommand(command->mkstartcommand(conf->config.get_autostartosnr()), false, QString("Automatischer Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doStart(int nr)
 {
-    doCommand(command->mkstartcommand(nr), false);
+    doCommand(command->mkstartcommand(nr), false, QString("Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doSync(int nr)
 {
-    doCommand(command->mksyncstartcommand(nr), false);
+    doCommand(command->mksyncstartcommand(nr, -1, false), false, QString("Sync & Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doNew(int nr)
 {
-    doCommand(command->mksyncstartcommand(nr), false);
+    doCommand(command->mksyncstartcommand(nr, -1, true), false, QString("Neu & Start"), Aktion::None, &details);
 }
 
 void LinboGUI::on_initcache_clicked()
@@ -364,7 +364,7 @@ void LinboGUI::on_initcache_clicked()
 
 void LinboGUI::on_partition_clicked()
 {
-    doCommand(command->mkpartitioncommand(), false);
+    doCommand(command->mkpartitioncommand(), false, QString("Partitionieren"), Aktion::None, &details);
 }
 
 void LinboGUI::doAutostartDialog()
@@ -414,7 +414,11 @@ void LinboGUI::doUploadDialog(int nr)
 void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, Aktion aktion)
 {
     QString baseImage = imageName.left(imageName.lastIndexOf(".")) + Command::BASEIMGEXT;
-    doCommand(command->mkcreatecommand(nr, imageName, baseImage), true);
+    QString title = QString("Image erstellen");
+    if( upload ){
+        title += "(und hochladen)";
+    }
+    doCommand(command->mkcreatecommand(nr, imageName, baseImage), true, title, aktion, &details);
     if(isnew){
         os_item os = conf->elements[nr];
         image_item new_image;
@@ -437,7 +441,7 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
     command->doWritefileCommand(tmpName, destination);
 
     if( upload ){
-        doCommand(command->mkuploadcommand(imageName), true);
+        doCommand(command->mkuploadcommand(imageName), true, QString("Image hochladen"), aktion, &details);
     }
     if(aktion == Aktion::Reboot)
         system("busybox reboot");
@@ -447,7 +451,7 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
 
 void LinboGUI::doUpload(const QString &imageName, Aktion aktion)
 {
-    doCommand( command->mkuploadcommand( imageName), true );
+    doCommand( command->mkuploadcommand( imageName), true, QString("Image hochladen"), aktion, &details);
 
     if (aktion == Aktion::Shutdown) {
         system("busybox poweroff");
@@ -475,5 +479,5 @@ void LinboGUI::doInfo(const QString& filename, const QString& description)
 
 void LinboGUI::doInitCache(bool formatCache, DownloadType type)
 {
-    doCommand( command->mkcacheinitcommand(formatCache, type) );
+    doCommand( command->mkcacheinitcommand(formatCache, type), false, QString("Cache aktualisieren"), Aktion::None, &details);
 }
