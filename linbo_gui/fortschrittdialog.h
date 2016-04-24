@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QTextEdit>
 #include <QTime>
+#include <qbytearray.h>
 
 #include "linboLogConsole.h"
 #include "aktion.h"
@@ -25,11 +26,15 @@ private:
     bool connected;
     linboLogConsole *logConsole, *logDetails;
     int timerId;
+    int (*maximum)(const QByteArray& output);
+    int (*value)(const QByteArray& output);
 
 public:
     explicit FortschrittDialog(QWidget *parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0,
                                const QString& titel  = NULL, Aktion aktion = Aktion::None,
-                               bool* newDetails = NULL);
+                               bool* newDetails = NULL,
+                               int (*new_maximum)(const QByteArray& output) = NULL,
+                               int (*new_value)(const QByteArray& output) = NULL);
     ~FortschrittDialog();
 
     void setProgress(int i);
