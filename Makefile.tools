@@ -118,20 +118,26 @@ distclean: clean
 clean: 
 	rm -rf $(filter build, $(DIRS))
 
-install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(BUILDBB32)/busybox \
-	$(BUILDBB64)/busybox $(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS))
-	cd $(BUILDBB32); make CONFIG_PREFIX=$(BUILDBB32)/_install install
-	cd $(BUILDBB32); make CONFIG_PREFIX=$(SYSROOT) install
-	install -D -m 755 $(BUILDBB32)/busybox $(SYSROOT)/bin/busybox
-	cd $(BUILDBB64); make CONFIG_PREFIX=$(BUILDBB64)/_install install
-	cd $(BUILDBB64); make CONFIG_PREFIX=$(SYSROOT64) install
-	install -D -m 755 $(BUILDBB64)/busybox $(SYSROOT64)/bin/busybox
-	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/bin/ms-sys
-	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT64)/bin/ms-sys
-	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT)/bin/reged
-	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT64)/bin/reged
+install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(addsuffix /bin/busybox, $(SYSROOT) $(SYSROOT64)) \
+	$(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS))
 	$(foreach file, $(addprefix $(BUILDNTFS32)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT)/bin/$(notdir $(file)); )
 	$(foreach file, $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT64)/bin/$(notdir $(file)); )
+
+$(addsuffix /bin/busybox, $(SYSROOT) $(SYSROOT64)): $(BUILDBB32)/busybox $(BUILDBB64)/busybox
+	cd $(BUILDBB32); make CONFIG_PREFIX=$(BUILDBB32)/_install install
+	cd $(BUILDBB32); make CONFIG_PREFIX=$(SYSROOT) install
+	cd $(BUILDBB64); make CONFIG_PREFIX=$(BUILDBB64)/_install install
+	cd $(BUILDBB64); make CONFIG_PREFIX=$(SYSROOT64) install
+
+$(addsuffix /bin/ms-sys, $(SYSROOT) $(SYSROOT64)): $(MSSYS_DIR)/bin/ms-sys
+	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/bin/ms-sys
+	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT64)/bin/ms-sys
+
+$(addsuffix /bin/reged, $(SYSROOT) $(SYSROOT64)):  $(CHNTPW_DIR)/reged
+	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT)/bin/reged
+	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT64)/bin/reged
+
+$(SYSROOT64)/usr/bin/parted: $(BUILDPARTED64)/parted/parted
 	install -D -m 755 $(BUILDPARTED64)/parted/parted $(SYSROOT64)/usr/bin/parted
 
 .PHONY: all $(DIRS) distclean clean
