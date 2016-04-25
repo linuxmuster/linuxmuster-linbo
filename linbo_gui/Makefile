@@ -34,7 +34,7 @@ QT_FRAMEBUFFER_LIB=qtbase/plugins/platforms/libqlinuxfb.a
 QT_FONT=usr/lib/fonts/DejaVuSans.ttf
 
 # linbo_gui
-LINBO_SRC=$(CURDIR)/$(GUI_NAME)/*
+LINBO_SRC=$(CURDIR)/$(GUI_NAME)/*.h $(CURDIR)/$(GUI_NAME)/*.cpp $(CURDIR)/$(GUI_NAME)/*.ui
 GUI_NAME=linbo_gui
 GUISRCDIR=$(CURDIR)/$(GUI_NAME)
 GUI_BUILD32=$(BUILDDIR)/build-gui32
@@ -90,7 +90,7 @@ build-qt64: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB)
 $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB): $(QT_BUILD64)/Makefile
 	cd $(QT_BUILD64) && make -j 2;
 
-$(GUI_BUILD32)/linbo_gui: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB) | $(LINBO_SRC)
+$(GUI_BUILD32)/linbo_gui: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB) $(LINBO_SRC)
 	@echo "[1mBuilding 32bit linbo_gui...[0m";
 	install -D $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD32)/icons/linbo_wallpaper.png;
 	QTDIR=$(QT_BUILD32)/qtbase \
@@ -100,7 +100,7 @@ $(GUI_BUILD32)/linbo_gui: $(QT_BUILD32)/$(QT_FRAMEBUFFER_LIB) | $(LINBO_SRC)
 	-makefile -spec $(QT_SRC)/qtbase/mkspecs/linux-g++-32 $(CURDIR)/$(GUI_NAME)/linbo_gui.pro
 	cd $(GUI_BUILD32) && make clean && make && strip linbo_gui
 
-$(GUI_BUILD64)/linbo_gui: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB) | $(LINBO_SRC)
+$(GUI_BUILD64)/linbo_gui: $(QT_BUILD64)/$(QT_FRAMEBUFFER_LIB) $(LINBO_SRC)
 	@echo "[1mBuilding 64bit linbo_gui...[0m";
 	install -D $(CURDIR)/var/icons/linbo_wallpaper_800x600.png $(GUI_BUILD64)/icons/linbo_wallpaper.png;
 	QTDIR=$(QT_BUILD64)/qtbase \
