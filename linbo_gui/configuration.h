@@ -8,6 +8,7 @@
 #include <istream>
 
 #include "image_description.h"
+#include "commandline.h"
 
 using namespace  std;
 
@@ -15,6 +16,8 @@ class Configuration
 {
 private:
     ifstream input;
+    CommandLine commandline;
+
     void read_qstring(QString& tmp);
     void read_bool(bool& tmp);
     bool read_pair(QString& key, QString& value);
@@ -33,6 +36,7 @@ public:
     Configuration();
     ~Configuration();
 
+    CommandLine getCommandLine();
 };
 
 #endif // CONFIGURATION_H

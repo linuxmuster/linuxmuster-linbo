@@ -20,6 +20,7 @@ private:
     QString password;
 
     void saveappend( QStringList& command, const QString& item );
+    QStringList parseWrapperCommand(const QString& input);
 
 public:
     Command(Configuration *conf);
@@ -29,6 +30,8 @@ public:
     static const QString INCIMGEXT;
     static const QString DESCEXT;
     static const QString TMPDIR;
+
+    vector<QStringList> parseWrapperCommands(const QString& input);
 
     QStringList mkstartcommand(unsigned int osnr, int imnr = -1);
     QStringList mksyncstartcommand(unsigned int osnr, int imnr = -1, bool format = false);

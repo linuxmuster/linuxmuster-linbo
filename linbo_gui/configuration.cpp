@@ -9,6 +9,7 @@
 #include <qdebug.h>
 
 #include "image_description.h"
+#include "commandline.h"
 
 void Configuration::read_qstring( QString& tmp ) {
   char line[500];
@@ -166,12 +167,41 @@ void Configuration::init(const char name[])
 	  input.close();
 }
 
-Configuration::Configuration(const char name[])
+Configuration::Configuration(const char name[]): commandline()
 {
     init(name);
+    if( commandline.getConf() != NULL ){
+        init(commandline.getConf().toLocal8Bit());
+        if(commandline.getExtraConf() != NULL ){
+            init(commandline.getExtraConf().toLocal8Bit());
+        }
+    }
+    if( commandline.noAuto() ){
+        this->config.set_autostart(NULL);
+        this->config.set_autostartosname(NULL);
+        this->config.set_autostartosnr( 0 );
+    }
+    if( commandline.noButtons() ){
+        for(std::vector<os_item>::iterator it = this->elements.begin(); it != this->elements.end(); ++it) {
+            os_item os = *it;
+            for(std::vector<image_item>::iterator iit = os.image_history.begin(); iit != os.image_history.end(); ++iit) {
+                image_item img = *iit;
+                img.set_newbutton(false);
+                img.set_startbutton(false);
+                img.set_syncbutton(false);
+                img.set_autostart(false);
+                img.set_hidden(true);
+            }
+        }
+    }
 }
 
-Configuration::Configuration()
+Configuration::Configuration(): commandline()
 {
     init("start.conf");
+}
+
+CommandLine Configuration::getCommandLine()
+{
+    return commandline;
 }

@@ -12,9 +12,14 @@ private:
     static const QString NOBUTTONS;
     static const QString AUTOSTART;
     static const QString CONF;
+    static const QString LINBOCMD;
+
     int autostart;
     QString conf;
     QString extraconf;
+    QString linbocmds;
+
+    bool findArg(const QString& string);
 
 public:
     CommandLine();
@@ -23,6 +28,7 @@ public:
     int getAutostart();
     const QString& getConf();
     const QString& getExtraConf();
+    const QString& getLinbocmd();
 };
 
 #endif // COMMANDLINE_H

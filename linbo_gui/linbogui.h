@@ -69,6 +69,7 @@ public slots:
     void doInitCache(bool formatCache, DownloadType type);
     void performLogin(QString passwd);
     void performLogout();
+    void doWrapperCommands();
     void doAutostartDialog();
     void doAutostart();
     void doStart(int nr);

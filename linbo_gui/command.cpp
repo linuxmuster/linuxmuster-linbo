@@ -1,4 +1,5 @@
 #include <qregexp.h>
+#include <qdebug.h>
 
 #include "command.h"
 #include "qprocess.h"
@@ -6,6 +7,7 @@
 #include "downloadtype.h"
 
 #define LINBO_CMD(arg) QStringList("linbo_cmd") << (arg);
+#define WRAPPER_CMD(arg) QStringList("linbo_wrapper") << (arg);
 
 const QString Command::USER = "linbo";
 const QString Command::BASEIMGEXT = ".cloop";
@@ -21,6 +23,24 @@ void Command::saveappend( QStringList& command, const QString& item ) {
   else
     command.append( item );
 
+}
+
+// parse Wrapper commands and create List of QStringList
+vector<QStringList> Command::parseWrapperCommands(const QString& input)
+{
+    vector<QStringList> ret = vector<QStringList>();
+    QStringListIterator cmds(input.split(";"));
+    while( cmds.hasNext() ){
+        ret.push_back(parseWrapperCommand(cmds.next()));
+    }
+    return ret;
+}
+
+// parse Warpper command
+QStringList Command::parseWrapperCommand(const QString& input)
+{
+    QStringList command = WRAPPER_CMD(input);
+    return command;
 }
 
 // Start image
@@ -216,7 +236,7 @@ QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
     }
     process->start( command.join(" ") );
     while( !process->waitForFinished(10000) ){
-        cerr << "Der Prozess wurde nicht korrekt durchgeführt.";
+        qWarning() << "Der Prozess " << cmd << " wurde nicht korrekt durchgeführt.";
      }
     QString result = QString(process->readAllStandardOutput());
     result.remove(QRegExp("\\t"));

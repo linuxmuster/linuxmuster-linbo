@@ -1,3 +1,4 @@
+#include <qdebug.h>
 #include <unistd.h>
 #include <QDesktopWidget>
 #include <qdialog.h>
@@ -66,7 +67,8 @@ void FortschrittDialog::timerEvent(QTimerEvent *event) {
     if(event->timerId() == timerId){
         ui->processTime->setTime(ui->processTime->time().addSecs(1));
         if( maximum == NULL || value == NULL ){
-            ui->progressBar->setValue(5*ui->processTime->time().elapsed() % ui->progressBar->maximum());
+            // die Automatik benötigt 60 Sekunden für 1x 100%
+            ui->progressBar->setValue(ui->processTime->time().second()*10/6);
         }
     }
 }

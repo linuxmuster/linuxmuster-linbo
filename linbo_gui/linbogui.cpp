@@ -74,6 +74,9 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     if(conf->config.get_autostart() != NULL && conf->config.get_autostarttimeout() != 0){
         QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
     }
+    else if(conf->getCommandLine().getLinbocmd() != NULL){
+        QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
+    }
 }
 
 LinboGUI::~LinboGUI()
@@ -318,6 +321,15 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
             this->killTimer( logoutTimer );
             logoutTimer = 0;
         }
+    }
+}
+
+void LinboGUI::doWrapperCommands()
+{
+    vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
+    for(vector<QStringList>::iterator it = cmds.begin();it != cmds.end();++it){
+        QStringList cmd = *it;
+        doCommand(cmd, false, cmd.at(1), Aktion::None, &details);
     }
 }
 
