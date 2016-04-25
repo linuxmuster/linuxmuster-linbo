@@ -42,6 +42,22 @@ CommandLine::CommandLine(): args(),autostart(-1),conf(),extraconf()
             linbocmds = s.split("=")[2];
         }
     }
+    // read wrapper commands from downloaded file and remove file
+    QFile linbocmdfile("/linbocmd");
+    if(!linbocmdfile.open(QIODevice::ReadOnly)){
+        qDebug() << "No file /linbocmd found.";
+        return;
+    }
+    else {
+        qDebug() << "File /linbocmd found.";
+        QTextStream ts(&linbocmdfile);
+        if(linbocmds.size() > 0){
+            linbocmds.append(";");
+            linbocmds.append(linbocmdfile.readAll());
+        }
+        // TODO: noauto , nobuttons bool create and read from commandline or linbocmd
+        system("rm -f /linbocmd");
+    }
 }
 
 bool CommandLine::findArg(const QString& string)
