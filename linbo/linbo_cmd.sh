@@ -1148,9 +1148,8 @@ prepare_reboot(){
  local APPEND="$6"
  local efipart="$7"
  local efiboot="false"
- local noefibootmgr="$(kerneloptions | grep -iw noefibootmgr)"
  remote_cache "$(cachedev)" || local localcache="yes"
- if [ -z "noefibootmgr" -a -n "$efipart" ]; then
+ if [ -n "$efipart" ]; then
   mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then
