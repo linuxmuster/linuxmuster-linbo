@@ -32,7 +32,6 @@ public:
     vector<os_item> elements;
     vector<diskpartition> partitions;
 
-    Configuration(const char name[] );
     Configuration();
     ~Configuration();
 

@@ -11,25 +11,24 @@ const QString CommandLine::AUTOSTART = QString("autostart");
 const QString CommandLine::EXTRACONF = QString("conf");
 const QString CommandLine::LINBOCMD = QString("linbocmd");
 const QString CommandLine::SERVER = QString("server");
+const QString CommandLine::CACHE = QString("cache");
 
-CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server()
+CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
 {
-    QFile cmdline("/proc/cmdline");
-    if(!cmdline.open(QIODevice::ReadOnly)){
+    QFile f("/proc/cmdline");
+    if(!f.open(QIODevice::ReadOnly)){
         qWarning()<<"Could not open /proc/cmdline\n";
         return;
     }
-    QTextStream ts( &cmdline );
-    args = ts.readAll().split(" ");
+    QTextStream ts( &f );
+    QString cmdline = ts.readAll();
+    args = cmdline.split(" ");
     foreach(QString s, args){
-        if(s.compare(AUTOSTART + QString("=*"),Qt::CaseInsensitive) == 0){
+        if(s.startsWith(AUTOSTART + QString("="),Qt::CaseInsensitive)){
             QString value = s.split("=")[1];
-            if(value.compare("no") == 0)
-                autostart = -1;
-            else
-                autostart = value.toInt();
+            autostart = value.toUInt();
         }
-        else if(s.compare(EXTRACONF + QString("=*")) == 0){
+        else if(s.startsWith(EXTRACONF + QString("="))){
             QString value = s.split("=")[1];
             if(value.contains(":")){
                 partition = value.split(":")[0];
@@ -39,11 +38,14 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server()
                 extraconf = value;
             }
         }
-        else if(s.compare(LINBOCMD + QString("=*")) == 0){
+        else if(s.startsWith(LINBOCMD + QString("="))){
             linbocmds = s.split("=")[1];
         }
-        else if(s.compare(SERVER + QString("=*")) == 0){
+        else if(s.startsWith(SERVER + QString("="))){
             server = s.split("=")[1];
+        }
+        else if(s.startsWith(CACHE + QString("="))){
+            cache = s.split("=")[1];
         }
     }
     // read wrapper commands from downloaded file and remove file
@@ -56,10 +58,19 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server()
         qDebug() << "File /linbocmd found.";
         QTextStream ts(&linbocmdfile);
         if(linbocmds.size() > 0){
-            linbocmds.append(";");
+            linbocmds.append(",");
             linbocmds.append(linbocmdfile.readAll());
         }
-        // TODO: noauto , nobuttons bool create and read from commandline or linbocmd
+        if(linbocmds.contains(" ")){
+            QStringList largs = linbocmds.split(" ");
+            linbocmds = largs[0];
+            largs.removeFirst();
+            foreach(QString s, largs){
+                if(s.compare(NOAUTO, Qt::CaseInsensitive) == 0 || s.compare(NOBUTTONS, Qt::CaseInsensitive) == 0){
+                    args.append(s);
+                }
+            }
+        }
         system("rm -f /linbocmd");
     }
 }
@@ -84,7 +95,7 @@ bool CommandLine::noButtons()
     return findArg(NOBUTTONS);
 }
 
-int CommandLine::getAutostart()
+unsigned int CommandLine::getAutostart()
 {
     return autostart;
 }
@@ -107,4 +118,9 @@ const QString& CommandLine::getLinbocmd()
 const QString& CommandLine::getServer()
 {
     return server;
+}
+
+const QString& CommandLine::getCache()
+{
+    return cache;
 }
