@@ -170,11 +170,19 @@ void Configuration::init(const char name[])
 Configuration::Configuration(const char name[]): commandline()
 {
     init(name);
-    if( commandline.getConf() != NULL ){
-        init(commandline.getConf().toLocal8Bit());
-        if(commandline.getExtraConf() != NULL ){
+    if( commandline.getExtraConf() != NULL ){
+        if(commandline.getConfPartition() != NULL ){
+            //TODO: Fehler beim mounten abfangen
+            system("mount "+commandline.getConfPartition().toLocal8Bit()+" /mnt");
+            init("/mnt/" + commandline.getExtraConf().toLocal8Bit());
+            system("umount "+commandline.getConfPartition().toLocal8Bit());
+        }
+        else {
             init(commandline.getExtraConf().toLocal8Bit());
         }
+    }
+    if( commandline.getServer() != NULL){
+        this->config.set_server(commandline.getServer());
     }
     if( commandline.noAuto() ){
         this->config.set_autostart(NULL);

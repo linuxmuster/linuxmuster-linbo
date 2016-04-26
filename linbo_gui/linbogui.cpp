@@ -383,7 +383,7 @@ void LinboGUI::on_setup_clicked()
 {
     doCommand( command->mkpartitioncommand(), true, QString("Einrichten - Partitionieren"), Aktion::None, &details);
     doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details);
-    for(int osnr = 0;osnr < conf->elements.size(); osnr++){
+    for(unsigned int osnr = 0;osnr < conf->elements.size(); osnr++){
         doCommand( command->mksynccommand(osnr), true, QString("Einrichten - Synchronisieren OS Nr."+osnr), Aktion::None, &details);
     }
     doCommand( command->mkstartcommand(0), true, QString("Einrichten - Start OS Nr.1"), Aktion::None, &details);

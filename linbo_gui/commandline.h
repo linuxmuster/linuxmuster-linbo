@@ -11,13 +11,15 @@ private:
     static const QString NOAUTO;
     static const QString NOBUTTONS;
     static const QString AUTOSTART;
-    static const QString CONF;
+    static const QString EXTRACONF;
     static const QString LINBOCMD;
+    static const QString SERVER;
 
     int autostart;
-    QString conf;
+    QString partition;
     QString extraconf;
     QString linbocmds;
+    QString server;
 
     bool findArg(const QString& string);
 
@@ -26,9 +28,10 @@ public:
     bool noAuto();
     bool noButtons();
     int getAutostart();
-    const QString& getConf();
+    const QString& getConfPartition();
     const QString& getExtraConf();
     const QString& getLinbocmd();
+    const QString& getServer();
 };
 
 #endif // COMMANDLINE_H

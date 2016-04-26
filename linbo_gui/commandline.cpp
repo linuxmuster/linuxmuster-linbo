@@ -8,10 +8,11 @@
 const QString CommandLine::NOAUTO = QString("noauto");
 const QString CommandLine::NOBUTTONS = QString("nobuttons");
 const QString CommandLine::AUTOSTART = QString("autostart");
-const QString CommandLine::CONF = QString("conf");
+const QString CommandLine::EXTRACONF = QString("conf");
 const QString CommandLine::LINBOCMD = QString("linbocmd");
+const QString CommandLine::SERVER = QString("server");
 
-CommandLine::CommandLine(): args(),autostart(-1),conf(),extraconf()
+CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server()
 {
     QFile cmdline("/proc/cmdline");
     if(!cmdline.open(QIODevice::ReadOnly)){
@@ -28,18 +29,21 @@ CommandLine::CommandLine(): args(),autostart(-1),conf(),extraconf()
             else
                 autostart = value.toInt();
         }
-        else if(s.compare(CONF + QString("=*")) == 0){
-            QString value = s.split("=")[2];
+        else if(s.compare(EXTRACONF + QString("=*")) == 0){
+            QString value = s.split("=")[1];
             if(value.contains(":")){
-                conf = value.split(":")[0];
+                partition = value.split(":")[0];
                 extraconf = value.split(":")[1];
             }
             else {
-                conf = value;
+                extraconf = value;
             }
         }
         else if(s.compare(LINBOCMD + QString("=*")) == 0){
-            linbocmds = s.split("=")[2];
+            linbocmds = s.split("=")[1];
+        }
+        else if(s.compare(SERVER + QString("=*")) == 0){
+            server = s.split("=")[1];
         }
     }
     // read wrapper commands from downloaded file and remove file
@@ -85,9 +89,9 @@ int CommandLine::getAutostart()
     return autostart;
 }
 
-const QString& CommandLine::getConf()
+const QString& CommandLine::getConfPartition()
 {
-    return conf;
+    return partition;
 }
 
 const QString& CommandLine::getExtraConf()
@@ -98,4 +102,9 @@ const QString& CommandLine::getExtraConf()
 const QString& CommandLine::getLinbocmd()
 {
     return linbocmds;
+}
+
+const QString& CommandLine::getServer()
+{
+    return server;
 }
