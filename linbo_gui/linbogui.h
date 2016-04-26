@@ -105,6 +105,8 @@ private slots:
 
     void on_partition_clicked();
 
+    void on_setup_clicked();
+
 protected:
     void timerEvent(QTimerEvent *event);
 

@@ -319,7 +319,7 @@ background-color: rgba(255, 255, 255, 0);</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="benutzertab">
        <property name="enabled">
@@ -378,8 +378,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>756</width>
-             <height>265</height>
+             <width>764</width>
+             <height>312</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -436,191 +436,212 @@ background-color: rgba(255, 255, 255, 0);</string>
        <attribute name="title">
         <string>Administrator</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <widget class="QScrollArea" name="imageareaview">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>1</horstretch>
-            <verstretch>1</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>400</width>
-            <height>200</height>
-           </size>
-          </property>
-          <property name="autoFillBackground">
-           <bool>true</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(255, 255, 255);</string>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAsNeeded</enum>
-          </property>
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="imagearea">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>542</width>
-             <height>265</height>
-            </rect>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_4">
-            <item row="0" column="0">
-             <layout class="QGridLayout" name="imageareaLayout">
-              <property name="leftMargin">
-               <number>6</number>
-              </property>
-              <property name="topMargin">
-               <number>6</number>
-              </property>
-              <property name="rightMargin">
-               <number>6</number>
-              </property>
-              <property name="bottomMargin">
-               <number>6</number>
-              </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QScrollArea" name="imageareaview">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>400</width>
+              <height>200</height>
+             </size>
+            </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(255, 255, 255);</string>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAsNeeded</enum>
+            </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="imagearea">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>594</width>
+               <height>310</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="imageareaLayout">
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="topMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>6</number>
+                </property>
+               </layout>
+              </item>
              </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QPushButton" name="console">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Konsole öffnen</string>
+              </property>
+              <property name="icon">
+               <iconset resource="linbo_icons.qrc">
+                <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="initcache">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Cache aktualisieren</string>
+              </property>
+              <property name="icon">
+               <iconset resource="linbo_icons.qrc">
+                <normaloff>:/icons/cache-22x22.png</normaloff>:/icons/cache-22x22.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="partition">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Partitionieren</string>
+              </property>
+              <property name="icon">
+               <iconset resource="linbo_icons.qrc">
+                <normaloff>:/icons/partition-22x22.png</normaloff>:/icons/partition-22x22.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="setup">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Einrichten</string>
+              </property>
+              <property name="icon">
+               <iconset resource="linbo_icons.qrc">
+                <normaloff>:/icons/setup-22x22.png</normaloff>:/icons/setup-22x22.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="doregister">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Registrieren...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="linbo_icons.qrc">
+                <normaloff>:/icons/register-22x22.png</normaloff>:/icons/register-22x22.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Expanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="logout">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Abmelden</string>
+              </property>
+             </widget>
             </item>
            </layout>
-          </widget>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QPushButton" name="console">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Konsole öffnen</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/console-22x22.png</normaloff>:/icons/console-22x22.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="initcache">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Cache aktualisieren</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/cache-22x22.png</normaloff>:/icons/cache-22x22.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="partition">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Partitionieren</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/partition-22x22.png</normaloff>:/icons/partition-22x22.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="doregister">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Registrieren...</string>
-            </property>
-            <property name="icon">
-             <iconset resource="linbo_icons.qrc">
-              <normaloff>:/icons/register-22x22.png</normaloff>:/icons/register-22x22.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="logout">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Abmelden</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </item>
