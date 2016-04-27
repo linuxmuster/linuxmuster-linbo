@@ -4,6 +4,7 @@
 #include <qstringlist.h>
 
 #include "commandline.h"
+#include "command.h"
 
 const QString CommandLine::NOAUTO = QString("noauto");
 const QString CommandLine::NOBUTTONS = QString("nobuttons");
@@ -22,12 +23,12 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
     }
     QTextStream ts( &f );
     QString cmdline = ts.readAll();
-    cmdline = QString("noauto");
     args = cmdline.split(" ");
     foreach(QString s, args){
         if(s.startsWith(AUTOSTART + QString("="),Qt::CaseInsensitive)){
             QString value = s.split("=")[1];
-            autostart = value.toUInt();
+            //command line is one based, internal value is zero based
+            autostart = value.toUInt() - 1;
         }
         else if(s.startsWith(EXTRACONF + QString("="))){
             QString value = s.split("=")[1];
@@ -59,7 +60,7 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
         qDebug() << "File /linbocmd found.";
         QTextStream ts(&linbocmdfile);
         if(linbocmds.size() > 0){
-            linbocmds.append(",");
+            linbocmds.append(Command::LINBOCMDSEP);
             linbocmds.append(linbocmdfile.readAll());
         }
         if(linbocmds.contains(" ")){
