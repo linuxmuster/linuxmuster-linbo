@@ -146,12 +146,6 @@ void Configuration::init(const char name[])
                 if(i==elements.size()) { // Not included yet -> new image
                     tmp_os.image_history.push_back(tmp_image);
                     elements.push_back(tmp_os);
-                    if(tmp_image.get_autostart() && tmp_image.get_autostarttimeout() != 0){
-                        config.set_autostart(&tmp_image);
-                        config.set_autostarttimeout(tmp_image.get_autostarttimeout());
-                        config.set_autostartosname(tmp_os.get_name());
-                        config.set_autostartosnr(elements.size()-1);
-                    }
                 }
             }
         } else if(tmp_qstring.toLower().compare("[linbo]") == 0) {
@@ -165,6 +159,15 @@ void Configuration::init(const char name[])
         }
     }
     input.close();
+}
+
+void Configuration::disable_autostart()
+{
+    for(std::vector<os_item>::iterator it = this->elements.begin(); it != this->elements.end(); ++it) {
+        for(std::vector<image_item>::iterator iit = (*it).image_history.begin(); iit != (*it).image_history.end(); ++iit) {
+            (*iit).set_autostart(false);
+        }
+    }
 }
 
 Configuration::Configuration(): commandline()
@@ -190,23 +193,19 @@ Configuration::Configuration(): commandline()
         this->config.set_server(commandline.getServer());
     }
     if( commandline.noAuto() ){
-        this->config.set_autostart(NULL);
-        this->config.set_autostartosname(NULL);
-        this->config.set_autostartosnr( 0 );
+        disable_autostart();
         this->config.set_autoformat(false);
         this->config.set_autoinitcache(false);
         this->config.set_autopartition(false);
     }
     if( commandline.noButtons() ){
         for(std::vector<os_item>::iterator it = this->elements.begin(); it != this->elements.end(); ++it) {
-            os_item os = *it;
-            for(std::vector<image_item>::iterator iit = os.image_history.begin(); iit != os.image_history.end(); ++iit) {
-                image_item img = *iit;
-                img.set_newbutton(false);
-                img.set_startbutton(false);
-                img.set_syncbutton(false);
-                img.set_autostart(false);
-                img.set_hidden(true);
+            for(std::vector<image_item>::iterator iit = (*it).image_history.begin(); iit != (*it).image_history.end(); ++iit) {
+                (*iit).set_newbutton(false);
+                (*iit).set_startbutton(false);
+                (*iit).set_syncbutton(false);
+                (*iit).set_autostart(false);
+                (*iit).set_hidden(true);
             }
         }
     }

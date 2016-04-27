@@ -22,6 +22,7 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
     }
     QTextStream ts( &f );
     QString cmdline = ts.readAll();
+    cmdline = QString("noauto");
     args = cmdline.split(" ");
     foreach(QString s, args){
         if(s.startsWith(AUTOSTART + QString("="),Qt::CaseInsensitive)){

@@ -71,10 +71,21 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     ui->systeme->setCurrentIndex(0);
 
     //process autostart
-    if(conf->config.get_autostart() != NULL && conf->config.get_autostarttimeout() != 0){
-        QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
+    autostartnr = -1;
+    for(unsigned int osnr=0;osnr < conf->elements.size() && autostartnr < 0;osnr++){
+        os_item* os = &conf->elements.at(osnr);
+        for(unsigned int imgnr=0;imgnr < os->image_history.size() && autostartnr < 0; imgnr++ ){
+            image_item* img = &os->image_history.at(imgnr);
+            if(img->get_autostart() && img->get_autostarttimeout() != 0){
+                autostartnr = osnr;
+                autostartos = os->get_name();
+                autostarttimeout = img->get_autostarttimeout();
+                QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
+            }
+        }
     }
-    else if(conf->getCommandLine().getLinbocmd() != NULL){
+    //process linbocmds
+    if(conf->getCommandLine().getLinbocmd() != NULL){
         QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
     }
 }
@@ -349,7 +360,8 @@ void LinboGUI::on_console_clicked()
 
 void LinboGUI::doAutostart()
 {
-    doCommand(command->mkstartcommand(conf->config.get_autostartosnr()), false, QString("Automatischer Start"), Aktion::None, &details);
+
+    doCommand(command->mkstartcommand(autostartnr), false, QString("Automatischer Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doStart(int nr)
@@ -391,7 +403,7 @@ void LinboGUI::on_setup_clicked()
 
 void LinboGUI::doAutostartDialog()
 {
-    Autostart* dlg = new Autostart( this, conf->config.get_autostarttimeout(), QString("Autostart " + conf->config.get_autostartosname()));
+    Autostart* dlg = new Autostart( this, autostarttimeout, QString("Autostart " + autostartos));
     connect( dlg, &Autostart::accepted, this, &LinboGUI::doAutostart);
     dlg->exec();
 }
