@@ -26,6 +26,7 @@ private:
     void read_partition( diskpartition& p );
     void read_globals();
     void disable_autostart();
+    bool validPartition(const QString& partition);
     void init(const char name[]);
 
 public:

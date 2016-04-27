@@ -16,7 +16,8 @@ private:
     static const QString SERVER;
     static const QString CACHE;
 
-    unsigned int autostart;
+    int autostart;
+    bool use_autostart;
     QString partition;
     QString extraconf;
     QString linbocmds;
@@ -27,9 +28,11 @@ private:
 
 public:
     CommandLine();
+
     bool noAuto();
     bool noButtons();
-    unsigned int getAutostart();
+    int getAutostart();
+    bool validAutostart();
     const QString& getConfPartition();
     const QString& getExtraConf();
     const QString& getLinbocmd();

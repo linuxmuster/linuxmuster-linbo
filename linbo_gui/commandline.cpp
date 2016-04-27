@@ -28,7 +28,7 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
         if(s.startsWith(AUTOSTART + QString("="),Qt::CaseInsensitive)){
             QString value = s.split("=")[1];
             //command line is one based, internal value is zero based
-            autostart = value.toUInt() - 1;
+            autostart = value.toUInt(&use_autostart) - 1;
         }
         else if(s.startsWith(EXTRACONF + QString("="))){
             QString value = s.split("=")[1];
@@ -97,7 +97,7 @@ bool CommandLine::noButtons()
     return findArg(NOBUTTONS);
 }
 
-unsigned int CommandLine::getAutostart()
+int CommandLine::getAutostart()
 {
     return autostart;
 }
@@ -125,4 +125,9 @@ const QString& CommandLine::getServer()
 const QString& CommandLine::getCache()
 {
     return cache;
+}
+
+bool CommandLine::validAutostart()
+{
+    return use_autostart;
 }

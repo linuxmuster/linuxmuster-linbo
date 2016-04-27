@@ -110,6 +110,14 @@ void Configuration::read_globals() {
     }
 }
 
+bool Configuration::validPartition(const QString &partition)
+{
+    for(vector<diskpartition>::iterator it = partitions.begin();it < partitions.end();++it){
+        if((*it).get_dev().compare(partition) == 0)
+            return true;
+    }
+    return false;
+}
 
 void Configuration::init(const char name[])
 {
@@ -173,10 +181,13 @@ void Configuration::disable_autostart()
 Configuration::Configuration(): commandline()
 {
     if( commandline.getExtraConf() != NULL ){
-        if(commandline.getConfPartition() != NULL ){
-            //TODO: Fehler beim mounten abfangen
+        if(commandline.getConfPartition() != NULL && validPartition(commandline.getConfPartition())){
             system("mount "+commandline.getConfPartition().toLocal8Bit()+" /mnt");
-            init("/mnt/" + commandline.getExtraConf().toLocal8Bit());
+            QString path = "/mnt";
+            if(!commandline.getExtraConf().startsWith("/"))
+                path += "/";
+            path += commandline.getExtraConf();
+            init(path.toLocal8Bit());
             system("umount "+commandline.getConfPartition().toLocal8Bit());
         }
         else {
@@ -191,6 +202,14 @@ Configuration::Configuration(): commandline()
     }
     if( commandline.getServer() != NULL){
         this->config.set_server(commandline.getServer());
+    }
+    if( commandline.validAutostart() ){
+        disable_autostart();
+        if( commandline.getAutostart() > -1 && commandline.getAutostart() < (int)elements.size()){
+            os_item* os = &this->elements.at(commandline.getAutostart());
+            image_item* img = &os->image_history.at(os->find_current_image());
+            img->set_autostart(true);
+        }
     }
     if( commandline.noAuto() ){
         disable_autostart();
