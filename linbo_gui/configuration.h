@@ -25,6 +25,8 @@ private:
     void read_os( os_item& tmp_os, image_item& tmp_image );
     void read_partition( diskpartition& p );
     void read_globals();
+    void disable_autostart();
+    bool validPartition(const QString& partition);
     void init(const char name[]);
 
 public:

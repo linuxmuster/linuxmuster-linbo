@@ -44,10 +44,6 @@ private:
   unsigned int roottimeout;
   bool autopartition, autoinitcache, autoformat;
   QString hd; /* save cache device hd calculated from cache separate for easier reference */
-  image_item* autostart;
-  int autostarttimeout;
-  QString autostartosname;
-  unsigned int autostartosnr;
 
 public:
   globals();
@@ -67,10 +63,6 @@ public:
   const QString& get_downloadtypeQString();
   DownloadType get_downloadtype();
   const bool& get_autoformat();
-  const image_item* get_autostart();
-  int get_autostarttimeout();
-  const QString& get_autostartosname();
-  unsigned int get_autostartosnr();
   void set_server( const QString& new_server );
   void set_cache( const QString& new_cache );
   void set_hostgroup( const QString& new_hostgroup );
@@ -85,10 +77,6 @@ public:
   void set_downloadtype( const QString& new_downloadtype );
   void set_downloadtype( DownloadType new_downloadtype );
   void set_autoformat( const bool& new_autoformat );
-  void set_autostart( image_item* item );
-  void set_autostarttimeout( int timeout );
-  void set_autostartosname(const QString& osname);
-  void set_autostartosnr(unsigned int nr);
 };
 
 class diskpartition {

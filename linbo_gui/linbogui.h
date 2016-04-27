@@ -44,6 +44,9 @@ private:
     FortschrittDialog* progress;
     int preTab, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
+    int autostartnr;
+    QString autostartos;
+    int autostarttimeout;
 
     void showInfos();
     void showOSs();

@@ -14,6 +14,7 @@ const QString Command::BASEIMGEXT = ".cloop";
 const QString Command::INCIMGEXT = ".rsync";
 const QString Command::DESCEXT = ".desc";
 const QString Command::TMPDIR = "/tmp/";
+const QString Command::LINBOCMDSEP = ",";
 
 // this appends a quoted space in case item is empty and resolves
 // problems with linbo_cmd's weird "shift"-usage
@@ -29,7 +30,7 @@ void Command::saveappend( QStringList& command, const QString& item ) {
 vector<QStringList> Command::parseWrapperCommands(const QString& input)
 {
     vector<QStringList> ret = vector<QStringList>();
-    QStringListIterator cmds(input.split(";"));
+    QStringListIterator cmds(input.split(LINBOCMDSEP));
     while( cmds.hasNext() ){
         ret.push_back(parseWrapperCommand(cmds.next()));
     }

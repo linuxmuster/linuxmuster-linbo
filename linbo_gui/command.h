@@ -30,6 +30,7 @@ public:
     static const QString INCIMGEXT;
     static const QString DESCEXT;
     static const QString TMPDIR;
+    static const QString LINBOCMDSEP;
 
     vector<QStringList> parseWrapperCommands(const QString& input);
 
