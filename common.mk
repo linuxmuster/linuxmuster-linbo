@@ -47,3 +47,5 @@ SOURCES := $(shell echo $(basename $(notdir $(ARCHIVES))) | sed -e 's/.tar//g' |
 BB_DIR:=$(CURDIR)/$(firstword $(filter busybox-%, $(SOURCES)))
 BUILDBB32=$(BUILDDIR)/build-bb32
 BUILDBB64=$(BUILDDIR)/build-bb64
+
+LINBO=$(shell find linbo -type f)

@@ -44,6 +44,7 @@ DIRS := $(CACHEDIR)
 
 # targets
 all: build
+	echo $(patsubst linbo/%,$(SYSROOT)/%,$(LINBO))
 
 $(DIRS):
 	mkdir -p $(DIRS)
@@ -76,7 +77,19 @@ distclean: clean
 
 clean: 
 
-install:
+install: $(patsubst linbo/%,$(SYSROOT)/%, $(LINBO))) $(patsubst linbo/%, $(SYSROOT64)/%, $(LINBO)))
+
+$(patsubst linbo/%, $(SYSROOT)/%, $(LINBO))): $(LINBO)
+	$(foreach file, $(LINBO), install -D $(file) $(patsubst linbo/%,$(SYSROOT)/%,$(file)) ; )
+	install -D $(SYSROOT)/linbo_cmd.sh $(SYSROOT)/usr/bin/linbo_cmd
+	install -D $(SYSROOT)/patch_registry.sh $(SYSROOT)/bin/patch_registry
+	install -D $(SYSROOT)/linbo_wrapper.sh $(SYSROOT)/usr/bin/linbo_wrapper
+
+$(patsubst linbo/%, $(SYSROOT64)/%, $(LINBO))): $(LINBO)
+	$(foreach file, $(LINBO), install -D $(file) $(patsubst linbo/%,$(SYSROOT64)/%,$(file)) ; )
+	install -D $(SYSROOT64)/linbo_cmd.sh $(SYSROOT64)/usr/bin/linbo_cmd
+	install -D $(SYSROOT64)/patch_registry.sh $(SYSROOT64)/bin/patch_registry
+	install -D $(SYSROOT64)/linbo_wrapper.sh $(SYSROOT64)/usr/bin/linbo_wrapper
 
 .PHONY: all $(DIRS)
 .PHONY: download build distclean clean install
