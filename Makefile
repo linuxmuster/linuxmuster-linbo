@@ -118,7 +118,7 @@ install: $(INSTALLSUBS) $(INSTALLDIRS) install-initrd install-grubnetdir
 
 install-initrd: $(SYSROOT)/linbofs.lz $(SYSROOT64)/linbofs64.lz
 
-$(SYSROOT)/linbofs.lz: $(CURDIR)/conf/initramfs.conf $(SYSROOTFILES) $(patsubst linbo/%,$(SYSROOT)/%, $(LINBO)))
+$(SYSROOT)/linbofs.lz: $(CURDIR)/conf/initramfs.conf $(SYSROOTFILES) $(patsubst linbo/%,$(SYSROOT)/%, $(LINBO))
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding LINBOFS...[0m"
 	cat $(CURDIR)/conf/initramfs.conf > $(BUILDDIR)/initramfs.conf
@@ -140,7 +140,7 @@ $(SYSROOT)/linbofs.lz: $(CURDIR)/conf/initramfs.conf $(SYSROOTFILES) $(patsubst 
 	cd $(BUILDBB32); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); rm -f linbofs.lz; $(BUILD32)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT)/linbofs.lz
 
-$(SYSROOT64)/linbofs64.lz: $(CURDIR)/conf/initramfs64.conf $(SYSROOT64FILES) $(patsubst linbo/%, $(SYSROOT64)/%, $(LINBO)))
+$(SYSROOT64)/linbofs64.lz: $(CURDIR)/conf/initramfs64.conf $(SYSROOT64FILES) $(patsubst linbo/%, $(SYSROOT64)/%, $(LINBO))
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding 64bit LINBOFS...[0m"
 	cat $(CURDIR)/conf/initramfs64.conf > $(BUILDDIR)/initramfs64.conf

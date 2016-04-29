@@ -44,7 +44,6 @@ DIRS := $(CACHEDIR)
 
 # targets
 all: build
-	echo $(patsubst linbo/%,$(SYSROOT)/%,$(LINBO))
 
 $(DIRS):
 	mkdir -p $(DIRS)
