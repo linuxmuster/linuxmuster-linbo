@@ -342,19 +342,20 @@ void LinboGUI::doWrapperCommands()
     vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
     for(vector<QStringList>::iterator it = cmds.begin();it != cmds.end();++it){
         QStringList cmd = *it;
-        doCommand(cmd, false, cmd.at(1), Aktion::None, &details);
+        if(QDialog::Rejected == doCommand(cmd, false, cmd.at(1), Aktion::None, &details))
+            return;
     }
     if(autostartnr > -1){
         QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
     }
 }
 
-void LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, Aktion aktion, bool* details)
+int LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, Aktion aktion, bool* details)
 {
     QStringList *cmd = new QStringList(command);
     progress = new FortschrittDialog( this, cmd, logConsole, titel, aktion, details );
     progress->setShowCancelButton( interruptible );
-    progress->exec();
+    return progress->exec();
 }
 
 void LinboGUI::on_console_clicked()

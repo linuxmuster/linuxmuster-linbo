@@ -116,7 +116,7 @@ protected:
 private:
     void doCreate();
     void doUpload();
-    void doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
+    int doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
                    Aktion aktion = Aktion::None, bool* details = NULL);
     Ui::LinboGUI *ui;
 };
