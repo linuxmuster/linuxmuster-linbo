@@ -27,8 +27,6 @@ public slots:
 private slots:
   void on_password_returnPressed();
 
-  void on_toolButton_clicked();
-
 private:
     Ui::Login *ui;
 

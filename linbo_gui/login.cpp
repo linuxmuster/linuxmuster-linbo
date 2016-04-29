@@ -18,8 +18,3 @@ void Login::on_password_returnPressed()
     close();
 }
 
-void Login::on_toolButton_clicked()
-{
-    emit(rejected());
-    close();
-}
