@@ -14,7 +14,6 @@ include $(CURDIR)/common.mk
 #URLS, SOURCES in common.mk
 
 #BB_DIR in common.mk
-
 CHNTPW_DIR=$(CURDIR)/$(firstword $(filter chntpw-%, $(SOURCES)))
 
 MSSYS_DIR=$(CURDIR)/$(firstword $(filter ms-sys-%, $(SOURCES)))
@@ -53,9 +52,9 @@ $(SOURCES): | $(ARCHIVES)
 
 $(addsuffix /.config, $(BUILDBB32) $(BUILDBB64)): $(CONFDIR)/busybox.conf | $(BB_DIR)
 	cp $(CONFDIR)/busybox.conf $(BUILDBB32)/.config
-	cd $(BB_DIR); PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 CROSS_COMPILE=i386-linux-gnu- make O=$(BUILDBB32) oldconfig
+	cd $(BB_DIR); PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" CROSS_COMPILE=i386-linux-gnu- make CONFIG_PREFIX=$(SYSROOT) O=$(BUILDBB32) oldconfig
 	cp $(CONFDIR)/busybox.conf $(BUILDBB64)/.config
-	cd $(BB_DIR); make O=$(BUILDBB64) oldconfig
+	cd $(BB_DIR); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" make CONFIG_PREFIX=$(SYSROOT64) O=$(BUILDBB64) oldconfig
 
 configure: $(SOURCES) $(addsuffix /.config, $(BUILDBB32) $(BUILDBB64))
 
@@ -65,9 +64,9 @@ build-busybox: $(BUILDBB32)/busybox $(BUILDBB64)/busybox
 
 $(BUILDBB32)/busybox $(BUILDBB64)/busybox: $(BUILDBB32)/.config $(BUILDBB64)/.config
 	echo "[1mBuilding busybox...[0m"
-	cd $(BUILDBB32);PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" CROSS_COMPILE=i386-linux-gnu- make
+	cd $(BUILDBB32);PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" CROSS_COMPILE=i386-linux-gnu- make CONFIG_PREFIX=$(SYSROOT)
 	echo "[1mBuilding 64bit busybox...[0m"
-	cd $(BUILDBB64); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" make
+	cd $(BUILDBB64); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" make CONFIG_PREFIX=$(SYSROOT64)
 
 build-mssys: $(MSSYS_DIR)/bin/ms-sys
 
@@ -124,10 +123,8 @@ install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-
 	$(foreach file, $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT64)/bin/$(notdir $(file)); )
 
 $(addsuffix /bin/busybox, $(SYSROOT) $(SYSROOT64)): $(BUILDBB32)/busybox $(BUILDBB64)/busybox
-	cd $(BUILDBB32); make CONFIG_PREFIX=$(BUILDBB32)/_install install
-	cd $(BUILDBB32); make CONFIG_PREFIX=$(SYSROOT) install
-	cd $(BUILDBB64); make CONFIG_PREFIX=$(BUILDBB64)/_install install
-	cd $(BUILDBB64); make CONFIG_PREFIX=$(SYSROOT64) install
+	cd $(BUILDBB32); PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS="$(CFLAGS) -m32 --sysroot=$(SYSROOT)" CROSS_COMPILE=i386-linux-gnu- make CONFIG_PREFIX=$(SYSROOT) install
+	cd $(BUILDBB64); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" make CONFIG_PREFIX=$(SYSROOT64) install
 
 $(addsuffix /bin/ms-sys, $(SYSROOT) $(SYSROOT64)): $(MSSYS_DIR)/bin/ms-sys
 	install -D -m 755 $(MSSYS_DIR)/bin/ms-sys $(SYSROOT)/bin/ms-sys
