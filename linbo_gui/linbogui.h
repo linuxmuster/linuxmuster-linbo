@@ -44,6 +44,9 @@ private:
     FortschrittDialog* progress;
     int preTab, roottimeout, logoutTimer;
     linboLogConsole* logConsole;
+    int autostartnr;
+    QString autostartos;
+    int autostarttimeout;
 
     void showInfos();
     void showOSs();
@@ -69,6 +72,7 @@ public slots:
     void doInitCache(bool formatCache, DownloadType type);
     void performLogin(QString passwd);
     void performLogout();
+    void doWrapperCommands();
     void doAutostartDialog();
     void doAutostart();
     void doStart(int nr);
@@ -104,13 +108,15 @@ private slots:
 
     void on_partition_clicked();
 
+    void on_setup_clicked();
+
 protected:
     void timerEvent(QTimerEvent *event);
 
 private:
     void doCreate();
     void doUpload();
-    void doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
+    int doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
                    Aktion aktion = Aktion::None, bool* details = NULL);
     Ui::LinboGUI *ui;
 };

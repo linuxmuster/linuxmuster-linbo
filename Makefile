@@ -41,6 +41,12 @@ INSTALLSUBS=$(SUBS:%=install-%)
 
 CREATEDIRS:=$(BUILDDIR) $(SYSROOT) $(SYSROOT64)
 
+MAINFILES=/usr/bin/linbo_gui
+
+SYSROOTFILES=$(addprefix $(SYSROOT), $(MAINFILES))
+
+SYSROOT64FILES=$(addprefix $(SYSROOT64), $(MAINFILES))
+
 # targets
 
 all: build
@@ -100,7 +106,7 @@ distclean: clean $(DISTCLEANSUBS) $(DISTCLEANDIRS)
 
 clean: $(CLEANSUBS) $(CLEANDIRS)
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
-	rm -rf $(BUILDDIR)/boot $(BUILDDIR)/initramfs.conf $(BUILDDIR)initramfs64.conf
+	rm -rf $(BUILDDIR)/boot $(BUILDDIR)/initramfs.conf $(BUILDDIR)/initramfs64.conf
 
 $(INSTALLDIRS):
 	make -C $(@:install-%=%) install
@@ -112,7 +118,7 @@ install: $(INSTALLSUBS) $(INSTALLDIRS) install-initrd install-grubnetdir
 
 install-initrd: $(SYSROOT)/linbofs.lz $(SYSROOT64)/linbofs64.lz
 
-$(SYSROOT)/linbofs.lz:
+$(SYSROOT)/linbofs.lz: $(CURDIR)/conf/initramfs.conf $(SYSROOTFILES) $(patsubst linbo/%,$(SYSROOT)/%, $(LINBO))
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding LINBOFS...[0m"
 	cat $(CURDIR)/conf/initramfs.conf > $(BUILDDIR)/initramfs.conf
@@ -130,11 +136,10 @@ $(SYSROOT)/linbofs.lz:
 	cd $(SYSROOT); find lib/modules -type f -printf "file /%p $(SYSROOT)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs.conf
 	echo >> $(BUILDDIR)/initramfs.conf
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs.conf
-	cd $(BUILDBB32); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
-	cd $(BUILDBB32); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs.conf
+	cd $(SYSROOT); find -L . -samefile bin/busybox -not -path "./bin/busybox" -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@^\.@@' >>$(BUILDDIR)/initramfs.conf
 	cd $(SYSROOT); rm -f linbofs.lz; $(BUILD32)/usr/gen_init_cpio $(BUILDDIR)/initramfs.conf | lzma -zcv > $(SYSROOT)/linbofs.lz
 
-$(SYSROOT64)/linbofs64.lz:
+$(SYSROOT64)/linbofs64.lz: $(CURDIR)/conf/initramfs64.conf $(SYSROOT64FILES) $(patsubst linbo/%, $(SYSROOT64)/%, $(LINBO))
 	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
 	@echo "[1mBuilding 64bit LINBOFS...[0m"
 	cat $(CURDIR)/conf/initramfs64.conf > $(BUILDDIR)/initramfs64.conf
@@ -152,8 +157,7 @@ $(SYSROOT64)/linbofs64.lz:
 	cd $(SYSROOT64); find lib/modules -type f -printf "file /%p $(SYSROOT64)/%p %m 0 0\n" >>$(BUILDDIR)/initramfs64.conf
 	echo >> $(BUILDDIR)/initramfs64.conf
 	echo "# busybox applets" >> $(BUILDDIR)/initramfs64.conf
-	cd $(BUILDBB64); find _install -type d -printf "dir %p %m 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
-	cd $(BUILDBB64); find _install -type l -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@_install@@' >>$(BUILDDIR)/initramfs64.conf
+	cd $(SYSROOT64); find -L . -samefile bin/busybox -not -path "./bin/busybox" -printf "slink %p /bin/busybox 777 0 0\n" | sed 's@^\.@@' >>$(BUILDDIR)/initramfs64.conf
 	cd $(SYSROOT64); rm -f linbofs64.lz; $(BUILD64)/usr/gen_init_cpio $(BUILDDIR)/initramfs64.conf | lzma -zcv > $(SYSROOT64)/linbofs64.lz
 
 install-grubnetdir: $(SYSROOT64)/usr/lib/grub/i386-pc $(SYSROOT)/usr/lib/grub/i386-efi $(SYSROOT64)/usr/lib/grub/x86_64-efi

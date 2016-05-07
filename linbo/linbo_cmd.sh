@@ -838,7 +838,7 @@ print_grubpart(){
  [ -b "$partition" ] || return 1
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
  case "$partition" in
-  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk[0-9]p\([0-9]*\)|\1|')" ;;
+  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]*\)p[0-9]*|\1|')" ;;
   *)
    local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
    local disknr=$(( $ord - 97 ))
@@ -1148,8 +1148,9 @@ prepare_reboot(){
  local APPEND="$6"
  local efipart="$7"
  local efiboot="false"
+ local noefibootmgr="$(kerneloptions | grep -iw noefibootmgr)"
  remote_cache "$(cachedev)" || local localcache="yes"
- if [ -n "$efipart" ]; then
+ if [ -z "$noefibootmgr" -a -n "$efipart" ]; then
   mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then

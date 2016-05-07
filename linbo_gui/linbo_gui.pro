@@ -33,7 +33,9 @@ SOURCES += main.cpp\
     consolewidget.cpp \
     downloadtype.cpp \
     autostart.cpp \
-    aktion.cpp
+    aktion.cpp \
+    commandline.cpp \
+    ip4validator.cpp
 
 HEADERS  += linbogui.h\
     registrierungsdialog.h \
@@ -53,7 +55,9 @@ HEADERS  += linbogui.h\
     consolewidget.h \
     downloadtype.h \
     autostart.h \
-    aktion.h
+    aktion.h \
+    commandline.h \
+    ip4validator.h
 
 FORMS    += linbogui.ui\
     registrierungsdialog.ui \

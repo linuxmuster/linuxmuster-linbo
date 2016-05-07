@@ -71,7 +71,23 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     ui->systeme->setCurrentIndex(0);
 
     //process autostart
-    if(conf->config.get_autostart() != NULL && conf->config.get_autostarttimeout() != 0){
+    autostartnr = -1;
+    for(unsigned int osnr=0;osnr < conf->elements.size() && autostartnr < 0;osnr++){
+        os_item* os = &conf->elements.at(osnr);
+        for(unsigned int imgnr=0;imgnr < os->image_history.size() && autostartnr < 0; imgnr++ ){
+            image_item* img = &os->image_history.at(imgnr);
+            if(img->get_autostart() && img->get_autostarttimeout() != 0){
+                autostartnr = osnr;
+                autostartos = os->get_name();
+                autostarttimeout = img->get_autostarttimeout();
+            }
+        }
+    }
+    //process linbocmds
+    if(conf->getCommandLine().getLinbocmd() != NULL){
+        QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
+    }
+    else if(autostartnr > -1){
         QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
     }
 }
@@ -138,29 +154,29 @@ void LinboGUI::showInfos()
 
 void LinboGUI::on_halt_clicked()
 {
+    logConsole->writeStdOut( QString("shutdown entered") );
     QStringList cmd;
-      cmd.clear();
-      cmd = QStringList("busybox");
-      cmd.append("poweroff");
-      logConsole->writeStdOut( QString("shutdown entered") );
-      process->start( cmd.join(" ") );
+    cmd.clear();
+    cmd = QStringList("busybox");
+    cmd.append("poweroff");
+    doCommand( cmd, false, QString("Rechner fährt herunter") );
 }
 
 void LinboGUI::on_reboot_clicked()
 {
+    logConsole->writeStdOut( QString("reboot entered") );
     QStringList cmd;
-      cmd.clear();
-      cmd = QStringList("busybox");
-      cmd.append("reboot");
-      logConsole->writeStdOut( QString("reboot entered") );
-      process->start( cmd.join(" ") );
+    cmd.clear();
+    cmd = QStringList("busybox");
+    cmd.append("reboot");
+    doCommand( cmd, false, QString("Rechner startet neu") );
 }
 
 void LinboGUI::on_update_clicked()
 {
       logConsole->writeStdOut( QString("update entered") );
       QStringList cmd = command->mklinboupdatecommand();
-      doCommand( cmd, false, QString("update"), Aktion::None, &details );
+      doCommand( cmd, false, QString("Linbo wird aktualisiert"), Aktion::None, &details );
 }
 
 void LinboGUI::on_systeme_currentChanged(int index)
@@ -215,7 +231,7 @@ void LinboGUI::on_doregister_clicked()
 
 void LinboGUI::do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup)
 {
-    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren..."), Aktion::None, &details);
+    doCommand(command->mkregistercommand(roomName, clientName, ipAddress, clientGroup), true, QString("Registrieren"), Aktion::None, &details);
 }
 
 void LinboGUI::showOSs()
@@ -321,12 +337,25 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
     }
 }
 
-void LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, Aktion aktion, bool* details)
+void LinboGUI::doWrapperCommands()
+{
+    vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
+    for(vector<QStringList>::iterator it = cmds.begin();it != cmds.end();++it){
+        QStringList cmd = *it;
+        if(QDialog::Rejected == doCommand(cmd, false, cmd.at(1), Aktion::None, &details))
+            return;
+    }
+    if(autostartnr > -1){
+        QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
+    }
+}
+
+int LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, Aktion aktion, bool* details)
 {
     QStringList *cmd = new QStringList(command);
     progress = new FortschrittDialog( this, cmd, logConsole, titel, aktion, details );
     progress->setShowCancelButton( interruptible );
-    progress->exec();
+    return progress->exec();
 }
 
 void LinboGUI::on_console_clicked()
@@ -337,22 +366,23 @@ void LinboGUI::on_console_clicked()
 
 void LinboGUI::doAutostart()
 {
-    doCommand(command->mkstartcommand(conf->config.get_autostartosnr()), false);
+
+    doCommand(command->mkstartcommand(autostartnr), false, QString("Automatischer Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doStart(int nr)
 {
-    doCommand(command->mkstartcommand(nr), false);
+    doCommand(command->mkstartcommand(nr), false, QString("Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doSync(int nr)
 {
-    doCommand(command->mksyncstartcommand(nr), false);
+    doCommand(command->mksyncstartcommand(nr, -1, false), false, QString("Sync & Start"), Aktion::None, &details);
 }
 
 void LinboGUI::doNew(int nr)
 {
-    doCommand(command->mksyncstartcommand(nr), false);
+    doCommand(command->mksyncstartcommand(nr, -1, true), false, QString("Neu & Start"), Aktion::None, &details);
 }
 
 void LinboGUI::on_initcache_clicked()
@@ -364,12 +394,22 @@ void LinboGUI::on_initcache_clicked()
 
 void LinboGUI::on_partition_clicked()
 {
-    doCommand(command->mkpartitioncommand(), false);
+    doCommand(command->mkpartitioncommand(), false, QString("Partitionieren"), Aktion::None, &details);
+}
+
+void LinboGUI::on_setup_clicked()
+{
+    doCommand( command->mkpartitioncommand(), true, QString("Einrichten - Partitionieren"), Aktion::None, &details);
+    doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details);
+    for(unsigned int osnr = 0;osnr < conf->elements.size(); osnr++){
+        doCommand( command->mksynccommand(osnr), true, QString("Einrichten - Synchronisieren OS Nr."+osnr), Aktion::None, &details);
+    }
+    doCommand( command->mkstartcommand(0), true, QString("Einrichten - Start OS Nr.1"), Aktion::None, &details);
 }
 
 void LinboGUI::doAutostartDialog()
 {
-    Autostart* dlg = new Autostart( this, conf->config.get_autostarttimeout(), QString("Autostart " + conf->config.get_autostartosname()));
+    Autostart* dlg = new Autostart( this, autostarttimeout, QString("Autostart " + autostartos));
     connect( dlg, &Autostart::accepted, this, &LinboGUI::doAutostart);
     dlg->exec();
 }
@@ -414,7 +454,11 @@ void LinboGUI::doUploadDialog(int nr)
 void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, Aktion aktion)
 {
     QString baseImage = imageName.left(imageName.lastIndexOf(".")) + Command::BASEIMGEXT;
-    doCommand(command->mkcreatecommand(nr, imageName, baseImage), true);
+    QString title = QString("Image erstellen");
+    if( upload ){
+        title += "(und hochladen)";
+    }
+    doCommand(command->mkcreatecommand(nr, imageName, baseImage), true, title, aktion, &details);
     if(isnew){
         os_item os = conf->elements[nr];
         image_item new_image;
@@ -437,7 +481,7 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
     command->doWritefileCommand(tmpName, destination);
 
     if( upload ){
-        doCommand(command->mkuploadcommand(imageName), true);
+        doCommand(command->mkuploadcommand(imageName), true, QString("Image hochladen"), aktion, &details);
     }
     if(aktion == Aktion::Reboot)
         system("busybox reboot");
@@ -447,7 +491,7 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
 
 void LinboGUI::doUpload(const QString &imageName, Aktion aktion)
 {
-    doCommand( command->mkuploadcommand( imageName), true );
+    doCommand( command->mkuploadcommand( imageName), true, QString("Image hochladen"), aktion, &details);
 
     if (aktion == Aktion::Shutdown) {
         system("busybox poweroff");
@@ -475,5 +519,5 @@ void LinboGUI::doInfo(const QString& filename, const QString& description)
 
 void LinboGUI::doInitCache(bool formatCache, DownloadType type)
 {
-    doCommand( command->mkcacheinitcommand(formatCache, type) );
+    doCommand( command->mkcacheinitcommand(formatCache, type), false, QString("Cache aktualisieren"), Aktion::None, &details);
 }

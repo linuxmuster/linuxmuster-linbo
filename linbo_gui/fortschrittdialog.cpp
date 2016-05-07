@@ -1,3 +1,4 @@
+#include <qdebug.h>
 #include <unistd.h>
 #include <QDesktopWidget>
 #include <qdialog.h>
@@ -11,9 +12,11 @@
 #include "ui_fortschrittdialog.h"
 
 FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linboLogConsole* new_log,
-                                       const QString& titel, Aktion aktion,
-                                       bool* newDetails):
-    QDialog(parent), details(newDetails), process(new QProcess(this)), logConsole(new_log), logDetails(), timerId(0),
+                                     const QString& titel, Aktion aktion, bool* newDetails,
+                                     int (*new_maximum)(const QByteArray& output),
+                                     int (*new_value)(const QByteArray& output)):
+    QDialog(parent), details(newDetails), process(new QProcess(this)), logConsole(new_log), logDetails(),
+    timerId(0), maximum(new_maximum), value(new_value),
     ui(new Ui::FortschrittDialog)
 {
     ui->setupUi(this);
@@ -63,12 +66,20 @@ void FortschrittDialog::killLinboCmd() {
 void FortschrittDialog::timerEvent(QTimerEvent *event) {
     if(event->timerId() == timerId){
         ui->processTime->setTime(ui->processTime->time().addSecs(1));
+        if( maximum == NULL || value == NULL ){
+            // die Automatik benötigt 60 Sekunden für 1x 100%
+            ui->progressBar->setValue(ui->processTime->time().second()*10/6);
+        }
     }
 }
 
 void FortschrittDialog::processReadyReadStandardOutput()
 {
     QByteArray data = process->readAllStandardOutput();
+    if( maximum != NULL && value != NULL ){
+        ui->progressBar->setMaximum(maximum(data));
+        ui->progressBar->setValue(value(data));
+    }
     logDetails->writeStdOut(data);
     if(logConsole != NULL)
         logConsole->writeStdOut(data);

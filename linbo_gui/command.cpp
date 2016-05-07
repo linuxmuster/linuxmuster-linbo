@@ -1,4 +1,5 @@
 #include <qregexp.h>
+#include <qdebug.h>
 
 #include "command.h"
 #include "qprocess.h"
@@ -6,12 +7,14 @@
 #include "downloadtype.h"
 
 #define LINBO_CMD(arg) QStringList("linbo_cmd") << (arg);
+#define WRAPPER_CMD(arg) QStringList("linbo_wrapper") << (arg);
 
 const QString Command::USER = "linbo";
 const QString Command::BASEIMGEXT = ".cloop";
 const QString Command::INCIMGEXT = ".rsync";
 const QString Command::DESCEXT = ".desc";
 const QString Command::TMPDIR = "/tmp/";
+const QString Command::LINBOCMDSEP = ",";
 
 // this appends a quoted space in case item is empty and resolves
 // problems with linbo_cmd's weird "shift"-usage
@@ -21,6 +24,24 @@ void Command::saveappend( QStringList& command, const QString& item ) {
   else
     command.append( item );
 
+}
+
+// parse Wrapper commands and create List of QStringList
+vector<QStringList> Command::parseWrapperCommands(const QString& input)
+{
+    vector<QStringList> ret = vector<QStringList>();
+    QStringListIterator cmds(input.split(LINBOCMDSEP));
+    while( cmds.hasNext() ){
+        ret.push_back(parseWrapperCommand(cmds.next()));
+    }
+    return ret;
+}
+
+// parse Warpper command
+QStringList Command::parseWrapperCommand(const QString& input)
+{
+    QStringList command = WRAPPER_CMD(input);
+    return command;
 }
 
 // Start image
@@ -37,7 +58,7 @@ QStringList Command::mkstartcommand(unsigned int osnr, int imnr) {
 }
 
 // Sync+start image
-QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr) {
+QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr, bool format) {
   QStringList command = LINBO_CMD("syncstart");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
@@ -51,6 +72,9 @@ QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr) {
   saveappend( command, im.get_kernel() );
   saveappend( command, im.get_initrd() );
   saveappend( command, im.get_append() );
+  if( format ){
+      saveappend( command, QString("force") );
+  }
   return command;
 }
 
@@ -152,7 +176,6 @@ QStringList Command::mkregistercommand(QString& roomName, QString& clientName,
                                        QString& ipAddress, QString& clientGroup)
 {
     QStringList command = LINBO_CMD("register");
-    saveappend(command, "register");
     saveappend(command, conf->config.get_server());
     saveappend(command, "linbo");
     saveappend(command, this->password);
@@ -214,7 +237,7 @@ QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
     }
     process->start( command.join(" ") );
     while( !process->waitForFinished(10000) ){
-        cerr << "Der Prozess wurde nicht korrekt durchgeführt.";
+        qWarning() << "Der Prozess " << cmd << " wurde nicht korrekt durchgeführt.";
      }
     QString result = QString(process->readAllStandardOutput());
     result.remove(QRegExp("\\t"));

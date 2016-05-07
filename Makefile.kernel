@@ -122,30 +122,28 @@ clean:
 	rm -rf $(BUILDCL32)
 	rm -rf $(BUILDCL64)
 
-install: install32 install64
+install: $(addsuffix /lib/modules/modules.dep, $(SYSROOT) $(SYSROOT64)) $(SYSROOT)/linbo $(SYSROOT64)/linbo64
 
-install32: $(SYSROOT)/lib/modules/modules.dep 
-
-install64: $(SYSROOT64)/lib/modules/modules.dep
-
-$(SYSROOT)/lib/modules/modules.dep: $(BUILD32)/vmlinuz $(BUILDCL32)/cloop.ko
+$(SYSROOT)/linbo $(SYSROOT)/lib/modules/modules.dep: $(BUILD32)/vmlinuz $(BUILDCL32)/cloop.ko
 	cd $(BUILD32) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_MOD_PATH=$(SYSROOT) modules_install
 	mkdir -p $(SYSROOT)/lib/modules/$(KVERS)/kernel/drivers/block
 	cp $(BUILDCL32)/cloop.ko $(SYSROOT)/lib/modules/$(KVERS)/kernel/drivers/block/
 	cd $(BUILD32) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_HDR_PATH=$(SYSROOT)/usr headers_install
 	cd $(BUILD32) && mkdir -p $(SYSROOT) ; make ARCH=i386 INSTALL_PATH=$(SYSROOT) install
+	install $(SYSROOT)/vmlinuz-$(KVERS) $(SYSROOT)/linbo
 	/sbin/depmod -a -b $(SYSROOT) $(KVERS)
 
-$(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz $(BUILDCL64)/cloop.ko
+$(SYSROOT64)/linbo64 $(SYSROOT64)/lib/modules/modules.dep: $(BUILD64)/vmlinuz $(BUILDCL64)/cloop.ko
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_MOD_PATH=$(SYSROOT64) modules_install
 	mkdir -p $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block
 	cp $(BUILDCL64)/cloop.ko $(SYSROOT64)/lib/modules/$(KVERS)/kernel/drivers/block/
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_HDR_PATH=$(SYSROOT64)/usr headers_install
 	cd $(BUILD64) && mkdir -p $(SYSROOT64) ; make ARCH=x86_64 INSTALL_PATH=$(SYSROOT64) install
+	install $(SYSROOT64)/vmlinuz-$(KVERS) $(SYSROOT64)/linbo64
 	/sbin/depmod -a -b $(SYSROOT64) $(KVERS)
 
 .PHONY: all $(DIRS)
 .PHONY: distclean clean
 .PHONY: build build32 build64
-.PHONY: install install32 install64
+.PHONY: install
 .PHONY: configure config32 config64

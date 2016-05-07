@@ -8,23 +8,22 @@
 export DH_COMPAT=5
 
 CURDIR=$(shell pwd)
+DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
 
 include $(CURDIR)/common.mk
 
 # targets
 
-configure:
-	make configure
-
+configure: configure-stamp
 configure-stamp:
 	dh_testdir
+	make configure
 	touch configure-stamp
 
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
 	make build
-
 	touch build-stamp
 
 distclean: clean
@@ -33,6 +32,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	dh_clean -d
+	make clean
 
 install: build
 	dh_testdir
@@ -42,13 +42,19 @@ install: build
 	#dh_clean -k
 	dh_installdirs
 	dh_install
+	dh_installinit
+	# manual installation files
+	install -D -m 644 debian/linbo-bittorrent.default $(DESTDIR)/etc/default/linbo-bittorrent
+	install -D -m 755 debian/linbo-multicast.init $(DESTDIR)/etc/init.d/linbo-multicast
+	install -D -m 755 debian/linbo-bittorrent.init $(DESTDIR)/etc/init.d/linbo-bittorrent
+	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
 
 # Build architecture-independent files here.
-binary-indep: build install
+# binary-indep: build install
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
-binary-arch: build install
+binary-arch: configure build install
 	dh_testdir
 	dh_testroot
 	dh_installdebconf	

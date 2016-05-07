@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.4.0-1) UNRELEASED; urgency=medium
+
+  * Qt5, build system with Makefiles, sysroot, sysroot64
+
+ -- Frank Schütte <fschuett@gymhim.de>  Wed, 20 Apr 2016 09:36:14 +0200
+
 linuxmuster-linbo (2.3.0-31) babo-testing; urgency=low
 
   * linbo_cmd.sh, mk_efiboot(): provide grubx64.efi also for linux clients.

@@ -6,8 +6,10 @@
 #include "consolewidget.h"
 #include "linboLogConsole.h"
 
+const QString ConsoleWidget::PROMPT = QString("<b style='background-color:grey;'># </b>");
+
 ConsoleWidget::ConsoleWidget(QWidget *parent)
-    : QPlainTextEdit(parent), command(""), process()
+    : QTextEdit(parent), command(""), process()
 {
     document()->setMaximumBlockCount(100);
     QPalette p = palette();
@@ -15,12 +17,7 @@ ConsoleWidget::ConsoleWidget(QWidget *parent)
     p.setColor(QPalette::Text, Qt::green);
     setPalette(p);
 
-    process = new QProcess( this );
-    connect(process, SIGNAL(readyReadStandardError()),this, SLOT(readStdError()));
-    connect(process, SIGNAL(readyReadStandardOutput()),this, SLOT(readStdOut()));
-    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)),
-            this, SLOT(finished(int,QProcess::ExitStatus)));
-    process->start(QString("bash"));
+    insertHtml(PROMPT);
 }
 
 ConsoleWidget::~ConsoleWidget()
@@ -30,7 +27,7 @@ ConsoleWidget::~ConsoleWidget()
 
 void ConsoleWidget::insertPlainText(const QString &data)
 {
-    QPlainTextEdit::insertPlainText(data);
+    QTextEdit::insertPlainText(data);
 
     QScrollBar *bar = verticalScrollBar();
     bar->setValue(bar->maximum());
@@ -76,6 +73,12 @@ void ConsoleWidget::contextMenuEvent(QContextMenuEvent *e)
 
 void ConsoleWidget::doCommand()
 {
+    process = new QProcess( this );
+    connect(process, SIGNAL(readyReadStandardError()),this, SLOT(readStdError()));
+    connect(process, SIGNAL(readyReadStandardOutput()),this, SLOT(readStdOut()));
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT(finished(int,QProcess::ExitStatus)));
+    process->start(QString("bash"));
     command += "\n";
     process->write( command.toLocal8Bit() );
     command = "";
@@ -98,5 +101,6 @@ void ConsoleWidget::readStdOut()
 void ConsoleWidget::finished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     qDebug()<<"process ended with " << exitCode << " and status " << exitStatus << "\n";
+    insertHtml(PROMPT);
     process = NULL;
 }

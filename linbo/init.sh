@@ -50,8 +50,6 @@ read_cmdline(){
 
  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
  case "$CMDLINE" in *\ splash*) splash=yes;; esac
- case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
- case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
  case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
 }
 
@@ -403,55 +401,6 @@ do_linbo_update(){
  fi
 }
 
-# disable auto functions from cmdline
-disable_auto(){
- sed -e 's|^[Aa][Uu][Tt][Oo][Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn].*|AutoPartition = no|g
-         s|^[Aa][Uu][Tt][Oo][Ff][Oo][Rr][Mm][Aa][Tt].*|AutoFormat = no|g
-         s|^[Aa][Uu][Tt][Oo][Ii][Nn][Ii][Tt][Cc][Aa][Cc][Hh][Ee].*|AutoInitCache = no|g' -i /start.conf
-}
-
-# handle autostart from cmdline
-set_autostart() {
- # return if autostart shall be suppressed generally
- if [ "$autostart" = "0" ]; then
-  echo "Disabling autostart generally."
-  # set all autostart parameters to no
-  sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
-  return
- fi
- # count [OS] entries
- local counts="$(grep -ci ^"\[OS\]" /start.conf)"
- # autostart OS at start.conf position given by autostart parameter
- local c=0
- local found=0
- local line=""
- while read -r line; do
-  if echo "$line" | grep -qi ^"\[OS\]"; then
-   let c++
-   [ "$autostart" = "$c" ] && found=1
-  fi
-  # suppress autostart for other OS entries
-  echo "$line" | grep -qi ^autostart || echo "$line" >> /start.conf.new
-  # write autostart line for specific OS
-  if [ "$found" = "1" ]; then
-   echo "Enabling autostart for os nr. $c."
-   echo "Autostart = yes" >> /start.conf.new
-   found=0
-  fi
- done </start.conf
- mv /start.conf.new /start.conf
-}
-
-# disable start, sync and new buttons
-disable_buttons(){
- [ -s /start.conf ] || return
- echo "Disabling buttons."
- sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
-         s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
-         s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
-         s|^[Hh][Ii][Dd][Dd][Ee][Nn].*|Hidden = yes|g' -i /start.conf
-}
-
 network(){
  echo
  echo "Starting network configuration ..."
@@ -519,15 +468,6 @@ network(){
   done
   # get optional onboot linbo-remote commands
   rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
-  if [ -s "/linbocmd" ]; then
-   for i in noauto nobuttons; do
-    grep -q "$i" /linbocmd && eval "$i"=yes
-    sed -e "s|$i||" -i /linbocmd
-   done
-   # strip leading and trailing spaces and escapes
-   linbocmd="$(awk '{$1=$1}1' /linbocmd)"
-   sed -e 's|\\||g' -i /linbocmd
-  fi
   # and (optional) the GUI icons
   for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
@@ -546,15 +486,6 @@ network(){
  fi
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
- # disable auto functions if noauto is given
- if [ -n "$noauto" ]; then
-  autostart=0
-  disable_auto
- fi
- # set autostart if given on cmdline
- isinteger "$autostart" && set_autostart
- # disable buttons if nobuttons is given on cmdline
- [ -n "$nobuttons" ] && disable_buttons 
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  # remove reboot flag, save windows activation
@@ -592,15 +523,6 @@ fi
 # console mode
 if [ -z  "$splash" ]; then
  network
- # execute linbo commands given on commandline
- if [ -n "$linbocmd" ]; then
-  OIFS="$IFS"
-  IFS=","
-  for cmd in $linbocmd; do
-   /usr/bin/linbo_wrapper "$cmd"
-  done
-  IFS="$OIFS"
- fi
  exit 0
 fi
 

@@ -31,8 +31,6 @@ globals::globals():roottimeout(120) {
     consolefontcolorstderr = "red";
     downloadtype = DownloadType::RSync;
     autoformat = 0;
-    autostart = 0;
-    autostarttimeout = 0;
 }
 
 globals::~globals() {}
@@ -57,10 +55,6 @@ void globals::set_cache( const QString& new_cache ) {
     hd = cache;
     hd.remove(QRegExp("p?[0-9]{1,2}$"));
 }
-const image_item* globals::get_autostart(){return autostart;};
-int globals::get_autostarttimeout(){ return autostarttimeout; };
-const QString& globals::get_autostartosname(){ return autostartosname; };
-unsigned int globals::get_autostartosnr(){ return autostartosnr; };
 void globals::set_hostgroup( const QString& new_hostgroup ) { hostgroup = new_hostgroup; }
 void globals::set_kerneloptions(const QString &new_kerneloptions) { kerneloptions = new_kerneloptions;}
 void globals::set_systemtype(const QString &new_systemtype) { systemtype = new_systemtype; }
@@ -79,10 +73,6 @@ void globals::set_downloadtype( const QString& new_downloadtype ) {
         downloadtype = DownloadType::RSync;
 };
 void globals::set_autoformat( const bool& new_autoformat ) { autoformat = new_autoformat; };
-void globals::set_autostart(image_item *item){ autostart = item; };
-void globals::set_autostarttimeout(int timeout){ autostarttimeout = timeout;};
-void globals::set_autostartosname(const QString& osname){ autostartosname = osname; };
-void globals::set_autostartosnr(unsigned int nr){ autostartosnr = nr; };
 diskpartition::diskpartition() {}
 diskpartition::~diskpartition() {}
 const QString& diskpartition::get_dev() const { return dev; }
@@ -100,6 +90,17 @@ void diskpartition::set_bootable( const bool& new_bootable ) { bootable = new_bo
 
 image_item::image_item() { autostart = false; autostarttimeout = 0; hidden = false; defaultaction = QString("sync"); }
 image_item::~image_item() {}
+const QString& image_item::quote(const QString& unquoted){
+    if(unquoted == NULL)
+        return unquoted;
+    if(! unquoted.contains(" "))
+        return unquoted;
+    const QString* tmp = new QString((unquoted.startsWith("\"")? QString("") : QString("\""))
+                                     + unquoted
+                                     + (unquoted.endsWith("\"")? QString("") : QString("\"")));
+    return *tmp;
+}
+
 const QString& image_item::get_version() const { return version; }
 const QString& image_item::get_description() const { return description; }
 const QString& image_item::get_image() const { return image; }
@@ -119,7 +120,7 @@ void image_item::set_description( const QString& new_description ) { description
 void image_item::set_image( const QString& new_image ) { image = new_image; }
 void image_item::set_kernel( const QString& new_kernel ) { kernel = new_kernel; }
 void image_item::set_initrd( const QString& new_initrd ) { initrd = new_initrd; }
-void image_item::set_append( const QString& new_append ) { append = new_append; }
+void image_item::set_append( const QString& new_append ) { append = quote(new_append); }
 void image_item::set_syncbutton( const bool& new_syncbutton ) { syncbutton = new_syncbutton; }
 void image_item::set_startbutton( const bool& new_startbutton ) { startbutton = new_startbutton; }
 void image_item::set_newbutton( const bool& new_newbutton ) { newbutton = new_newbutton; }
