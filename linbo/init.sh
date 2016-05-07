@@ -1,15 +1,6 @@
-#!/bin/sh
-# init.sh - System setup and hardware detection
-# This is a busybox 1.1.3 init script
-# (C) Klaus Knopper 2007
-# License: GPL V2
-#
-# thomas@linuxmuster.net
-# 19.03.2016
-#
+#!/usr/bin/env ash
 
-# If you don't have a "standalone shell" busybox, enable this:
-# /bin/busybox --install
+if [ "$1" = "start" ]; then
 
 # Ignore signals
 trap "" 1 2 11 15
@@ -52,38 +43,8 @@ isinteger () {
  esac
 }
 
-# DMA
-enable_dma(){
- case "$CMDLINE" in *\ nodma*) return 0 ;; esac
- for d in $(cd /proc/ide 2>/dev/null && echo hd[a-z]); do
-  if test -d /proc/ide/$d; then
-   MODEL="$(cat /proc/ide/$d/model 2>/dev/null)"
-   test -z "$MODEL" && MODEL="[GENERIC IDE DEVICE]"
-   echo "${BLUE}Enabling DMA acceleration for: ${MAGENTA}$d      ${YELLOW}[${MODEL}]${NORMAL}"
-   echo "using_dma:1" >/proc/ide/$d/settings
-  fi
- done
-}
-
-# create device nodes
-udev_extra_nodes() {
-  grep '^[^#]' /etc/udev/links.conf | \
-  while read type name arg1; do
-    [ "$type" -a "$name" -a ! -e "/dev/$name" -a ! -L "/dev/$name" ] ||continue
-    case "$type" in
-      L) ln -s $arg1 /dev/$name ;;
-      D) mkdir -p /dev/$name ;;
-      M) mknod -m 600 /dev/$name $arg1 ;;
-      *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
-    esac
-  done
-}
-
 # read commandline parameters
 read_cmdline(){
- mount -t proc /proc /proc
- echo 0 >/proc/sys/kernel/printk
-
  # parse kernel cmdline
  CMDLINE="$(cat /proc/cmdline)"
 
@@ -100,21 +61,16 @@ init_setup(){
 
  # process parameters given on kernel command line
  for i in $CMDLINE; do
-
   case "$i" in
-
    # evalutate sata_nv options
    sata_nv.swnc=*)
     value="$(echo $i | awk -F\= '{ print $2 }')"
     echo "options sata_nv swnc=$value" > /etc/modprobe.d/sata_nv.conf
    ;;
-
    *=*)
     eval "$i"
    ;;
-
   esac
-
  done # cmdline
 
  # get optionally given start.conf location
@@ -123,22 +79,7 @@ init_setup(){
   extraconf="$(echo $conf | awk -F\: '{ print $2 }')"
  fi
 
- mount -t sysfs /sys /sys
- mount -t devtmpfs devtmpfs /dev
- if [ -e /etc/udev/links.conf ]; then
-  udev_extra_nodes
- fi
-
- loadkmap < /etc/german.kbd
- ifconfig lo 127.0.0.1 up
- hostname linbo
- klogd >/dev/null 2>&1
- syslogd -C 64k >/dev/null 2>&1
-
- # Enable CPU frequency scaling
- for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-  [ -f "$i" ] && echo "ondemand" > "$i" 2>/dev/null
- done
+ loadkmap < /usr/share/de-latin1-nodeadkeys.kmap
 }
 
 # trycopyfromdevice device filenames
@@ -529,7 +470,7 @@ network(){
  else
   # iterate over ethernet interfaces
   echo "Requesting ip address per dhcp ..."
-  for i in /sys/class/net/eth*; do
+  for i in /sys/class/net/en*; do
    dev="${i##*/}"
    ifconfig "$dev" up &> /dev/null
    # activate wol
@@ -616,46 +557,12 @@ network(){
  [ -n "$nobuttons" ] && disable_buttons 
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
- # start ssh server
- echo "Starting ssh server."
- /sbin/dropbear -s -g -E -p 2222 &> /dev/null
  # remove reboot flag, save windows activation
  do_housekeeping
  # done
  echo > /tmp/linbo-network.done
  echo "Done."
  rm -f /outfifo
-}
-
-# HW Detection
-hwsetup(){
- rm -f /tmp/linbo-cache.done
- echo "## Hardware-Setup - Begin ##" >> /tmp/linbo.log
-
- #
- # Udev starten
- echo > /sys/kernel/uevent_helper
- mkdir -p /run/udev
- udevd --daemon
- mkdir -p /dev/.udev/db/ /dev/.udev/queue/
- udevadm trigger
- mkdir -p /dev/pts
- mount /dev/pts
- udevadm settle || true
-
- #
- # Load acpi fan and thermal modules if available, to avoid machine
- # overheating.
- modprobe fan >/dev/null 2>&1 || true
- modprobe thermal >/dev/null 2>&1 || true
-
- export TERM_TYPE=pts
- 
- dmesg >> /tmp/linbo.log
- echo "## Hardware-Setup - End ##" >> /tmp/linbo.log
-
- sleep 2
- echo > /tmp/linbo-cache.done 
 }
 
 # Main
@@ -678,10 +585,8 @@ echo "Configuring hardware ..."
 echo
 if [ -n "$quiet" ]; then
  init_setup &> /dev/null
- hwsetup &> /dev/null
 else
  init_setup
- hwsetup
 fi
 
 # console mode
@@ -699,118 +604,4 @@ if [ -z  "$splash" ]; then
  exit 0
 fi
 
-# splash mode
-
-# convert wallpaper to splash image
-pngtopnm /icons/linbo_wallpaper.png > /etc/splash.pnm
-
-# no kernel messages, no screen blanking
-setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0
-tput clear
-
-# create pipes for progress bar and output
-mkfifo /fbfifo
-mkfifo /outfifo
-
-# start fbsplash
-fbsplash -i /etc/splash.conf -f /fbfifo -s /etc/splash.pnm &
-fbsplash_pid="$!"
-
-# start network and grab output
-network > /outfifo &
-
-# defaults for console output
-YPOS=12
-COLS=62
-SEPLINE="$(for i in $(seq $COLS); do echo -n '-'; done)"
-XPOS=19
-MAXCOUNT=100
-COUNTSTEP=12
-
-# console output for network configuration
-count=$COUNTSTEP
-while read DATA; do
- tput cup $YPOS $XPOS
- printf "%${COLS}s"
- tput cup $YPOS $XPOS
- echo "$DATA"
- [ $count -gt $MAXCOUNT ] && count=$MAXCOUNT
- echo "$count" > /fbfifo
- count=$(($count + $COUNTSTEP))
-done < /outfifo
-echo $MAXCOUNT > /fbfifo
-
-# wait for network
-while [ ! -e /tmp/linbo-network.done ]; do
- sleep 1
-done
-
-# read downloaded onboot linbocmds
-[ -e /linbocmd ] && linbocmd="$(cat /linbocmd)"
-
-# console output for linbo commands
-if [ -n "$linbocmd" ]; then
-
- # start progress bar
- ( count=0; while true; do sleep 1; echo $count > /fbfifo; count=$(($count + 10)); [ $count -gt $MAXCOUNT ] && count=0; done ) &
- pb_pid="$!"
-
- # iterate over on commandline given linbo commands
- OIFS="$IFS"
- IFS=","
- n=1
- for cmd in $linbocmd; do
-
-  # pause between commands
-  [ $n -gt 1 ] && sleep 3
-
-  # create pipe for command output
-  mkfifo /outfifo
-  # filter password
-  if echo "$cmd" | grep -q ^linbo:; then
-   msg="linbo_wrapper linbo:*****"
-  else
-   msg="linbo_wrapper $cmd"
-  fi
-  
-  ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
-
-  # read and print output
-  header=""
-  while read DATA; do
-   # print header once
-   if [ -z "$header" ]; then
-    tput cup $(($YPOS - 2)) $XPOS
-    printf "%${COLS}s"
-    tput cup $(($YPOS - 2)) $XPOS
-    echo "${DATA:0:$COLS}"
-    tput cup $(($YPOS - 1)) $XPOS
-    echo "$SEPLINE"
-    header=yes
-   else
-    tput cup $YPOS $XPOS
-    printf "%${COLS}s"
-    tput cup $YPOS $XPOS
-    echo "${DATA:0:$COLS}"
-   fi
-   tput cup $YPOS $XPOS
-  done < /outfifo
-
-  n=$(( $n + 1 ))
-
- done
- IFS="$OIFS"
 fi
-echo $MAXCOUNT > /fbfifo
-
-# kill progress bar
-kill "$pb_pid"
-ps w | grep -q " $pb_pid " && kill -9 "$pb_pid"
-
-echo "exit\n" > /fbfifo
-clear
-setterm -default
-kill "$fbsplash_pid"
-rm -f /fbfifo
-
-exit 0
