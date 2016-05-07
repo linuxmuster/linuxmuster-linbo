@@ -49,7 +49,6 @@ read_cmdline(){
  CMDLINE="$(cat /proc/cmdline)"
 
  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
- case "$CMDLINE" in *\ splash*) splash=yes;; esac
  case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
 }
 
@@ -521,9 +520,7 @@ else
 fi
 
 # console mode
-if [ -z  "$splash" ]; then
- network
- exit 0
-fi
+network
+exit 0
 
 fi
