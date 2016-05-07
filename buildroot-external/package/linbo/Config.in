@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LINBO
+    bool "linbo"
+    select BR2_PACKAGE_RSYNC
+    help
+      This package contains LINBO-specific programs.
+
+      https://github.com/linuxmuster/linuxmuster-linbo
