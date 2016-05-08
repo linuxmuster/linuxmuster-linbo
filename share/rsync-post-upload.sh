@@ -57,7 +57,7 @@ if [ -s "$BACKUP" ]; then
   # backup macct and opsi files
   case "$FTYPE" in
    *.cloop|*.rsync)
-    for i in macct opsi; do
+    for i in macct opsi postsync; do
      if [ -e "${FILE}.$i" ];then
       mv -fv "${FILE}.$i" "${ARCHIVE}.$i"
       echo "$(basename ${ARCHIVE}.$i) created."
