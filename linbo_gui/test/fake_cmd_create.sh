@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
 
+# linbo_cmd create /dev/sda4 test.cloop opensuse-cpqmini.cloop /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd
 create()
 {
-if [[ "$1" != "/dev/sda4" ]] || [[ "$2" != "test.cloop" ]] || [[ "$3" != "opensuse-cpqmini.cloop" ]] || [[ "$4" != "/dev/sda1" ]] || [[ "$5" != "/dev/sda1" ]] || [[ "$6" != "/boot/vmlinuz" ]] || "$7" != "/boot/initrd" ]]; then
-    return 1
-fi
+    # TODO: check $baseimagefile $imagefile
+    local cachedev="$1"
+    local imagefile="$2"
+    local baseimagefile="$3"
+    local bootdev="$4"
+    local rootdev="$5"
+    local kernel="$6"
+    local initrd="$7"
+    if [[ "${cachedev}" != "/dev/sda4" ]] \
+      || [[ "${imagefile}" != "test.cloop" ]] \
+      || [[ "${baseimagefile}" != "opensuse-cpqmini.cloop" ]] \
+      || [[ "${bootdev}" != "/dev/sda1" ]] \
+      || [[ "${rootdev}" != "/dev/sda1" ]] \
+      || [[ "${kernel}" != "/boot/vmlinuz" ]] \
+      || [[ "${initrd}" != "/boot/initrd" ]]; then
+        echo "Wrong parameters: «$*»"
+        return 1
+    fi
 
 
 echo 'create 1:�/dev/sda4� 2:�test.cloop� 3:�opensuse-cpqmini.cloop� 4:�/dev/sda1� 5:�/dev/sda1� 6:�/boot/vmlinuz� 7:�/boot/initrd� '
