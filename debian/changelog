@@ -1,4 +1,4 @@
-linuxmuster-linbo (2.4.0-1) UNRELEASED; urgency=medium
+linuxmuster-linbo (2.3.0-32) UNRELEASED; urgency=medium
 
   * Qt5, build system with Makefiles, sysroot, sysroot64
 
