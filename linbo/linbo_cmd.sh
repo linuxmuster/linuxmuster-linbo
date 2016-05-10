@@ -2899,6 +2899,12 @@ mac(){
  echo "$mac"
 }
 
+# Find all available batteries, get their capacity and output capacity of first found battery
+battery()
+{
+ find /sys/class/power_supply/ -name 'BAT*' -exec cat {}/capacity \; | head -n 1
+}
+
 # register server user password variables...
 register(){
  local RC=1
@@ -3036,6 +3042,7 @@ case "$cmd" in
  cpu) cpu ;;
  memory) memory ;;
  mac) mac ;;
+ battery) battery ;;
  size) size "$@" ;;
  authenticate) authenticate "$@" ;;
  create) create "$@" ;;
