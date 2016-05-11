@@ -25,7 +25,7 @@ TMP="/tmp/linbo_cmd.$$.tmp"
 rm -f "$TMP"
 
 # Nur zum Debuggen
-# echo "»linbo_cmd«" "»$@«"
+# echo "Â»linbo_cmdÂ«" "Â»$@Â«"
 ps w | grep linbo_cmd | grep -v grep >"$TMP"
 if [ $(cat "$TMP" | wc -l) -gt 1 ]; then
 # echo "Possible Bug detected: linbo_cmd already running." >&2
@@ -42,7 +42,7 @@ printargs(){
  local arg
  local count=1
  for arg in "$@"; do
-  echo -n "$((count++)):»$arg« "
+  echo -n "$((count++)):Â»$argÂ« "
  done
  echo ""
 }
@@ -171,7 +171,7 @@ interruptible(){
 
 help(){
 echo "
- Invalid LINBO command: »$@«
+ Invalid LINBO command: Â»$@Â«
 
  Syntax: linbo_cmd command option1 option2 ...
 
@@ -567,7 +567,7 @@ mountcache(){
    fi
    ;;
    *) # Yet unknown
-   echo "Unbekannte Quelle für LINBO-Cache: $1" >&2
+   echo "Unbekannte Quelle fÃ¼r LINBO-Cache: $1" >&2
    ;;
   esac
  [ "$RC" = "0" ] || echo "Kann $1 nicht als /cache einbinden." >&2
@@ -1540,9 +1540,9 @@ mk_cloop(){
  case "$1" in
   partition) # full partition dump
    if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
-    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
+    echo "Bereite Partition $2 (GrÃ¶ÃŸe=${size}K) fÃ¼r Komprimierung vor..." | tee -a /tmp/image.log
     prepare_fs /mnt "$2" | tee -a /tmp/image.log
-    echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
+    echo "Leeren Platz auffÃ¼llen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
     while true; do
@@ -1615,7 +1615,7 @@ mk_cloop(){
      fi
     else
      echo "Image $4 kann nicht eingebunden werden," | tee -a /tmp/image.log
-     echo "ist aber für die differentielle Sicherung notwendig." | tee -a /tmp/image.log
+     echo "ist aber fÃ¼r die differentielle Sicherung notwendig." | tee -a /tmp/image.log
      RC="$?"
     fi
     rmmod cloop >/dev/null 2>&1
@@ -1646,7 +1646,7 @@ check_status(){
  mountpart "$1" /mnt -r 2>> /tmp/linbo.log || return $?
  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$base*) RC=0 ;; esac
  umount /mnt || umount -l /mnt
-# [ "$RC" = "0" ] && echo "Enthält schon eine Version von $2."
+# [ "$RC" = "0" ] && echo "EnthÃ¤lt schon eine Version von $2."
  return "$RC"
 }
 
@@ -1735,7 +1735,7 @@ cp_cloop(){
    local s2="$(get_partition_size $targetdev)"
    local block="$(($CLOOP_BLOCKSIZE / 1024))"
    if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
-    echo "FEHLER: Cloop Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    echo "FEHLER: Cloop Image $imagefile (${s1}K) ist grÃ¶ÃŸer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
     echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
     rmmod cloop >/dev/null 2>&1
     return 1
@@ -1982,7 +1982,7 @@ restore_winact(){
  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
  # if an image is not yet created do nothing
  if [ -z "$image" ]; then
-  echo "Überspringe Reaktivierung, System ist unsynchronisiert."
+  echo "Ãœberspringe Reaktivierung, System ist unsynchronisiert."
   return
  fi
  local archive
@@ -2035,7 +2035,7 @@ restore_winact(){
  fi
  # no data available
  if [ ! -s "/cache/$archive" -o ! -s "/cache/$image.winact.cmd" ]; then
-  echo "Überspringe Reaktivierung, keine Daten."
+  echo "Ãœberspringe Reaktivierung, keine Daten."
   return
  fi
  echo "Stelle Windows-Aktivierungstokens wieder her."
@@ -2361,7 +2361,7 @@ torrent_watchdog(){
   echo "Image $image erfolgreich heruntergeladen." | tee -a /tmp/image.log
  else
   ps w | grep -v grep | grep -q ctorrent && killall -9 ctorrent
-  echo "Download von $image wegen Zeitüberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
+  echo "Download von $image wegen ZeitÃ¼berschreitung abgebrochen." >&2 | tee -a /tmp/image.log
  fi
  return "$RC"
 }
@@ -2387,7 +2387,7 @@ download_torrent(){
  local OPTS="-e 100000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
- echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
+ echo "Starte Torrent-Dienst fÃ¼r $image." | tee -a /tmp/image.log
  local logfile=/tmp/"$image".log
  if [ ! -e "$complete" ]; then
   rm -f "$image" "$torrent".bf
@@ -2444,10 +2444,10 @@ download_if_newer(){
    local fs2="$(get_filesize "$2")"
    if [ -n "$ts1" -a -n "$ts2" -a "$ts1" -gt "$ts2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Server enthält eine neuere ($ts2) Version von $2 ($ts1)."
+    echo "Server enthÃ¤lt eine neuere ($ts2) Version von $2 ($ts1)."
    elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
+    echo "DateigrÃ¶ÃŸe von $2 ($fs1) im Cache ($fs2) stimmt nicht."
    fi
    rm -f "$2".info.old
   else
@@ -2497,11 +2497,11 @@ download_if_newer(){
       if [ -n "$MPORT" ]; then
        download_multicast "$1" "$MPORT" "$2" ; RC="$?"
       else
-       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download möglich." >&2
+       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download mÃ¶glich." >&2
        RC=1
       fi
      else
-      echo "Datei multicast.list nicht gefunden, kein Multicast-Download möglich." >&2
+      echo "Datei multicast.list nicht gefunden, kein Multicast-Download mÃ¶glich." >&2
       RC=1
      fi
      [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
@@ -2525,7 +2525,7 @@ download_if_newer(){
    [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
   fi
  else # download nothing, no newer file on server
-  echo "Keine neuere Version vorhanden, überspringe $2."
+  echo "Keine neuere Version vorhanden, Ã¼berspringe $2."
  fi
  return "$RC"
 }
@@ -2572,7 +2572,7 @@ upload(){
  local ext
  if remote_cache "$4"; then
   echo "Cache $4 ist nicht lokal, die Datei $5 befindet sich" | tee -a /tmp/linbo.log
-  echo "höchstwahrscheinlich bereits auf dem Server, daher kein Upload." | tee -a /tmp/linbo.log
+  echo "hÃ¶chstwahrscheinlich bereits auf dem Server, daher kein Upload." | tee -a /tmp/linbo.log
   sendlog
   return 1
  fi
@@ -2624,7 +2624,7 @@ upload(){
 syncr(){
  echo -n "syncr " ; printargs "$@"
  if remote_cache "$2"; then
-  echo "Cache $2 ist nicht lokal, überspringe Aktualisierung der Images."
+  echo "Cache $2 ist nicht lokal, Ã¼berspringe Aktualisierung der Images."
  else
   mountcache "$2" || return "$?"
   cd /cache
@@ -2813,7 +2813,7 @@ initcache(){
    fi
   done
   if [ "$found" = "0" ]; then
-   echo "Entferne nicht mehr benötigte Imagedatei $i." | tee -a /tmp/image.log
+   echo "Entferne nicht mehr benÃ¶tigte Imagedatei $i." | tee -a /tmp/image.log
    rm -f "$i" "$i".*
   fi
  done
@@ -2919,12 +2919,12 @@ register(){
  # Plausibility check
  if echo "$client" | grep -qi '[^a-z0-9-]'; then
   echo "Falscher Rechnername: '$client'," >&2
-  echo "Rechnernamen dürfen nur Buchstaben [a-z0-9-] enthalten." >&2
+  echo "Rechnernamen dÃ¼rfen nur Buchstaben [a-z0-9-] enthalten." >&2
   return 1
  fi
  if echo "$group" | grep -qi '[^a-z0-9_]'; then
   echo "Falscher Gruppenname: '$group'," >&2
-  echo "Rechnergruppen dürfen nur Buchstaben [a-z0-9_] enthalten." >&2
+  echo "Rechnergruppen dÃ¼rfen nur Buchstaben [a-z0-9_] enthalten." >&2
   return 1
  fi
  cd /tmp
