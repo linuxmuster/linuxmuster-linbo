@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.0-34) babo-testing; urgency=low
+
+  * Merge pull request #59 from Kistelini/feature/grub2:
+    Fix encoding of linbo_cmd.sh (broken umlauts etc.),
+    http://bit.ly/1ZK4Uhz
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 12 May 2016 21:19:29 +0200
+
 linuxmuster-linbo (2.3.0-33) babo-testing; urgency=low
 
   * postinst: wallpaper fix, do not overwrite custom boot wallpaper.
