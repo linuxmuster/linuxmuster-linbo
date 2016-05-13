@@ -5,7 +5,8 @@
 ################################################################################
 
 GRUB2BIOS_VERSION = 2.02-beta3
-GRUB2BIOS_SITE = git://git.sv.gnu.org/grub.git
+GRUB2BIOS_SITE = http://git.savannah.gnu.org/r/grub.git
+GRUB2BIOS_SITE_METHOD = git
 GRUB2BIOS_LICENSE = GPLv3
 GRUB2BIOS_LICENSE_FILES = COPYING
 
