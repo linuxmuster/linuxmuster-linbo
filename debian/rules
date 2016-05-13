@@ -23,10 +23,28 @@ GRUB_PC_MODULES=biosdisk ntldr pxe
 
 
 # targets
-build:
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	#make configure
+	touch configure-stamp
+
+build: build-stamp
+build-stamp: configure-stamp
+	dh_testdir
+	#make build
 	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub
 	grub-mknetdir --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
 	grub-mknetdir --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
+	touch build-stamp
+
+distclean: clean
+
+clean: 
+	dh_testdir
+	dh_testroot
+	dh_clean -d
+	#make clean
 
 install: build
 	dh_testdir
@@ -49,7 +67,7 @@ install: build
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
-binary-arch:
+binary-arch: configure build install
 	dh_testdir
 	dh_testroot
 	dh_installdebconf	
@@ -80,4 +98,4 @@ binary-arch:
 	dh_builddeb
 
 binary: binary-indep binary-arch
-.PHONY: binary-indep binary-arch binary install
+.PHONY: binary-indep binary-arch binary configure build install
