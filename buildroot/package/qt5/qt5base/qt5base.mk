@@ -27,7 +27,7 @@ QT5BASE_CONFIGURE_OPTS += \
 	-system-zlib \
 	-system-pcre \
 	-no-pch \
-	-shared
+	-shared -no-qml-debug -no-accessibility -libinput
 
 ifeq ($(BR2_ENABLE_DEBUG),y)
 QT5BASE_CONFIGURE_OPTS += -debug
