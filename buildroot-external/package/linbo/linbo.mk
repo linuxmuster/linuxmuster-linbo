@@ -12,6 +12,7 @@ LINBO_SITE_METHOD = local
 define LINBO_INSTALL_TARGET_CMDS
 	install -Dm0755 $(@D)/linbo_cmd.sh $(TARGET_DIR)/usr/bin/linbo_cmd
 	install -Dm0755 $(@D)/linbo_wrapper.sh $(TARGET_DIR)/usr/bin/linbo_wrapper
+	install -Dm0755 $(@D)/usr/share/udhcpc/default.script $(TARGET_DIR)/usr/share/udhcpc/default.script.d/linbo.sh
 	install -Dm0644 $(@D)/de-latin1-nodeadkeys.kmap $(TARGET_DIR)/usr/share/de-latin1-nodeadkeys.kmap
 endef
 
