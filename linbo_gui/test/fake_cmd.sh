@@ -9,6 +9,7 @@ if [[ ! -d "${DIR}" ]]; then
 fi
 # shellcheck source=fake_cmd_functions.sh
 . "${DIR}/fake_cmd_functions.sh"
+# shellcheck source=fake_cmd_create.sh
 . "${DIR}/fake_cmd_create.sh"
 
 cmd="${1}"
@@ -45,42 +46,61 @@ case "${cmd}" in
         create "$@"
         ;;
     start)
-        return 0
+        start "$@"
         ;;
     partition_noformat)
+        # doesn't use parameters, doesn't output something essential
+        exit 0
         ;;
     partition)
+        # see above
+        exit 0
         ;;
     preregister)
+        preregister "$@"
         ;;
     initcache)
+        initcache "$@"
         ;;
     initcache_format)
+        initcache "$@"
         ;;
     mountcache)
+        mountcache "$@"
         ;;
     readfile)
+        readfile "$@"
         ;;
     ready)
+        # script is always ready :-)
+        exit 0
         ;;
     register)
+        register "$@"
         ;;
     sync)
+        synconly "$@"
         ;;
     syncstart)
+        synconly "$@"
         ;;
     syncr)
+        synconly "$@"
         ;;
     synconly)
+        synconly "$@"
         ;;
     update)
+        update "$@"
         ;;
     upload)
+        upload "$@"
         ;;
     version)
         version
         ;;
     writefile)
+        writefile "$@"
         ;;
     *)
         help

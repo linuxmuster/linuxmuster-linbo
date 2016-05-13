@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 24.03.2016
+# 10.05.2016
 #
 
 set timeout=0
@@ -28,6 +28,7 @@ set color_highlight=yellow/black
 set menu_color_normal=white/black
 set menu_color_highlight=yellow/black
 set prefix=/boot/grub
+set netroot="(tftp)"
 
 # one menu entry does it all
 menuentry 'Default' {
@@ -44,6 +45,9 @@ menuentry 'Default' {
 
   # look for it on cache partition
   if search --set root --file /start.conf; then
+  
+   # save local root in variable
+   set localroot="${root}"
 
    # load background image locally if present
    if [ -e "$prefix/linbo_wallpaper.png" ]; then
@@ -114,14 +118,8 @@ menuentry 'Default' {
 
  fi
 
- # load local custom.cfg if present
- set customcfg=$prefix/custom.cfg
- if [ -s "$customcfg" ]; then
-  configfile $customcfg
- fi
-
  # finally fallback to netboot if previous boot methods were not successful
- set root="(tftp)"
+ set root="${netroot}"
 
  # load background image from server if not done locally
  if [ -z "$bg_image" ]; then
@@ -143,27 +141,35 @@ menuentry 'Default' {
  fi
  set grubcfg="$prefix/${group}.cfg"
 
- # load group specific config from server
+ # load group specific config from server if exists
  if [ -s "$grubcfg" ]; then
   configfile $grubcfg
 
- # or netboot linbo directly
- else
-
-  # 32bit or 64bit kernel
-  if cpuid -l; then
-   set linbo_kernel=/linbo64
-   set linbo_initrd=/linbofs64.lz
-  else
-   set linbo_kernel=/linbo
-   set linbo_initrd=/linbofs.lz
+ # try local boot in the other case
+ elif [ -n "$localroot" ]; then
+  set root="${localroot}"
+  # load local custom.cfg if present
+  set customcfg=$prefix/custom.cfg
+  if [ -s "$customcfg" ]; then
+   configfile $customcfg
   fi
-  echo -n "Loading $linbo_kernel .."
-  linux $linbo_kernel splash quiet netboot
-  echo
-  echo -n "Loading $linbo_initrd .."
-  initrd $linbo_initrd
-
  fi
+
+ # finally try netboot linbo directly
+ set root="${netroot}"
+
+ # 32bit or 64bit kernel
+ if cpuid -l; then
+  set linbo_kernel=/linbo64
+  set linbo_initrd=/linbofs64.lz
+ else
+  set linbo_kernel=/linbo
+  set linbo_initrd=/linbofs.lz
+ fi
+ echo -n "Loading $linbo_kernel .."
+ linux $linbo_kernel splash quiet netboot
+ echo
+ echo -n "Loading $linbo_initrd .."
+ initrd $linbo_initrd
 
 }

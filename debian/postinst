@@ -3,7 +3,7 @@
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
 # GPL v3
-# 08.03.2016
+# 12.05.2016
 #
 
 set -e
@@ -184,7 +184,7 @@ SystemType = bios" -i "$conf"
  fi
  
  # provide grub menu background
- ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
+ [ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
  ln -sf ../../linbo_wallpaper.png "$LINBODIR/boot/grub/themes/linbo/linbo_wallpaper.png"
 
  # update linbofs.lz

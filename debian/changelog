@@ -1,8 +1,21 @@
-linuxmuster-linbo (2.4.0-1) UNRELEASED; urgency=medium
+linuxmuster-linbo (2.3.0-33) babo-testing; urgency=low
 
-  * Qt5, build system with Makefiles, sysroot, sysroot64
+  * postinst: wallpaper fix, do not overwrite custom boot wallpaper.
 
- -- Frank Schütte <fschuett@gymhim.de>  Wed, 20 Apr 2016 09:36:14 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 12 May 2016 10:13:44 +0200
+
+linuxmuster-linbo (2.3.0-32) babo-testing; urgency=low
+
+  * Merge pull request #58 from linuxmuster/fix-495
+    https://github.com/linuxmuster/linuxmuster-linbo/pull/58
+  * Merge pull request #57 from linuxmuster/fix/mmc-efiboot
+    https://github.com/linuxmuster/linuxmuster-linbo/pull/57
+  * Merge pull request #56 from linuxmuster/feature/battery
+    https://github.com/linuxmuster/linuxmuster-linbo/pull/56
+  * ntfs-3g updatet to 2016.2.22.
+  * On PXE boot try to load group specific grub config first from server.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 10 May 2016 22:28:35 +0200
 
 linuxmuster-linbo (2.3.0-31) babo-testing; urgency=low
 
