@@ -12,32 +12,24 @@ DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
 
 include $(CURDIR)/common.mk
 
+# grub required modules
+GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
+ ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test
+
+GRUB_EFI32_MODULES=efi_gop efi_uga efinet tftp
+GRUB_EFI64_MODULES=efi_gop efi_uga efinet linuxefi tftp
+
+GRUB_PC_MODULES=biosdisk ntldr pxe
+
+
 # targets
-
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	make configure
-	touch configure-stamp
-
-build: build-stamp
-build-stamp: configure-stamp
-	dh_testdir
-	make build
-	touch build-stamp
-
-distclean: clean
-
-clean: 
-	dh_testdir
-	dh_testroot
-	dh_clean -d
-	make clean
+build:
+	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub
+	grub-mknetdir --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
+	grub-mknetdir --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
 
 install: build
 	dh_testdir
-	make install
-	
 	dh_testroot
 	#dh_clean -k
 	dh_installdirs
@@ -48,13 +40,16 @@ install: build
 	install -D -m 755 debian/linbo-multicast.init $(DESTDIR)/etc/init.d/linbo-multicast
 	install -D -m 755 debian/linbo-bittorrent.init $(DESTDIR)/etc/init.d/linbo-bittorrent
 	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
+	install -D -m 755 buildroot/output/images/bzImage $(DESTDIR)/var/linbo/linbo
+	install -D -m 755 buildroot/output/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs64
+	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs64
 
 # Build architecture-independent files here.
 # binary-indep: build install
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
-binary-arch: configure build install
+binary-arch:
 	dh_testdir
 	dh_testroot
 	dh_installdebconf	
@@ -85,4 +80,4 @@ binary-arch: configure build install
 	dh_builddeb
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+.PHONY: binary-indep binary-arch binary install
