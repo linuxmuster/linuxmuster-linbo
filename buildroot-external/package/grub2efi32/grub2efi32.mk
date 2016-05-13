@@ -5,7 +5,8 @@
 ################################################################################
 
 GRUB2EFI32_VERSION = 2.02-beta3
-GRUB2EFI32_SITE = git://git.sv.gnu.org/grub.git
+GRUB2EFI32_SITE = http://git.savannah.gnu.org/r/grub.git
+GRUB2EFI32_SITE_METHOD = git
 GRUB2EFI32_LICENSE = GPLv3
 GRUB2EFI32_LICENSE_FILES = COPYING
 
