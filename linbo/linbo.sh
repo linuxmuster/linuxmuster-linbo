@@ -20,14 +20,14 @@ CMDLINE="$(cat /proc/cmdline)"
 case "$CMDLINE" in *\ debug*)
  for i in /tmp/linbo_gui.*.log; do
   if [ -s "$i" ]; then
-   echo "There is a log from an earlier start of linbo_gui in $i:"
+   echo "Es gibt ein Log von einem früheren Start von linbo_gui in $i::"
    cat "$i"
-   echo -n "Hit return to continue."
+   echo -n "Eingabetaste zum fortfahren drücken."
    read dummy
    rm -f "$i"
   fi
  done
- echo "Starting DEBUG Shell, leave with 'exit'."
+ echo "Starte DEBUG-Shell, verlassen mit 'exit'."
  ash >/dev/tty1 2>&1 < /dev/tty1
  ;;
 esac
