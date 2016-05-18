@@ -1,4 +1,4 @@
-#!/usr/bin/make -f#
+#!/usr/bin/make -f
 #
 # Dieses Makefile installiert alle Binaries in die jeweiligen sysroot-Verzeichnisse.
 # Frank Schütte
@@ -10,9 +10,9 @@ CURDIR=$(shell pwd)
 
 include common.mk
 
-ALL_DEBS  = xkb-data ncurses-base grub-ipxe
+ALL_DEBS  = xkb-data ncurses-base grub-ipxe dropbear
 
-BIN32_DEBS= grub-efi-ia32-bin libparted0debian1 parted 
+BIN32_DEBS= grub-efi-ia32-bin 
 
 BIN64_DEBS= grub-efi-amd64-bin
 
@@ -24,14 +24,14 @@ BIN_DEBS  = cloop-utils gdisk libstdc++-4.8-dev \
 	    libnih-dbus1 libnih-dbus-dev libcgmanager0 libcgmanager-dev \
 	    libdbus-1-3 libdbus-1-dev libmtdev1 libmtdev-dev \
 	    mesa-common-dev pkg-config libuuid1 \
-	    acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
+	    acl bc bluez bvi ctorrent dosfstools dropbear-bin e2fsprogs efibootmgr \
 	    ethtool grub-pc grub-pc-bin grub-common grub2-common \
-	    kmod libc-bin libicu52 libgpod-common libmtp-runtime \
+	    kmod libc-bin libicu55 libgpod-common libmtp-runtime \
 	    libnetpbm10 libpci3 libpng12-0 mount netpbm \
 	    ncurses-bin pcmciautils reiserfsprogs rsync sysvinit-utils \
-	    udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
-	    zlib1g zlib1g-dev \
-	    libreadline6 libtinfo5 e2fslibs libcomerr2 \
+	    udev udisks2 udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
+	    zlib1g zlib1g-dev libinput10 libinput-dev libxkbcommon0 libxkbcommon-dev \
+	    libreadline6 libtinfo5 e2fslibs libcomerr2 libparted2 libparted-dev parted \
 	    libblkid1 libpcre3 libmount1 liblzma5 libpopt0 libacl1 libncurses5 libattr1 \
 	    libkmod2  libdevmapper1.02.1 libdevmapper-dev libdevmapper-event1.02.1 libselinux1
 

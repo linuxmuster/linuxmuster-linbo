@@ -25,13 +25,10 @@ NTFS3G_BINS=src/ntfs-3g ntfsprogs/mkntfs ntfsprogs/ntfsclone ntfsprogs/ntfslabel
 BUILDNTFS32=$(BUILDDIR)/build-ntfs32
 BUILDNTFS64=$(BUILDDIR)/build-ntfs64
 
-PARTED_DIR=$(CURDIR)/$(firstword $(filter parted-%, $(SOURCES)))
-BUILDPARTED64=$(BUILDDIR)/build-parted64
-
 LSASECRETS_DIR=$(CURDIR)/$(firstword $(filter %-master, $(SOURCES)))
 
 DIRS:=$(CACHEDIR) $(BB_DIR) $(BUILDBB32) $(BUILDBB64) $(CHNTPW_DIR) $(MSSYS_DIR) \
-	$(NTFS3G_DIR) $(BUILDNTFS32) $(BUILDNTFS64) $(PARTED_DIR) $(BUILDPARTED64) $(LSASECRETS_DIR)
+	$(NTFS3G_DIR) $(BUILDNTFS32) $(BUILDNTFS64) $(LSASECRETS_DIR)
 
 # targets
 
@@ -58,7 +55,7 @@ $(addsuffix /.config, $(BUILDBB32) $(BUILDBB64)): $(CONFDIR)/busybox.conf | $(BB
 
 configure: $(SOURCES) $(addsuffix /.config, $(BUILDBB32) $(BUILDBB64))
 
-build: build-busybox build-mssys build-chntpw build-ntfs build-parted
+build: build-busybox build-mssys build-chntpw build-ntfs
 
 build-busybox: $(BUILDBB32)/busybox $(BUILDBB64)/busybox
 
@@ -100,16 +97,6 @@ $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)): | $(NTFS3G_DIR)
 	cd $(BUILDNTFS64); CFLAGS="$(CFLAGS) --sysroot=$(SYSROOT64)" make
 	$(foreach bin, $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)), strip $(bin); )
 
-build-parted: $(BUILDPARTED64)/parted/parted
-
-$(BUILDPARTED64)/parted/parted: | $(PARTED_DIR)
-	echo "[1mBuilding 64bit parted...[0m"
-	cd $(BUILDPARTED64); $(PARTED_DIR)/configure --prefix="/usr" \
-		--disable-shared --disable-nls --disable-dynamic-loading --without-readline \
-		--with-sysroot=$(SYSROOT64)
-	cd $(BUILDPARTED64); make
-	strip $(BUILDPARTED64)/parted/parted
-
 distclean: clean
 
 	rm -rf $(DIRS)
@@ -117,7 +104,7 @@ distclean: clean
 clean: 
 	rm -rf $(filter build, $(DIRS))
 
-install: $(BUILDPARTED64)/parted/parted $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(addsuffix /bin/busybox, $(SYSROOT) $(SYSROOT64)) \
+install: $(CHNTPW_DIR)/reged $(MSSYS_DIR)/bin/ms-sys $(addsuffix /bin/busybox, $(SYSROOT) $(SYSROOT64)) \
 	$(addprefix $(BUILDNTFS64)/, $(NTFS_BINS)) $(addprefix $(BUILDNTFS32)/, $(NTFS_BINS))
 	$(foreach file, $(addprefix $(BUILDNTFS32)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT)/bin/$(notdir $(file)); )
 	$(foreach file, $(addprefix $(BUILDNTFS64)/, $(NTFS3G_BINS)), install -D -m 755 $(file) $(SYSROOT64)/bin/$(notdir $(file)); )
@@ -134,10 +121,7 @@ $(addsuffix /bin/reged, $(SYSROOT) $(SYSROOT64)):  $(CHNTPW_DIR)/reged
 	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT)/bin/reged
 	install -D -m 755 $(CHNTPW_DIR)/reged $(SYSROOT64)/bin/reged
 
-$(SYSROOT64)/usr/bin/parted: $(BUILDPARTED64)/parted/parted
-	install -D -m 755 $(BUILDPARTED64)/parted/parted $(SYSROOT64)/usr/bin/parted
-
 .PHONY: all $(DIRS) distclean clean
 .PHONY: configure
-.PHONY: build build-busybox build-mssys build-chntpw build-ntfs build-parted
+.PHONY: build build-busybox build-mssys build-chntpw build-ntfs
 .PHONY: install
