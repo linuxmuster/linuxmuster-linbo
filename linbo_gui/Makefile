@@ -59,7 +59,7 @@ $(QT_BUILD32)/Makefile: $(QT_SRC)/configure
 	mkdir -p $(QT_BUILD32);
 	( cd $(QT_BUILD32) ; PKG_CONFIG_LIBDIR=$(SYSROOT)/usr/lib/pkgconfig \
 	PKG_CONFIG_PATH="" ACLOCAL_FLAGS="-I $(SYSROOT)/usr/share/aclocal" \
-	CPPFLAGS=-I$(SYSROOT)/usr/include LDFLAGS=-L$(SYSROOT)/usr/lib \
+	CPPFLAGS=-I$(SYSROOT)/usr/include LDFLAGS="-L=/usr/lib -L=/usr/lib/gcc/i686-linux-gnu/5" \
 	echo -e "yes\n" | $(QT_SRC)/configure -prefix /usr $(QT_OPTS) $(QT_BUILD32OPTS) )
 
 config-qt64: $(QT_BUILD64)/Makefile
