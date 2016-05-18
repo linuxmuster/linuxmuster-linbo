@@ -17,10 +17,10 @@ endif
 
 # qt
 QT_ARCHIVE=$(CACHEDIR)/$(shell grep qt- $(DEBIANDIR)/md5sums.src | awk '{ print $$2 }')
-QT_VERS=$(shell echo $(notdir $(QT_ARCHIVE)) | sed -e 's/qt-everywhere-opensource-src-//' -e 's/.7z//')
+QT_VERS=$(shell echo $(notdir $(QT_ARCHIVE)) | sed -e 's/qt-everywhere-opensource-src-//' -e 's/.tar.gz//')
 QT_MAJOR=$(shell echo $(QT_VERS) | awk -F\. '{ print $$1"."$$2 }')
 QT_URL=http://download.qt-project.org/official_releases/qt/$(QT_MAJOR)/$(QT_VERS)/single
-QT_SRC=$(CURDIR)/$(shell echo $(notdir $(QT_ARCHIVE)) | sed -e 's/.7z//')
+QT_SRC=$(CURDIR)/$(shell echo $(notdir $(QT_ARCHIVE)) | sed -e 's/.tar.gz//')
 QT_BUILD32=$(BUILDDIR)/build-qt32
 QT_BUILD32OPTS=-xplatform linux-g++-32 -device-option CROSS_COMPILE=i386-linux-gnu- -sysroot $(SYSROOT)
 QT_BUILD64=$(BUILDDIR)/build-qt64
@@ -50,7 +50,7 @@ $(QT_ARCHIVE):
 $(QT_SRC)/configure: $(QT_ARCHIVE)
 	mkdir -p $(QT_SRC);
 	echo "[1mUnpacking $(notdir $(QT_ARCHIVE))...[0m" ;
-	7z x $(QT_ARCHIVE) -o$(CURDIR)
+	cd $(CURDIR); tar xf $(QT_ARCHIVE)
 	touch $(QT_SRC)/configure
 
 config-qt32: $(QT_BUILD32)/Makefile
