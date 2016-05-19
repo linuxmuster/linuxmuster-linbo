@@ -2,8 +2,7 @@ etc/ssh_config etc/linuxmuster/linbo/
 etc/start.conf.default etc/linuxmuster/linbo/
 var/* var/linbo
 linbo/etc/linbo-version var/linbo/
-lsaSecrets-master/bin/lsaSecretStore.exe var/linbo/linuxmuster-win/
-/boot/ipxe.lkrn var/linbo/boot/grub/
-/boot/ipxe.efi var/linbo/boot/grub/
+#/boot/ipxe.lkrn var/linbo/boot/grub/
+#/boot/ipxe.efi var/linbo/boot/grub/
 share/* usr/share/linuxmuster-linbo/
 build/boot/grub/* var/linbo/boot/grub/

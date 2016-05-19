@@ -12,8 +12,9 @@ LVERS=$(shell head -n 1 $(CURDIR)/debian/changelog | awk -F\( '{ print $$2 }' | 
 
 CURDIR=$(shell pwd)
 BUILDROOT=$(CURDIR)/buildroot
-BUILD32=$(CURDIR)/build/build-i386
-BUILD64=$(CURDIR)/build/build-x86_64
+BUILDDIR=$(CURDIR)/build
+BUILD32=$(BUILDDIR)/build-i386
+BUILD64=$(BUILDDIR)/build-x86_64
 DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
 
 # grub required modules

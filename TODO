@@ -1,1 +1,5 @@
  - lsasecrets
+ - reiserfsprogs
+ - mkdosfs
+ - Image aufräumen: dropbear, nicht gebrauchte Fonts
+ - bvi fertig machen
