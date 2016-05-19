@@ -1,17 +1,4 @@
-cache
-linux-*
 *-stamp
 .directory
 build
-sysroot
-sysroot64
-toolchain
-qt-*
-busybox-*
-chntpw-*
-cloop-*
-lsaSecrets-master
-ms-sys-*
-ntfs-*
-parted-*
 debian/linuxmuster-linbo

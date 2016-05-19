@@ -1,21 +1,14 @@
 linuxmuster-linbo 32/64 build instructions
 ==========================================
 
-Install 64bit Ubuntu 14.04.2/3.16.0 desktop.
-
-Add 32bit Architecture:
-dpkg --add-architecture i386
-apt-get update
-
-Install build files:
-apt-get install dpkg-dev
+Install 64bit Ubuntu 16.04.2/3.16.0 desktop.
 
 Try to build:
 
-dpkg-buildpackage
+./buildpackage.sh
 
 Install all mentioned build dependencies (a lot of them).
 
 Now build:
 
-dpkg-buildpackage
+./buildpackage.sh

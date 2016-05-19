@@ -7,10 +7,14 @@
 
 export DH_COMPAT=5
 
-CURDIR=$(shell pwd)
-DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
+# linbo version
+LVERS=$(shell head -n 1 $(CURDIR)/debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
 
-include $(CURDIR)/common.mk
+CURDIR=$(shell pwd)
+BUILDROOT=$(CURDIR)/buildroot
+BUILD32=$(CURDIR)/build/build-i386
+BUILD64=$(CURDIR)/build/build-x86_64
+DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
 
 # grub required modules
 GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
@@ -26,13 +30,15 @@ GRUB_PC_MODULES=biosdisk ntldr pxe
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	#make configure
+	cd $(BUILDROOT); make O=$(BUILD32) BR2_EXTERNAL=$(BUILDROOT)-external linbo-i386_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	touch configure-stamp
 
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
-	#make build
+	cd $(BUILDROOT); make O=$(BUILD32)
+	cd $(BUILDROOT); make O=$(BUILD64)
 	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub
 	grub-mknetdir --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
 	grub-mknetdir --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
@@ -44,7 +50,6 @@ clean:
 	dh_testdir
 	dh_testroot
 	dh_clean -d
-	#make clean
 
 install: build
 	dh_testdir
@@ -58,8 +63,11 @@ install: build
 	install -D -m 755 debian/linbo-multicast.init $(DESTDIR)/etc/init.d/linbo-multicast
 	install -D -m 755 debian/linbo-bittorrent.init $(DESTDIR)/etc/init.d/linbo-bittorrent
 	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
-	install -D -m 755 buildroot/output/images/bzImage $(DESTDIR)/var/linbo/linbo
-	install -D -m 755 buildroot/output/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs64
+	install -D -m 755 $(BUILD32)/images/bzImage $(DESTDIR)/var/linbo/linbo
+	install -D -m 755 $(BUILD32)/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs
+	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs
+	install -D -m 755 $(BUILD64)/images/bzImage $(DESTDIR)/var/linbo/linbo64
+	install -D -m 755 $(BUILD64)/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs64
 	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs64
 
 # Build architecture-independent files here.
