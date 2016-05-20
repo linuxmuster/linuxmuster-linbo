@@ -149,23 +149,23 @@ copytocache(){
     mount "$cachedev" /cache || return 1
    fi
    if [ -s /start.conf ]; then
-    echo "Saving start.conf to cache."
+    echo "Speichere start.conf auf Cache."
     cp -a /start.conf /cache
    fi
    if [ -d /icons ]; then
-    echo "Saving icons to cache."
+    echo "Speichere Icons auf Cache."
     mkdir -p /cache/icons
     rsync /icons/* /cache/icons
    fi
    # save hostname for offline use
-   echo "Saving hostname $(hostname) to cache."
+   echo "Speichere Hostnamen $(hostname) auf Cache."
    hostname > /cache/hostname
    # deprecated
    #[ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
   *)
-   echo "No local cache partition found!"
+   echo "Keine lokale Cache-Partition gefunden!"
    return 1
    ;;
  esac
@@ -402,9 +402,9 @@ do_linbo_update(){
 
 network(){
  echo
- echo "Starting network configuration ..."
+ echo "Starte Netzwerkkonfiguration ..."
  if [ -n "$localmode" ]; then
-  echo "Localmode configured, skipping network configuration."
+  echo "Localmode konfiguriert, überspringe Netzwerkkonfiguration."
   copyfromcache "start.conf icons"
   do_housekeeping
   touch /tmp/linbo-network.done
@@ -412,19 +412,20 @@ network(){
  fi
  rm -f /tmp/linbo-network.done
  if [ -n "$ipaddr" ]; then
-  echo "Using static ip address $ipaddr."
+  echo "Benutze statische IP-Adresse $ipaddr."
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
   ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
  else
   # iterate over ethernet interfaces
-  echo "Requesting ip address per dhcp ..."
-  for i in /sys/class/net/en*; do
+  echo "Frage IP-Adresse per DHCP an ..."
+  for i in /sys/class/net/eth*; do
    dev="${i##*/}"
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
    # check if using vlan
    if [ -n "$vlanid" ]; then
+    echo "Benutze VLAN-ID $vlanid."
     vconfig add "$dev" "$vlanid" &> /dev/null
     dhcpdev="$dev.$vlanid"
     ip link set dev "$dhcpdev" up
@@ -450,13 +451,13 @@ network(){
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
-  echo "Downloading configuration files from $server ..."
+  echo "Lade Konfigurationsdateien von $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
   done
   # set flag for working network connection
   if [ -s start.conf ]; then
-   echo "Network connection to $server successfully established."
+   echo "Netwerkverbindung zu $server erfolgreich hergestellt."
    echo > /tmp/network.ok
   fi
   # linbo update
@@ -491,27 +492,26 @@ network(){
  do_housekeeping
  # done
  echo > /tmp/linbo-network.done
- echo "Done."
+ echo "Fertig."
  rm -f /outfifo
 }
 
 # Main
 #clear
 echo
-echo 'Welcome to'
-echo ' _        _   __     _   ____      _____'
-echo '| |      | | |  \   | | |  _ \    / ___ \'
-echo '| |      | | |   \  | | | | | |  / /   \ \'
-echo '| |      | | | |\ \ | | | |/ /  | |     | |'
-echo '| |      | | | | \ \| | | |\ \  | |     | |'
-echo '| |____  | | | |  \   | | |_| |  \ \___/ /'
-echo '|______| |_| |_|   \__| |____/    \_____/'
+echo 'Wilkommen zu'
+echo ' _      _____ _   _ ____   ____'
+echo '| |    |_   _| \ | |  _ \ / __ \'
+echo '| |      | | |  \| | |_) | |  | |'
+echo '| |      | | | . ` |  _ <| |  | |'
+echo '| |____ _| |_| |\  | |_) | |__| |'
+echo '|______|_____|_| \_|____/ \____/'
 echo
 
 # initial setup
 read_cmdline
 echo
-echo "Configuring hardware ..."
+echo "Konfiguriere Hardware ..."
 echo
 if [ -n "$quiet" ]; then
  init_setup &> /dev/null
