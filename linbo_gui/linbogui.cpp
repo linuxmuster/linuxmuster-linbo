@@ -140,7 +140,7 @@ void LinboGUI::showInfos()
     ui->gruppe->setText(QString("Gruppe: ") + conf->config.get_hostgroup());
     ui->ip->setText(QString("IP: ") + command->doSimpleCommand(QString("ip")));
     ui->mac->setText(QString("MAC: ") + command->doSimpleCommand(QString("mac")));
-    ui->battery->setText(QString("Batterie: ") + command->doSimpleCommand(QString("battery")));
+    ui->battery->setText(QString("Batterie: ") + command->doSimpleCommand(QString("battery")) + QString(" %"));
     QString cpu = command->doSimpleCommand(QString("cpu"));
     cpu.remove(QRegExp("[\r\n].*$"));
     ui->cpu->setText(QString("CPU: ") + cpu);
