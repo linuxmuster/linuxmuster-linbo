@@ -1,4 +1,4 @@
-config BR2_PACKAGE_MS-SYS
+config BR2_PACKAGE_MS_SYS
     bool "ms-sys"
     help
       This package contains ms-sys, a Linux program for writing Microsoft compatible boot records.

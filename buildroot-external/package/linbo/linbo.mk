@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LINBO_VERSION = 1.0
+LINBO_VERSION = 1.1
 LINBO_DEPENDENCIES = rsync
 LINBO_SITE = $(TOPDIR)/../linbo
 LINBO_SITE_METHOD = local
@@ -19,6 +19,7 @@ define LINBO_INSTALL_TARGET_CMDS
 	install -Dm0755 $(@D)/usr/share/udhcpc/default.script $(TARGET_DIR)/usr/share/udhcpc/default.script.d/linbo.sh
 	install -Dm0644 $(@D)/etc/linbo-version $(TARGET_DIR)/etc/linbo-version
 	install -Dm0644 $(@D)/de-latin1-nodeadkeys.kmap $(TARGET_DIR)/usr/share/de-latin1-nodeadkeys.kmap
+	ln -fs mkfs.fat $(TARGET_DIR)/usr/sbin/mkdosfs
 endef
 
 define LINBO_INSTALL_INIT_SYSV

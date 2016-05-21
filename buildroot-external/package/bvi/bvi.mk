@@ -11,4 +11,12 @@ BVI_LICENSE = GPLv2
 BVI_LICENSE_FILES = COPYING
 BVI_DEPENDENCIES = ncurses
 
+define BVI_CLEANUP
+	rm -rfv $(TARGET_DIR)/usr/share/bvi/
+	rm -fv $(TARGET_DIR)/usr/bin/bmore
+	rm -fv $(TARGET_DIR)/usr/bin/bvedit
+	rm -fv $(TARGET_DIR)/usr/bin/bview
+endef
+BVI_POST_INSTALL_TARGET_HOOKS += BVI_CLEANUP
+
 $(eval $(autotools-package))
