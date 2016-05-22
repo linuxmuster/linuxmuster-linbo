@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LINBO_GUI_VERSION = 1.0
+LINBO_GUI_VERSION = 1.1
 LINBO_GUI_DEPENDENCIES = qt5base
 LINBO_GUI_SITE = $(TOPDIR)/../linbo_gui
 LINBO_GUI_SITE_METHOD = local

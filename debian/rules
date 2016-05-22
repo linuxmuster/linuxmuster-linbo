@@ -5,8 +5,6 @@
 # GPL v3
 #
 
-export DH_COMPAT=5
-
 # linbo version
 LVERS=$(shell head -n 1 $(CURDIR)/debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
 
