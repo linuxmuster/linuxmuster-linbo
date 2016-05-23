@@ -82,7 +82,7 @@ QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr, bool format)
 QStringList Command::mksynccommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("sync");
   os_item os = conf->elements[osnr];
-  image_item im = os.image_history[imnr];
+  image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
   globals config = conf->config;
   saveappend( command, config.get_cache() );
   saveappend( command, os.get_baseimage() );
@@ -99,7 +99,7 @@ QStringList Command::mksynccommand(unsigned int osnr, int imnr) {
 QStringList Command::mksyncrcommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("syncr");
   os_item os = conf->elements[osnr];
-  image_item im = os.image_history[imnr];
+  image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
   globals config = conf->config;
   saveappend( command, config.get_server() );
   saveappend( command, config.get_cache() );

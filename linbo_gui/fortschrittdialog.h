@@ -41,7 +41,6 @@ public:
     void setShowCancelButton(bool show);
     void setProcess(QProcess *new_process);
     void keyPressEvent(QKeyEvent *);
-//    void closeEvent(QCloseEvent *);
 
 public slots:
     void killLinboCmd();
@@ -51,9 +50,9 @@ private slots:
     void processReadyReadStandardOutput();
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void on_buttonBox_clicked(QAbstractButton *button);
-
     void on_details_toggled(bool checked);
+
+    void on_cancelButton_clicked();
 
 protected:
     void timerEvent(QTimerEvent *event);
