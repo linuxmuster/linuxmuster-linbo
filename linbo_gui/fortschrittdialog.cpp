@@ -58,7 +58,7 @@ void FortschrittDialog::killLinboCmd() {
 
     process->terminate();
     ui->aktion->setText("Die Ausführung wird abgebrochen...");
-    ui->buttonBox->button(QDialogButtonBox::Cancel)->setEnabled( false );
+    ui->cancelButton->setEnabled( false );
     QTimer::singleShot( 10000, this, SLOT( close() ) );
 
 }
@@ -118,28 +118,22 @@ void FortschrittDialog::keyPressEvent(QKeyEvent *event)
     }
 }
 
-//void FortschrittDialog::closeEvent(QCloseEvent *event)
-//{
-//    event->ignore();
-//}
-
 void FortschrittDialog::setShowCancelButton(bool show)
 {
     if( show ){
-        ui->buttonBox->button(QDialogButtonBox::Cancel)->show();
+        ui->cancelButton->show();
     }
     else {
-        ui->buttonBox->button(QDialogButtonBox::Cancel)->hide();
+        ui->cancelButton->hide();
     }
-}
-
-void FortschrittDialog::on_buttonBox_clicked(QAbstractButton *button)
-{
-    if( QDialogButtonBox::Cancel == ui->buttonBox->standardButton(button))
-        killLinboCmd();
 }
 
 void FortschrittDialog::on_details_toggled(bool checked)
 {
     *details = checked;
+}
+
+void FortschrittDialog::on_cancelButton_clicked()
+{
+    killLinboCmd();
 }
