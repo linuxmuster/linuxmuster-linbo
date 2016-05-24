@@ -93,7 +93,9 @@ define DROPBEAR_INSTALL_TARGET_CMDS
 	for f in $(DROPBEAR_TARGET_BINS); do \
 		ln -snf ../sbin/dropbear $(TARGET_DIR)/usr/bin/$$f ; \
 	done
-	ln -snf /var/run/dropbear $(TARGET_DIR)/etc/dropbear
+	mkdir -p $(TARGET_DIR)/etc/dropbear
+	mkdir -p $(TARGET_DIR)/etc/default
+	echo DROPBEARARGS=\"-g -s -p 2222\" >$(TARGET_DIR)/etc/default/dropbear
 endef
 
 $(eval $(autotools-package))

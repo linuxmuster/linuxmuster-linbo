@@ -418,7 +418,7 @@ network(){
  else
   # iterate over ethernet interfaces
   echo "Frage IP-Adresse per DHCP an ..."
-  for i in /sys/class/net/eth*; do
+  for i in /sys/class/net/e*; do
    dev="${i##*/}"
    ifconfig "$dev" up &> /dev/null
    # activate wol

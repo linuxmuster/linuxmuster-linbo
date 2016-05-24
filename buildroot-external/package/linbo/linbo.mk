@@ -20,6 +20,7 @@ define LINBO_INSTALL_TARGET_CMDS
 	install -Dm0644 $(@D)/etc/linbo-version $(TARGET_DIR)/etc/linbo-version
 	install -Dm0644 $(@D)/de-latin1-nodeadkeys.kmap $(TARGET_DIR)/usr/share/de-latin1-nodeadkeys.kmap
 	ln -fs mkfs.fat $(TARGET_DIR)/usr/sbin/mkdosfs
+	install -d $(TARGET_DIR)/cache
 endef
 
 define LINBO_INSTALL_INIT_SYSV
