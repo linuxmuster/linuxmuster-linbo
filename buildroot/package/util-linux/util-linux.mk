@@ -21,8 +21,6 @@ UTIL_LINUX_DEPENDENCIES = host-pkgconf
 # (used in logger.c), and the common default is N.
 UTIL_LINUX_CONF_ENV = scanf_cv_type_modifier=no \
 	$(if $(BR2_TOOLCHAIN_USES_UCLIBC),ac_cv_header_sys_timex_h=no)
-UTIL_LINUX_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -std=gnu99"
-
 UTIL_LINUX_CONF_OPTS += \
 	--disable-rpath \
 	--disable-makeinstall-chown

@@ -22,9 +22,9 @@ E2FSPROGS_CONF_OPTS = \
 	$(if $(BR2_PACKAGE_E2FSPROGS_E2IMAGE),,--disable-imager) \
 	$(if $(BR2_PACKAGE_E2FSPROGS_E4DEFRAG),,--disable-defrag) \
 	$(if $(BR2_PACKAGE_E2FSPROGS_RESIZE2FS),,--disable-resizer) \
+	--disable-uuidd \
 	--disable-libblkid \
 	--disable-libuuid \
-	--disable-uuidd \
 	--enable-fsck \
 	--disable-e2initrd-helper \
 	--disable-testio-debug \
