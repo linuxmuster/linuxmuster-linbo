@@ -10,7 +10,7 @@ REISERFSPROGS_SITE = http://ftp.kernel.org/pub/linux/kernel/people/jeffm/reiserf
 REISERFSPROGS_LICENSE = GPLv2 with modifications
 REISERFSPROGS_LICENSE_FILES = COPYING README
 REISERFSPROGS_DEPENDENCIES = util-linux musl-obstack
-TARGET_CFLAGS += -std=gnu89
+REISERFSPROGS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -std=gnu89"
 
 define REISERFSPROGS_AUTORECONF
 	cd $(@D) && autoreconf -fvi
