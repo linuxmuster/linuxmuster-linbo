@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/ash -x
 # linbo_cmd - Backend worker script for LINBO
 # (C) Klaus Knopper 2007-2010
 #

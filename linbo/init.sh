@@ -1,4 +1,4 @@
-#!/usr/bin/env ash
+#!/usr/bin/ash -x
 
 if [ "$1" = "start" ]; then
 
