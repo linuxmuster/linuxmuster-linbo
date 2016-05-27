@@ -8,7 +8,7 @@
 # now run any rc scripts
 ::sysinit:/etc/init.d/rcS
 
-tty1::respawn:/sbin/getty 38400 tty1
+tty1::respawn:/etc/inittab.tty1
 tty2::respawn:/sbin/getty 38400 tty2
 
 # Stuff to do before rebooting

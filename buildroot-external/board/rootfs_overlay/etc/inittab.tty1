@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# Entscheide, ob auf tty1 die GUI oder eine Shell gestartet werden soll.
+
+if ! grep ' debug' /proc/cmdline; then
+    linbo_gui
+fi
