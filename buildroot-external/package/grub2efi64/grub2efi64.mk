@@ -17,7 +17,7 @@ GRUB2EFI64_PRE_CONFIGURE_HOOKS += GRUB2EFI64_AUTOGEN
 
 GRUB2EFI64_CONF_ENV = \
 	CPP="$(TARGET_CC) -E"
-GRUB2EFI64_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats --disable-boot-time --disable-grub-mkfont --disable-grub-themes --disable-grub-mount --enable-device-mapper --disable-liblzma --disable-libzfs --with-platform=efi  --target=x86_64
+GRUB2EFI64_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats --disable-boot-time --disable-grub-mkfont --enable-grub-themes --disable-grub-mount --enable-device-mapper --disable-liblzma --disable-libzfs --with-platform=efi --target=x86_64
 
 define GRUB2EFI64_CLEANUP
 	rm -fv $(TARGET_DIR)/usr/lib/grub/x86_64-efi/*.image

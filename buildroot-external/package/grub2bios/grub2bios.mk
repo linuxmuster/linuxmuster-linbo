@@ -17,7 +17,7 @@ GRUB2BIOS_PRE_CONFIGURE_HOOKS += GRUB2BIOS_AUTOGEN
 
 GRUB2BIOS_CONF_ENV = \
 	CPP="$(TARGET_CC) -E"
-GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats --disable-boot-time --disable-grub-mkfont --disable-grub-themes --disable-grub-mount --enable-device-mapper --disable-liblzma --disable-libzfs --with-platform=pc  --target=i386
+GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats --disable-boot-time --disable-grub-mkfont --enable-grub-themes --disable-grub-mount --enable-device-mapper --disable-liblzma --disable-libzfs --with-platform=pc --target=i386
 
 define GRUB2BIOS_CLEANUP
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/*.image
