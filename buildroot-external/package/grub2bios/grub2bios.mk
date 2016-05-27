@@ -25,6 +25,8 @@ define GRUB2BIOS_CLEANUP
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/kernel.exec
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/gdb_grub
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/gmodule.pl
+	rm -fv $(TARGET_DIR)/etc/bash_completion.d/grub
+	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
 endef
 GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_CLEANUP
 

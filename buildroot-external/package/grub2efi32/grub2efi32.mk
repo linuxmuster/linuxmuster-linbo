@@ -25,6 +25,8 @@ define GRUB2EFI32_CLEANUP
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-efi/kernel.exec
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-efi/gdb_grub
 	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-efi/gmodule.pl
+	rm -fv $(TARGET_DIR)/etc/bash_completion.d/grub
+	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
 endef
 GRUB2EFI32_POST_INSTALL_TARGET_HOOKS += GRUB2EFI32_CLEANUP
 
