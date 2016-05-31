@@ -1,4 +1,4 @@
-#!/usr/bin/ash -x
+#!/usr/bin/ash
 #
 # wrapper for linbo_cmd
 #

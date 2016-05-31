@@ -1,4 +1,4 @@
-#!/usr/bin/ash -x
+#!/usr/bin/ash
 
 if [ "$1" = "start" ]; then
 

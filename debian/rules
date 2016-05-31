@@ -64,10 +64,10 @@ install: build
 	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
 	install -D -m 755 $(BUILD32)/images/bzImage $(DESTDIR)/var/linbo/linbo
 	install -D -m 755 $(BUILD32)/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs
-	lzma -zv0 --suffix=.lz $(DESTDIR)/var/linbo/linbofs
+	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs
 	install -D -m 755 $(BUILD64)/images/bzImage $(DESTDIR)/var/linbo/linbo64
 	install -D -m 755 $(BUILD64)/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs64
-	lzma -zv0 --suffix=.lz $(DESTDIR)/var/linbo/linbofs64
+	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs64
 
 # Build architecture-independent files here.
 # binary-indep: build install
