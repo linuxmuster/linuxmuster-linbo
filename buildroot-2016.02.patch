@@ -1,0 +1,59 @@
+diff -ur buildroot/package/busybox/busybox.config linuxmuster-linbo/buildroot/package/busybox/busybox.config
+--- buildroot/package/busybox/busybox.config	2016-05-26 15:37:52.383533162 +0200
++++ linuxmuster-linbo/buildroot/package/busybox/busybox.config	2016-05-31 10:10:37.172809176 +0200
+@@ -1026,9 +1026,9 @@
+ CONFIG_FEATURE_SH_IS_ASH=y
+ # CONFIG_FEATURE_SH_IS_HUSH is not set
+ # CONFIG_FEATURE_SH_IS_NONE is not set
+-# CONFIG_FEATURE_BASH_IS_ASH is not set
++CONFIG_FEATURE_BASH_IS_ASH=y
+ # CONFIG_FEATURE_BASH_IS_HUSH is not set
+-CONFIG_FEATURE_BASH_IS_NONE=y
++# CONFIG_FEATURE_BASH_IS_NONE is not set
+ CONFIG_SH_MATH_SUPPORT=y
+ # CONFIG_SH_MATH_SUPPORT_64 is not set
+ CONFIG_FEATURE_SH_EXTRA_QUIET=y
+diff -ur buildroot/package/qt5/qt5base/Config.in linuxmuster-linbo/buildroot/package/qt5/qt5base/Config.in
+--- buildroot/package/qt5/qt5base/Config.in	2016-05-26 15:36:01.812122099 +0200
++++ linuxmuster-linbo/buildroot/package/qt5/qt5base/Config.in	2016-05-25 14:50:15.986529999 +0200
+@@ -4,6 +4,7 @@
+ 	select BR2_PACKAGE_PCRE
+ 	select BR2_PACKAGE_PCRE_16
+ 	select BR2_PACKAGE_PCRE_UTF
++	select BR2_PACKAGE_LIBINPUT
+ 	help
+ 	  Qt is a cross-platform application and UI framework for
+ 	  developers using C++.
+diff -ur buildroot/package/qt5/qt5base/qmake.conf linuxmuster-linbo/buildroot/package/qt5/qt5base/qmake.conf
+--- buildroot/package/qt5/qt5base/qmake.conf	2016-05-26 15:36:01.812122099 +0200
++++ linuxmuster-linbo/buildroot/package/qt5/qt5base/qmake.conf	2016-05-25 14:50:15.986529999 +0200
+@@ -15,7 +15,7 @@
+ # modifications to gcc-base.conf
+ QMAKE_CFLAGS           += $${BR_COMPILER_CFLAGS}
+ QMAKE_CXXFLAGS         += $${BR_COMPILER_CXXFLAGS}
+-QMAKE_CXXFLAGS_RELEASE += -O3
++QMAKE_CXXFLAGS_RELEASE += -Os
+ CONFIG                 += nostrip
+ 
+ QMAKE_LIBS             += -lrt -lpthread -ldl
+diff -ur buildroot/package/qt5/qt5base/qt5base.mk linuxmuster-linbo/buildroot/package/qt5/qt5base/qt5base.mk
+--- buildroot/package/qt5/qt5base/qt5base.mk	2016-05-26 15:37:52.433533802 +0200
++++ linuxmuster-linbo/buildroot/package/qt5/qt5base/qt5base.mk	2016-05-25 14:50:15.986529999 +0200
+@@ -8,7 +8,7 @@
+ QT5BASE_SITE = $(QT5_SITE)
+ QT5BASE_SOURCE = qtbase-opensource-src-$(QT5BASE_VERSION).tar.xz
+ 
+-QT5BASE_DEPENDENCIES = host-pkgconf zlib pcre
++QT5BASE_DEPENDENCIES = host-pkgconf zlib pcre libinput
+ QT5BASE_INSTALL_STAGING = YES
+ 
+ # A few comments:
+@@ -27,7 +27,7 @@
+ 	-system-zlib \
+ 	-system-pcre \
+ 	-no-pch \
+-	-shared
++	-shared -no-qml-debug -no-accessibility -libinput
+ 
+ ifeq ($(BR2_ENABLE_DEBUG),y)
+ QT5BASE_CONFIGURE_OPTS += -debug
