@@ -2894,9 +2894,13 @@ ready(){
 }
 
 mac(){
- local iface="$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')"
- local mac="$(LANG=C ifconfig "$iface" | grep HWaddr | awk '{print $5}' | tr a-z A-Z)"
- [ -z "$mac" ] && mac="OFFLINE"
+ local interface="$(grep interface /tmp/dhcp.log | head -n 1 | cut -d\' -f2)"
+ local mac=""
+ if [ -z "$interface" ]; then
+  mac="OFFLINE"
+ else
+  mac="$(cat /sys/class/net/$interface/address)"
+ fi
  echo "$mac"
 }
 
@@ -2937,8 +2941,8 @@ register(){
  return "$RC"
 }
 
-ip(){
- local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')" # fix syntax highlighting "
+getip(){
+ local ip="$(ip -4 route get 1 | head -n 1 | cut -d' ' -f8)"
  [ -z "$ip" ] && ip="OFFLINE"
  echo "$ip"
 }
@@ -3038,7 +3042,7 @@ version(){
 # Main
 
 case "$cmd" in
- ip) ip ;;
+ ip) getip ;;
  hostname) clientname ;;
  cpu) cpu ;;
  memory) memory ;;
