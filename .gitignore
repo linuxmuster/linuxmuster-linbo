@@ -1,4 +1,7 @@
-*-stamp
-.directory
 build
+build-stamp
+configure-stamp
+debian/files
 debian/linuxmuster-linbo
+debian/linuxmuster-linbo.debhelper.log
+debian/linuxmuster-linbo.substvars

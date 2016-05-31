@@ -27,6 +27,7 @@ define GRUB2EFI64_CLEANUP
 	rm -fv $(TARGET_DIR)/usr/lib/grub/x86_64-efi/gmodule.pl
 	rm -fv $(TARGET_DIR)/etc/bash_completion.d/grub
 	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
+	rm -rfv $(TARGET_DIR)/usr/share/grub/themes/
 endef
 GRUB2EFI64_POST_INSTALL_TARGET_HOOKS += GRUB2EFI64_CLEANUP
 
