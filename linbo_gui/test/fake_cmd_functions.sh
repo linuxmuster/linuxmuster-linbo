@@ -197,8 +197,8 @@ register()
     fi
 }
 
-# linbo_cmd synconly 10.16.1.1 /dev/sda4 opensuse-cpqmini.cloop opensuse-cpqmini.cloop /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd "resume=/dev/sda2 splash=silent quiet showopts"
-# linbo_cmd synconly 10.16.1.1 /dev/sda4 opensuse-cpqmini.cloop opensuse-cpqmini.cloop /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd "noresume splash=silent quiet showopts klassenarbeit=1"
+# linbo_cmd synconly 10.16.1.1 /dev/sda4 opensuse-cpqmini.cloop "" /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd "resume=/dev/sda2 splash=silent quiet showopts"
+# linbo_cmd synconly 10.16.1.1 /dev/sda4 opensuse-cpqmini.cloop "" /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd "noresume splash=silent quiet showopts klassenarbeit=1"
 synconly()
 {
     # TODO: check $baseimage $image
@@ -214,7 +214,7 @@ synconly()
     if [[ "${server}" != "10.16.1.1" ]] \
       || [[ "${cachedev}" != "/dev/sda4" ]] \
       || [[ "${baseimage}" != "opensuse-cpqmini.cloop" ]] \
-      || [[ "${image}" != "opensuse-cpqmini.cloop" ]] \
+      || [[ "${image}" != "" ]] \
       || [[ "${bootdev}" != "/dev/sda1" ]] \
       || [[ "${rootdev}" != "/dev/sda1" ]] \
       || [[ "${kernel}" != "/boot/vmlinuz" ]] \

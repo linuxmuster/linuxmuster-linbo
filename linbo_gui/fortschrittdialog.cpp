@@ -42,7 +42,12 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linb
              this, &FortschrittDialog::processReadyReadStandardError);
     connect( process, SIGNAL(finished(int,QProcess::ExitStatus)),
              this, SLOT(processFinished(int,QProcess::ExitStatus)));
-    process->start(command->join(" "));
+    //args need to be passed separate because of empty args
+    const QString cmd = command->at(0);
+    QStringList args = *command;
+    args.removeFirst();
+    const QStringList cargs = args;
+    process->start(cmd, args, QIODevice::ReadWrite );
     ui->progressBar->setMinimum( 0 );
     ui->progressBar->setMaximum( 100 );
     ui->progressBar->setValue(0);
