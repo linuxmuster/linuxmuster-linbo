@@ -360,8 +360,12 @@ int LinboGUI::doCommand(const QStringList& command, bool interruptible, const QS
 
 void LinboGUI::on_console_clicked()
 {
-    linboConsole console( this );
-    console.exec();
+    system("chvt 2");
+    /* TODO: make console work
+     * linboConsole console( this );
+     * console.exec();
+     */
+
 }
 
 void LinboGUI::doAutostart()
