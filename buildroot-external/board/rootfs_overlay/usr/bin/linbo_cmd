@@ -2373,7 +2373,7 @@ download_torrent(){
  local complete="$image".complete
  local RC=1
  [ -e "$torrent" ] || return "$RC"
- local ip="$(ip)"
+ local ip="$(getip)"
  [ -z "$ip" -o "$ip" = "OFFLINE" ] && return "$RC"
  # default values
  local MAX_INITIATE=40
