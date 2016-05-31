@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # Entscheide, ob auf tty1 die GUI oder eine Shell gestartet werden soll.
 
-if grep ' debug' /proc/cmdline; then
+if grep -q ' debug' /proc/cmdline; then
     /sbin/getty 38400 tty1
 else
     linbo_gui
