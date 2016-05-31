@@ -1,5 +1,0 @@
-1. png-Ausgangsdatei 640x480
-2. in Gimp bearbeiten:
-   - Bild | Modus | indiziert | optimale Palette: 16 Farben
-   - exportieren als logo16.ppm -> Rohdaten
-3. ppmtolss16 < logo16.ppm > logo.16
