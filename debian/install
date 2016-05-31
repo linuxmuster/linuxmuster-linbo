@@ -1,7 +1,7 @@
 etc/ssh_config etc/linuxmuster/linbo/
 etc/start.conf.default etc/linuxmuster/linbo/
 var/* var/linbo
-linbo/etc/linbo-version var/linbo/
+buildroot-external/board/rootfs_overlay/etc/linbo-version var/linbo/
 #/boot/ipxe.lkrn var/linbo/boot/grub/
 #/boot/ipxe.efi var/linbo/boot/grub/
 share/* usr/share/linuxmuster-linbo/
