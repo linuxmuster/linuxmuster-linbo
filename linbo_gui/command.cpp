@@ -20,7 +20,7 @@ const QString Command::LINBOCMDSEP = ",";
 // problems with linbo_cmd's weird "shift"-usage
 void Command::saveappend( QStringList& command, const QString& item ) {
   if ( item.isEmpty() )
-    command.append("");
+    command.append("\"\"");
   else
     command.append( item );
 
@@ -62,7 +62,7 @@ QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr, bool format)
   QStringList command = LINBO_CMD("syncstart");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
-  QString imgname = os.get_baseimage().compare(im.get_image()) == 0 ? "" : im.get_image();
+  QString imgname = os.get_baseimage().compare(im.get_image()) == 0 ? "\"\"" : im.get_image();
   globals config = conf->config;
   saveappend( command, config.get_server() );
   saveappend( command, config.get_cache() );
