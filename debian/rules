@@ -41,6 +41,12 @@ build-stamp: configure-stamp
 	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub
 	grub-mknetdir --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
 	grub-mknetdir --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
+ifeq ("$(wildcard $(BUILDDIR)/ipxe.efi)","")
+	wget -P $(BUILDDIR) https://boot.ipxe.org/ipxe.efi
+endif
+ifeq ("$(wildcard $(BUILDDIR)/ipxe.lkrn)","")
+	wget -P $(BUILDDIR) https://boot.ipxe.org/ipxe.lkrn
+endif
 	touch build-stamp
 
 distclean: clean
