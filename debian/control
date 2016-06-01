@@ -2,7 +2,7 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: autoconf, bc, bison, cpio, debhelper, gettext, git, grub-efi-amd64-bin, grub-efi-ia32-bin, grub-pc-bin, libfreetype6-dev, libtool, ncurses-dev, python, ttf-dejavu-core, unzip, wget
+Build-Depends: autoconf, bc, bison, cpio, debhelper, gettext, git, grub-efi-amd64-bin, grub-efi-ia32-bin, grub-pc-bin, libfreetype6-dev, libtool, ncurses-dev, python, texinfo, ttf-dejavu-core, unzip, wget
 
 Package: linuxmuster-linbo
 Architecture: all

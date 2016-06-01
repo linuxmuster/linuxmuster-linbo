@@ -1,11 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
-rm build-stamp configure-stamp
+rm -f build-stamp configure-stamp
 rm -rf debian/linuxmuster-linbo
 
-#    -nc -us -uc \
 dpkg-buildpackage \
-    -I".directory" \
     -I.git \
     -Ibuild \
     -Ibuildroot/dl
