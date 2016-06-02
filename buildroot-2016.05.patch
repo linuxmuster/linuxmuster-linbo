@@ -13,3 +13,13 @@ diff -ur buildroot/package/busybox/busybox.config linuxmuster-linbo/buildroot/pa
  CONFIG_SH_MATH_SUPPORT=y
  # CONFIG_SH_MATH_SUPPORT_64 is not set
  CONFIG_FEATURE_SH_EXTRA_QUIET=y
+diff -ur buildroot/package/libxkbcommon/libxkbcommon.mk linuxmuster-linbo/buildroot/package/libxkbcommon/libxkbcommon.mk
+--- buildroot/package/libxkbcommon/libxkbcommon.mk	2016-06-01 10:35:42.446650489 +0200
++++ linuxmuster-linbo/buildroot/package/libxkbcommon/libxkbcommon.mk	2016-06-02 13:36:12.296377511 +0200
+@@ -21,4 +21,6 @@
+ LIBXKBCOMMON_CONF_OPTS += --disable-x11
+ endif
+ 
++LIBXKBCOMMON_CONF_OPTS += --with-default-layout=de --with-default-variant=nodeadkeys
++
+ $(eval $(autotools-package))

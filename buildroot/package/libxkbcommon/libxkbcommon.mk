@@ -21,4 +21,6 @@ else
 LIBXKBCOMMON_CONF_OPTS += --disable-x11
 endif
 
+LIBXKBCOMMON_CONF_OPTS += --with-default-layout=de --with-default-variant=nodeadkeys
+
 $(eval $(autotools-package))

@@ -2,7 +2,7 @@
 
 ## Buildroot
 
-Verwendet wird gerade `buildroot-2016.02`.
+Verwendet wird gerade `buildroot-2016.05`.
 Der Buildroot-Subtree sollte nicht veraendert werden, alle Aenderungen gehen in den Ordner `buildroot-external`. Bei ein paar Sachen liess sich das aber nicht vermeiden, die Veraenderungen sind in `buildroot-2016.05.patch` aufgefuehrt.
 
 ### Update

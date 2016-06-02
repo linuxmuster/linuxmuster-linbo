@@ -4,6 +4,5 @@
 if grep -q ' debug' /proc/cmdline; then
     /sbin/getty 38400 tty1
 else
-    export QT_QPA_EVDEV_KEYBOARD_PARAMETERS="TTY:keymap=/usr/share/qt/german_keymap.qmap"
     exec linbo_gui > /tmp/linbo_gui.$$.log 2>&1
 fi
