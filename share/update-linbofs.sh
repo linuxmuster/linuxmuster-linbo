@@ -94,7 +94,7 @@ update_linbofs() {
  cp -f $LINBODIR/start.conf .
 
  # pack default linbofs${_64}.lz again
- find . | cpio --quiet -o -H newc | lzma -zcv0 > $LINBODIR/linbofs${_64}.lz ; RC="$?"
+ find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs${_64}.lz ; RC="$?"
  [ $RC -ne 0 ] && bailout "failed!"
 
  echo "Ok!"

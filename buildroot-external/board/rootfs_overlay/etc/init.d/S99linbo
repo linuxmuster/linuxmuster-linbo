@@ -510,9 +510,7 @@ echo
 
 # initial setup
 read_cmdline
-echo
 echo "Konfiguriere Hardware ..."
-echo
 if [ -n "$quiet" ]; then
  init_setup &> /dev/null
 else
