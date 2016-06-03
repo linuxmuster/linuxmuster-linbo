@@ -1,7 +1,7 @@
 build
-build-stamp
-configure-stamp
+buildroot-external/board/rootfs_overlay/etc/linbo-version
 debian/files
 debian/linuxmuster-linbo
 debian/linuxmuster-linbo.debhelper.log
 debian/linuxmuster-linbo.substvars
+debian/tmp

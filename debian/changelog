@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.4.0-0) babo-testing; urgency=medium
+
+  * Add Qt5-GUI
+  * Change build system to Buildroot
+
+ -- Christian Buschau <christian.buschau@mailbox.org>  Fri, 03 Jun 2016 11:00:18 +0200
+
 linuxmuster-linbo (2.3.0-34) babo-testing; urgency=low
 
   * Merge pull request #59 from Kistelini/feature/grub2:

@@ -21,11 +21,11 @@ $ git merge --squash buildroot-2016.05
 Getestet auf Ubuntu 16.04 amd64
 
 ```
-$ ./buildpackage.sh
+$ dpkg-buildpackage -us -uc
 ```
 
-Fehlende Abhaengigkeiten installieren, dann nochmal
+oder
 
 ```
-$ ./buildpackage.sh
+$ debuild
 ```

@@ -1,114 +1,78 @@
 #!/usr/bin/make -f
-#
-# thomas@linuxmuster.net
-# 08.03.2015
-# GPL v3
-#
+# Wenn man direkt
+# %:
+#	  dh $@
+# benutzt, wird make in einer fakeroot-Umgebung ausgeführt. Buildroot baut das Image aber auch mit
+# fakeroot, nur kann man kein fakeroot in einer fakeroot-Umgebung laufen lassen. Also alles einzeln...
 
-# linbo version
-LVERS=$(shell head -n 1 $(CURDIR)/debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
+DH_VERBOSE = 1
+#export DH_OPTIONS=-v
 
-CURDIR=$(shell pwd)
 BUILDROOT=$(CURDIR)/buildroot
 BUILDDIR=$(CURDIR)/build
 BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
-DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
+LINBO_VERSION=$(shell dpkg-parsechangelog -SVersion)
 
-# grub required modules
-GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
- ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test
+clean:
+	dh clean
 
-GRUB_EFI32_MODULES=efi_gop efi_uga efinet tftp
-GRUB_EFI64_MODULES=efi_gop efi_uga efinet linuxefi tftp
-
-GRUB_PC_MODULES=biosdisk ntldr pxe
-
-
-# targets
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
+.PHONY: build
+build:
+	echo "LINBO $(LINBO_VERSION)" > $(BUILDROOT)-external/board/rootfs_overlay/etc/linbo-version
 	cd $(BUILDROOT); make O=$(BUILD32) BR2_EXTERNAL=$(BUILDROOT)-external linbo-i386_defconfig
 	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
-	touch configure-stamp
-
-build: build-stamp
-build-stamp: configure-stamp
-	dh_testdir
 	cd $(BUILDROOT); make O=$(BUILD32)
 	cd $(BUILDROOT); make O=$(BUILD64)
-	grub-mknetdir --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc --net-directory=$(BUILDDIR) --subdir=/boot/grub
-	grub-mknetdir --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
-	grub-mknetdir --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi --net-directory=$(BUILDDIR) --subdir=/boot/grub
+	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
 ifeq ("$(wildcard $(BUILDDIR)/ipxe.efi)","")
-	wget -P $(BUILDDIR) https://boot.ipxe.org/ipxe.efi
+	wget -O $(BUILDDIR)/ipxe.efi https://boot.ipxe.org/ipxe.efi
 endif
 ifeq ("$(wildcard $(BUILDDIR)/ipxe.lkrn)","")
-	wget -P $(BUILDDIR) https://boot.ipxe.org/ipxe.lkrn
+	wget -O $(BUILDDIR)/ipxe.lkrn https://boot.ipxe.org/ipxe.lkrn
 endif
-	touch build-stamp
 
-distclean: clean
-
-clean: 
+binary:
 	dh_testdir
 	dh_testroot
-	dh_clean -d
-
-install: build
-	dh_testdir
-	dh_testroot
-	#dh_clean -k
+	dh_prep
 	dh_installdirs
+	dh_auto_install
 	dh_install
-	dh_installinit
-	# manual installation files
-	install -D -m 644 debian/linbo-bittorrent.default $(DESTDIR)/etc/default/linbo-bittorrent
-	install -D -m 755 debian/linbo-multicast.init $(DESTDIR)/etc/init.d/linbo-multicast
-	install -D -m 755 debian/linbo-bittorrent.init $(DESTDIR)/etc/init.d/linbo-bittorrent
-	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
-	install -Dm644 $(BUILD32)/images/bzImage $(DESTDIR)/var/linbo/linbo
-	install -Dm644 $(BUILD32)/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs
-	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs
-	install -Dm644 $(BUILD64)/images/bzImage $(DESTDIR)/var/linbo/linbo64
-	install -Dm644 $(BUILD64)/images/rootfs.cpio $(DESTDIR)/var/linbo/linbofs64
-	lzma -zv --suffix=.lz $(DESTDIR)/var/linbo/linbofs64
-
-# Build architecture-independent files here.
-# binary-indep: build install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: configure build install
-	dh_testdir
-	dh_testroot
-	dh_installdebconf	
 	dh_installdocs
-#	dh_installexamples
-#	dh_installmenu
-	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-	dh_installdirs
+	dh_installchangelogs
+	dh_installexamples
+	dh_installman
+	dh_installcatalogs
 	dh_installcron
-#	dh_installman
-#	dh_installinfo
-#	dh_undocumented
-	dh_install
-	dh_installchangelogs 
+	dh_installdebconf
+	dh_installemacsen
+	dh_installifupdown
+	dh_installinfo
+	dh_installinit
+	dh_installmenu
+	dh_installmime
+	dh_installmodules
+	dh_installlogcheck
+	dh_installlogrotate
+	dh_installpam
+	dh_installppp
+	dh_installudev
+	dh_installgsettings
+	dh_bugfiles
+	dh_ucf
+	dh_lintian
+	dh_gconf
+	dh_icons
+	dh_perl
+	dh_usrlocal
 	dh_link
-	dh_strip
-#	dh_compress
+	dh_installwm
+	dh_installxfonts
+	dh_strip_nondeterminism
+	dh_compress
 	dh_fixperms
-#	dh_makeshlibs
 	dh_installdeb
-#	dh_perl
-	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: binary-indep binary-arch binary configure build install
