@@ -7,7 +7,6 @@
 #include "downloadtype.h"
 
 #define LINBO_CMD(arg) QStringList("linbo_cmd") << (arg);
-#define WRAPPER_CMD(arg) QStringList("linbo_wrapper") << (arg);
 
 const QString Command::USER = "linbo";
 const QString Command::BASEIMGEXT = ".cloop";
@@ -37,11 +36,136 @@ vector<QStringList> Command::parseWrapperCommands(const QString& input)
     return ret;
 }
 
+std::map<QString, Command::CmdValue> Command::s_mapCommand
+    = {
+          {"linbo",linbo},
+          {"partition",partition},
+          {"format",format},
+          {"initcache",initcache},
+          {"create_cloop",create_cloop},
+          {"upload_cloop",upload_cloop},
+          {"create_rsync",create_rsync},
+          {"upload_rsync",upload_rsync},
+          {"sync",sync},
+          {"start",start},
+          {"update",update},
+          {"reboot",reboot},
+          {"halt",halt},
+          {"poweroff",poweroff}
+    };
+
 // parse Warpper command
 QStringList Command::parseWrapperCommand(const QString& input)
 {
-    QStringList command = WRAPPER_CMD(input);
-    return command;
+    QString s = input;
+    QStringList parts = s.split(":");
+    QString cmd = QString(""), param = QString(""), msg = QString(""), customimage = QString("");
+    cmd = parts.at(0);
+    if(parts.length() > 1){
+           param = parts.at(1);
+           if(parts.length() > 2){
+               msg = parts.at(2);
+               if(parts.length() > 3){
+                   customimage = parts.at(3);
+               }
+           }
+    }
+
+    int osnr = 1;
+    if(param != NULL){
+        bool ok;
+        osnr = param.toInt(&ok);
+        if(!ok || osnr < 1){
+            osnr = 1;
+        }
+    }
+    os_item os = conf->elements[osnr];
+    QStringList cmds;
+    switch(s_mapCommand.at(cmd)){
+    case linbo:
+        if(param != NULL){
+            this->password = param;
+        }
+    break;
+
+    case partition:
+        return mkpartitioncommand_noformat();
+
+    case format:
+        if( param != NULL && param.compare(QString("")) != 0){
+            return mkformatcommand(osnr);
+        } else {
+            return mkpartitioncommand();
+        }
+
+    case initcache:
+        if(param == NULL || param.compare(QString("")) == 0){
+            return mkcacheinitcommand(false, conf->config.get_downloadtype());
+        } else {
+            DownloadType type = conf->config.get_downloadtype();
+            if(param.compare(downloadtypeQString[RSync]) == 0) {
+                type = RSync;
+            } else if(param.compare(downloadtypeQString[Torrent]) == 0){
+                type = Torrent;
+            } else if(param.compare(downloadtypeQString[Multicast]) == 0){
+                type = Multicast;
+            }
+            return mkcacheinitcommand(false, type);
+        }
+
+    case create_cloop:
+        if(customimage == NULL || customimage.compare(QString("")) == 0){
+            customimage = os.get_baseimage();
+        }
+        //FIXME create_desc
+        return mkcreatecommand(osnr, customimage, QString(""));
+
+    case upload_cloop:
+    case upload_rsync:
+        if(customimage == NULL || customimage.compare(QString("")) == 0){
+            customimage = os.get_baseimage();
+        }
+        return mkuploadcommand(customimage);
+
+    case create_rsync:
+        if(customimage == NULL || customimage.compare(QString("")) == 0){
+            customimage = os.get_baseimage();
+        }
+        //FIXME create_desc
+        return mkcreatecommand(osnr, customimage, os.get_baseimage());
+
+    case sync:
+        return mksynccommand(osnr);
+
+    case start:
+        return mkstartcommand(osnr);
+
+    case update:
+        return mklinboupdatecommand();
+
+    case reboot:
+        cmds = QStringList("busybox");
+        cmds.append("reboot");
+        return cmds;
+
+    case halt:
+    case poweroff:
+        cmds = QStringList("busybox");
+        cmds.append("halt");
+        return cmds;
+    }
+
+    return QStringList();
+}
+
+// format partition
+QStringList Command::mkformatcommand(unsigned int partnr) {
+  QStringList command = LINBO_CMD("format");
+  diskpartition part = conf->partitions[partnr-1];
+  saveappend( command, part.get_dev() );
+  saveappend( command, part.get_fstype() );
+  saveappend( command, part.get_label() );
+  return command;
 }
 
 // Start image
@@ -194,7 +318,7 @@ QStringList Command::mkcreatecommand(unsigned int nr, const QString& imageName, 
     QStringList command = LINBO_CMD("create");
     globals config = conf->config;
     vector<os_item> os = conf->elements;
-    if( nr >= os.size()){
+    if( nr > os.size()){
         //FIXME: error no such os
         return QStringList();
     }
@@ -203,7 +327,6 @@ QStringList Command::mkcreatecommand(unsigned int nr, const QString& imageName, 
     saveappend(command, baseImage);
     saveappend(command, os[nr].get_boot());
     saveappend(command, os[nr].get_root());
-    //FIXME: ist das korrekt zur Identifikation des richtigen Images?
     int img = os[nr].find_current_image();
     saveappend(command, os[nr].image_history[img].get_kernel());
     saveappend(command, os[nr].image_history[img].get_initrd());

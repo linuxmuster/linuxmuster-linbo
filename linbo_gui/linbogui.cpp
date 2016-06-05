@@ -84,12 +84,12 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
         }
     }
     //process linbocmds
-    if(conf->getCommandLine().getLinbocmd() != NULL){
+    //if(conf->getCommandLine().getLinbocmd() != NULL){
         QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
-    }
-    else if(autostartnr > -1){
-        QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
-    }
+    //}
+    //else if(autostartnr > -1){
+    //    QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
+    //}
 }
 
 LinboGUI::~LinboGUI()
@@ -339,11 +339,11 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
 
 void LinboGUI::doWrapperCommands()
 {
-    vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
+    //TEST: vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
+    vector<QStringList> cmds =  command->parseWrapperCommands("format,initcache,sync:1,start:1");
     for(vector<QStringList>::iterator it = cmds.begin();it != cmds.end();++it){
         QStringList cmd = *it;
-        if(QDialog::Rejected == doCommand(cmd, false, cmd.at(1), Aktion::None, &details))
-            return;
+        doCommand(cmd, false, cmd.at(1), Aktion::None, &details);
     }
     if(autostartnr > -1){
         QTimer::singleShot(500, this, SLOT(doAutostartDialog()));

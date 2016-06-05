@@ -14,6 +14,11 @@
 class Command
 {
 private:
+    enum CmdValue { linbo, partition, format, initcache, create_cloop, upload_cloop,
+                    create_rsync, upload_rsync, sync, start, update, reboot, halt, poweroff };
+
+    static std::map<QString, CmdValue> s_mapCommand;
+
     static const QString USER;
 
     Configuration *conf;
@@ -34,6 +39,7 @@ public:
 
     vector<QStringList> parseWrapperCommands(const QString& input);
 
+    QStringList mkformatcommand(unsigned int partnr);
     QStringList mkstartcommand(unsigned int osnr, int imnr = -1);
     QStringList mksyncstartcommand(unsigned int osnr, int imnr = -1, bool format = false);
     QStringList mksynccommand(unsigned int osnr, int imnr = -1);
