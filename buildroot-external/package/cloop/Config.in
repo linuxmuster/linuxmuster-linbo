@@ -1,0 +1,6 @@
+config BR2_PACKAGE_CLOOP
+	bool "cloop"
+	help
+      Cloop module and utils
+
+      http://knoppix.net/wiki3/index.php?title=Cloop

@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = linbo_gui
 TEMPLATE = app
 
+QMAKE_CXXFLAGS = $$(CXXFLAGS) -std=c++11
+QMAKE_LFLAGS = $$(LDFLAGS)
 
 SOURCES += main.cpp\
         linbogui.cpp \

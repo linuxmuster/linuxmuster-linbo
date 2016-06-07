@@ -1,0 +1,18 @@
+diff --git a/src/include/efivar/efivar.h b/src/include/efivar/efivar.h
+index 3cf0aca..d391269 100644
+--- a/src/include/efivar/efivar.h
++++ b/src/include/efivar/efivar.h
+@@ -40,6 +40,13 @@ typedef struct {
+ #include <efivar-guids.h>
+ #endif
+ 
++#ifndef EFIVAR_BUILD_ENVIRONMENT
++/* Borrowed from uClibc-ng-1.0.14/libc/sysdeps/linux/common/bits/byteswap-common.h */
++/* Swap bytes in 16 bit value.  */
++#define __bswap_constant_16(x) \
++    ((unsigned short int)((((x) >> 8) & 0xffu) | (((x) & 0xffu) << 8)))
++#endif
++
+ #if BYTE_ORDER == LITTLE_ENDIAN
+ #define EFI_GUID(a,b,c,d,e0,e1,e2,e3,e4,e5) \
+ ((efi_guid_t) {(a), (b), (c), bswap_16(d), { (e0), (e1), (e2), (e3), (e4), (e5) }})

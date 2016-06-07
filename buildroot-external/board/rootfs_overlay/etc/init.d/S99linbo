@@ -1,0 +1,524 @@
+#!/usr/bin/ash
+
+if [ "$1" = "start" ]; then
+
+# Ignore signals
+trap "" 1 2 11 15
+
+# Reset fb color mode
+RESET="]R"
+# ANSI COLORS
+# Erase to end of line
+CRE="
+[K"
+# Clear and reset Screen
+CLEAR="c"
+# Normal color
+NORMAL="[0;39m"
+# RED: Failure or error message
+RED="[1;31m"
+# GREEN: Success message
+GREEN="[1;32m"
+# YELLOW: Descriptions
+YELLOW="[1;33m"
+# BLUE: System mesages
+BLUE="[1;34m"
+# MAGENTA: Found devices or drivers
+MAGENTA="[1;35m"
+# CYAN: Questions
+CYAN="[1;36m"
+# BOLD WHITE: Hint
+WHITE="[1;37m"
+
+CMDLINE=""
+
+# Utilities
+
+# test if variable is an integer
+isinteger () {
+ [ $# -eq 1 ] || return 1
+ case $1 in
+ *[!0-9]*|"") return 1;;
+           *) return 0;;
+ esac
+}
+
+# read commandline parameters
+read_cmdline(){
+ # parse kernel cmdline
+ CMDLINE="$(cat /proc/cmdline)"
+
+ case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
+ case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
+}
+
+# initial setup
+init_setup(){
+ case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
+
+ # process parameters given on kernel command line
+ for i in $CMDLINE; do
+  case "$i" in
+   # evalutate sata_nv options
+   sata_nv.swnc=*)
+    value="$(echo $i | awk -F\= '{ print $2 }')"
+    echo "options sata_nv swnc=$value" > /etc/modprobe.d/sata_nv.conf
+   ;;
+   *=*)
+    eval "$i"
+   ;;
+  esac
+ done # cmdline
+
+ # get optionally given start.conf location
+ if [ -n "$conf" ]; then
+  confpart="$(echo $conf | awk -F\: '{ print $1 }')"
+  extraconf="$(echo $conf | awk -F\: '{ print $2 }')"
+ fi
+
+ loadkmap < /usr/share/de-latin1-nodeadkeys.kmap
+}
+
+# trycopyfromdevice device filenames
+trycopyfromdevice(){
+ local RC=1
+ local device="$1"
+ local i=""
+ local files="$2"
+ if ! cat /proc/mounts | grep -q "$device /cache"; then
+  mount -r "$device" /cache &>/dev/null || return 1
+ fi
+ for i in $files; do
+  if [ -e /cache/"$i" ] && [ -s /cache/linbo -o -s /cache/linbo64 ]; then
+   RC=0
+   cp -af /cache/"$i" . >/dev/null 2>&1
+  fi
+ done
+ umount /cache || umount -l /cache
+ return "$RC"
+}
+
+# copyfromcache file - copies a file from cache to current dir
+copyfromcache(){
+ local cachdev="$(printcache)"
+ if [ -b "$cachedev" ]; then
+  trycopyfromdevice "$cachedev" "$1" && return 0
+ fi
+ local major="" minor="" blocks="" device="" relax=""
+ grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
+  if [ -b "/dev/$device" ]; then
+   trycopyfromdevice "/dev/$device" "$1" && return 0
+  fi
+ done
+ return 1
+}
+
+# modify cache entry in start.conf
+modify_cache(){
+ [ -s "$1" ] || return 1
+ if grep -qi ^cache "$1"; then
+  sed -e "s|^[Cc][Aa][Cc][Hh][Ee].*|Cache = $cache|g" -i "$1"
+ else
+  sed -e "/^\[LINBO\]/a\
+Cache = $cache" -i "$1"
+ fi
+}
+
+# print cache partition
+printcache(){
+ if [ -n "$cache" -a -b "$cache" ]; then
+  echo "$cache"
+  return 0
+ fi
+ [ -s /start.conf ] || return 1
+ local cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cachedev" -a -b "$cachedev" ]; then
+  echo "$cachedev"
+  return 0
+ fi
+ return 1
+}
+
+# copytocache file - copies start.conf to local cache
+copytocache(){
+ local cachedev="$(printcache)"
+ [ -z "$cachedev" ] && return 1
+ case "$cachedev" in
+  /dev/*) # local cache
+   if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
+    mount "$cachedev" /cache || return 1
+   fi
+   if [ -s /start.conf ]; then
+    echo "Speichere start.conf auf Cache."
+    cp -a /start.conf /cache
+   fi
+   if [ -d /icons ]; then
+    echo "Speichere Icons auf Cache."
+    mkdir -p /cache/icons
+    rsync /icons/* /cache/icons
+   fi
+   # save hostname for offline use
+   echo "Speichere Hostnamen $(hostname) auf Cache."
+   hostname > /cache/hostname
+   # deprecated
+   #[ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
+   umount /cache || umount -l /cache
+   ;;
+  *)
+   echo "Keine lokale Cache-Partition gefunden!"
+   return 1
+   ;;
+ esac
+}
+
+# copy extra start.conf given on cmdline
+copyextra(){
+ [ -z "$confpart" ] && return 1
+ [ -z "$extraconf" ] && return 1
+ mkdir -p /extra
+ mount "$confpart" /extra || return 1
+ local RC=1
+ if [ -s "/extra$extraconf" ]; then
+  cp "/extra$extraconf" /start.conf ; RC="$?"
+  umount /extra || umount -l /extra
+ else
+  RC=1
+ fi
+ return "$RC"
+}
+
+# Try to read the first valid ip address from all up network interfaces
+get_ipaddr(){
+ local ip=""
+ local line
+ ifconfig | while read line; do
+  case "$line" in *inet\ addr:*)
+   ip="${line##*inet addr:}"
+   ip="${ip%% *}"
+   case "$ip" in 127.0.0.1) continue;; esac
+   [ -n "$ip" ] && { echo "$ip"; return 0; }
+   ;;
+  esac
+ done
+ return 1
+}
+
+# Utilities
+# get_hostname ip
+get_hostname(){
+ local NAME=""
+ local key=""
+ local value=""
+ # Try dhcp info first.
+ if [ -f "/tmp/dhcp.log" ]; then
+  NAME="`grep ^hostname /tmp/dhcp.log | tail -1 | cut -f2 -d"'"`"
+  [ -n "$NAME" ] && { echo "$NAME"; return 0; }
+ fi
+ # Then DNS
+ if [ -n "$1" ] && grep -q ^nameserver /etc/resolv.conf; then
+  while read key value relax; do
+   case "$key" in
+    Name:)
+     if [ "$1" = "$value" ]; then
+      NAME="`echo ip-$value | sed 's/\./-/g'`"
+     else
+      NAME="${value%%.*}"
+     fi
+     break ;;
+   esac
+  done <<.
+$(nslookup "$1" 2>/dev/null)
+.
+ [ -n "$NAME" ] && { echo "$NAME"; return 0; }
+ fi
+ return 1
+}
+
+# Get server address.
+get_server(){
+ local ip=""
+ local a=""
+ local b=""
+ # First try servername from dhcp.log:siaddr.
+ if [ -f "/tmp/dhcp.log" ]; then
+  ip="`grep ^siaddr /tmp/dhcp.log | tail -1 | cut -f2 -d"'"`"
+  [ -n "$ip" ] && { echo "$ip"; return 0; }
+ fi
+ # Second guess from route.
+ while read a b relax; do
+  case "$a" in 0.0.0.0)
+   ip="$b"
+   [ -n "$ip" ] && { echo "$ip"; return 0; }
+   ;;
+  esac
+ done <<.
+$(route -n)
+.
+ return 1
+}
+
+# save windows activation tokens
+save_winact(){
+ # rename obsolete activation status file
+ [ -e /mnt/linuxmuster-win/activation_status ] && mv /mnt/linuxmuster-win/activation_status /mnt/linuxmuster-win/win_activation_status
+ # get windows activation status
+ if [ -e /mnt/linuxmuster-win/win_activation_status ]; then
+  grep -i ^li[cz]en /mnt/linuxmuster-win/win_activation_status | grep -i status | grep -i li[cz]en[sz][ei][de] | grep -vqi not && local win_activated="yes"
+ fi
+ if [ -n "$win_activated" ]; then
+  echo "Windows ist aktiviert."
+ else
+  echo "Windows ist nicht aktiviert."
+ fi
+ # get msoffice activation status
+ if [ -e /mnt/linuxmuster-win/office_activation_status ]; then
+  grep -i ^li[cz]en /mnt/linuxmuster-win/office_activation_status | grep -i status | grep -i li[cz]en[sz][ei][de] | grep -vqi not && office_activated="yes"
+ fi
+ if [ -n "$office_activated" ]; then
+  echo "MS Office ist aktiviert."
+ else
+  echo "MS Office ist nicht aktiviert oder nicht installiert."
+ fi
+ # remove activation status files
+ rm -f /mnt/linuxmuster-win/*activation_status
+ # get activation token files
+ if [ -n "$win_activated" ]; then
+  local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+  local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
+ fi
+ [ -n "$office_activated" ] && local office_tokensdat="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+ # test if files exist
+ if [ -n "$win_activated" -a -z "$win_tokensdat" ]; then
+  echo "Windows-Aktivierungsdatei nicht vorhanden."
+  win_activated=""
+ fi
+ if [ -n "$office_activated" -a -z "$office_tokensdat" ]; then
+  echo "Office-Aktivierungsdatei nicht vorhanden."
+  office_activated=""
+ fi
+ # if no activation return
+ [ -z "$win_activated" -a -z "$office_activated" ] && return
+ # get local mac address
+ local mac="$(linbo_cmd mac | tr a-z A-Z)"
+ # do not save if no mac address is available
+ if [ -z "$mac" -o "$mac" = "OFFLINE" ]; then
+  echo "Kann MAC-Adresse nicht bestimmen."
+  return
+ fi
+ # get image name
+ [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
+ # if an image is not yet created do nothing
+ if [ -z "$image" ]; then
+  echo "Keine Image-Datei vorhanden."
+  return
+ fi
+ echo -e "Sichere Aktivierungsdaten ... "
+ # archive name contains mac address and image name
+ local archive="/cache/$mac.$image.winact.tar.gz"
+ local tmparchive="/cache/tokens.tar.gz"
+ # generate tar command
+ local tarcmd="tar czf $tmparchive"
+ [ -n "$win_tokensdat" ] && tarcmd="$tarcmd $win_tokensdat"
+ [ -n "$win_pkeyconfig" ] && tarcmd="$tarcmd $win_pkeyconfig"
+ [ -n "$office_tokensdat" ] && tarcmd="$tarcmd $office_tokensdat"
+ # create temporary archive
+ if ! $tarcmd &> /dev/null; then
+  echo "Sorry. Fehler beim Erstellen von $tmparchive."
+  return 1
+ else
+  echo "OK."
+ fi
+ # merge old and new if archive already exists
+ local RC=0
+ if [ -s "$archive" ]; then
+  echo -e "Aktualisiere $archive ... "
+  local tmpdir="/cache/tmp"
+  local curdir="$(pwd)"
+  [ -e "$tmpdir" ] && rm -rf "$tmpdir"
+  mkdir -p "$tmpdir"
+  tar xf "$archive" -C "$tmpdir" || RC="1"
+  tar xf "$tmparchive" -C "$tmpdir" || RC="1"
+  rm -f "$archive"
+  rm -f "$tmparchive"
+  cd "$tmpdir"
+  tar czf "$archive" * &> /dev/null || RC="1"
+  cd "$curdir"
+  rm -rf "$tmpdir"
+ else # use temporary archive if it does not exist already
+  echo -e "Erstelle $archive ... "
+  rm -f "$archive"
+  mv "$tmparchive" "$archive" || RC="1"
+ fi
+ # if error occured
+ if [ "$RC" = "1" -o ! -s "$archive" ]; then
+  echo "Fehlgeschlagen. Sorry."
+  return 1
+ else
+  echo "OK."
+ fi  
+ # do not in offline mode
+ [ -e /tmp/linbo-network.done ] && return
+ # trigger upload
+ echo "Veranlasse Upload der Windows-Aktivierungstokens."
+ rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
+}
+
+# save windows activation tokens
+do_housekeeping(){
+ local device="" 
+ local cachedev="$(printcache)"
+ if ! mount "$cachedev" /cache; then
+  echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
+  return 1
+ fi
+ grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
+  if mount "$device" /mnt 2> /dev/null; then
+   # save windows activation files
+   ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
+   umount /mnt
+  fi
+ done
+ mount | grep -v grep | grep -q /cache && umount /cache
+}
+
+# update linbo and install it locally
+do_linbo_update(){
+ local server="$1"
+ local cachedev="$(printcache)"
+ local customcfg="/cache/boot/grub/custom.cfg"
+ local rebootflag="/tmp/.linbo.reboot"
+ # save current custom.cfg
+ linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
+ # test if linbofs or custom.cfg were updated on local boot
+ if [ -n "$localboot" -a -e "$rebootflag" ]; then
+  echo "Lokale LINBO/GRUB-Konfiguration wurde aktualisiert. Starte neu ..."
+  cd /
+  umount -a &> /dev/null
+  /sbin/reboot -f
+ else
+  [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
+ fi
+}
+
+network(){
+ echo
+ echo "Starte Netzwerkkonfiguration ..."
+ if [ -n "$localmode" ]; then
+  echo "Localmode konfiguriert, überspringe Netzwerkkonfiguration."
+  copyfromcache "start.conf icons"
+  do_housekeeping
+  touch /tmp/linbo-network.done
+  return 0
+ fi
+ rm -f /tmp/linbo-network.done
+ if [ -n "$ipaddr" ]; then
+  echo "Benutze statische IP-Adresse $ipaddr."
+  [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
+  ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
+ else
+  # iterate over ethernet interfaces
+  echo "Frage IP-Adresse per DHCP an ..."
+  for i in /sys/class/net/e*; do
+   dev="${i##*/}"
+   ifconfig "$dev" up &> /dev/null
+   # activate wol
+   ethtool -s "$dev" wol g &> /dev/null
+   # check if using vlan
+   if [ -n "$vlanid" ]; then
+    echo "Benutze VLAN-ID $vlanid."
+    vconfig add "$dev" "$vlanid" &> /dev/null
+    dhcpdev="$dev.$vlanid"
+    ip link set dev "$dhcpdev" up
+   else
+    dhcpdev="$dev"
+   fi
+   # dhcp retries
+   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null
+   # set mtu
+   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+  done
+ fi
+ # Network is up now, fetch a new start.conf
+ # If server, ipaddr and cache are not set on cmdline, try to guess.
+ [ -n "$ipaddr" ] || ipaddr="`get_ipaddr`"
+ [ -n "$hostname" ] || hostname="`get_hostname $ipaddr`"
+ [ -n "$hostname" ] && hostname "$hostname"
+ [ -n "$server" ] || server="`get_server`"
+ echo "IP: $ipaddr * Hostname: $hostname * Server: $server"
+ # Move away old start.conf and look for updates
+ mv start.conf start.conf.dist
+ if [ -n "$server" ]; then
+  export server
+  echo "linbo_server='$server'" >> /tmp/dhcp.log
+  echo "Lade Konfigurationsdateien von $server ..."
+  for i in "start.conf-$ipaddr" "start.conf"; do
+   rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
+  done
+  # set flag for working network connection
+  if [ -s start.conf ]; then
+   echo "Netwerkverbindung zu $server erfolgreich hergestellt."
+   echo > /tmp/network.ok
+  fi
+  # linbo update
+  do_linbo_update "$server"
+  # also look for other needed files
+  for i in "torrent-client.conf" "multicast.list"; do
+   rsync -L "$server::linbo/$i" "/$i" &> /dev/null
+  done
+  # get optional onboot linbo-remote commands
+  rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
+  # and (optional) the GUI icons
+  for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
+   rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
+  done
+  # save downloaded stuff to cache
+  copytocache
+ fi
+ # copy start.conf optionally given on cmdline
+ copyextra && local extra=yes
+ # if start.conf could not be downloaded
+ if [ ! -s start.conf ]; then
+  # No new version / no network available, look for cached copies of start.conf and icons folder.
+  copyfromcache "start.conf icons"
+  # Still nothing new, revert to old version.
+  [ ! -s start.conf ] && mv -f start.conf.dist start.conf
+ fi
+ # modify cache in start.conf if cache was given and no extra start.conf was defined
+ [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # sets flag if no default route
+ route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
+ # remove reboot flag, save windows activation
+ do_housekeeping
+ # done
+ echo > /tmp/linbo-network.done
+ echo "Fertig."
+ rm -f /outfifo
+}
+
+# Main
+#clear
+echo
+echo 'Wilkommen zu'
+echo ' _      _____ _   _ ____   ____'
+echo '| |    |_   _| \ | |  _ \ / __ \'
+echo '| |      | | |  \| | |_) | |  | |'
+echo '| |      | | | . ` |  _ <| |  | |'
+echo '| |____ _| |_| |\  | |_) | |__| |'
+echo '|______|_____|_| \_|____/ \____/'
+echo
+
+# initial setup
+read_cmdline
+echo "Konfiguriere Hardware ..."
+if [ -n "$quiet" ]; then
+ init_setup &> /dev/null
+else
+ init_setup
+fi
+
+# console mode
+network
+exit 0
+
+fi

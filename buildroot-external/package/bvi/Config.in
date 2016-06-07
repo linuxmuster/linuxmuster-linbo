@@ -1,0 +1,7 @@
+config BR2_PACKAGE_BVI
+    bool "bvi"
+    select BR2_PACKAGE_NCURSES
+    help
+      This package contains bvi.
+
+        http://bvi.sourceforge.net/

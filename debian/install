@@ -1,13 +1,17 @@
+#!/usr/bin/dh-exec
 etc/ssh_config etc/linuxmuster/linbo/
 etc/start.conf.default etc/linuxmuster/linbo/
 var/* var/linbo
-linbo/etc/linbo-version var/linbo/
-lsaSecrets-master/bin/lsaSecretStore.exe var/linbo/linuxmuster-win/
-sysroot/boot/ipxe.lkrn var/linbo/boot/grub/
-sysroot/boot/ipxe.efi var/linbo/boot/grub/
+buildroot-external/board/rootfs_overlay/etc/linbo-version var/linbo/
+build/ipxe.lkrn var/linbo/boot/grub/
+build/ipxe.efi var/linbo/boot/grub/
 share/* usr/share/linuxmuster-linbo/
 build/boot/grub/* var/linbo/boot/grub/
-sysroot/linbofs.lz var/linbo/
-sysroot/linbo var/linbo/
-sysroot64/linbofs64.lz var/linbo/
-sysroot64/linbo64 var/linbo/
+debian/linbo-bittorrent.default => etc/default/linbo-bittorrent
+debian/linbo-bittorrent.init => etc/init.d/linbo-bittorrent
+debian/linbo-multicast.init => etc/init.d/linbo-multicast
+share/templates/grub.cfg.pxe => var/linbo/boot/grub/grub.cfg
+build/build-i386/images/bzImage => var/linbo/linbo
+build/build-i386/images/rootfs.cpio.lz => var/linbo/linbofs
+build/build-x86_64/images/bzImage => var/linbo/linbo64
+build/build-x86_64/images/rootfs.cpio.lz => var/linbo/linbofs64

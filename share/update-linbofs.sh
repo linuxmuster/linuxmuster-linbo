@@ -85,8 +85,8 @@ update_linbofs() {
  cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
  mkdir -p etc/ssh
  cp $SYSCONFDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
- mkdir -p .ssh
- cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
+ mkdir -p root/.ssh
+ cp /root/.ssh/id_dsa.pub root/.ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 

@@ -1,88 +1,78 @@
 #!/usr/bin/make -f
-#
-# thomas@linuxmuster.net
-# 08.03.2015
-# GPL v3
-#
+# Wenn man direkt
+# %:
+#	  dh $@
+# benutzt, wird make in einer fakeroot-Umgebung ausgeführt. Buildroot baut das Image aber auch mit
+# fakeroot, nur kann man kein fakeroot in einer fakeroot-Umgebung laufen lassen. Also alles einzeln...
 
-export DH_COMPAT=5
+DH_VERBOSE = 1
+#export DH_OPTIONS=-v
 
-CURDIR=$(shell pwd)
-DESTDIR=$(CURDIR)/debian/linuxmuster-linbo
+BUILDROOT=$(CURDIR)/buildroot
+BUILDDIR=$(CURDIR)/build
+BUILD32=$(BUILDDIR)/build-i386
+BUILD64=$(BUILDDIR)/build-x86_64
+LINBO_VERSION=$(shell dpkg-parsechangelog -SVersion)
 
-include $(CURDIR)/common.mk
+clean:
+	dh clean
 
-# targets
+.PHONY: build
+build:
+	echo "LINBO $(LINBO_VERSION)" > $(BUILDROOT)-external/board/rootfs_overlay/etc/linbo-version
+	cd $(BUILDROOT); make O=$(BUILD32) BR2_EXTERNAL=$(BUILDROOT)-external linbo-i386_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD32)
+	cd $(BUILDROOT); make O=$(BUILD64)
+	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
+ifeq ("$(wildcard $(BUILDDIR)/ipxe.efi)","")
+	wget -O $(BUILDDIR)/ipxe.efi https://boot.ipxe.org/ipxe.efi
+endif
+ifeq ("$(wildcard $(BUILDDIR)/ipxe.lkrn)","")
+	wget -O $(BUILDDIR)/ipxe.lkrn https://boot.ipxe.org/ipxe.lkrn
+endif
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	make configure
-	touch configure-stamp
-
-build: build-stamp
-build-stamp: configure-stamp
-	dh_testdir
-	make build
-	touch build-stamp
-
-distclean: clean
-
-clean: 
+binary:
 	dh_testdir
 	dh_testroot
-	dh_clean -d
-	make clean
-
-install: build
-	dh_testdir
-	make install
-	
-	dh_testroot
-	#dh_clean -k
+	dh_prep
 	dh_installdirs
+	dh_auto_install
 	dh_install
-	dh_installinit
-	# manual installation files
-	install -D -m 644 debian/linbo-bittorrent.default $(DESTDIR)/etc/default/linbo-bittorrent
-	install -D -m 755 debian/linbo-multicast.init $(DESTDIR)/etc/init.d/linbo-multicast
-	install -D -m 755 debian/linbo-bittorrent.init $(DESTDIR)/etc/init.d/linbo-bittorrent
-	install -D share/templates/grub.cfg.pxe $(DESTDIR)/var/linbo/boot/grub/grub.cfg
-
-# Build architecture-independent files here.
-# binary-indep: build install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: configure build install
-	dh_testdir
-	dh_testroot
-	dh_installdebconf	
 	dh_installdocs
-#	dh_installexamples
-#	dh_installmenu
-	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-	dh_installdirs
+	dh_installchangelogs
+	dh_installexamples
+	dh_installman
+	dh_installcatalogs
 	dh_installcron
-#	dh_installman
-#	dh_installinfo
-#	dh_undocumented
-	dh_install
-	dh_installchangelogs 
+	dh_installdebconf
+	dh_installemacsen
+	dh_installifupdown
+	dh_installinfo
+	dh_installinit
+	dh_installmenu
+	dh_installmime
+	dh_installmodules
+	dh_installlogcheck
+	dh_installlogrotate
+	dh_installpam
+	dh_installppp
+	dh_installudev
+	dh_installgsettings
+	dh_bugfiles
+	dh_ucf
+	dh_lintian
+	dh_gconf
+	dh_icons
+	dh_perl
+	dh_usrlocal
 	dh_link
-	dh_strip
-#	dh_compress
+	dh_installwm
+	dh_installxfonts
+	dh_strip_nondeterminism
+	dh_compress
 	dh_fixperms
-#	dh_makeshlibs
 	dh_installdeb
-#	dh_perl
-	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
