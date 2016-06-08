@@ -1,4 +1,4 @@
-linuxmuster-linbo (2.4.0-0) babo-testing; urgency=medium
+linuxmuster-linbo (3.0.0-0) babo-testing; urgency=medium
 
   * Add Qt5-GUI
   * Change build system to Buildroot
