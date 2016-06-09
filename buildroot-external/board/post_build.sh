@@ -6,7 +6,7 @@ shopt -s extglob
 sed -i '/\/dev\/root/d' "${TARGET_DIR}"/etc/fstab
 
 rm -fv "${TARGET_DIR}"/usr/lib/fonts/!(DejaVuSans.ttf)
-rm -fvr "${TARGET_DIR}"/etc/dropbear
+rm -fv "${TARGET_DIR}"/etc/dropbear
 rm -fvr "${TARGET_DIR}"/usr/lib/qt/plugins/bearer/
 rm -fvr "${TARGET_DIR}"/usr/lib/qt/plugins/imageformats/
 rm -fv "${TARGET_DIR}"/usr/lib/qt/generic/!(libqlibinputplugin.so)
