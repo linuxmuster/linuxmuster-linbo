@@ -30,7 +30,7 @@
 //TODO watch for linbo-remote commands
 LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
-    logConsole(new linboLogConsole),
+    logConsole(new linboLogConsole),batteryTimer(new QTimer(this)),
     ui(new Ui::LinboGUI)
 {
     ui->setupUi(this);
@@ -64,6 +64,9 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
                                     ui->log, logfilepath);
 
     showInfos();
+
+    connect(batteryTimer, SIGNAL(timeout()), this, SLOT(showBatteryInfo()));
+    batteryTimer->start(10000);
 
     showOSs();
 
@@ -135,13 +138,18 @@ globals LinboGUI::config()
     return conf->config;
 }
 
+void LinboGUI::showBatteryInfo()
+{
+    ui->battery->setText(QString("Batterie: ") + command->doSimpleCommand(QString("battery")) + QString(" %"));
+}
+
 void LinboGUI::showInfos()
 {
     ui->rechner->setText(QString("Host: ") + command->doSimpleCommand(QString("hostname")));
     ui->gruppe->setText(QString("Gruppe: ") + conf->config.get_hostgroup());
     ui->ip->setText(QString("IP: ") + command->doSimpleCommand(QString("ip")));
     ui->mac->setText(QString("MAC: ") + command->doSimpleCommand(QString("mac")));
-    ui->battery->setText(QString("Batterie: ") + command->doSimpleCommand(QString("battery")) + QString(" %"));
+    showBatteryInfo();
     QString cpu = command->doSimpleCommand(QString("cpu"));
     cpu.remove(QRegExp("[\r\n].*$"));
     ui->cpu->setText(QString("CPU: ") + cpu);

@@ -47,6 +47,7 @@ private:
     int autostartnr;
     QString autostartos;
     int autostarttimeout;
+    QTimer *batteryTimer;
 
     void showInfos();
     void showOSs();
@@ -68,6 +69,7 @@ public:
     bool isLogTab(int tabIndex);
 
 public slots:
+    void showBatteryInfo();
     void do_register(QString& roomName, QString& clientName, QString& ipAddress, QString& clientGroup);
     void doInitCache(bool formatCache, DownloadType type);
     void performLogin(QString passwd);
