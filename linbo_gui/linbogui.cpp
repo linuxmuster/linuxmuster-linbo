@@ -27,6 +27,7 @@
 #include "linboMulticastBox.h"
 #include "autostart.h"
 
+//TODO watch for linbo-remote commands
 LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
     logConsole(new linboLogConsole),
@@ -84,12 +85,12 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
         }
     }
     //process linbocmds
-    //if(conf->getCommandLine().getLinbocmd() != NULL){
+    if(conf->getCommandLine().getLinbocmd() != NULL){
         QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
-    //}
-    //else if(autostartnr > -1){
-    //    QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
-    //}
+    }
+    else if(autostartnr > -1){
+        QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
+    }
 }
 
 LinboGUI::~LinboGUI()
@@ -339,8 +340,7 @@ void LinboGUI::on_cbTimeout_toggled(bool checked)
 
 void LinboGUI::doWrapperCommands()
 {
-    //TEST: vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
-    vector<QStringList> cmds =  command->parseWrapperCommands("format,initcache,sync:1,start:1");
+    vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
     for(vector<QStringList>::iterator it = cmds.begin();it != cmds.end();++it){
         QStringList cmd = *it;
         doCommand(cmd, false, cmd.at(1), Aktion::None, &details);
@@ -360,12 +360,9 @@ int LinboGUI::doCommand(const QStringList& command, bool interruptible, const QS
 
 void LinboGUI::on_console_clicked()
 {
-    system("chvt 2");
-    /* TODO: make console work
-     * linboConsole console( this );
-     * console.exec();
-     */
-
+    //TODO
+    linboConsole console( this );
+    console.exec();
 }
 
 void LinboGUI::doAutostart()
