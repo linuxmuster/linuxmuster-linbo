@@ -14,6 +14,13 @@ BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
 LINBO_VERSION=$(shell dpkg-parsechangelog -SVersion)
 
+GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd \
+ fat gettext gfxmenu gfxterm http ntfs linux loadenv minicmd net part_gpt \
+ part_msdos png progress reiserfs search terminal test
+GRUB_PC_MODULES=biosdisk ntldr pxe
+GRUB_EFI32_MODULES=efi_gop efi_uga efinet tftp
+GRUB_EFI64_MODULES=efi_gop efi_uga efinet linuxefi tftp
+
 clean:
 	dh clean
 
@@ -24,7 +31,9 @@ build:
 	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD32)
 	cd $(BUILDROOT); make O=$(BUILD64)
-	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
+	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc
+	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi
+	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi
 ifeq ("$(wildcard $(BUILDDIR)/ipxe.efi)","")
 	wget -O $(BUILDDIR)/ipxe.efi https://boot.ipxe.org/ipxe.efi
 endif
