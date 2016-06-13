@@ -21,6 +21,8 @@ class FortschrittDialog : public QDialog
 {
     Q_OBJECT
 private:
+    bool active;
+    QString cmd;
     bool* details;
     QProcess *process;
     bool connected;
@@ -30,7 +32,7 @@ private:
     int (*value)(const QByteArray& output);
 
 public:
-    explicit FortschrittDialog(QWidget *parent = 0, QStringList* command = 0, linboLogConsole *new_log = 0,
+    explicit FortschrittDialog(QWidget *parent = 0, bool new_active = true, QStringList* command = 0, linboLogConsole *new_log = 0,
                                const QString& titel  = NULL, Aktion aktion = Aktion::None,
                                bool* newDetails = NULL,
                                int (*new_maximum)(const QByteArray& output) = NULL,

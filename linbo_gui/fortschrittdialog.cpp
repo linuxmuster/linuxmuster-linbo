@@ -8,14 +8,25 @@
 
 #include "linboLogConsole.h"
 #include "aktion.h"
+#include "linboremote.h"
 #include "fortschrittdialog.h"
 #include "ui_fortschrittdialog.h"
 
-FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linboLogConsole* new_log,
+/**
+ * @brief FortschrittDialog::FortschrittDialog
+ * @param parent
+ * @param new_active true: execute command in own process, false: show dialog and wait for process to finish
+ * @param command
+ * @param new_log
+ * @param titel
+ * @param aktion
+ * @param newDetails
+ */
+FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringList* command, linboLogConsole* new_log,
                                      const QString& titel, Aktion aktion, bool* newDetails,
                                      int (*new_maximum)(const QByteArray& output),
                                      int (*new_value)(const QByteArray& output)):
-    QDialog(parent), details(newDetails), process(new QProcess(this)), logConsole(new_log), logDetails(),
+    QDialog(parent), active(new_active), details(newDetails), process((new_active?new QProcess(this):NULL)), logConsole(new_log), logDetails(),
     timerId(0), maximum(new_maximum), value(new_value),
     ui(new Ui::FortschrittDialog)
 {
@@ -36,18 +47,21 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, QStringList* command, linb
     } else {
         ui->folgeAktion->setText(aktion.toQString());
     }
-    connect( process, &QProcess::readyReadStandardOutput,
+    if(active){
+        connect( process, &QProcess::readyReadStandardOutput,
              this, &FortschrittDialog::processReadyReadStandardOutput);
-    connect( process, &QProcess::readyReadStandardError,
+        connect( process, &QProcess::readyReadStandardError,
              this, &FortschrittDialog::processReadyReadStandardError);
-    connect( process, SIGNAL(finished(int,QProcess::ExitStatus)),
+        connect( process, SIGNAL(finished(int,QProcess::ExitStatus)),
              this, SLOT(processFinished(int,QProcess::ExitStatus)));
-    //args need to be passed separate because of empty args
-    const QString cmd = command->at(0);
-    QStringList args = *command;
-    args.removeFirst();
-    const QStringList cargs = args;
-    process->start(cmd, args, QIODevice::ReadWrite );
+
+        //args need to be passed separate because of empty args
+        cmd = command->at(0);
+        QStringList args = *command;
+        args.removeFirst();
+        const QStringList cargs = args;
+        process->start(cmd, args, QIODevice::ReadWrite );
+    }
     ui->progressBar->setMinimum( 0 );
     ui->progressBar->setMaximum( 100 );
     ui->progressBar->setValue(0);
@@ -61,7 +75,9 @@ FortschrittDialog::~FortschrittDialog()
 
 void FortschrittDialog::killLinboCmd() {
 
-    process->terminate();
+    if(active){
+        process->terminate();
+    }
     ui->aktion->setText("Die Ausführung wird abgebrochen...");
     ui->cancelButton->setEnabled( false );
     QTimer::singleShot( 10000, this, SLOT( close() ) );
@@ -75,11 +91,17 @@ void FortschrittDialog::timerEvent(QTimerEvent *event) {
             // die Automatik benötigt 60 Sekunden für 1x 100%
             ui->progressBar->setValue(ui->processTime->time().second()*10/6);
         }
+        if(!active && !LinboRemote::is_running()){
+            close();
+        }
     }
 }
 
 void FortschrittDialog::processReadyReadStandardOutput()
 {
+    if(!active){
+        return;
+    }
     QByteArray data = process->readAllStandardOutput();
     if( maximum != NULL && value != NULL ){
         ui->progressBar->setMaximum(maximum(data));
@@ -92,6 +114,9 @@ void FortschrittDialog::processReadyReadStandardOutput()
 
 void FortschrittDialog::processReadyReadStandardError()
 {
+    if(!active){
+        return;
+    }
     QByteArray data = process->readAllStandardError();
     logDetails->writeStdErr(data);
     if(logConsole != NULL)
@@ -125,7 +150,7 @@ void FortschrittDialog::keyPressEvent(QKeyEvent *event)
 
 void FortschrittDialog::setShowCancelButton(bool show)
 {
-    if( show ){
+    if( show && active){
         ui->cancelButton->show();
     }
     else {
@@ -140,5 +165,7 @@ void FortschrittDialog::on_details_toggled(bool checked)
 
 void FortschrittDialog::on_cancelButton_clicked()
 {
-    killLinboCmd();
+    if(active){
+        killLinboCmd();
+    }
 }

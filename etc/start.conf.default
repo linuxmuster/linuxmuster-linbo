@@ -1,4 +1,0 @@
-# LINBO empty start.conf
-
-[LINBO]                  # globale Konfiguration
-Server = 10.16.1.1       # IP des TFTP-Servers, der Images vorhaelt

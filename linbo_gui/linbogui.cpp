@@ -26,11 +26,12 @@
 #include "linboInfoBrowser.h"
 #include "linboMulticastBox.h"
 #include "autostart.h"
+#include "linboremote.h"
 
-//TODO watch for linbo-remote commands
 LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     conf(),command(), process(new QProcess(this)),
     logConsole(new linboLogConsole),batteryTimer(new QTimer(this)),
+    remoteTimer(new QTimer(this)),
     ui(new Ui::LinboGUI)
 {
     ui->setupUi(this);
@@ -87,6 +88,10 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
             }
         }
     }
+    //check for running remote commands
+    showRemoteCommand();
+    connect(remoteTimer, SIGNAL(timeout()), this, SLOT(showRemoteCommand()));
+    remoteTimer->start(2000);
     //process linbocmds
     if(conf->getCommandLine().getLinbocmd() != NULL){
         QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
@@ -136,6 +141,17 @@ bool LinboGUI::isLogTab(int tabIndex) {
 globals LinboGUI::config()
 {
     return conf->config;
+}
+
+void LinboGUI::showRemoteCommand()
+{
+    if(!LinboRemote::is_running()){
+        return;
+    }
+    QStringList infos = LinboRemote::get_commandline();
+    progress = new FortschrittDialog( this, false, &infos, logConsole, QString("Linbo-Remote"), Aktion::None, &details );
+    progress->setShowCancelButton( false );
+    progress->exec();
 }
 
 void LinboGUI::showBatteryInfo()
@@ -361,7 +377,7 @@ void LinboGUI::doWrapperCommands()
 int LinboGUI::doCommand(const QStringList& command, bool interruptible, const QString& titel, Aktion aktion, bool* details)
 {
     QStringList *cmd = new QStringList(command);
-    progress = new FortschrittDialog( this, cmd, logConsole, titel, aktion, details );
+    progress = new FortschrittDialog( this, true, cmd, logConsole, titel, aktion, details );
     progress->setShowCancelButton( interruptible );
     return progress->exec();
 }
