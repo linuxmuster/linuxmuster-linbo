@@ -10,6 +10,7 @@ private:
 
 public:
     bool static is_running();
+    int static get_pid();
     static QStringList get_commandline();
 };
 
