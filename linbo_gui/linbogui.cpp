@@ -153,8 +153,8 @@ void LinboGUI::showRemoteCommand()
         return;
     }
     progress = new FortschrittDialog( this, false, &infos, logConsole,
-                                      ( infos.length() > 1 ?
-                                        QString("Linbo-Remote: "+infos.at(0)+" "+infos.at(1)) :
+                                      ( infos.length() > 2 ?
+                                        QString("Linbo-Remote: "+infos.at(1)+" "+infos.at(2)) :
                                         QString("Linbo-Remote: ...")
                                       ), Aktion::None, &details );
     progress->setShowCancelButton( false );
