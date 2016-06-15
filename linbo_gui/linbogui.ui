@@ -378,8 +378,8 @@ background-color: rgba(255, 255, 255, 0);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>764</width>
-             <height>312</height>
+             <width>600</width>
+             <height>249</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -471,7 +471,7 @@ background-color: rgba(255, 255, 255, 0);</string>
                <x>0</x>
                <y>0</y>
                <width>594</width>
-               <height>310</height>
+               <height>298</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -771,6 +771,16 @@ background-color: rgba(255, 255, 255, 0);</string>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="linbo_icons.qrc">:/icons/logo-200x70.png</pixmap>
+        </property>
+       </widget>
+      </item>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">

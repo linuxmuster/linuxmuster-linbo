@@ -11,7 +11,7 @@
         <file>icons/new+start-22x22.png</file>
         <file>icons/partition-22x22.png</file>
         <file>icons/register-22x22.png</file>
-	<file>icons/setup-22x22.png</file>
+        <file>icons/setup-22x22.png</file>
         <file>icons/sync+start-22x22.png</file>
         <file>icons/system-reboot-32x32.png</file>
         <file>icons/system-shutdown-32x32.png</file>
@@ -23,5 +23,6 @@
         <file>icons/system-shutdown-128x128.png</file>
         <file>icons/system-reboot-128x128.png</file>
         <file>icons/system-update-128x128.png</file>
+        <file>icons/logo-200x70.png</file>
     </qresource>
 </RCC>
