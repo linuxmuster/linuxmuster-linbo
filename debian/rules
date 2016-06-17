@@ -4,9 +4,9 @@
 #	  dh $@
 # benutzt, wird make in einer fakeroot-Umgebung ausgeführt. Buildroot baut das Image aber auch mit
 # fakeroot, nur kann man kein fakeroot in einer fakeroot-Umgebung laufen lassen. Also alles einzeln...
-
-DH_VERBOSE = 1
-#export DH_OPTIONS=-v
+#
+# Wir haben einen Rechner, der per PXE werder GRUB-2.02~beta3 noch ein musl-kompiliertes GRUB-2.02~beta2
+# noch den GRUB aus dem Ubuntu-Paket bootet, weshalb hier nochmal ein funktionierender GRUB gebaut wird.
 
 BUILDROOT=$(CURDIR)/buildroot
 BUILDDIR=$(CURDIR)/build
@@ -14,15 +14,22 @@ BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
 LINBO_VERSION=$(shell dpkg-parsechangelog -SVersion)
 
+GRUBNAME=grub-2.02~beta2
+GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
+ --disable-boot-time --disable-grub-mkfont --disable-grub-themes \
+ --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
 GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd \
  fat gettext gfxmenu gfxterm http ntfs linux loadenv minicmd net part_gpt \
  part_msdos png progress reiserfs search terminal test
 GRUB_PC_MODULES=biosdisk ntldr pxe
-GRUB_EFI32_MODULES=efi_gop efi_uga efinet tftp
-GRUB_EFI64_MODULES=efi_gop efi_uga efinet linuxefi tftp
+GRUB_EFI_MODULES=efi_gop efi_uga efinet tftp
+GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
 
 clean:
 	dh clean
+
+override_dh_clean:
+	dh_clean build/
 
 .PHONY: build
 build:
@@ -31,9 +38,18 @@ build:
 	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD32)
 	cd $(BUILDROOT); make O=$(BUILD64)
-	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub --modules="$(GRUB_PC_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-pc
-	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub --modules="$(GRUB_EFI32_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/i386-efi
-	grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub --modules="$(GRUB_EFI64_MODULES) $(GRUB_COMMON_MODULES)" -d /usr/lib/grub/x86_64-efi
+ifeq ("$(wildcard $(BUILDDIR)/$(GRUBNAME))","")
+	wget -O $(BUILDDIR)/$(GRUBNAME).tar.xz http://alpha.gnu.org/gnu/grub/$(GRUBNAME).tar.xz
+endif
+ifeq ("$(wildcard $(BUILDDIR)/boot)","")
+	cd $(BUILDDIR); tar xf $(GRUBNAME).tar.xz; cp -a $(GRUBNAME) grub-pc-i386; cp -a $(GRUBNAME) grub-efi-i386; cp -a $(GRUBNAME) grub-efi-x86_64
+	cd $(BUILDDIR)/grub-pc-i386; ./configure $(GRUBCFG) --with-platform=pc --target=i386; make
+	cd $(BUILDDIR)/grub-efi-i386; ./configure $(GRUBCFG) --with-platform=efi --target=i386; make
+	cd $(BUILDDIR)/grub-efi-x86_64; ./configure $(GRUBCFG) --with-platform=efi --target=x86_64; make
+	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_PC_MODULES)" -d $(BUILDDIR)/grub-pc-i386/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES)" -d $(BUILDDIR)/grub-efi-i386/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
+endif
 ifeq ("$(wildcard $(BUILDDIR)/ipxe.efi)","")
 	wget -O $(BUILDDIR)/ipxe.efi https://boot.ipxe.org/ipxe.efi
 endif

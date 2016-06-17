@@ -12,7 +12,7 @@ Der Buildroot-Subtree sollte nicht veraendert werden, alle Aenderungen gehen in 
 
 ### Update
 
-Buildroot bringt alle drei Monate eine neuer Version raus. Der Subtree laesst sich so updaten (Branch, an dem gearbeitet wird heisst `buildroot`):
+Buildroot bringt alle drei Monate eine neue Version raus. Der Subtree laesst sich so updaten (Branch, an dem gearbeitet wird heisst `buildroot`):
 
     $ git checkout -b buildroot-2016.05  
     $ git subtree pull --prefix buildroot git://git.buildroot.net/buildroot 2016.05  
@@ -49,6 +49,6 @@ Paket bauen
 Getestet auf Ubuntu 16.04 amd64
 
     $ dpkg-buildpackage -us -uc
-oder
 
-    $ debuild
+**ACHTUNG**: In der rules-Datei wird vor jedem Paketbau auch der `build`-Ordner geloescht, damit saubere Pakete entstehen.
+Zum  Basteln also immer mit `-nc` bauen, denn der Paketbau dauert mindestens 2h!

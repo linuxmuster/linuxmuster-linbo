@@ -15,3 +15,4 @@ build/build-i386/images/bzImage => var/linbo/linbo
 build/build-i386/images/rootfs.cpio.lz => var/linbo/linbofs.lz
 build/build-x86_64/images/bzImage => var/linbo/linbo64
 build/build-x86_64/images/rootfs.cpio.lz => var/linbo/linbofs64.lz
+build/grub-pc-i386/unicode.pf2 var/linbo/boot/grub/fonts

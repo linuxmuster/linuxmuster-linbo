@@ -2,11 +2,15 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: autoconf, automake, bc, bison, ca-certificates, cpio, debhelper, dh-exec, gettext, git, grub-efi-amd64-bin, grub-efi-ia32-bin, grub-pc-bin, libfreetype6-dev, libtool, ncurses-dev, python, rsync, texinfo, ttf-dejavu-core, unzip, wget
+Build-Depends: autoconf, automake, bc, bison, ca-certificates, cpio, debhelper,
+ dh-exec, flex, gettext, git, libfreetype6-dev, libtool, ncurses-dev, python,
+ rsync, texinfo, unzip, wget, xfonts-unifont
 
 Package: linuxmuster-linbo
 Architecture: all
-Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh, sed, screen, mkisofs, syslinux, dosfstools, atftpd (>= 0.7.dfsg-11.1) | tftpd, udpcast, xz-utils, zip, mbr, wakeonlan
+Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh,
+ sed, screen, mkisofs, syslinux, dosfstools, atftpd (>= 0.7.dfsg-11.1) | tftpd,
+ udpcast, xz-utils, zip, mbr, wakeonlan
 Suggests: isc-dhcp-server | dhcp3-server
 Recommends: wodim, ldap-utils
 Description: LINBO PXE boot files
