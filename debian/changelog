@@ -1,3 +1,14 @@
+linuxmuster-linbo (2.3.0-35) babo62; urgency=low
+
+  * linbo_cmd.sh:
+    - Fixed utf8 encoding of special chars.
+    - Fixed console message if no windows reactivation data could be downloaded.
+    - Added fstype as cli parameter.
+    - reworked syncl(), fixed bootloader stuff (closes #572).
+    - reworked restore_winact().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 25 Jun 2016 14:22:52 +0200
+
 linuxmuster-linbo (2.3.0-34) babo-testing; urgency=low
 
   * Merge pull request #59 from Kistelini/feature/grub2:
