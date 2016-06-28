@@ -228,7 +228,7 @@ diff --git a/drivers/Makefile b/drivers/Makefile
 index 7183b6a..d576148 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -17,6 +17,10 @@
+@@ -17,6 +17,10 @@ obj-y				+= pwm/
  obj-$(CONFIG_PCI)		+= pci/
  obj-$(CONFIG_PARISC)		+= parisc/
  obj-$(CONFIG_RAPIDIO)		+= rapidio/
@@ -239,7 +239,7 @@ index 7183b6a..d576148 100644
  obj-y				+= video/
  obj-y				+= idle/
  
-@@ -45,11 +49,6 @@
+@@ -42,11 +46,6 @@ obj-$(CONFIG_REGULATOR)		+= regulator/
  # reset controllers early, since gpu drivers might rely on them to initialize
  obj-$(CONFIG_RESET_CONTROLLER)	+= reset/
  

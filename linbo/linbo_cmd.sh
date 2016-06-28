@@ -2437,7 +2437,7 @@ download_torrent(){
  [ -n "$DOWNLOAD_SLICE_SIZE" ] && SLICE_SIZE=$(($DOWNLOAD_SLICE_SIZE/1024))
  local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
  [ -n "$pid" ] && kill "$pid"
- local OPTS="-e 100000 -I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
+ local OPTS="-I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
  echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
@@ -2445,13 +2445,13 @@ download_torrent(){
  if [ ! -e "$complete" ]; then
   rm -f "$image" "$torrent".bf
   torrent_watchdog "$image" "$TIMEOUT" &
-  interruptible ctorrent $OPTS -X "touch $complete ; killall -9 ctorrent" "$torrent" | tee -a "$logfile"
+  interruptible ctorrent -e 0 $OPTS -X "touch $complete" "$torrent" | tee -a "$logfile"
  fi
- [ -e "$complete" ] && RC=0
- for i in *.torrent; do
-  # start seeders
-  [ -e "${i/.torrent/.complete}" ] && ctorrent -f -d $OPTS "$i"
- done
+ # start seeder if download is complete
+ if [ -e "$complete" ]; then
+  RC=0
+  ctorrent -e 100000 $OPTS -f -d "$torrent"
+ fi
  return "$RC"
 }
 

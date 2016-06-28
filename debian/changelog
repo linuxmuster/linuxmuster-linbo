@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.0-36) babo62; urgency=low
+
+  * initramfs.conf: fixed linbo_gui32 path.
+  * updated to xenial build environment, build process consolidation.
+  * updated to lts kernel 4.4.14.
+  * linbo_cmd.sh: modified ctorrent options for performance tests.
+  * adding REANNOUNCE_INTERVAL=60 to bittorrent options.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jun 2016 19:23:15 +0200
+
 linuxmuster-linbo (2.3.0-35) babo62; urgency=low
 
   * linbo_cmd.sh:

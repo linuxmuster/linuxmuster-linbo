@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 08.03.2015
+# 28.06.2016
 # GPL v3
 #
 
@@ -23,8 +23,8 @@ KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
 KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
 KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
 KERNEL_DIR=kernel/linux-$(KVERS)
-#KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
-KERNEL_URL=$(LML_URL)
+KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
+#KERNEL_URL=$(LML_URL)
 
 # kernel64
 KERNEL64_DIR=kernel64/linux-$(KVERS)
@@ -35,10 +35,6 @@ CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' |
 #CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
 #CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 CLOOP_URL=$(LML_URL)
-
-# cloop utils 32bit
-CLOOPUTILS_DEB=$(shell grep cloop-utils_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOPUTILS_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 
 # cloop64
 #CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
@@ -106,43 +102,20 @@ NTFS3G_URL=http://tuxera.com/opensource
 # ntfs-3g64
 NTFS3G64_DIR=src64/$(shell echo $(NTFS3G_ARCHIVE) | sed -e 's/.tgz//')
 
-# rsync
-RSYNC_ARCHIVE=$(shell grep rsync- debian/md5sums.src | awk '{ print $$2 }')
-RSYNC_DIR=src/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
-RSYNC_URL=http://rsync.samba.org/ftp/rsync/src
-
-# rsync64
-RSYNC64_DIR=src64/$(shell echo $(RSYNC_ARCHIVE) | sed -e 's/.tar.gz//')
-
-# gnu parted
-PARTED_ARCHIVE=$(shell grep parted- debian/md5sums.src | awk '{ print $$2 }')
-#PARTED_DIR=src/$(shell echo $(PARTED_ARCHIVE) | sed -e 's/.tar.xz//')
-PARTED64_DIR=src64/$(shell echo $(PARTED_ARCHIVE) | sed -e 's/.tar.xz//')
-PARTED_URL=http://ftp.gnu.org/gnu/parted
-
-# gptfdisk
-GPTFDISK_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep i386 | awk '{ print $$2 }')
-GPTFDISK64_DEB=$(shell grep gptfdisk_ debian/md5sums.src | grep amd64 | awk '{ print $$2 }')
-GPTFDISK_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/i386
-GPTFDISK64_URL=http://download.opensuse.org/repositories/home:/srs5694/xUbuntu_14.04/amd64
-
 # lsaSecrets
 LSASECRETS_ARCHIVE=$(shell grep lsaSecrets debian/md5sums.src | awk '{ print $$2 }')
 LSASECRETS_DIR=src/$(shell echo $(LSASECRETS_ARCHIVE) | sed -e 's/.zip//')
 LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
 
-# 64bit binaries
-BIN64_DIR=$(CURDIR)/src64/bin64
-
 # 32bit toolchain & binaries
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
-BIN32_DEBS=acl bc bluez bvi ctorrent dosfstools dropbear e2fsprogs efibootmgr \
-           ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
-           grub-efi-ia32-bin kmod libc-bin libicu52 libgpod-common libmtp-runtime \
-           libnetpbm10 libparted0debian1 libpci3 libpng12-0 mount netpbm \
+BIN32_DEBS=acl bc bluez bvi cloop-utils ctorrent dosfstools dropbear-bin e2fsprogs \
+           efibootmgr ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
+           grub-efi-ia32-bin kmod libc-bin libefivar0 libgpod-common libmtp-runtime \
+           libnetpbm10 libparted2 libpci3 libpng12-0 mount netpbm \
            ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
-           udev udisks udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
+           udev udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
            zlib1g zlib1g-dev
 
 configure: configure-stamp
@@ -165,7 +138,6 @@ configure-stamp:
 	mkdir -p linbo_gui32 || true
 	mkdir -p linbo_gui64 || true
 	mkdir -p $(BIN32_DIR) || true
-	mkdir -p $(BIN64_DIR) || true
 
 	# setup 32bit linbo_gui dir
 	-@if [ ! -e linbo_gui32/build_gui ]; then \
@@ -255,35 +227,6 @@ configure-stamp:
 		ln -sf ../$(NTFS3G64_DIR) src64/ntfs-3g; \
 	fi
 
-	# parted64
-	-@if [ ! -d $(PARTED64_DIR) ]; then \
-		( [ -e cache/$(PARTED_ARCHIVE) ] || ( cd cache && wget $(PARTED_URL)/$(PARTED_ARCHIVE) ) ); \
-		( cd cache && grep $(PARTED_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(PARTED_ARCHIVE)...[0m" ; \
-		tar xf cache/$(PARTED_ARCHIVE) -C src64; \
-		ln -sf ../$(PARTED64_DIR) src64/parted; \
-	fi
-
-	# gptfdisk
-	-@if [ ! -e cache/$(GPTFDISK_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(GPTFDISK_DEB) ...[0m" ; wget $(GPTFDISK_URL)/$(GPTFDISK_DEB) ) ; \
-		rm -rf $(BIN32_DIR)/usr/share/doc/gptfdisk ; \
-	fi
-	-@if [ ! -d $(BIN32_DIR)/usr/share/doc/gptfdisk ]; then \
-		echo "[1mUnpacking gptfdisk ...[0m" ; \
-		dpkg -x cache/$(GPTFDISK_DEB) $(BIN32_DIR) ; \
-	fi
-
-	# gptfdisk64
-	-@if [ ! -e cache/$(GPTFDISK64_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(GPTFDISK64_DEB) ...[0m" ; wget $(GPTFDISK64_URL)/$(GPTFDISK64_DEB) ) ; \
-		rm -rf $(BIN64_DIR)/usr/share/doc/gptfdisk ; \
-	fi
-	-@if [ ! -d $(BIN64_DIR)/usr/share/doc/gptfdisk ]; then \
-		echo "[1mUnpacking gptfdisk ...[0m" ; \
-		dpkg -x cache/$(GPTFDISK64_DEB) $(BIN64_DIR) ; \
-	fi
-
 	# lsaSecrets
 	-@if [ ! -d $(LSASECRETS_DIR) ]; then \
 		( [ -e cache/$(LSASECRETS_ARCHIVE) ] || ( cd cache && wget $(LSASECRETS_URL) -O $(LSASECRETS_ARCHIVE) ) ); \
@@ -309,33 +252,23 @@ configure-stamp:
 	fi
 
 	# cloop
-	-@if [ ! -d $(CLOOP_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-	fi
-
-	# cloop-utils
-	-@if [ ! -e cache/$(CLOOPUTILS_DEB) ]; then \
-		( cd cache ; echo "[1mDownloading $(CLOOPUTILS_DEB) ...[0m" ; wget $(CLOOPUTILS_URL)/$(CLOOPUTILS_DEB) ) ; \
-		rm -rf $(BIN32_DIR)/usr/share/doc/cloop-utils ; \
-	fi
-	-@if [ ! -d $(BIN32_DIR)/usr/share/doc/cloop-utils ]; then \
-		echo "[1mUnpacking cloop-utils ...[0m" ; \
-		dpkg -x cache/$(CLOOPUTILS_DEB) $(BIN32_DIR) ; \
-	fi
-
-	# cloop with patch
 #	-@if [ ! -d $(CLOOP_DIR) ]; then \
 #		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
 #		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 #		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 #		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-#		( cd $(CLOOP_DIR) && patch -p0 <../../patches/cloop32.patch ); \
 #		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 #	fi
+
+	# cloop with patch
+	-@if [ ! -d $(CLOOP_DIR) ]; then \
+		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
+		( cd $(CLOOP_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
+		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
+	fi
 
 	# cloop64
 	-@if [ ! -d $(CLOOP64_DIR) ]; then \
@@ -343,6 +276,7 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
+		( cd $(CLOOP64_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
 		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
 	fi
 
@@ -354,7 +288,7 @@ configure-stamp:
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
 		( cd kernel && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
 		echo "[1mPatching kernel sources...[0m" ; \
-		( cd $(KERNEL_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
+		( cd $(KERNEL_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
 	fi
 
@@ -366,7 +300,7 @@ configure-stamp:
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel64; \
 		( cd kernel64 && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
 		echo "[1mPatching 64bit kernel sources...[0m" ; \
-		( cd $(KERNEL64_DIR) && for i in ../../patches/kernel/*; do patch -p1 <$$i; done ); \
+		( cd $(KERNEL64_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
 	fi
 
@@ -484,19 +418,13 @@ build-stamp: configure-stamp
 	# ntfs-3g
 	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
+		( cd $(NTFS3G_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-xattr-mappings --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip ntfsprogs/.libs/mkntfs && strip ntfsprogs/.libs/ntfsclone && strip ntfsprogs/.libs/ntfslabel && strip ntfsprogs/.libs/ntfsresize && strip libntfs-3g/.libs/libntfs-3g.so.87 ); \
 	fi
 
 	# ntfs-3g64
 	-@if [ ! -e $(NTFS3G64_DIR)/src/ntfs-3g ]; then \
 		echo "[1mBuilding 64bit ntfs-3g...[0m" ; \
-		( cd $(NTFS3G64_DIR) && ./configure --enable-really-static --enable-xattr-mappings --enable-posix-acls && make && strip src/ntfs-3g && strip ntfsprogs/mkntfs && strip ntfsprogs/ntfsclone && strip ntfsprogs/ntfslabel && strip ntfsprogs/ntfsresize ); \
-	fi
-
-	# parted64
-	-@if [ ! -e $(PARTED64_DIR)/parted/parted ]; then \
-		echo "[1mBuilding 64bit parted...[0m" ; \
-		( cd $(PARTED64_DIR) && ./configure --prefix="/usr" --disable-shared --disable-nls --disable-dynamic-loading --without-readline && make && strip parted/parted ); \
+		( cd $(NTFS3G64_DIR) && ./configure --enable-xattr-mappings --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip ntfsprogs/.libs/mkntfs && strip ntfsprogs/.libs/ntfsclone && strip ntfsprogs/.libs/ntfslabel && strip ntfsprogs/.libs/ntfsresize && strip libntfs-3g/.libs/libntfs-3g.so.87 ); \
 	fi
 
 	# qt32
@@ -551,16 +479,6 @@ build-stamp: configure-stamp
 	        ARCH=x86_64 make bzImage modules ; \
 	fi
 
-	# cloop utils
-#	-@if [ ! -e $(CLOOP_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
-#	        echo "[1mBuilding cloop utils...[0m" ; \
-#	        ln -sf i386-linux-gnu/zconf.h $(BIN32_DIR)/usr/include/zconf.h ; \
-#	        cd $(CLOOP_DIR)/advancecomp-1.15 && \
-#	        ( PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 ./configure --libdir=$(BIN32_DIR)/usr/lib --includedir=$(BIN32_DIR)/usr/include --build=i386-linux-gnu --host=i386-linux-gnu ) ; \
-#			cd $(CURDIR)/$(CLOOP_DIR) && \
-#	        ( PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 LDFLAGS=-L$(BIN32_DIR)/usr/lib CPPFLAGS=-I$(BIN32_DIR)/usr/include CFLAGS=-m32 make utils ) ; \
-#	fi
-
 	# cloop module
 	-@if [ ! -e $(CLOOP_DIR)/cloop.ko ]; then \
 	        echo "[1mBuilding cloop module...[0m" ; \
@@ -575,13 +493,6 @@ build-stamp: configure-stamp
 	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
 	        cd $(CLOOP64_DIR) && \
 	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
-	fi
-
-	# cloop64 utils
-	-@if [ ! -e $(CLOOP64_DIR)/create_compressed_fs -a ! -e $(CLOOP_DIR)/extract_compressed_fs ]; then \
-	        echo "[1mBuilding 64bit cloop utils...[0m" ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( ARCH=x86_64 make utils ) ; \
 	fi
 
 	# e1000e module

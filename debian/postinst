@@ -3,7 +3,7 @@
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
 # GPL v3
-# 12.05.2016
+# 28.06.2016
 #
 
 set -e
@@ -176,13 +176,23 @@ SystemType = bios" -i "$conf"
 
  # remove ALLOWED_DIR from bittorrent config
  conf="/etc/default/bittorrent"
- if grep -q ^ALLOWED_DIR "$conf" &> /dev/null; then
+ if grep -q ^ALLOWED_DIR "$conf"; then
   echo "Removing ALLOWED_DIR from $conf."
   cp "$conf" "$conf.dpkg-bak"
   sed -e 's|^ALLOWED_DIR|#ALLOWED_DIR|g' -i "$conf"
+  bt_restart=yes
+ fi
+ # add REANNOUNCE_INTERVAL to bittorrent config
+ if ! grep -q ^REANNOUNCE_INTERVAL "$conf"; then
+  echo "Adding REANNOUNCE_INTERVAL=60 to $conf."
+  [ -z "$bt_restart" ] && cp "$conf" "$conf.dpkg-bak"
+  echo "REANNOUNCE_INTERVAL=60" >> "$conf"
+  bt_restart=yes
+ fi
+ if [ -n "$bt_restart" ]; then
   service bittorrent restart || true
  fi
- 
+
  # provide grub menu background
  [ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
  ln -sf ../../linbo_wallpaper.png "$LINBODIR/boot/grub/themes/linbo/linbo_wallpaper.png"
