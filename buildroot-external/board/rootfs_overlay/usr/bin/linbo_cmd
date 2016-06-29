@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 11.04.2016
+# 25.06.2016
 # GPL v3
 #
 
@@ -42,7 +42,7 @@ printargs(){
  local arg
  local count=1
  for arg in "$@"; do
-  echo -n "$((count++)):»$arg« "
+  echo -n "$((count++)): »$arg« "
  done
  echo ""
 }
@@ -1540,7 +1540,7 @@ mk_cloop(){
  case "$1" in
   partition) # full partition dump
    if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
-    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
+    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     prepare_fs /mnt "$2" | tee -a /tmp/image.log
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
@@ -1676,14 +1676,14 @@ cp_cloop_ntfs(){
   return "$RC"
  fi
  # check if resizing is necessary
- echo "Prüfe ob Dateisystem vergrößert werden muss..." | tee -a /tmp/image.log
+ echo "Prüfe ob Dateisystem vergrößert werden muss..." | tee -a /tmp/image.log
  # save ntfs size infos in temp file
  ntfsresize -f -i "$targetdev" 2>> /tmp/image.log > /tmp/ntfs.info
  # get volume size in mb
  local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if volsizemb is an integer value
  if ! isinteger "$volsizemb"; then
-  echo "Kann Dateisystemgröße nicht bestimmen." | tee -a /tmp/image.log
+  echo "Kann Dateisystemgröße nicht bestimmen." | tee -a /tmp/image.log
   return 1
  fi  
  echo "Dateisystem: $volsizemb MB" | tee -a /tmp/image.log
@@ -1691,24 +1691,24 @@ cp_cloop_ntfs(){
  local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if devsizemb is an integer value
  if ! isinteger "$devsizemb"; then
-  echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
+  echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
   return 1
  fi
  echo "Partition  : $devsizemb MB" | tee -a /tmp/image.log
  # test if partition is larger than filesystem and adjust filesystem size if necessary
  if [ $devsizemb -gt $volsizemb ]; then
-  echo "Dateisystem wird auf $devsizemb MB vergrößert." | tee -a /tmp/image.log
+  echo "Dateisystem wird auf $devsizemb MB vergrößert." | tee -a /tmp/image.log
   # get partition size in bytes
   local devsize="$(grep "Current device size" /tmp/ntfs.info | awk '{ print $4}')"
   if ! isinteger "$devsize"; then
-   echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
+   echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
    return 1
   fi
   # increase the filesystem size
   ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
-  [ "$RC" = "0" ] || echo "Vergrößerung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
+  [ "$RC" = "0" ] || echo "Vergrößerung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
  else
-  echo "Vergrößerung ist nicht notwendig." | tee -a /tmp/image.log
+  echo "Vergrößerung ist nicht notwendig." | tee -a /tmp/image.log
   RC=0
  fi # devsizemb gt volsizemb
  return "$RC"
@@ -1735,7 +1735,7 @@ cp_cloop(){
    local s2="$(get_partition_size $targetdev)"
    local block="$(($CLOOP_BLOCKSIZE / 1024))"
    if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
-    echo "FEHLER: CLOOP-Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    echo "FEHLER: CLOOP-Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
     echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
     rmmod cloop >/dev/null 2>&1
     return 1
@@ -2005,9 +2005,15 @@ restore_winact(){
   archive="$mac.$image.winact.tar.gz"
   # get server ip address
   local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
-  echo "Fordere Reaktivierungs-Daten von $serverip an."
+  echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
   # get token archive from linbo server
   rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
+  if [ -s "/cache/$archive" ]; then
+   echo "OK!"
+  else
+   echo "überspringe Reaktivierung, keine Daten!"
+   return
+  fi
   # request windows/office productkeys
   local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
   rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
@@ -2017,7 +2023,7 @@ restore_winact(){
    echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "/cache/$image.winact.cmd"
   fi
   # add office key handling to batchfile if office token is in archive
-  if gunzip -c "/cache/$archive" | tar -t | grep -qi office; then
+  if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
    if [ -n "$officekey" ]; then
     # get office installation dir
     local office_dir="$(ls -d /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]\ \(x86\)/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]1[45] 2> /dev/null)"
@@ -2030,12 +2036,13 @@ restore_winact(){
     fi
    fi
   fi
-  dos2unix "/cache/$image.winact.cmd"
   rm -f "$keyfile"
  fi
  # no data available
- if [ ! -s "/cache/$archive" -o ! -s "/cache/$image.winact.cmd" ]; then
-  echo "Überspringe Reaktivierung, keine Daten."
+ if [ -s "/cache/$image.winact.cmd" ]; then
+  dos2unix "/cache/$image.winact.cmd"
+ else
+  echo "Überspringe Reaktivierung, keine Produktkeys gefunden."
   return
  fi
  echo "Stelle Windows-Aktivierungstokens wieder her."
@@ -2055,186 +2062,232 @@ syncl(){
  local disk="${rootdev%%[1-9]*}"
  local group="$(hostgroup)"
  local bootdir
+
  # don't sync in that case
  if [ "$1" = "$rootdev" ]; then
   echo "Überspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
   return 0
  fi
+
+ # begin syncing
  echo -n "syncl " ; printargs "$@"
+
+ # mount cache and sync
  mountcache "$1" || return "$?"
  cd /cache
  local image=""
+ # start syncing images
  for image in "$2" "$3"; do
-  [ -n "$image" ] || continue
-  if [ -f "$image" ]; then
-   restore "$image" "$5" $9 ; RC="$?"
-   [ "$RC" = "0" ] || break
-   patchfile="$image.reg"
-   postsync="$image.postsync"
-  fi
+  [ -n "$image" -a -f "$image" ] || continue
+  restore "$image" "$5" $9 ; RC="$?"
+  [ "$RC" = "0" ] || break
+  patchfile="$image.reg"
+  postsync="$image.postsync"
  done
+
+ # mount os partition
  if [ "$RC" = "0" ]; then
-  # Apply patches
-  if mountpart "$5" /mnt -w 2>> /tmp/linbo.log; then
-   # hostname
-   local HOSTNAME
-   if localmode; then
-    if [ -s /cache/hostname ]; then
-     HOSTNAME="$(cat /cache/hostname)"
+  mountpart "$5" /mnt -w 2>> /tmp/linbo.log ; RC="$?"
+ fi
+ # return on error
+ if [ "$RC" != "0" ]; then
+  echo "Kann $5 nicht einhängen!" | tee -a /tmp/linbo.log
+  sendlog
+  cd /
+  return "$RC"
+ fi
+
+ # detect windows os
+ [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ] && local is_win="yes"
+
+ # get hostname
+ local HOSTNAME
+ [ "$(localmode)" = "0" -a -s /cache/hostname ] && HOSTNAME="$(cat /cache/hostname)"
+ [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
+
+ # detect efi system if efi partition exists
+ local efipart="$(print_efipart)"
+
+ ## Prepare os filesystem, apply patches etc.
+
+ # restore guids in case of efi/gpt partitions
+ local sysname
+ if [ -n "$efipart" ]; then
+  sysname="EFI"
+  # restore partition guids
+  local partname="$(basename "$rootdev")"
+  # get guids with old method
+  [ -s /mnt/.guids ] && source /mnt/.guids
+  if [ -s /mnt/.guid.efi ]; then
+   set_guid "$efipart" "$(cat /mnt/.guid.efi)"
+  else
+   [ -n "$guid_efi" ]&& set_guid "$efipart" "$guid_efi"
+  fi
+  if [ -s "/mnt/.guid.$partname" ]; then
+   set_guid "$rootdev" "$(cat /mnt/.guid."$partname")"
+  else
+   [ -n "$guid_os" ] && set_guid "$rootdev" "$guid_os"
+  fi
+ else
+  sysname="BIOS"
+ fi # efipart
+ echo "$sysname-System gefunden."
+
+ # windows stuff begin
+ if [ -n "$is_win" ]; then
+
+  # do registry patching for windows systems
+  if [ -s "$patchfile" ]; then
+   echo "Patche Windows-Registry mit $patchfile." | tee /tmp/patch.log
+   sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
+   dos2unix "$TMP"
+   cat "$TMP" >>/tmp/patch.log
+   patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
+   [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
+   rm -f "$TMP"
+  fi # reg patch
+
+  # tweak windows newdev.dll (suppresses new hardware dialog)
+  local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
+  [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
+  local newdevdllbak="$newdevdll.linbo-orig"
+  # save original file
+  [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
+  # patch newdev.dll
+  if [ -n "$newdevdll" ]; then
+   echo "Patche $newdevdll."
+   grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
+  fi
+
+  # restore windows boot files
+  local bcd_backup
+
+  # get boot files
+  # efi
+  if [ -n "$efipart" ]; then
+   # detect efi boot dir backup
+   bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+   # create efi boot dir from bios boot stuff if not exists
+   if [ -z "$bootdir" ]; then
+    bootdir="/mnt/EFI/Microsoft/Boot"
+    mkdir -p "$bootdir"
+    local oldbootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+    if [ -n "$oldbootdir" ]; then
+     cp -r "$oldbootdir"/* "$bootdir/"
     fi
+    local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
+    [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
    fi
-   [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
-   # do registry patching for windows systems
-   if [ -r "$patchfile" ]; then
-    # WinXP, Win7
-    if [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o "$(fstype "$rootdev")" = "ntfs" ]; then
-     sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
-     dos2unix "$TMP"
-     echo -n "Patche System mit $patchfile." >/tmp/patch.log
-     cat "$TMP" >>/tmp/patch.log
-     patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
-     [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
-     rm -f "$TMP"
-    fi
+   bcd_backup="$bootdir"/BCD."$group"."$partname"
+  # bios
+  else
+   bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
+   bcd_backup="$bootdir"/BCD."$group"
+  fi
+
+  # restore bcd
+  if [ -s "$bcd_backup" ]; then
+   echo "Restauriere die Windows-$sysname-Bootkonfiguration $(basename "$bcd_backup")."
+   cp -f "$bcd_backup" "$bootdir"/BCD
+  fi
+
+  # restore win7 mbr flag
+  [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
+  if [ -n "$mbr" -a -s "$mbr" ]; then
+   echo "Restauriere Win7-MBR."
+   dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+  fi
+
+  # restore ntfs id
+  [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
+  if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
+   echo "Restauriere NTFS-ID."
+   dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+  fi
+
+  # write partition boot sector (vfat and 32bit only)
+  if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
+   local msopt=""
+   [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
+   [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
+   if [ -n "$msopt" ]; then
+    echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
+    ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
    fi
-   # tweak newdev.dll (suppresses new hardware dialog)
-   local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
-   [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
-   local newdevdllbak="$newdevdll.linbo-orig"
-   # save original file
-   [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
-   # patch newdev.dll
-   if [ -n "$newdevdll" ]; then
-    echo "Patche $newdevdll."
-    grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
+  fi
+
+  # update linuxmuster-win scripts and restore windows activation
+  if [ -d /cache/linuxmuster-win ]; then
+   update_win || RC="1"
+   if [ "$RC" = "0" ]; then
+    restore_winact || RC="1"
    fi
-   # compute boot file directory (efi or bios)
-   local efipart="$(print_efipart)"
-   if [ -n "$efipart" ]; then
-    # restore partition guids
-    local partname="$(basename "$rootdev")"
-    # get guids with old method
-    [ -s /mnt/.guids ] && source /mnt/.guids
-    if [ -s /mnt/.guid.efi ]; then
-     set_guid "$efipart" "$(cat /mnt/.guid.efi)"
-    else
-     [ -n "$guid_efi" ]&& set_guid "$efipart" "$guid_efi"
-    fi
-    if [ -s "/mnt/.guid.$partname" ]; then
-     set_guid "$rootdev" "$(cat /mnt/.guid."$partname")"
-    else
-     [ -n "$guid_os" ] && set_guid "$rootdev" "$guid_os"
-    fi
-    # windows stuff
-    if [ "$(fstype "$5")" = "ntfs" ]; then
-     bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
-     # restore efi boot dir from bios boot dir
-     if [ -z "$bootdir" ]; then
-      bootdir="/mnt/EFI/Microsoft/Boot"
-      mkdir -p "$bootdir"
-      local oldbootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt] 2> /dev/null)"
-      if [ -n "$oldbootdir" ]; then
-       cp -r "$oldbootdir"/* "$bootdir/"
-      fi
-      local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
-      [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
-     fi
-     local bcd_backup_efi="$bootdir"/BCD."$group"."$partname"
-    else # bios
-     bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
-     local bcd_backup="$bootdir"/BCD."$group"
-    fi
-    # restore win7 bcd
-    if [ -s "$bcd_backup_efi" ]; then
-     echo "Restauriere die Windows-Bootkonfiguration für Gruppe $group und Partition $partname."
-     cp -f "$bcd_backup_efi" "$bootdir"/BCD
-    elif [ -s "$bcd_backup" ]; then
-     echo "Restauriere die Windows-Bootkonfiguration für Gruppe $group."
-     cp -f "$bcd_backup" "$bootdir"/BCD
-    fi
-    # restore win7 mbr flag
-    [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
-    if [ -n "$mbr" -a -s "$mbr" ]; then
-     echo "Restauriere Win7-MBR."
-     dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
-    fi
-    # restore ntfs id
-    [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
-    if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
-     echo "Restauriere NTFS-ID."
-     dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
-    fi
-   fi # ntfs
-   # write partition boot sector (vfat and 32bit only)
-   if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
-    local msopt=""
-    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
-    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
-    if [ -n "$msopt" ]; then
-     echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
-     ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
-    fi
-   fi
-   # patching for linux systems
-   # grub
-   if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
-    mkdir -p /mnt/boot/efi
-    mount "$efipart" /mnt/boot/efi
-    local i
-    for i in /dev /dev/pts /proc /sys; do
-     mount --bind "$i" /mnt"$i"
-    done
-    chroot /mnt update-grub
-    for i in /sys /proc /dev/pts /dev; do
-     umount /mnt"$i"
-    done
-    umount /mnt/boot/efi
-   fi
-   # hostname
-   if [ -f /mnt/etc/hostname ]; then
-    if [ -n "$HOSTNAME" ]; then
-     echo "Setze Hostname -> $HOSTNAME."
-     echo "$HOSTNAME" > /mnt/etc/hostname
-    fi
-   fi
-   # copy ssh keys
-   if [ -d /mnt/etc/dropbear ]; then
-    cp /etc/dropbear/* /mnt/etc/dropbear
-    if [ -s /mnt/root/.ssh/authorized_keys ]; then
-     local sshkey="$(cat /.ssh/authorized_keys)"
-     grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
-    else
-     mkdir -p /mnt/root/.ssh
-     cp /.ssh/authorized_keys /mnt/root/.ssh
-    fi
-    chmod 600 /mnt/root/.ssh/authorized_keys
-   fi
-   # patch dropbear config with port 2222 and disable password logins
-   if [ -s /mnt/etc/default/dropbear ]; then
-    sed -e 's|^NO_START=.*|NO_START=0|
-            s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
-            s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
-   fi
-   # fstab
-   [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
-   # do opsi stuff
-   do_opsi "$2" "$3" || RC="1"
-   # update linuxmuster-win scripts and restore windows activation
-   if [ "$(fstype "$rootdev")" = "ntfs" -a -d /cache/linuxmuster-win ]; then
-    update_win || RC="1"
-    if [ "$RC" = "0" ]; then
-     restore_winact || RC="1"
-    fi
-   fi
-   # source postsync script
-   [ -s "/cache/$postsync" ] && . "/cache/$postsync"
-   # finally do minimal boot configuration
-   mk_boot || RC=1
-   # all done
-   sync; sync; sleep 1
-   umount /mnt || umount -l /mnt
+  fi
+
+ fi # windows stuff end
+
+ # linux stuff begin
+
+ # grub efi
+ if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
+  mkdir -p /mnt/boot/efi
+  mount "$efipart" /mnt/boot/efi
+  local i
+  for i in /dev /dev/pts /proc /sys; do
+   mount --bind "$i" /mnt"$i"
+  done
+  chroot /mnt update-grub
+  for i in /sys /proc /dev/pts /dev; do
+   umount /mnt"$i"
+  done
+  umount /mnt/boot/efi
+ fi
+
+ # hostname
+ if [ -f /mnt/etc/hostname ]; then
+  if [ -n "$HOSTNAME" ]; then
+   echo "Setze Hostname -> $HOSTNAME."
+   echo "$HOSTNAME" > /mnt/etc/hostname
   fi
  fi
+
+ # copy ssh keys
+ if [ -d /mnt/etc/dropbear ]; then
+  cp /etc/dropbear/* /mnt/etc/dropbear
+  if [ -s /mnt/root/.ssh/authorized_keys ]; then
+   local sshkey="$(cat /.ssh/authorized_keys)"
+   grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
+  else
+   mkdir -p /mnt/root/.ssh
+   cp /.ssh/authorized_keys /mnt/root/.ssh
+  fi
+  chmod 600 /mnt/root/.ssh/authorized_keys
+ fi
+
+ # patch dropbear config with port 2222 and disable password logins
+ if [ -s /mnt/etc/default/dropbear ]; then
+  sed -e 's|^NO_START=.*|NO_START=0|
+          s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
+          s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
+ fi
+
+ # fstab
+ [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+
+ # linux stuff end
+
+ # opsi stuff
+ do_opsi "$2" "$3" || RC="1"
+
+ # source postsync script
+ [ -s "/cache/$postsync" ] && . "/cache/$postsync"
+
+ # finally do minimal boot configuration
+ mk_boot || RC=1
+
+ # all done
+ sync; sync; sleep 1
+ umount /mnt || umount -l /mnt
  sendlog
  cd / # ; mountcache "$1" -r
  return "$RC"
@@ -2447,7 +2500,7 @@ download_if_newer(){
     echo "Server enthält eine neuere ($ts2) Version von $2 ($ts1)."
    elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
+    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
    fi
    rm -f "$2".info.old
   else
@@ -3058,6 +3111,7 @@ case "$cmd" in
  initcache) initcache "$@" ;;
  initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
  mountcache) mountcache "$@" ;;
+ fstype) fstype "$@" ;;
  readfile) readfile "$@" ;;
  ready) ready "$@" ;;
  register) register "$@" ;;

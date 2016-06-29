@@ -8,7 +8,7 @@ Build-Depends: autoconf, automake, bc, bison, ca-certificates, cpio, debhelper,
 
 Package: linuxmuster-linbo
 Architecture: all
-Depends: linuxmuster-base (>= 6.1.0), rsync (>= 3), bittorrent, dropbear, ssh,
+Depends: linuxmuster-base (>= 6.2.0), rsync (>= 3), bittorrent, dropbear, ssh,
  sed, screen, mkisofs, syslinux, dosfstools, atftpd (>= 0.7.dfsg-11.1) | tftpd,
  udpcast, xz-utils, zip, mbr, wakeonlan
 Suggests: isc-dhcp-server | dhcp3-server
