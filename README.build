@@ -7,7 +7,7 @@ linuxmuster-linbo 32/64 build instructions
   sudo dpkg --add-architecture i386
   sudo apt update
 
-* Install build depends (with sudo):
+* Install build depends (uses sudo):
   ./get-depends.sh
 
 * Build package:

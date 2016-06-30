@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 25.06.2016
+# 30.06.2016
 # GPL v3
 #
 
@@ -463,6 +463,7 @@ format(){
   esac
  fi
  echo -n "Formatiere $partition mit $fstype ..."
+ [ -d "$partition" ] || sleep 5
  $cmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
  if [ "$RC" != "0" ]; then
   echo -n " Partition ist noch nicht bereit - versuche nochmal ..."
@@ -2156,7 +2157,7 @@ syncl(){
   # patch newdev.dll
   if [ -n "$newdevdll" ]; then
    echo "Patche $newdevdll."
-   grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
+   grep ^: /etc/newdev-patch.bvi | bvi -c - "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
   fi
 
   # restore windows boot files

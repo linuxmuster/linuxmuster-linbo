@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.0-37) babo62; urgency=low
+
+  * linbo_cmd.sh:
+    - syncl(): fixed changed bvi syntax.
+    - format(): added 5 secs waiting time if partition is not yet available.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jun 2016 12:49:21 +0200
+
 linuxmuster-linbo (2.3.0-36) babo62; urgency=low
 
   * initramfs.conf: fixed linbo_gui32 path.
@@ -6,7 +14,7 @@ linuxmuster-linbo (2.3.0-36) babo62; urgency=low
   * linbo_cmd.sh: modified ctorrent options for performance tests.
   * adding REANNOUNCE_INTERVAL=60 to bittorrent options.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jun 2016 19:23:15 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jun 2016 12:20:14 +0200
 
 linuxmuster-linbo (2.3.0-35) babo62; urgency=low
 
