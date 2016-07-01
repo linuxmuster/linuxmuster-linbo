@@ -1,10 +1,9 @@
 linuxmuster-linbo (2.3.0-37) babo62; urgency=low
 
-  * linbo_cmd.sh:
-    - syncl(): fixed changed bvi syntax.
-    - format(): added 5 secs waiting time if partition is not yet available.
+  * linbo_cmd.sh syncl(), newdev-patch.bvi: fixes due to changed bvi syntax.
+  * linbo_cmd.sh format(): added 5 secs waiting time if partition is not yet available.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jun 2016 12:49:21 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 01 Jul 2016 10:15:56 +0200
 
 linuxmuster-linbo (2.3.0-36) babo62; urgency=low
 

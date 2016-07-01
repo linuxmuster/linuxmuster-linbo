@@ -2156,8 +2156,21 @@ syncl(){
   [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
   # patch newdev.dll
   if [ -n "$newdevdll" ]; then
-   echo "Patche $newdevdll."
-   grep ^: /etc/newdev-patch.bvi | bvi -c - "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
+   echo -n "Patche $newdevdll ... "
+   local bcmd
+   local RC_BVI
+   # read substitute commands line for line from file
+   grep ^s/ /etc/newdev-patch.bvi | while read bcmd; do
+    echo "$bcmd" >> /tmp/patch.log
+    bvi -c "$bcmd" +"w" +"q" "$newdevdll" 2>&1 >> /tmp/patch.log || RC_BVI="1"
+    [ "$RC_BVI" = "1" ] && break
+   done
+   if [ "$RC_BVI" = "1" ]; then
+    echo "Fehler! Siehe patch.log."
+    RC="$RC_BVI"
+   else
+    echo "OK!"
+   fi
   fi
 
   # restore windows boot files

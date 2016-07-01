@@ -18,6 +18,6 @@ if ! grep -q "Source: linuxmuster-linbo" debian/control; then
 fi
 
 # install build depends
-BUILDDEPENDS="$(grep ^Build-Depend debian/control | awk -F\: '{ print $2 }' | sed -e 's|,||g')"
+BUILDDEPENDS="$(grep ^Build-Depends: debian/control | sed -e 's|Build-Depends: ||' -e 's|,| |g')"
 $SUDO apt update -y
 $SUDO apt install -y $BUILDDEPENDS
