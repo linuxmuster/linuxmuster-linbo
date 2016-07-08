@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 25.06.2016
+# 30.06.2016
 # GPL v3
 #
 
@@ -463,6 +463,7 @@ format(){
   esac
  fi
  echo -n "Formatiere $partition mit $fstype ..."
+ [ -d "$partition" ] || sleep 5
  $cmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
  if [ "$RC" != "0" ]; then
   echo -n " Partition ist noch nicht bereit - versuche nochmal ..."
@@ -2155,8 +2156,21 @@ syncl(){
   [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
   # patch newdev.dll
   if [ -n "$newdevdll" ]; then
-   echo "Patche $newdevdll."
-   grep ^: /etc/newdev-patch.bvi | bvi "$newdevdll" 2>>/tmp/patch.log 1> /dev/null
+   echo -n "Patche $newdevdll ... "
+   local bcmd
+   local RC_BVI
+   # read substitute commands line for line from file
+   grep ^s/ /etc/newdev-patch.bvi | while read bcmd; do
+    echo "$bcmd" >> /tmp/patch.log
+    bvi -c "$bcmd" +"w" +"q" "$newdevdll" 2>&1 >> /tmp/patch.log || RC_BVI="1"
+    [ "$RC_BVI" = "1" ] && break
+   done
+   if [ "$RC_BVI" = "1" ]; then
+    echo "Fehler! Siehe patch.log."
+    RC="$RC_BVI"
+   else
+    echo "OK!"
+   fi
   fi
 
   # restore windows boot files

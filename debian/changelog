@@ -1,9 +1,16 @@
-linuxmuster-linbo (3.0.0-36) babo-testing; urgency=medium
+linuxmuster-linbo (3.0.0-1) babo-testing; urgency=medium
 
   * Add Qt5-GUI
   * Change build system to Buildroot
 
  -- Christian Buschau <christian.buschau@mailbox.org>  Fri, 03 Jun 2016 11:00:18 +0200
+
+linuxmuster-linbo (2.3.0-37) babo62; urgency=low
+
+  * linbo_cmd.sh syncl(), newdev-patch.bvi: fixes due to changed bvi syntax.
+  * linbo_cmd.sh format(): added 5 secs waiting time if partition is not yet available.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 01 Jul 2016 10:15:56 +0200
 
 linuxmuster-linbo (2.3.0-36) babo62; urgency=low
 
@@ -13,7 +20,7 @@ linuxmuster-linbo (2.3.0-36) babo62; urgency=low
   * linbo_cmd.sh: modified ctorrent options for performance tests.
   * adding REANNOUNCE_INTERVAL=60 to bittorrent options.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Jun 2016 19:23:15 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jun 2016 12:20:14 +0200
 
 linuxmuster-linbo (2.3.0-35) babo62; urgency=low
 
