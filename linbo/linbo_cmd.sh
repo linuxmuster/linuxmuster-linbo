@@ -532,7 +532,7 @@ mountcache(){
    # temporary workaround for password
    [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
    [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
-   mount $2 -t cifs -o user=linbo,pass="$PASSWD",nolock "$1" /cache 2>> /tmp/linbo.log
+   mount $2 -t cifs -o username=linbo,password="$PASSWD",nolock "$1" /cache 2>> /tmp/linbo.log
    RC="$?"
    if [ "$RC" != "0" ]; then
     echo "Zugriff auf $1 als Benutzer \"linbo\" mit Authentifizierung klappt nicht."
