@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.0-38) babo62; urgency=low
+
+  * added several new start icons.
+  * remote cache writable fix (closes #608).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 18 Jul 2016 18:44:50 +0200
+
 linuxmuster-linbo (2.3.0-37) babo62; urgency=low
 
   * linbo_cmd.sh syncl(), newdev-patch.bvi: fixes due to changed bvi syntax.
