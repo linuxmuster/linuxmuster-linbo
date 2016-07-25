@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 19.03.2016
+# 20160725
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -13,6 +13,9 @@
 
 # Ignore signals
 trap "" 1 2 11 15
+
+# set terminal
+export TERM=xterm
 
 # Reset fb color mode
 RESET="]R"

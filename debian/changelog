@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.1-0) babo62; urgency=low
+
+  * added linbo iso file creation (closes #611).
+  * added non pae kernel (closes #417).
+  * fixed recognition of windows efi systems (closes #609 & #612).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Jul 2016 21:34:26 +0200
+
 linuxmuster-linbo (2.3.0-38) babo62; urgency=low
 
   * added several new start icons.

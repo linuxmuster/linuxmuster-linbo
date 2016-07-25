@@ -3,7 +3,7 @@
 # postinst script for linuxmuster
 # thomas@linuxmuster.net
 # GPL v3
-# 28.06.2016
+# 20160725
 #
 
 set -e
@@ -192,6 +192,24 @@ SystemType = bios" -i "$conf"
  if [ -n "$bt_restart" ]; then
   service bittorrent restart || true
  fi
+
+ # add non pae linbo to grub cfgs
+ for i in "$LINBODIR"/boot/grub/*.cfg; do
+  grep -qw linbo-np "$i" && continue
+  echo "Adding linbo-np to $(basename "$i")."
+  cp "$i" "$i".bak
+  awk '
+/# linbo part\, boot local or net \(default #0\)/ {
+print "# use non pae linbo if corresponding cpu is detected"
+print "if ! cpuid -p; then"
+print " set linbo_kernel=/linbo-np"
+print " set linbo_initrd=/linbofs-np.lz"
+print "fi"
+print ""
+}
+{ print }
+' "$i".bak > "$i"
+ done
 
  # provide grub menu background
  [ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"

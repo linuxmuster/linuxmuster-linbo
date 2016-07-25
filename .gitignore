@@ -1,6 +1,7 @@
 src
 src64
 kernel
+kernel-np
 kernel64
 cache
 linbo_gui32

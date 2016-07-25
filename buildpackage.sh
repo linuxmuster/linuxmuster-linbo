@@ -6,6 +6,7 @@ done
 
 rm -f debian/files
 rm -rf kernel/modules
+rm -rf kernel-np/modules
 rm -rf kernel64/modules
 
 fakeroot dpkg-buildpackage \
@@ -16,6 +17,7 @@ fakeroot dpkg-buildpackage \
     -Isrc \
     -Isrc64 \
     -Ikernel \
+    -Ikernel-np \
     -Ikernel64 \
     -Ilinbo_gui/linbo_gui \
     -Ilinbo_gui/qt-* \

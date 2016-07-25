@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 30.06.2016
+# 20160724
 # GPL v3
 #
 
@@ -2099,7 +2099,7 @@ syncl(){
  fi
 
  # detect windows os
- [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ] && local is_win="yes"
+ [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -o -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32 ] && local is_win="yes"
 
  # get hostname
  local HOSTNAME
@@ -2737,9 +2737,13 @@ update(){
  mkdir -p "$grubdir"
 
  cd /cache
- local is_64="$(get_64)"
- local kernel="linbo${is_64}"
- local kernelfs="linbofs${is_64}.lz"
+ local suffix="$(get_64)"
+ # detect non pae cpu
+ if [ -z "$suffix" ]; then
+  grep ^flags /proc/cpuinfo | head -1 | grep -wq pae || suffix="-np"
+ fi
+ local kernel="linbo${suffix}"
+ local kernelfs="linbofs${suffix}.lz"
  local md5_before
  local md5_after
  local i
