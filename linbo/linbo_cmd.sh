@@ -1872,7 +1872,7 @@ restore(){
  esac
  if [ "$RC" = "0" ]; then
   # ntfsfix after sync
-  [ "$fstype" = "ntfs" ] && ntfsfix -d "$2"
+  #[ "$fstype" = "ntfs" ] && ntfsfix -d "$2"
   echo "Fertig."
  else
   echo "Fehler!" >&2
