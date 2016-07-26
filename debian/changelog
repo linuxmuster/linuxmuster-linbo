@@ -4,7 +4,7 @@ linuxmuster-linbo (2.3.2-0) babo62; urgency=low
   * linbo_cmd.sh, prepare_fs(), fixed win mbr restore.
   * added ntfsfix to linbofs.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 16:52:05 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 17:04:25 +0200
 
 linuxmuster-linbo (2.3.1-1) babo62; urgency=low
 
