@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20160724
+# 20160726
 # GPL v3
 #
 
@@ -36,6 +36,8 @@ fi
 rm -f "$TMP"
 # EOF Debugging
 
+# set terminal & PATH
+export TERM=xterm
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 printargs(){
@@ -1952,8 +1954,8 @@ do_opsi(){
   image="$1"
  fi
  # request opsikey
- rsync "$serverip"::linbo/"$ip.opsikey" /cache/opsikey
- [ -s /cache/opsikey ] && local key="$(cat /cache/opsikey)"
+ rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey
+ [ -s /tmp/opsikey ] && local key="$(cat /tmp/opsikey)"
  if [ -n "$key" ]; then
   echo "Opsi-Host-Key heruntergeladen."
   # patch opsi host key
@@ -1971,7 +1973,7 @@ do_opsi(){
   echo "Opsi-Host-Key konnte nicht heruntergeladen werden."
   RC="1"
  fi
- rm -f /cache/opsikey
+ rm -f /tmp/opsikey
  # request opsi host ini update
  rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
  return "$RC"

@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20160725
+# 20160726
 # GPL v3
 #
 
@@ -539,7 +539,6 @@ install: build
 	echo >> ../initramfs.conf ; \
 	echo "# grub2 boot images" >> $(CURDIR)/kernel/initramfs.conf ; \
 	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel-np/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-efi/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-efi/|" >>$(CURDIR)/kernel-np/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel-np/initramfs.conf ; \
 	( cd ../../src/bin32 && find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p ../../src/bin32/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel-np/initramfs.conf ; \
@@ -557,6 +556,7 @@ install: build
 	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# grub2 boot images" >> $(CURDIR)/kernel64/initramfs.conf ; \
+	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
 	( cd /usr/lib/grub/x86_64-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/x86_64-efi/|' | sed -e "s|\./|/usr/lib/grub/x86_64-efi/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \

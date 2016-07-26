@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.1-1) babo62; urgency=low
+
+  * fixed missing i386 grub stuff in linbo64.
+  * linbo_cmd.sh:
+    - added global TERM variable in linbo_cmd and inmit.sh (needed for bvi).
+    - update(), moved download of opsi key file to /tmp.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 09:26:06 +0200
+
 linuxmuster-linbo (2.3.1-0) babo62; urgency=low
 
   * added linbo iso file creation (closes #611).
