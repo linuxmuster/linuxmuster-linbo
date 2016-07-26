@@ -1469,6 +1469,7 @@ set_guid(){
  local partition="$1"
  local guid="$2"
  [ -z "$partition" -a -z "$guid" ] && return 1
+ echo "Restauriere Partitions-GUID von $partition."
  local disk="$(get_disk_from_partition "${partition}")"
  local partnr="$(echo "$partition" | sed "s|$disk||")"
  echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" &> /tmp/image.log || return 1
@@ -1517,11 +1518,14 @@ prepare_fs(){
      cp -f "$bcd" "$bcd"."$group"
     fi
     # 4 bytes mbr group specific
-    local mbr=$targetdir/win7mbr.$group
-    dd if=$disk of=$mbr bs=1 count=4 skip=440 2>> /tmp/linbo.log
+    echo "Sichere Win-MBR fuer Gruppe $group."
+    rm -f "$targetdir/win*mbr.$group"
+    local mbr="$targetdir/winmbr.$group"
+    dd if="$(get_disk_from_partition "$2")" of="$mbr" bs=1 count=4 skip=440 2>> /tmp/linbo.log
     # ntfs partition id
-    local ntfsid=$targetdir/ntfs.id
-    dd if=$2 of=$ntfsid bs=8 count=1 skip=9 2>> /tmp/linbo.log
+    echo "Sichere NTFS-ID."
+    local ntfsid="$targetdir/ntfs.id"
+    dd if="$2" of="$ntfsid" bs=8 count=1 skip=9 2>> /tmp/linbo.log
    fi
   fi
  )
@@ -1543,7 +1547,7 @@ mk_cloop(){
  case "$1" in
   partition) # full partition dump
    if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
-    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
+    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
     prepare_fs /mnt "$2" | tee -a /tmp/image.log
     echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
@@ -1673,20 +1677,20 @@ cp_cloop_ntfs(){
  local RC=1
  local targetdev="$1"
  echo "Restauriere Partition $targetdev mit ntfsclone..." | tee -a /tmp/image.log
- interruptible ntfsclone -f --overwrite "$targetdev" /dev/cloop 2>> /tmp/image.log ; RC="$?"
+ interruptible ntfsclone -q -f --overwrite "$targetdev" /dev/cloop 2>> /tmp/image.log ; RC="$?"
  if [ "$RC" != "0" ]; then
   echo 'FEHLER!' | tee -a /tmp/image.log
   return "$RC"
  fi
  # check if resizing is necessary
- echo "Prüfe ob Dateisystem vergrößert werden muss..." | tee -a /tmp/image.log
+ echo "Prüfe ob Dateisystem vergrößert werden muss..." | tee -a /tmp/image.log
  # save ntfs size infos in temp file
  ntfsresize -f -i "$targetdev" 2>> /tmp/image.log > /tmp/ntfs.info
  # get volume size in mb
  local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if volsizemb is an integer value
  if ! isinteger "$volsizemb"; then
-  echo "Kann Dateisystemgröße nicht bestimmen." | tee -a /tmp/image.log
+  echo "Kann Dateisystemgröße nicht bestimmen." | tee -a /tmp/image.log
   return 1
  fi  
  echo "Dateisystem: $volsizemb MB" | tee -a /tmp/image.log
@@ -1694,24 +1698,24 @@ cp_cloop_ntfs(){
  local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if devsizemb is an integer value
  if ! isinteger "$devsizemb"; then
-  echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
+  echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
   return 1
  fi
  echo "Partition  : $devsizemb MB" | tee -a /tmp/image.log
  # test if partition is larger than filesystem and adjust filesystem size if necessary
  if [ $devsizemb -gt $volsizemb ]; then
-  echo "Dateisystem wird auf $devsizemb MB vergrößert." | tee -a /tmp/image.log
+  echo "Dateisystem wird auf $devsizemb MB vergrößert." | tee -a /tmp/image.log
   # get partition size in bytes
   local devsize="$(grep "Current device size" /tmp/ntfs.info | awk '{ print $4}')"
   if ! isinteger "$devsize"; then
-   echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
+   echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
    return 1
   fi
   # increase the filesystem size
   ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
-  [ "$RC" = "0" ] || echo "Vergrößerung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
+  [ "$RC" = "0" ] || echo "Vergrößerung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
  else
-  echo "Vergrößerung ist nicht notwendig." | tee -a /tmp/image.log
+  echo "Vergrößerung ist nicht notwendig." | tee -a /tmp/image.log
   RC=0
  fi # devsizemb gt volsizemb
  return "$RC"
@@ -1738,7 +1742,7 @@ cp_cloop(){
    local s2="$(get_partition_size $targetdev)"
    local block="$(($CLOOP_BLOCKSIZE / 1024))"
    if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
-    echo "FEHLER: CLOOP-Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    echo "FEHLER: CLOOP-Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
     echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
     rmmod cloop >/dev/null 2>&1
     return 1
@@ -1867,8 +1871,11 @@ restore(){
    ;;
  esac
  if [ "$RC" = "0" ]; then
+  # ntfsfix after sync
+  [ "$fstype" = "ntfs" ] && ntfsfix -d "$2"
   echo "Fertig."
  else
+  echo "Fehler!" >&2
   return "$RC"
  fi
  return "$RC"
@@ -2207,28 +2214,28 @@ syncl(){
    cp -f "$bcd_backup" "$bootdir"/BCD
   fi
 
-  # restore win7 mbr flag
-  [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
+  # restore win mbr flag
+  local mbr="$(ls "$bootdir"/win*mbr."$group" 2> /dev/null)"
   if [ -n "$mbr" -a -s "$mbr" ]; then
-   echo "Restauriere Win7-MBR."
-   dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+   echo "Restauriere Win-MBR."
+   dd if="$mbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
   fi
 
   # restore ntfs id
   [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
   if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
    echo "Restauriere NTFS-ID."
-   dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+   dd if="$ntfsid" of="$rootdev" bs=8 count=1 seek=9 2>> /tmp/linbo.log
   fi
 
   # write partition boot sector (vfat and 32bit only)
-  if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
+  if [ "$(fstype "$rootdev")" = "vfat" -a -z "$(get_64)" ]; then
    local msopt=""
    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
    if [ -n "$msopt" ]; then
     echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
-    ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
+    ms-sys "$msopt" "$rootdev" | tee -a /tmp/patch.log
    fi
   fi
 
@@ -2323,6 +2330,8 @@ create(){
  cd /cache
  local RC="1"
  local type="$(fstype "$5")"
+ # ntfsfix before image creation
+ #[ "$type" = "ntfs" ] && ntfsfix -d "$5"
  echo "Erzeuge Image '$2' von Partition '$5'..." | tee -a /tmp/image.log
  case "$2" in
   *.[Cc][Ll][Oo]*)
@@ -2516,7 +2525,7 @@ download_if_newer(){
     echo "Server enthält eine neuere ($ts2) Version von $2 ($ts1)."
    elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
+    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
    fi
    rm -f "$2".info.old
   else

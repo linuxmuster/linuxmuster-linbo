@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20160725
+# 20160726
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -207,7 +207,7 @@ printcache(){
 # copytocache file - copies start.conf to local cache
 copytocache(){
  local cachedev="$(printcache)"
- [ -z "$cachedev" ] && return 1
+ [ -b "$cachedev" ] || return 1
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
@@ -238,7 +238,7 @@ copytocache(){
 
 # copy extra start.conf given on cmdline
 copyextra(){
- [ -z "$confpart" ] && return 1
+ [ -b "$confpart" ] || return 1
  [ -z "$extraconf" ] && return 1
  mkdir -p /extra
  mount "$confpart" /extra || return 1
@@ -432,11 +432,13 @@ save_winact(){
 do_housekeeping(){
  local device="" 
  local cachedev="$(printcache)"
+ [ -b "$cachedev" ] || return 1
  if ! mount "$cachedev" /cache; then
   echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
   return 1
  fi
  grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
+  [ -b "$device" ] || continue
   if mount "$device" /mnt 2> /dev/null; then
    # save windows activation files
    ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact

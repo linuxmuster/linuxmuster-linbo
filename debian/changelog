@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.2-0) babo62; urgency=low
+
+  * init.sh: fixed trying to mount cache partition if no partition is available yet.
+  * linbo_cmd.sh, prepare_fs(), fixed win mbr restore.
+  * added ntfsfix to linbofs.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 16:52:05 +0200
+
 linuxmuster-linbo (2.3.1-1) babo62; urgency=low
 
   * fixed missing i386 grub stuff in linbo64.
@@ -5,7 +13,7 @@ linuxmuster-linbo (2.3.1-1) babo62; urgency=low
     - added global TERM variable in linbo_cmd and init.sh (needed for bvi).
     - update(), moved download of opsi key file to /tmp.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 09:26:06 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 09:45:17 +0200
 
 linuxmuster-linbo (2.3.1-0) babo62; urgency=low
 
