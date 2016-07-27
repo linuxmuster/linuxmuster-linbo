@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.3-0) babo62; urgency=low
+
+  * added md5sum linbo download check to avoid corrupt linbo downloads.
+  * added alx module from backports again.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Jul 2016 13:29:21 +0200
+
 linuxmuster-linbo (2.3.2-0) babo62; urgency=low
 
   * init.sh: fixed trying to mount cache partition if no partition is available yet.

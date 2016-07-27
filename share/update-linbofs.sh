@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20160724
+# 20160727
 #
 
 # read linuxmuster environment
@@ -45,6 +45,9 @@ bailout() {
 update_linbofs() {
  local suffix=$1
  local linbofscachedir="/var/cache/linuxmuster-linbo/linbofs$suffix"
+ local linbofs="$LINBODIR/linbofs${suffix}.lz"
+ local linbofs_md5="$linbofs".md5
+ rm -f "$linbofs_md5"
  rm -rf "$linbofscachedir"
  mkdir -p "$linbofscachedir"
 
@@ -53,14 +56,14 @@ update_linbofs() {
 
  # grep linbo rsync password to sync it with linbo account
  [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
- linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
+ local linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
  if [ -z "$linbo_passwd" ]; then
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
  else
   sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
   [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
   # md5sum of linbo password goes into ramdisk
-  linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+  local linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
  fi
 
  # begin to process linbofs${suffix}.lz
@@ -68,8 +71,8 @@ update_linbofs() {
 
  # unpack linbofs.lz to cache dir
  cd "$linbofscachedir" || bailout "Cannot change to $linbofscachedir!"
- xzcat $LINBODIR/linbofs${suffix}.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
- [ $RC -ne 0 ] && bailout " Failed to unpack linbofs${suffix}.lz!"
+ xzcat "$linbofs" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
+ [ $RC -ne 0 ] && bailout " Failed to unpack $(basename "$linbofs")!"
 
  # store linbo md5 password
  [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
@@ -88,8 +91,10 @@ update_linbofs() {
  cp -f $LINBODIR/start.conf .
 
  # pack default linbofs${suffix}.lz again
- find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs${suffix}.lz ; RC="$?"
+ find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
  [ $RC -ne 0 ] && bailout "failed!"
+ # create md5sum file
+ md5sum "$linbofs"  | awk '{ print $1 }' > "$linbofs_md5"
 
  cd "$curdir"
 

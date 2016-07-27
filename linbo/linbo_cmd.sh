@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20160726
+# 20160727
 # GPL v3
 #
 
@@ -2764,8 +2764,33 @@ update(){
  [ -s start.conf ] || cp /start.conf .
 
  # get current linbo kernel/initrd and group specific and local grub configs from server
- echo "Aktualisiere LINBO-Kernel und GRUB-Konfiguration."
- for i in "$kernel" "$kernelfs" boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
+ echo "Prüfe auf LINBO-Aktualisierungen."
+ for i in "$kernel" "$kernelfs"; do
+  md5_before="" ; md5_after=""
+  md5_before="$(cat "${i}.md5" 2> /dev/null)"
+  download "$server" "${i}.md5" || rm -f "${i}.md5"
+  if [ ! -s "${i}.md5" ]; then
+   echo "Download-Fehler bei ${i}.md5!" >&2
+   rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+   return 1
+  fi
+  md5_after="$(cat "$i".md5 2> /dev/null)"
+  if [ -z "$md5_before" -o "$md5_before" != "$md5_after" ]; then
+   reboot="yes"
+   if download "$server" "$i"; then
+    echo "$i wurde erfolgreich aktualisiert."
+   else
+    echo "Download-Fehler bei $i!" >&2
+    rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+    return 1
+   fi
+  else
+   echo "$i ist aktuell."
+  fi
+ done
+
+ echo "Aktualisiere GRUB-Konfiguration."
+ for i in boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
   # collect md5 before download
   if [ "$i" = "boot/grub/$group.cfg" ]; then
    md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
