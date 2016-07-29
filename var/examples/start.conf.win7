@@ -10,7 +10,7 @@ Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsda
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda2        # lokale Cache Partition
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
-AutoPartition = yes      # automatische Partitionsreparatur beim LINBO-Start
+AutoPartition = no       # automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
 AutoInitCache = no       # kein automatisches Befüllen des Caches beim LINBO-Start
 DownloadType = torrent   # Image-Download per torrent|multicast|rsync, default ist rsync

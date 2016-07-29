@@ -8,6 +8,7 @@
 /var/linbo/boot/grub/i386-efi
 /var/linbo/boot/grub/spool
 /var/linbo/boot/grub/x86_64-efi
+/var/linbo/boot/isolinux
 /var/linbo/icons
 /var/linbo/linbocmd
 /var/linbo/tmp

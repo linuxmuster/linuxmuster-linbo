@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20160727
+# 20160729
 # GPL v3
 #
 
@@ -1332,13 +1332,7 @@ update_win(){
  # install start tasks
  if [ "$RC" = "0" ]; then
   /linuxmuster-win/install-start-tasks.sh || RC="1"
-  # set machine account password on server
-  #download "$(serverip)" set.mpw
  fi
- # handle machine password
-# if [ "$RC" = "0" ]; then
-#  do_machinepw || RC="1"
-# fi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -1519,9 +1513,12 @@ prepare_fs(){
     fi
     # 4 bytes mbr group specific
     echo "Sichere Win-MBR fuer Gruppe $group."
-    rm -f "$targetdir/win*mbr.$group"
-    local mbr="$targetdir/winmbr.$group"
-    dd if="$(get_disk_from_partition "$2")" of="$mbr" bs=1 count=4 skip=440 2>> /tmp/linbo.log
+    # delete obsolete ones
+    rm -f "$targetdir/winmbr.$group" "$targetdir/win7mbr.$group"
+    #local mbr="$targetdir/winmbr.$group"
+    #dd if="$(get_disk_from_partition "$2")" of="$mbr" bs=1 count=4 skip=440 2>> /tmp/linbo.log
+    local mbr="$targetdir/winmbr446.$group"
+    dd if="$(get_disk_from_partition "$2")" of="$mbr" bs=446 count=1 2>> /tmp/linbo.log
     # ntfs partition id
     echo "Sichere NTFS-ID."
     local ntfsid="$targetdir/ntfs.id"
@@ -1954,6 +1951,7 @@ do_opsi(){
  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
  local opsiip="${serverip/.1.1/.1.2}"
  local image
+ local key
  local RC="0"
  if [ -n "$2" ]; then
   image="$2"
@@ -1961,8 +1959,15 @@ do_opsi(){
   image="$1"
  fi
  # request opsikey
- rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey
- [ -s /tmp/opsikey ] && local key="$(cat /tmp/opsikey)"
+ localmode || rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey
+ if [ -s /tmp/opsikey ]; then
+  key="$(cat /tmp/opsikey)"
+  # save opsi host key for offline use
+  remote_cache "$(cachedev)" || cp /tmp/opsikey /cache
+ else
+  # load opsi from cache
+  [ -s /cache/opsikey ] && key="$(cat /cache/opsikey)"
+ fi
  if [ -n "$key" ]; then
   echo "Opsi-Host-Key heruntergeladen."
   # patch opsi host key
@@ -1977,12 +1982,11 @@ do_opsi(){
    echo "Opsi-Clientkonfiguration konnte nicht aktualisiert werden."
   fi
  else
-  echo "Opsi-Host-Key konnte nicht heruntergeladen werden."
-  RC="1"
+  echo "Opsi-Host-Key ist nicht verfügbar."
  fi
  rm -f /tmp/opsikey
  # request opsi host ini update
- rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
+ localmode || rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
  return "$RC"
 }
 
@@ -2112,7 +2116,9 @@ syncl(){
 
  # get hostname
  local HOSTNAME
- [ "$(localmode)" = "0" -a -s /cache/hostname ] && HOSTNAME="$(cat /cache/hostname)"
+ if localmode; then
+  [ -s /cache/hostname ] && HOSTNAME="$(cat /cache/hostname)"
+ fi
  [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
 
  # detect efi system if efi partition exists
@@ -2215,10 +2221,22 @@ syncl(){
   fi
 
   # restore win mbr flag
+  # old version
   local mbr="$(ls "$bootdir"/win*mbr."$group" 2> /dev/null)"
+  # new version if applicable
+  [ -z "$mbr" ] && mbr="$(ls "$bootdir"/winmbr446."$group" 2> /dev/null)"
   if [ -n "$mbr" -a -s "$mbr" ]; then
-   echo "Restauriere Win-MBR."
-   dd if="$mbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
+   echo -n "Restauriere Win-MBR ... "
+   case "$mbr" in
+    *446*)
+     echo "neue Version."
+     dd if="$mbr" of="$disk" bs=446 count=1 2>> /tmp/linbo.log
+     ;;
+    *)
+     echo "alte Version."
+     dd if="$mbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
+     ;;
+   esac
   fi
 
   # restore ntfs id
@@ -2662,7 +2680,7 @@ upload(){
   local FILES="$5"
   # file list is obsolete
   #for ext in info list reg desc torrent; do
-  for ext in info reg desc torrent; do
+  for ext in info postsync reg desc torrent; do
    [ -s "${5}.${ext}" ] && FILES="$FILES ${5}.${ext}"
   done
   echo "Lade $FILES auf $1 hoch ..." | tee -a /tmp/linbo.log
@@ -2757,28 +2775,31 @@ update(){
  local kernelfs="linbofs${suffix}.lz"
  local md5_before
  local md5_after
+ local md5_current
  local i
  local myname="$(clientname)"
 
  # local restore of start.conf in cache (necessary if cache partition was formatted before)
  [ -s start.conf ] || cp /start.conf .
 
- # get current linbo kernel/initrd and group specific and local grub configs from server
+ # check for linbo/linbofs updates on server
+ # download newer linbo/linbofs if applicable and check download
  echo "Prüfe auf LINBO-Aktualisierungen."
  for i in "$kernel" "$kernelfs"; do
-  md5_before="" ; md5_after=""
-  md5_before="$(cat "${i}.md5" 2> /dev/null)"
-  download "$server" "${i}.md5" || rm -f "${i}.md5"
-  if [ ! -s "${i}.md5" ]; then
+  md5_before="" ; md5_after="" ; md5_current=""
+  [ -s "$i" ] && md5_before="$(md5sum "$i" | awk '{ print $1 }')"
+  rm -f "${i}.md5"
+  download "$server" "${i}.md5" && md5_after="$(cat "$i".md5 2> /dev/null)"
+  if [ -z "$md5_after" ]; then
    echo "Download-Fehler bei ${i}.md5!" >&2
    rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
    return 1
   fi
-  md5_after="$(cat "$i".md5 2> /dev/null)"
   if [ -z "$md5_before" -o "$md5_before" != "$md5_after" ]; then
-   reboot="yes"
-   if download "$server" "$i"; then
+   download "$server" "$i" && md5_current="$(md5sum "$i" | awk '{ print $1 }')"
+   if [ "$md5_after" = "$md5_current" ]; then
     echo "$i wurde erfolgreich aktualisiert."
+    reboot="yes"
    else
     echo "Download-Fehler bei $i!" >&2
     rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
@@ -2789,6 +2810,7 @@ update(){
   fi
  done
 
+ # get group specific and local grub configs from server
  echo "Aktualisiere GRUB-Konfiguration."
  for i in boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
   # collect md5 before download
@@ -3001,8 +3023,10 @@ ready(){
 }
 
 mac(){
- local iface="$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')"
- local mac="$(LANG=C ifconfig "$iface" | grep HWaddr | awk '{print $5}' | tr a-z A-Z)"
+ local iface
+ local mac
+ iface="$(LANG=C route | grep ^default | awk '{ print $8 }' 2> /dev/null)"
+ [ -n "$iface" ] && mac="$(LANG=C ifconfig "$iface" | grep HWaddr | awk '{print $5}' | tr a-z A-Z)"
  [ -z "$mac" ] && mac="OFFLINE"
  echo "$mac"
 }
@@ -3045,7 +3069,10 @@ register(){
 }
 
 ip(){
- local ip="$(ifconfig "$(grep eth /proc/net/route | sort | head -n1 | awk '{print $1}')" | grep 'inet\ addr' | awk '{print $2}' | awk 'BEGIN { FS = ":" }; {print $2}')" # fix syntax highlighting "
+ local iface
+ local ip
+ iface="$(LANG=C route | grep ^default | awk '{ print $8 }' 2> /dev/null)"
+ [ -n "$iface" ] && ip="$(LANG=C ifconfig "$iface" | grep 'inet addr:' | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
  [ -z "$ip" ] && ip="OFFLINE"
  echo "$ip"
 }

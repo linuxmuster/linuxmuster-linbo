@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20160727
+# 20160729
 # GPL v3
 #
 
@@ -33,13 +33,13 @@ KERNELNP_DIR=kernel-np/linux-$(KVERS)
 KERNEL64_DIR=kernel64/linux-$(KVERS)
 
 # backports
-BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
-BACKPORTS_DIR=kernel/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
-BACKPORTS_URL=https://www.kernel.org/pub/linux/kernel/projects/backports/stable/v4.4.2/
+#BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
+#BACKPORTS_DIR=kernel/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
+#BACKPORTS_URL=https://www.kernel.org/pub/linux/kernel/projects/backports/stable/v4.4.2/
 # backports non pae
-BACKPORTSNP_DIR=kernel-np/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
+#BACKPORTSNP_DIR=kernel-np/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
 # backports 64bit
-BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
+#BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
 
 # cloop
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
@@ -101,11 +101,11 @@ LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
 # 32bit toolchain & binaries
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
-BIN32_DEBS=acl bc bluez bvi cloop-utils ctorrent dosfstools dropbear-bin e2fsprogs \
-           efibootmgr ethtool gdisk grub-pc grub-pc-bin grub-common grub2-common \
-           grub-efi-ia32-bin kmod libc-bin libefivar0 libgpod-common libmtp-runtime \
-           libnetpbm10 libparted2 libpci3 libpng12-0 mount netpbm \
-           ncurses-bin parted pcmciautils reiserfsprogs rsync sysvinit-utils \
+BIN32_DEBS=acl bc bluez bvi cloop-utils coreutils ctorrent dosfstools dropbear-bin \
+           e2fsprogs efibootmgr ethtool gdisk grub-pc grub-pc-bin grub-common \
+           grub2-common grub-efi-ia32-bin hdparm kmod libc-bin libefivar0 libgpod-common \
+           libmtp-runtime libnetpbm10 libparted2 libpci3 libpng12-0 mount netpbm \
+           ncurses-bin parted pcmciautils reiserfsprogs rsync systemd sysvinit-utils \
            udev udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
            zlib1g zlib1g-dev
 
@@ -319,31 +319,31 @@ configure-stamp:
 	fi
 
 	# backports
-	-@if [ ! -d $(BACKPORTS_DIR) ]; then \
-		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
-		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel; \
-		ln -sf ../$(BACKPORTS_DIR) kernel/backports; \
-	fi
+#	-@if [ ! -d $(BACKPORTS_DIR) ]; then \
+#		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
+#		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel; \
+#		ln -sf ../$(BACKPORTS_DIR) kernel/backports; \
+#	fi
 
 	# backports non pae
-	-@if [ ! -d $(BACKPORTSNP_DIR) ]; then \
-		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
-		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel-np; \
-		ln -sf ../$(BACKPORTSNP) kernel-np/backports; \
-	fi
+#	-@if [ ! -d $(BACKPORTSNP_DIR) ]; then \
+#		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
+#		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel-np; \
+#		ln -sf ../$(BACKPORTSNP) kernel-np/backports; \
+#	fi
 
 	# backports64
-	-@if [ ! -d $(BACKPORTS64_DIR) ]; then \
-		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
-		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
-		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel64; \
-		ln -sf ../$(BACKPORTS64_DIR) kernel64/backports; \
-	fi
+#	-@if [ ! -d $(BACKPORTS64_DIR) ]; then \
+#		( [ -e cache/$(BACKPORTS_ARCHIVE) ] || ( cd cache && wget $(BACKPORTS_URL)/$(BACKPORTS_ARCHIVE) ) ); \
+#		( cd cache && grep $(BACKPORTS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(BACKPORTS_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(BACKPORTS_ARCHIVE) -C kernel64; \
+#		ln -sf ../$(BACKPORTS64_DIR) kernel64/backports; \
+#	fi
 
 	# 32bit binaries
 	echo "[1mInstalling 32bit binaries...[0m"
@@ -500,34 +500,34 @@ build-stamp: configure-stamp
 	fi
 
 	# backports
-	-@if [ ! -e $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
-	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-	        cd $(BACKPORTS_DIR) && \
-	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make clean ; \
-	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make defconfig-alx ; \
-	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
-	fi
+#	-@if [ ! -e $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+#	        echo "ESC[1mBuilding alx module...ESC[0m" ; \
+#	        rm -f kernel/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+#	        cd $(BACKPORTS_DIR) && \
+#	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make clean ; \
+#	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make defconfig-alx ; \
+#	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNEL_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL_DIR) make ) ; \
+#	fi
 
 	# backports non pae
-	-@if [ ! -e $(BACKPORTSNP_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-	        echo "ESC[1mBuilding non pae alx module...ESC[0m" ; \
-	        rm -f kernel-np/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-	        cd $(BACKPORTSNP_DIR) && \
-	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNELNP_DIR) KLIB_BUILD=$(CURDIR)/$(KERNELNP_DIR) make clean ; \
-	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNELNP_DIR) KLIB_BUILD=$(CURDIR)/$(KERNELNP_DIR) make defconfig-alx ; \
-	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNELNP_DIR) KLIB_BUILD=$(CURDIR)/$(KERNELNP_DIR) make ) ; \
-	fi
+#	-@if [ ! -e $(BACKPORTSNP_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+#	        echo "ESC[1mBuilding non pae alx module...ESC[0m" ; \
+#	        rm -f kernel-np/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+#	        cd $(BACKPORTSNP_DIR) && \
+#	        ( ARCH=i386 KLIB=$(CURDIR)/$(KERNELNP_DIR) KLIB_BUILD=$(CURDIR)/$(KERNELNP_DIR) make clean ; \
+#	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNELNP_DIR) KLIB_BUILD=$(CURDIR)/$(KERNELNP_DIR) make defconfig-alx ; \
+#	        PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 KLIB=$(CURDIR)/$(KERNELNP_DIR) KLIB_BUILD=$(CURDIR)/$(KERNELNP_DIR) make ) ; \
+#	fi
 
 	# backports64
-	-@if [ ! -e $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
-	        echo "ESC[1mBuilding 64bit alx module...ESC[0m" ; \
-	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
-	        cd $(BACKPORTS64_DIR) && \
-	        ( ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make clean ; \
-	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make defconfig-alx ; \
-	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
-	fi
+#	-@if [ ! -e $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko ]; then \
+#	        echo "ESC[1mBuilding 64bit alx module...ESC[0m" ; \
+#	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/net/atheros/alx || true ; \
+#	        cd $(BACKPORTS64_DIR) && \
+#	        ( ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make clean ; \
+#	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make defconfig-alx ; \
+#	        ARCH=x86_64 KLIB=$(CURDIR)/$(KERNEL64_DIR) KLIB_BUILD=$(CURDIR)/$(KERNEL64_DIR) make ) ; \
+#	fi
 
 	touch build-stamp
 
@@ -574,17 +574,17 @@ install: build
 	cp $(CLOOP64_DIR)/cloop.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block/
 	# alx module
 	# default
-	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(BACKPORTS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+#	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(BACKPORTS_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(BACKPORTS_DIR)/compat/compat.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
     # non pae
-	mkdir -p kernel-np/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(BACKPORTSNP_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel-np/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(BACKPORTSNP_DIR)/compat/compat.ko kernel-np/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+#	mkdir -p kernel-np/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(BACKPORTSNP_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel-np/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(BACKPORTSNP_DIR)/compat/compat.ko kernel-np/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
     # 64bit
-	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
-	cp $(BACKPORTS64_DIR)/compat/compat.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
+#	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(BACKPORTS64_DIR)/drivers/net/ethernet/atheros/alx/alx.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx && \
+#	cp $(BACKPORTS64_DIR)/compat/compat.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/net/atheros/alx
 	# depmod
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	-/sbin/depmod -a -b kernel-np/modules $(KVERS)
@@ -669,6 +669,9 @@ install: build
 	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo/var/linbo/boot/grub/ipxe.efi
 	# /usr/share/linuxmuster-linbo
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	# isolinux
+	install -m 644 /usr/lib/ISOLINUX/isolinux.bin debian/linuxmuster-linbo/var/linbo/boot/isolinux/isolinux.bin
+	install -m 644 /usr/lib/ISOLINUX/isohdpfx.bin debian/linuxmuster-linbo/var/linbo/boot/isolinux/isohdpfx.bin
 
 # Build architecture-independent files here.
 binary-indep: build install

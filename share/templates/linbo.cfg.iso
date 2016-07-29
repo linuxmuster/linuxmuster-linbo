@@ -1,6 +1,6 @@
 # linbo iso boot
 # thomas@linuxmuster.net
-# 20160724
+# 20160729
 #
 
 set default=0
@@ -41,6 +41,21 @@ menuentry 'LINBO isoboot' --class linux {
 
  echo -n "Loading $linbo_kernel ..."
  linux $linbo_kernel quiet splash isoboot
+ echo
+ echo -n "Loading $linbo_initrd ..."
+ initrd $linbo_initrd
+ boot
+
+}
+
+# linbo part, boot local or net (default #0)
+menuentry 'LINBO isoboot debug' --class linux {
+
+ echo LINBO isoboot debug
+ echo
+
+ echo -n "Loading $linbo_kernel ..."
+ linux $linbo_kernel debug isoboot
  echo
  echo -n "Loading $linbo_initrd ..."
  initrd $linbo_initrd

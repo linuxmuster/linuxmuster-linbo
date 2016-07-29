@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20160726
+# 20160729
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -534,8 +534,11 @@ network(){
  else
   # iterate over ethernet interfaces
   echo "Frage IP-Adresse per DHCP an ..."
-  for i in /sys/class/net/eth*; do
-   dev="${i##*/}"
+  # dhcp retries
+  [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
+  local RC="0"
+  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
+   echo "Interface $dev ... "
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
@@ -548,11 +551,12 @@ network(){
    else
     dhcpdev="$dev"
    fi
-   # dhcp retries
-   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null
-   # set mtu
-   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
+   if [ "$RC" = "0" ]; then
+    # set mtu
+    [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+    break
+   fi
   done
  fi
  # Network is up now, fetch a new start.conf
@@ -667,7 +671,7 @@ hwsetup(){
 # Main
 #clear
 echo
-echo 'Wilkommen zu'
+echo 'Willkommen zu'
 echo ' _      _____ _   _ ____   ____'
 echo '| |    |_   _| \ | |  _ \ / __ \'
 echo '| |      | | |  \| | |_) | |  | |'

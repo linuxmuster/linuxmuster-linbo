@@ -1,3 +1,21 @@
+linuxmuster-linbo (2.3.4-0) babo62; urgency=low
+
+  * linbo_cmd.sh
+    - upload(): added postsync to uploadable file extensions.
+    - update(): improved linbo md5 download check.
+    - do_opsi(): save opsi host key for offline use in cache.
+    - prepare_fs(), syncl(): save and restore more bytes of windows mbr.
+    - syncl(): fixed hostname in offline mode (closes #616).
+  * init.sh: improved net interface recognition (closes #617).
+  * linbofs: added several utils needed by udev.
+  * removed umlauts from start.conf examples.
+  * removed backports alx module.
+  * added debug entry to iso boot menu.
+  * make-linbo-isos.sh: use isolinux files from xenial build system placed
+    under /var/linbo/boot/isolinux.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 29 Jul 2016 17:04:23 +0200
+
 linuxmuster-linbo (2.3.3-0) babo62; urgency=low
 
   * added md5sum linbo download check to avoid corrupt linbo downloads.

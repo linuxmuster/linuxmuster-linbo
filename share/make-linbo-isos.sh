@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20160724
+# 20160729
 # GPL V3
 #
 
@@ -29,7 +29,9 @@ TPLDIR="$LINBOSHAREDIR/templates"
 GRUBCFG="$TPLDIR/grub.cfg.iso"
 LINBOCFG="$TPLDIR/linbo.cfg.iso"
 
-ISOHDPFX="/usr/lib/syslinux/isohdpfx.bin"
+ISOLINUXDIR="$LINBODIR/boot/isolinux"
+ISOHDPFX="$ISOLINUXDIR/isohdpfx.bin"
+ISOLINUXBIN="$ISOLINUXDIR/isolinux.bin"
 
 # make efi boot images
 mkefi_img(){
@@ -67,6 +69,8 @@ cp "$LINBOCFG" "$ISOGRUBDIR/linbo.cfg"
 for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz linbo-version; do
  cp "$LINBODIR/$i" "$ISOCACHE"
 done
+mkdir -p "$ISOCACHE"/isolinux
+cp "$ISOLINUXBIN" "$ISOCACHE"/isolinux
 
 # create hybrid iso files
 cd "$ISOCACHE"
