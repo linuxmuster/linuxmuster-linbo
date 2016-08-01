@@ -2,7 +2,7 @@
 # Designed for any resolution
 
 # Global Property
-title-text: "Start-Menue"
+title-text: "LINBO Start-Menue"
 title-color: "#fefe54"
 desktop-image: "linbo_wallpaper.png"
 desktop-color: "#000000"

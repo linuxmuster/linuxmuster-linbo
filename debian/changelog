@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.5-0) babo62; urgency=low
+
+  * iso boot media creation: fixed usb boot support (#611).
+  * kernel update to 4.4.16.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 01 Aug 2016 22:19:17 +0200
+
 linuxmuster-linbo (2.3.4-0) babo62; urgency=low
 
   * linbo_cmd.sh

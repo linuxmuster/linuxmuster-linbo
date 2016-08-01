@@ -1,6 +1,6 @@
-# linbo iso boot
+# grub.cfg fuer linbo isoboot
 # thomas@linuxmuster.net
-# 20160729
+# 20160801
 #
 
 set default=0
@@ -9,17 +9,20 @@ set timeout=10
 
 set gfxpayload=800x600x16
 
- # 32bit pae, non pae or 64bit kernel
- if cpuid -l; then
-  set linbo_kernel=/linbo64
-  set linbo_initrd=/linbofs64.lz
- elif cpuid -p; then
-  set linbo_kernel=/linbo
-  set linbo_initrd=/linbofs.lz
- else
-  set linbo_kernel=/linbo-np
-  set linbo_initrd=/linbofs-np.lz
- fi
+# 32bit pae, non pae or 64bit kernel
+if cpuid -l; then
+ set linbo_kernel=/linbo64
+ set linbo_initrd=/linbofs64.lz
+ set NAME="LINBO (64bit)"
+elif cpuid -p; then
+ set linbo_kernel=/linbo
+ set linbo_initrd=/linbofs.lz
+ set NAME="LINBO (32bit)"
+else
+ set linbo_kernel=/linbo-np
+ set linbo_initrd=/linbofs-np.lz
+ set NAME="LINBO (32bit non pae)"
+fi
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt
@@ -34,9 +37,9 @@ fi
 clear
 
 # linbo part, boot local or net (default #0)
-menuentry 'LINBO isoboot' --class linux {
+menuentry "$NAME Standardboot" --class linux {
 
- echo LINBO isoboot
+ echo $NAME Standardboot
  echo
 
  echo -n "Loading $linbo_kernel ..."
@@ -48,14 +51,29 @@ menuentry 'LINBO isoboot' --class linux {
 
 }
 
-# linbo part, boot local or net (default #0)
-menuentry 'LINBO isoboot debug' --class linux {
+# linbo part, boot local or net (#1)
+menuentry "$NAME Ersteinrichtung + Neustart" --class linux {
 
- echo LINBO isoboot debug
+ echo $NAME Ersteinrichtung + Neustart
  echo
 
  echo -n "Loading $linbo_kernel ..."
- linux $linbo_kernel debug isoboot
+ linux $linbo_kernel quiet splash linbocmd=format,reboot isoboot
+ echo
+ echo -n "Loading $linbo_initrd ..."
+ initrd $linbo_initrd
+ boot
+
+}
+
+# linbo part, boot local or net (#2)
+menuentry "$NAME Debugmodus" --class linux {
+
+ echo $NAME Debugmodus
+ echo
+
+ echo -n "Loading $linbo_kernel ..."
+ linux $linbo_kernel quiet debug isoboot
  echo
  echo -n "Loading $linbo_initrd ..."
  initrd $linbo_initrd

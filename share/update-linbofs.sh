@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20160727
+# 20160801
 #
 
 # read linuxmuster environment
@@ -117,6 +117,6 @@ update_linbofs 64
 create_www_links
 
 # create iso files
-"$LINBOSHAREDIR"/make-linbo-isos.sh
+"$LINBOSHAREDIR"/make-linbo-iso.sh
 
 rm -f "$locker"
