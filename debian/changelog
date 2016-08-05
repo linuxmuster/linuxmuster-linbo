@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.6-1) babo62; urgency=low
+
+  * rebuild with fixed kernel config.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Aug 2016 13:27:09 +0200
+
 linuxmuster-linbo (2.3.6-0) babo62; urgency=low
 
   * Kernel:
