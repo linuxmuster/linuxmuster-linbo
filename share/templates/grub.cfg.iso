@@ -1,7 +1,7 @@
 #
 # iso boot grub.cfg
 # thomas@linuxmuster.net
-# 20160723
+# 20160804
 #
 
 set timeout=0
@@ -16,10 +16,10 @@ insmod gfxmenu
 insmod minicmd
 insmod progress
 
-set font=/boot/grub/fonts/unicode.pf2
-if [ -s "$font" ]; then
- loadfont "$font"
-fi
+#set font=/boot/grub/fonts/unicode.pf2
+#if [ -s "$font" ]; then
+# loadfont "$font"
+#fi
 
 terminal_output gfxterm
 

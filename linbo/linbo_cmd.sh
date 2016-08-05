@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20160729
+# 20160804
 # GPL v3
 #
 
@@ -29,7 +29,7 @@ rm -f "$TMP"
 ps w | grep linbo_cmd | grep -v grep >"$TMP"
 if [ $(cat "$TMP" | wc -l) -gt 1 ]; then
 # echo "Possible Bug detected: linbo_cmd already running." >&2
- echo "Möglicher Fehler erkannt: linbo_cmd läuft bereits." >> /tmp/linbo.log
+ echo "Moeglicher Fehler erkannt: linbo_cmd laeuft bereits." >> /tmp/linbo.log
  #cat "$TMP" >&2
  cat "$TMP" >> /tmp/linbo.log
 fi
@@ -173,7 +173,7 @@ interruptible(){
 
 help(){
 echo "
- Ungültiger LINBO-Befehl: »$@«
+ Ungueltiger LINBO-Befehl: »$@«
 
  Syntax: linbo_cmd command option1 option2 ...
 
@@ -186,7 +186,7 @@ echo "
                - Synchronisiere Partitionen vom Cache
 
  Image-Arten:
- .cloop - Image vom kompletten Blockgerät (block device, z.B. Partition), CLOOP-komprimiert
+ .cloop - Image vom kompletten Blockgeraet (block device, z.B. Partition), CLOOP-komprimiert
  .rsync - Differentielles RSYNC-Abbild, CLOOP-komprimiert
  " 1>&2
 }
@@ -392,7 +392,7 @@ mountpart(){
     break
    else
     [ "$i" = "5" ] && break
-    echo "CLOOP-Device ist noch nicht verfügbar, versuche erneut..."
+    echo "CLOOP-Device ist noch nicht verfuegbar, versuche erneut..."
     wmsg=1
     sleep 2
    fi
@@ -410,10 +410,10 @@ mountpart(){
   RC="$?"
   [ "$RC" = "0" ] && break
   [ "$i" = "5" ] && break
-  echo "Partition $1 ist noch nicht verfügbar, versuche erneut..."
+  echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
   sleep 2
  done
- [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+ [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
  case "$type" in
   *ntfs*)
    OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
@@ -570,7 +570,7 @@ mountcache(){
    fi
    ;;
    *) # Yet unknown
-   echo "Unbekannte Quelle für LINBO-Cache: $1" >&2
+   echo "Unbekannte Quelle fuer LINBO-Cache: $1" >&2
    ;;
   esac
  [ "$RC" = "0" ] || echo "Kann $1 nicht als /cache einbinden." >&2
@@ -1504,21 +1504,22 @@ prepare_fs(){
    local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
-    echo "Sichere Windows-Bootdateien fuer Gruppe $group."
+    echo "Sichere Windows-Bootloader fuer Gruppe $group."
     # BCD group specific and partition specific on efi systems
     if [ -n "$efipart" ]; then
      cp -f "$bcd" "$bcd"."$group"."$(basename "$2")"
     else
      cp -f "$bcd" "$bcd"."$group"
     fi
-    # 4 bytes mbr group specific
-    echo "Sichere Win-MBR fuer Gruppe $group."
-    # delete obsolete ones
-    rm -f "$targetdir/winmbr.$group" "$targetdir/win7mbr.$group"
-    #local mbr="$targetdir/winmbr.$group"
-    #dd if="$(get_disk_from_partition "$2")" of="$mbr" bs=1 count=4 skip=440 2>> /tmp/linbo.log
-    local mbr="$targetdir/winmbr446.$group"
-    dd if="$(get_disk_from_partition "$2")" of="$mbr" bs=446 count=1 2>> /tmp/linbo.log
+    # boot sector backup group specific
+    echo "Sichere Disk-Bootsektoren fuer Gruppe $group."
+    # delete obsolete mbr backups
+    rm -f "$targetdir/winmbr.$group" "$targetdir/win7mbr.$group" "$targetdir/winmbr446.$group"
+    local disk="$(get_disk_from_partition "$2")"
+    local bsmbr="$targetdir/bsmbr.$group"
+    dd if="$disk" of="$bsmbr" bs=446 count=1 2>> /tmp/linbo.log
+    local bsvbr="$targetdir/bsvbr.$group"
+    dd if="$disk" of="$bsvbr" bs=446 count=63 2>> /tmp/linbo.log
     # ntfs partition id
     echo "Sichere NTFS-ID."
     local ntfsid="$targetdir/ntfs.id"
@@ -1544,9 +1545,9 @@ mk_cloop(){
  case "$1" in
   partition) # full partition dump
    if mountpart "$2" /mnt -w 2>> /tmp/linbo.log; then
-    echo "Bereite Partition $2 (Größe=${size}K) für Komprimierung vor..." | tee -a /tmp/image.log
+    echo "Bereite Partition $2 (Groesse=${size}K) fuer Komprimierung vor..." | tee -a /tmp/image.log
     prepare_fs /mnt "$2" | tee -a /tmp/image.log
-    echo "Leeren Platz auffüllen mit 0en..." | tee -a /tmp/image.log
+    echo "Leeren Platz auffuellen mit 0en..." | tee -a /tmp/image.log
     # Create nulled files of size 1GB, should work on any FS.
     local count=0
     while true; do
@@ -1619,7 +1620,7 @@ mk_cloop(){
      fi
     else
      echo "Image $4 kann nicht eingebunden werden," | tee -a /tmp/image.log
-     echo "ist aber für die differentielle Sicherung notwendig." | tee -a /tmp/image.log
+     echo "ist aber fuer die differentielle Sicherung notwendig." | tee -a /tmp/image.log
      RC="$?"
     fi
     rmmod cloop >/dev/null 2>&1
@@ -1650,7 +1651,7 @@ check_status(){
  mountpart "$1" /mnt -r 2>> /tmp/linbo.log || return $?
  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$base*) RC=0 ;; esac
  umount /mnt || umount -l /mnt
-# [ "$RC" = "0" ] && echo "Enthält schon eine Version von $2."
+# [ "$RC" = "0" ] && echo "Enthaelt schon eine Version von $2."
  return "$RC"
 }
 
@@ -1680,14 +1681,14 @@ cp_cloop_ntfs(){
   return "$RC"
  fi
  # check if resizing is necessary
- echo "Prüfe ob Dateisystem vergrößert werden muss..." | tee -a /tmp/image.log
+ echo "Pruefe ob Dateisystem vergroessert werden muss..." | tee -a /tmp/image.log
  # save ntfs size infos in temp file
  ntfsresize -f -i "$targetdev" 2>> /tmp/image.log > /tmp/ntfs.info
  # get volume size in mb
  local volsizemb="$(grep "Current volume size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if volsizemb is an integer value
  if ! isinteger "$volsizemb"; then
-  echo "Kann Dateisystemgröße nicht bestimmen." | tee -a /tmp/image.log
+  echo "Kann Dateisystemgroesse nicht bestimmen." | tee -a /tmp/image.log
   return 1
  fi  
  echo "Dateisystem: $volsizemb MB" | tee -a /tmp/image.log
@@ -1695,24 +1696,24 @@ cp_cloop_ntfs(){
  local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
  # test if devsizemb is an integer value
  if ! isinteger "$devsizemb"; then
-  echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
+  echo "Kann Partitionsgroesse nicht bestimmen." | tee -a /tmp/image.log
   return 1
  fi
  echo "Partition  : $devsizemb MB" | tee -a /tmp/image.log
  # test if partition is larger than filesystem and adjust filesystem size if necessary
  if [ $devsizemb -gt $volsizemb ]; then
-  echo "Dateisystem wird auf $devsizemb MB vergrößert." | tee -a /tmp/image.log
+  echo "Dateisystem wird auf $devsizemb MB vergroessert." | tee -a /tmp/image.log
   # get partition size in bytes
   local devsize="$(grep "Current device size" /tmp/ntfs.info | awk '{ print $4}')"
   if ! isinteger "$devsize"; then
-   echo "Kann Partitionsgröße nicht bestimmen." | tee -a /tmp/image.log
+   echo "Kann Partitionsgroesse nicht bestimmen." | tee -a /tmp/image.log
    return 1
   fi
   # increase the filesystem size
   ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
-  [ "$RC" = "0" ] || echo "Vergrößerung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
+  [ "$RC" = "0" ] || echo "Vergroesserung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
  else
-  echo "Vergrößerung ist nicht notwendig." | tee -a /tmp/image.log
+  echo "Vergroesserung ist nicht notwendig." | tee -a /tmp/image.log
   RC=0
  fi # devsizemb gt volsizemb
  return "$RC"
@@ -1739,7 +1740,7 @@ cp_cloop(){
    local s2="$(get_partition_size $targetdev)"
    local block="$(($CLOOP_BLOCKSIZE / 1024))"
    if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
-    echo "FEHLER: CLOOP-Image $imagefile (${s1}K) ist größer als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    echo "FEHLER: CLOOP-Image $imagefile (${s1}K) ist groesser als Partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
     echo 'FEHLER: Das passt nicht!' >&2 | tee -a /tmp/image.log
     rmmod cloop >/dev/null 2>&1
     return 1
@@ -1780,7 +1781,7 @@ sync_cloop(){
    *.[Rr][Ss][Yy]*)
     # tschmitt: added logging parameter
     #interruptible rsync "$ROPTS" --fake-super --compress --partial --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
-    echo "Synchronisation läuft ... bitte warten ..."
+    echo "Synchronisation laeuft ... bitte warten ..."
     #interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt >"$TMP" 2>&1 ; RC="$?"
     interruptible rsync "$ROPTS" --compress --delete --log-file=/tmp/image.log --log-file-format="" --read-batch="$1" /mnt 2>&1 ; RC="$?"
     if [ "$RC" != "0" ]; then
@@ -1805,7 +1806,7 @@ sync_cloop(){
       #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
       # tschmitt: added logging parameter
       #interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
-      echo "Synchronisation läuft ... bitte warten ..."
+      echo "Synchronisation laeuft ... bitte warten ..."
       interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
@@ -1982,7 +1983,7 @@ do_opsi(){
    echo "Opsi-Clientkonfiguration konnte nicht aktualisiert werden."
   fi
  else
-  echo "Opsi-Host-Key ist nicht verfügbar."
+  echo "Opsi-Host-Key ist nicht verfuegbar."
  fi
  rm -f /tmp/opsikey
  # request opsi host ini update
@@ -1996,7 +1997,7 @@ restore_winact(){
  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
  # if an image is not yet created do nothing
  if [ -z "$image" ]; then
-  echo "Überspringe Reaktivierung, System ist unsynchronisiert."
+  echo "Ueberspringe Reaktivierung, System ist unsynchronisiert."
   return
  fi
  local archive
@@ -2025,7 +2026,7 @@ restore_winact(){
   if [ -s "/cache/$archive" ]; then
    echo "OK!"
   else
-   echo "überspringe Reaktivierung, keine Daten!"
+   echo "ueberspringe Reaktivierung, keine Daten!"
    return
   fi
   # request windows/office productkeys
@@ -2056,7 +2057,7 @@ restore_winact(){
  if [ -s "/cache/$image.winact.cmd" ]; then
   dos2unix "/cache/$image.winact.cmd"
  else
-  echo "Überspringe Reaktivierung, keine Produktkeys gefunden."
+  echo "Ueberspringe Reaktivierung, keine Produktkeys gefunden."
   return
  fi
  echo "Stelle Windows-Aktivierungstokens wieder her."
@@ -2079,7 +2080,7 @@ syncl(){
 
  # don't sync in that case
  if [ "$1" = "$rootdev" ]; then
-  echo "Überspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
+  echo "Ueberspringe lokale Synchronisation. Image $2 wird direkt aus Cache gestartet."
   return 0
  fi
 
@@ -2105,7 +2106,7 @@ syncl(){
  fi
  # return on error
  if [ "$RC" != "0" ]; then
-  echo "Kann $5 nicht einhängen!" | tee -a /tmp/linbo.log
+  echo "Kann $5 nicht einhaengen!" | tee -a /tmp/linbo.log
   sendlog
   cd /
   return "$RC"
@@ -2216,33 +2217,43 @@ syncl(){
 
   # restore bcd
   if [ -s "$bcd_backup" ]; then
-   echo "Restauriere die Windows-$sysname-Bootkonfiguration $(basename "$bcd_backup")."
+   echo "Restauriere die Windows-$sysname-Bootkonfiguration aus $(basename "$bcd_backup")."
    cp -f "$bcd_backup" "$bootdir"/BCD
   fi
 
-  # restore win mbr flag
-  # old version
-  local mbr="$(ls "$bootdir"/win*mbr."$group" 2> /dev/null)"
-  # new version if applicable
-  [ -z "$mbr" ] && mbr="$(ls "$bootdir"/winmbr446."$group" 2> /dev/null)"
-  if [ -n "$mbr" -a -s "$mbr" ]; then
-   echo -n "Restauriere Win-MBR ... "
-   case "$mbr" in
-    *446*)
-     echo "neue Version."
-     dd if="$mbr" of="$disk" bs=446 count=1 2>> /tmp/linbo.log
+  # restore disk boot sector
+  # detect old versions
+  local bsmbr="$bootdir"/bsmbr."$group"
+  local bsmbr_old="$bootdir"/winmbr446."$group"
+  [ -e "$bsmbr_old" ] && mv "$bsmbr_old" "$bsmbr"
+  [ -e "$bsmbr" ] || bsmbr="$bootdir"/winmbr."$group"
+  [ -e "$bsmbr" ] || bsmbr="$bootdir"/win7mbr."$group"
+  if [ -e "$bsmbr" ]; then
+   echo -n "Restauriere den Disk-Bootsektor aus $(basename "$bsmbr")"
+   case "$bsmbr" in
+    *bsmbr.*)
+     dd if="$bsmbr" of="$disk" bs=446 count=1 2>> /tmp/linbo.log
      ;;
-    *)
-     echo "alte Version."
-     dd if="$mbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
+    *winmbr.*)
+     dd if="$bsmbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
+     ;;
+    *win7mbr.*)
+     dd if="$bsmbr" of="$disk" bs=1 count=4 skip=440 2>> /tmp/linbo.log
      ;;
    esac
+  fi
+  local bsvbr="$bootdir"/bsvbr."$group"
+  if [ -e "$bsvbr" ]; then
+   echo " und $bsvbr."
+   dd if="$bsvbr" of="$disk" bs=446 count=63 2>> /tmp/linbo.log   
+  else
+   echo "."
   fi
 
   # restore ntfs id
   [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
   if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
-   echo "Restauriere NTFS-ID."
+   echo "Restauriere NTFS-ID $(basename "$ntfsid")."
    dd if="$ntfsid" of="$rootdev" bs=8 count=1 seek=9 2>> /tmp/linbo.log
   fi
 
@@ -2457,7 +2468,7 @@ torrent_watchdog(){
   echo "Image $image erfolgreich heruntergeladen." | tee -a /tmp/image.log
  else
   ps w | grep -v grep | grep -q ctorrent && killall -9 ctorrent
-  echo "Download von $image wegen Zeitüberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
+  echo "Download von $image wegen Zeitueberschreitung abgebrochen." >&2 | tee -a /tmp/image.log
  fi
  return "$RC"
 }
@@ -2483,7 +2494,7 @@ download_torrent(){
  local OPTS="-I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
- echo "Starte Torrent-Dienst für $image." | tee -a /tmp/image.log
+ echo "Starte Torrent-Dienst fuer $image." | tee -a /tmp/image.log
  local logfile=/tmp/"$image".log
  if [ ! -e "$complete" ]; then
   rm -f "$image" "$torrent".bf
@@ -2540,10 +2551,10 @@ download_if_newer(){
    local fs2="$(get_filesize "$2")"
    if [ -n "$ts1" -a -n "$ts2" -a "$ts1" -gt "$ts2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Server enthält eine neuere ($ts2) Version von $2 ($ts1)."
+    echo "Server enthaelt eine neuere ($ts2) Version von $2 ($ts1)."
    elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
     DOWNLOAD_ALL="true"
-    echo "Dateigröße von $2 ($fs1) im Cache ($fs2) stimmt nicht."
+    echo "Dateigroesse von $2 ($fs1) im Cache ($fs2) stimmt nicht."
    fi
    rm -f "$2".info.old
   else
@@ -2593,11 +2604,11 @@ download_if_newer(){
       if [ -n "$MPORT" ]; then
        download_multicast "$1" "$MPORT" "$2" ; RC="$?"
       else
-       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download möglich." >&2
+       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download moeglich." >&2
        RC=1
       fi
      else
-      echo "Datei multicast.list nicht gefunden, kein Multicast-Download möglich." >&2
+      echo "Datei multicast.list nicht gefunden, kein Multicast-Download moeglich." >&2
       RC=1
      fi
      [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
@@ -2621,7 +2632,7 @@ download_if_newer(){
    [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
   fi
  else # download nothing, no newer file on server
-  echo "Keine neuere Version vorhanden, überspringe $2."
+  echo "Keine neuere Version vorhanden, ueberspringe $2."
  fi
  return "$RC"
 }
@@ -2668,7 +2679,7 @@ upload(){
  local ext
  if remote_cache "$4"; then
   echo "Cache $4 ist nicht lokal, die Datei $5 befindet sich" | tee -a /tmp/linbo.log
-  echo "höchstwahrscheinlich bereits auf dem Server, daher kein Upload." | tee -a /tmp/linbo.log
+  echo "hoechstwahrscheinlich bereits auf dem Server, daher kein Upload." | tee -a /tmp/linbo.log
   sendlog
   return 1
  fi
@@ -2720,7 +2731,7 @@ upload(){
 syncr(){
  echo -n "syncr " ; printargs "$@"
  if remote_cache "$2"; then
-  echo "Cache $2 ist nicht lokal, überspringe Aktualisierung der Images."
+  echo "Cache $2 ist nicht lokal, ueberspringe Aktualisierung der Images."
  else
   mountcache "$2" || return "$?"
   cd /cache
@@ -2748,7 +2759,7 @@ update(){
  local force="$3"
 
  if [ -e "$doneflag" -a -z "$force" ]; then
-  echo "LINBO-Update wurde schon ausgeführt!"
+  echo "LINBO-Update wurde schon ausgefuehrt!"
   return 0
  else
   rm -f "$doneflag"
@@ -2784,7 +2795,7 @@ update(){
 
  # check for linbo/linbofs updates on server
  # download newer linbo/linbofs if applicable and check download
- echo "Prüfe auf LINBO-Aktualisierungen."
+ echo "Pruefe auf LINBO-Aktualisierungen."
  for i in "$kernel" "$kernelfs"; do
   md5_before="" ; md5_after="" ; md5_current=""
   [ -s "$i" ] && md5_before="$(md5sum "$i" | awk '{ print $1 }')"
@@ -2942,7 +2953,7 @@ initcache(){
    fi
   done
   if [ "$found" = "0" ]; then
-   echo "Entferne nicht mehr benötigte Imagedatei $i." | tee -a /tmp/image.log
+   echo "Entferne nicht mehr benoetigte Imagedatei $i." | tee -a /tmp/image.log
    rm -f "$i" "$i".*
   fi
  done
@@ -3013,7 +3024,7 @@ ready(){
 #  echo -n "."
   count=`expr $count + 1`
   if [ "$count" -gt 120 ]; then
-   echo "Zeitüberschreitung, LINBO noch nicht fertig. :-(" >&2
+   echo "Zeitueberschreitung, LINBO noch nicht fertig. :-(" >&2
    return 1
   fi
  done
@@ -3050,12 +3061,12 @@ register(){
  # Plausibility check
  if echo "$client" | grep -qi '[^a-z0-9-]'; then
   echo "Falscher Rechnername: '$client'," >&2
-  echo "Rechnernamen dürfen nur Buchstaben [a-z0-9-] enthalten." >&2
+  echo "Rechnernamen duerfen nur Buchstaben [a-z0-9-] enthalten." >&2
   return 1
  fi
  if echo "$group" | grep -qi '[^a-z0-9_]'; then
   echo "Falscher Gruppenname: '$group'," >&2
-  echo "Rechnergruppen dürfen nur Buchstaben [a-z0-9_] enthalten." >&2
+  echo "Rechnergruppen duerfen nur Buchstaben [a-z0-9_] enthalten." >&2
   return 1
  fi
  cd /tmp

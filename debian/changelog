@@ -1,3 +1,18 @@
+linuxmuster-linbo (2.3.6-0) babo62; urgency=low
+
+  * Kernel:
+    - added more usb host and network drivers.
+    - optimized powermanagement configuration.
+  * linbo_cmd.sh:
+    - fixed boot sector backup and restore for windows 10 uefi systems.
+    - removed german umlauts.
+  * fixed missing linbo_wallpaper.png link in /var/linbo/icons.
+  * remove unifont from grub configuration.
+  * reworked make-linbo-iso.sh, fixed bios cdrom compatibility hopefully.
+  * moved isolinux/syslinux dependencies from build depends to package depends.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Aug 2016 12:29:12 +0200
+
 linuxmuster-linbo (2.3.5-0) babo62; urgency=low
 
   * iso boot media creation: fixed usb boot support (#611).

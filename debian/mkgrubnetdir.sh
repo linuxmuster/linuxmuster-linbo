@@ -2,7 +2,7 @@
 #
 # creates directory structure for grub network boot
 # thomas@linuxmuster.net
-# 20160801
+# 20160805
 # GPL V3
 #
 
@@ -15,7 +15,7 @@ GRUB_EFI64_MODULES="efi_gop efi_uga efinet linuxefi tftp"
 GRUB_PC_MODULES="biosdisk ntldr pxe"
 
 # dirs
-CURDIR="$(pwd)"
+#CURDIR="$(pwd)"
 NETDIR="debian/linuxmuster-linbo/var/linbo"
 SUBDIR="/boot/grub"
 
@@ -25,8 +25,8 @@ grub-mknetdir --modules="$GRUB_EFI32_MODULES $GRUB_COMMON_MODULES" -d src/bin32/
 grub-mknetdir --modules="$GRUB_EFI64_MODULES $GRUB_COMMON_MODULES" -d /usr/lib/grub/x86_64-efi --net-directory="$NETDIR" --subdir="$SUBDIR"
 
 # create bios cdboot image
-cp src/bin32/usr/lib/grub/i386-pc/*.img "$NETDIR$SUBDIR/i386-pc"
-cd "$NETDIR$SUBDIR/i386-pc"
-grub-mkimage -O i386-pc -d . -o core.img --prefix=/boot/grub $GRUB_PC_MODULES $GRUB_COMMON_MODULES
-cat cdboot.img core.img > eltorito.img
-cd "$CURDIR"
+#cp src/bin32/usr/lib/grub/i386-pc/*.img "$NETDIR$SUBDIR/i386-pc"
+#cd "$NETDIR$SUBDIR/i386-pc"
+#grub-mkimage -O i386-pc -d . -o core.img --prefix=/boot/grub $GRUB_PC_MODULES $GRUB_COMMON_MODULES
+#cat cdboot.img core.img > eltorito.img
+#cd "$CURDIR"

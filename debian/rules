@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20160801
+# 20160804
 # GPL v3
 #
 
@@ -669,14 +669,6 @@ install: build
 	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo/var/linbo/boot/grub/ipxe.efi
 	# /usr/share/linuxmuster-linbo
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
-	# isolinux
-	install -m 644 /usr/lib/ISOLINUX/isolinux.bin debian/linuxmuster-linbo/var/linbo/boot/isolinux/isolinux.bin
-	install -m 644 /usr/lib/ISOLINUX/isohdpfx.bin debian/linuxmuster-linbo/var/linbo/boot/isolinux/isohdpfx.bin
-	install -m 644 /usr/lib/syslinux/modules/bios/config.c32 debian/linuxmuster-linbo/var/linbo/boot/isolinux/config.c32
-	install -m 644 /usr/lib/syslinux/modules/bios/ifcpu64.c32 debian/linuxmuster-linbo/var/linbo/boot/isolinux/ifcpu64.c32
-	install -m 644 /usr/lib/syslinux/modules/bios/ldlinux.c32 debian/linuxmuster-linbo/var/linbo/boot/isolinux/ldlinux.c32
-	install -m 644 /usr/lib/syslinux/modules/bios/libcom32.c32 debian/linuxmuster-linbo/var/linbo/boot/isolinux/libcom32.c32
-	install -m 644 /usr/lib/syslinux/modules/bios/vesamenu.c32 debian/linuxmuster-linbo/var/linbo/boot/isolinux/vesamenu.c32
 
 # Build architecture-independent files here.
 binary-indep: build install

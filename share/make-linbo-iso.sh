@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20160801
+# 20160805
 # GPL V3
 #
 
@@ -12,8 +12,7 @@
 . $HELPERFUNCTIONS || exit 1
 
 curdir="$(pwd)"
-#ISODIR="$LINBODIR/isos"
-#mkdir -p "$ISODIR"
+LINBOISO="$LINBODIR/linbo.iso"
 
 GRUBDIR="$LINBODIR/boot/grub"
 GRUBEFI32DIR="$GRUBDIR/i386-efi"
@@ -33,9 +32,13 @@ GRUBCFG="$TPLDIR/grub.cfg.iso"
 LINBOCFG="$TPLDIR/linbo.cfg.iso"
 
 ISOLINUXCFG="$TPLDIR/isolinux"
-ISOLINUXSRC="$LINBODIR/boot/isolinux"
+ISOLINUXSRC="/usr/lib/ISOLINUX"
+ISOLINUXBIN="$ISOLINUXSRC/isolinux.bin"
+ISOHDPFX="$ISOLINUXSRC/isohdpfx.bin"
+SYSLINUXSRC="/usr/lib/syslinux/modules/bios"
+SYSLINUXMODS="config ifcpu64 ldlinux libcom32 libutil vesamenu"
 
-EFIIMGSIZE="4M"
+EFIIMGSIZE="90M"
 EFIMOUNT="/var/tmp/efi.$$"
 mkdir -p "$EFIMOUNT"
 
@@ -46,20 +49,6 @@ rm -f efiboot.img
 rm -rf EFI
 rm -rf BOOT
 rm -rf isolinux
-
-# make efi boot image
-dd if=/dev/zero of=efiboot.img bs=1 count=0 seek="$EFIIMGSIZE"
-mkdosfs efiboot.img
-mount -o loop efiboot.img "$EFIMOUNT"
-mkdir -p "$EFIMOUNT/EFI/BOOT"
-cp "$CORE32EFI" "$EFIMOUNT/EFI/BOOT/BOOTia32.EFI"
-cp "$CORE64EFI" "$EFIMOUNT/EFI/BOOT/BOOTx64.EFI"
-cp "$CORE32EFI" "$EFIMOUNT/EFI/BOOT/grubia32.efi"
-cp "$CORE64EFI" "$EFIMOUNT/EFI/BOOT/grubx64.efi"
-mkdir -p EFI/BOOT
-cp "$EFIMOUNT/EFI/BOOT/"* EFI/BOOT/
-umount "$EFIMOUNT"
-rm -rf "$EFIMOUNT"
 
 # create iso content
 mkdir -p "$GRUBPREFIX"
@@ -73,13 +62,33 @@ sed -i 's|"LINBO Start-Menue"|"LINBO Start-Menue (EFI-Modus)"|' "$GRUBTHEMETXT"
 
 # isolinux stuff
 mkdir -p isolinux
-cp "$ISOLINUXSRC/"* isolinux
+cp "$ISOLINUXBIN" isolinux
+for i in $SYSLINUXMODS; do
+ cp "$SYSLINUXSRC/$i.c32" isolinux
+done
+cp isolinux/ldlinux.c32 .
 cp "$ISOLINUXCFG"/*.cfg isolinux
+
+# make efi boot image
+dd if=/dev/zero of=efiboot.img bs=1 count=0 seek="$EFIIMGSIZE"
+mkdosfs efiboot.img
+mount -o loop efiboot.img "$EFIMOUNT"
+mkdir -p "$EFIMOUNT/EFI/BOOT"
+cp "$CORE32EFI" "$EFIMOUNT/EFI/BOOT/BOOTia32.EFI"
+cp "$CORE64EFI" "$EFIMOUNT/EFI/BOOT/BOOTx64.EFI"
+cp "$CORE32EFI" "$EFIMOUNT/EFI/BOOT/grubia32.efi"
+cp "$CORE64EFI" "$EFIMOUNT/EFI/BOOT/grubx64.efi"
+cp -r boot "$EFIMOUNT"
+cp linbo* "$EFIMOUNT"
+mkdir -p EFI/BOOT
+cp "$EFIMOUNT/EFI/BOOT/"* EFI/BOOT/
+umount "$EFIMOUNT"
+rm -rf "$EFIMOUNT"
 
 # create hybrid iso file
 xorriso -as mkisofs \
-  -o "$LINBODIR"/linbo.iso \
-  -isohybrid-mbr isolinux/isohdpfx.bin \
+  -o "$LINBOISO" \
+  -isohybrid-mbr "$ISOHDPFX" \
   -c isolinux/boot.cat \
   -b isolinux/isolinux.bin \
      -no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -88,3 +97,5 @@ xorriso -as mkisofs \
      -no-emul-boot \
      -isohybrid-gpt-basdat \
   .
+
+isohybrid --uefi "$LINBOISO"
