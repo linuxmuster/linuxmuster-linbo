@@ -2581,8 +2581,8 @@ download_if_newer(){
   fi
   # update regpatch and postsync script
   rm -rf "$2".reg "$2".postsync
-  download_all "$1" "$2".reg >/dev/null 2>&1
-  download_all "$1" "$2".postsync >/dev/null 2>&1
+  download "$1" "$2".reg important >/dev/null 2>&1
+  download "$1" "$2".postsync important >/dev/null 2>&1
  fi
  # start torrent service for others if there is no image to download
  [ "$DLTYPE" = "torrent" -a -n "$IMAGE" -a -z "$DOWNLOAD_ALL" ] && download_torrent "$2"
