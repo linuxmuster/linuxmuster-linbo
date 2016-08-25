@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.7-0) babo62; urgency=low
+
+  * removed hostname sanitation in busyboxes udhcpc.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Aug 2016 11:07:43 +0200
+
 linuxmuster-linbo (2.3.6-1) babo62; urgency=low
 
   * rebuild with fixed kernel config.
