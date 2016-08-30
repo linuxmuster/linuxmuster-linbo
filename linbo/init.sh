@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20.03.2015
+# 20160729
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -13,6 +13,9 @@
 
 # Ignore signals
 trap "" 1 2 11 15
+
+# set terminal
+export TERM=xterm
 
 # Reset fb color mode
 RESET="]R"
@@ -91,6 +94,7 @@ read_cmdline(){
  case "$CMDLINE" in *\ splash*) splash=yes;; esac
  case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
  case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
+ case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
 }
 
 # initial setup
@@ -123,7 +127,7 @@ init_setup(){
  fi
 
  mount -t sysfs /sys /sys
- mount -n -o mode=0755 -t tmpfs tmpfs /dev
+ mount -t devtmpfs devtmpfs /dev
  if [ -e /etc/udev/links.conf ]; then
   udev_extra_nodes
  fi
@@ -150,7 +154,7 @@ trycopyfromdevice(){
   mount -r "$device" /cache &>/dev/null || return 1
  fi
  for i in $files; do
-  if [ -e /cache/"$i" -a -s /cache/linbo ]; then
+  if [ -e /cache/"$i" ] && [ -s /cache/linbo -o -s /cache/linbo64 ]; then
    RC=0
    cp -af /cache/"$i" . >/dev/null 2>&1
   fi
@@ -161,11 +165,12 @@ trycopyfromdevice(){
 
 # copyfromcache file - copies a file from cache to current dir
 copyfromcache(){
- local major="" minor="" blocks="" device="" relax=""
- if [ -b "$cache" ]; then
-  trycopyfromdevice "$cache" "$1" && return 0
+ local cachdev="$(printcache)"
+ if [ -b "$cachedev" ]; then
+  trycopyfromdevice "$cachedev" "$1" && return 0
  fi
- cat /proc/partitions | grep -v ^major | while read major minor blocks device relax; do
+ local major="" minor="" blocks="" device="" relax=""
+ grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
   if [ -b "/dev/$device" ]; then
    trycopyfromdevice "/dev/$device" "$1" && return 0
   fi
@@ -186,40 +191,46 @@ Cache = $cache" -i "$1"
 
 # print cache partition
 printcache(){
- local cachedev=""
- if [ -n "$cache" ]; then
-  cachedev="$cache"
- else
-  cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cache" -a -b "$cache" ]; then
+  echo "$cache"
+  return 0
  fi
- [ -b "$cachedev" ] && echo "$cachedev"
+ [ -s /start.conf ] || return 1
+ local cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ if [ -n "$cachedev" -a -b "$cachedev" ]; then
+  echo "$cachedev"
+  return 0
+ fi
+ return 1
 }
 
 # copytocache file - copies start.conf to local cache
 copytocache(){
  local cachedev="$(printcache)"
+ [ -b "$cachedev" ] || return 1
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
     mount "$cachedev" /cache || return 1
    fi
    if [ -s /start.conf ]; then
-    echo "Saving start.conf to cache."
+    echo "Speichere start.conf auf Cache."
     cp -a /start.conf /cache
    fi
    if [ -d /icons ]; then
-    echo "Saving icons to cache."
+    echo "Speichere Icons auf Cache."
     mkdir -p /cache/icons
     rsync /icons/* /cache/icons
    fi
    # save hostname for offline use
-   echo "Saving hostname $(hostname) to cache."
+   echo "Speichere Hostnamen $(hostname) auf Cache."
    hostname > /cache/hostname
-   [ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
+   # deprecated
+   #[ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
    umount /cache || umount -l /cache
    ;;
   *)
-   echo "No local cache partition found!"
+   echo "Keine lokale Cache-Partition gefunden!"
    return 1
    ;;
  esac
@@ -227,7 +238,7 @@ copytocache(){
 
 # copy extra start.conf given on cmdline
 copyextra(){
- [ -z "$confpart" ] && return 1
+ [ -b "$confpart" ] || return 1
  [ -z "$extraconf" ] && return 1
  mkdir -p /extra
  mount "$confpart" /extra || return 1
@@ -244,7 +255,8 @@ copyextra(){
 # Try to read the first valid ip address from all up network interfaces
 get_ipaddr(){
  local ip=""
- while read line; do
+ local line
+ ifconfig | while read line; do
   case "$line" in *inet\ addr:*)
    ip="${line##*inet addr:}"
    ip="${ip%% *}"
@@ -252,9 +264,7 @@ get_ipaddr(){
    [ -n "$ip" ] && { echo "$ip"; return 0; }
    ;;
   esac
- done <<.
-$(ifconfig)
-.
+ done
  return 1
 }
 
@@ -309,14 +319,6 @@ get_server(){
  done <<.
 $(route -n)
 .
- return 1
-}
-
-# check if reboot is set in start.conf (deprecated)
-isreboot(){
- if [ -s /start.conf ]; then
-  grep -i ^kernel /start.conf | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z | grep -q reboot && return 0
- fi
  return 1
 }
 
@@ -426,25 +428,43 @@ save_winact(){
  rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
 }
 
-# remove linbo reboot flag, save windows activation tokens
+# save windows activation tokens
 do_housekeeping(){
- local device="" properties="" cachedev="$(printcache)"
+ local device="" 
+ local cachedev="$(printcache)"
+ [ -b "$cachedev" ] || return 1
  if ! mount "$cachedev" /cache; then
   echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
   return 1
  fi
- sfdisk -l 2> /dev/null | grep ^/dev | grep -v "$cachedev" | grep -v Extended | grep -v "Linux swap" | while read device properties; do
+ grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
+  [ -b "$device" ] || continue
   if mount "$device" /mnt 2> /dev/null; then
-   if ls /mnt/.*.reboot &> /dev/null; then
-    echo "Entferne Reboot-Flag von $device."
-    rm -f /mnt/.*.reboot
-   fi
    # save windows activation files
    ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
    umount /mnt
   fi
  done
  mount | grep -v grep | grep -q /cache && umount /cache
+}
+
+# update linbo and install it locally
+do_linbo_update(){
+ local server="$1"
+ local cachedev="$(printcache)"
+ local customcfg="/cache/boot/grub/custom.cfg"
+ local rebootflag="/tmp/.linbo.reboot"
+ # save current custom.cfg
+ linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
+ # test if linbofs or custom.cfg were updated on local boot
+ if [ -n "$localboot" -a -e "$rebootflag" ]; then
+  echo "Lokale LINBO/GRUB-Konfiguration wurde aktualisiert. Starte neu ..."
+  cd /
+  umount -a &> /dev/null
+  /sbin/reboot -f
+ else
+  [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
+ fi
 }
 
 # disable auto functions from cmdline
@@ -458,7 +478,7 @@ disable_auto(){
 set_autostart() {
  # return if autostart shall be suppressed generally
  if [ "$autostart" = "0" ]; then
-  echo "Disabling autostart generally."
+  echo "Deaktiviere autostart generell."
   # set all autostart parameters to no
   sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
   return
@@ -478,7 +498,7 @@ set_autostart() {
   echo "$line" | grep -qi ^autostart || echo "$line" >> /start.conf.new
   # write autostart line for specific OS
   if [ "$found" = "1" ]; then
-   echo "Enabling autostart for os nr. $c."
+   echo "Aktiviere autostart fuer OS Nr. $c."
    echo "Autostart = yes" >> /start.conf.new
    found=0
   fi
@@ -489,7 +509,7 @@ set_autostart() {
 # disable start, sync and new buttons
 disable_buttons(){
  [ -s /start.conf ] || return
- echo "Disabling buttons."
+ echo "Deaktiviere Buttons."
  sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
          s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
          s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
@@ -498,9 +518,9 @@ disable_buttons(){
 
 network(){
  echo
- echo "Starting network configuration ..."
+ echo "Starte Netzwerkkonfiguration ..."
  if [ -n "$localmode" ]; then
-  echo "Localmode configured, skipping network configuration."
+  echo "Localmode konfiguriert, ueberspringe Netzwerkkonfiguration."
   copyfromcache "start.conf icons"
   do_housekeeping
   touch /tmp/linbo-network.done
@@ -508,22 +528,35 @@ network(){
  fi
  rm -f /tmp/linbo-network.done
  if [ -n "$ipaddr" ]; then
-  echo "Using static ip address $ipaddr."
+  echo "Benutze statische IP-Adresse $ipaddr."
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
   ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
  else
   # iterate over ethernet interfaces
-  echo "Requesting ip address per dhcp ..."
-  for i in /sys/class/net/eth*; do
-   dev="${i##*/}"
+  echo "Frage IP-Adresse per DHCP an ..."
+  # dhcp retries
+  [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
+  local RC="0"
+  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
+   echo "Interface $dev ... "
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
-   # dhcp retries
-   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dev" $dhcpretry &> /dev/null
-   # set mtu
-   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+   # check if using vlan
+   if [ -n "$vlanid" ]; then
+    echo "Benutze VLAN-ID $vlanid."
+    vconfig add "$dev" "$vlanid" &> /dev/null
+    dhcpdev="$dev.$vlanid"
+    ip link set dev "$dhcpdev" up
+   else
+    dhcpdev="$dev"
+   fi
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
+   if [ "$RC" = "0" ]; then
+    # set mtu
+    [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+    break
+   fi
   done
  fi
  # Network is up now, fetch a new start.conf
@@ -538,11 +571,17 @@ network(){
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
-  echo "mailhub=$server:25" > /etc/ssmtp/ssmtp.conf
-  echo "Downloading configuration files from $server ..."
+  echo "Lade Konfigurationsdateien von $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
   done
+  # set flag for working network connection
+  if [ -s start.conf ]; then
+   echo "Netwerkverbindung zu $server erfolgreich hergestellt."
+   echo > /tmp/network.ok
+  fi
+  # linbo update
+  do_linbo_update "$server"
   # also look for other needed files
   for i in "torrent-client.conf" "multicast.list"; do
    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
@@ -567,16 +606,13 @@ network(){
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
+ # if start.conf could not be downloaded
  if [ ! -s start.conf ]; then
   # No new version / no network available, look for cached copies of start.conf and icons folder.
   copyfromcache "start.conf icons"
- else
-  # flag for network connection
-  echo "Network connection to $server successfully established."
-  echo > /tmp/network.ok
+  # Still nothing new, revert to old version.
+  [ ! -s start.conf ] && mv -f start.conf.dist start.conf
  fi
- # Still nothing new, revert to old version.
- [ -s start.conf ] || mv -f start.conf.dist start.conf
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
  # disable auto functions if noauto is given
@@ -591,24 +627,25 @@ network(){
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  # start ssh server
- echo "Starting ssh server."
+ echo "Starte SSH-Server."
  /sbin/dropbear -s -g -E -p 2222 &> /dev/null
  # remove reboot flag, save windows activation
  do_housekeeping
  # done
  echo > /tmp/linbo-network.done
- echo "Done."
+ echo "Fertig."
  rm -f /outfifo
 }
 
 # HW Detection
 hwsetup(){
  rm -f /tmp/linbo-cache.done
- echo "## Hardware-Setup - Begin ##" >> /tmp/linbo.log
+ echo "## Hardware-Setup - Anfang ##" >> /tmp/linbo.log
 
  #
  # Udev starten
  echo > /sys/kernel/uevent_helper
+ mkdir -p /run/udev
  udevd --daemon
  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
  udevadm trigger
@@ -625,7 +662,7 @@ hwsetup(){
  export TERM_TYPE=pts
  
  dmesg >> /tmp/linbo.log
- echo "## Hardware-Setup - End ##" >> /tmp/linbo.log
+ echo "## Hardware-Setup - Ende ##" >> /tmp/linbo.log
 
  sleep 2
  echo > /tmp/linbo-cache.done 
@@ -634,20 +671,19 @@ hwsetup(){
 # Main
 #clear
 echo
-echo 'Welcome to'
-echo ' _        _   __     _   ____      _____'
-echo '| |      | | |  \   | | |  _ \    / ___ \'
-echo '| |      | | |   \  | | | | | |  / /   \ \'
-echo '| |      | | | |\ \ | | | |/ /  | |     | |'
-echo '| |      | | | | \ \| | | |\ \  | |     | |'
-echo '| |____  | | | |  \   | | |_| |  \ \___/ /'
-echo '|______| |_| |_|   \__| |____/    \_____/'
+echo 'Willkommen zu'
+echo ' _      _____ _   _ ____   ____'
+echo '| |    |_   _| \ | |  _ \ / __ \'
+echo '| |      | | |  \| | |_) | |  | |'
+echo '| |      | | | . ` |  _ <| |  | |'
+echo '| |____ _| |_| |\  | |_) | |__| |'
+echo '|______|_____|_| \_|____/ \____/'
 echo
 
 # initial setup
 read_cmdline
 echo
-echo "Configuring hardware ..."
+echo "Konfiguriere Hardware ..."
 echo
 if [ -n "$quiet" ]; then
  init_setup &> /dev/null
@@ -673,6 +709,9 @@ if [ -z  "$splash" ]; then
 fi
 
 # splash mode
+
+# convert wallpaper to splash image
+pngtopnm /icons/linbo_wallpaper.png > /etc/splash.pnm
 
 # no kernel messages, no screen blanking
 setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0

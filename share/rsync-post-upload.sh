@@ -6,7 +6,7 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 10.02.2014
+# 13.07.2015
 #
 
 # read in paedml specific environment
@@ -57,7 +57,7 @@ if [ -s "$BACKUP" ]; then
   # backup macct and opsi files
   case "$FTYPE" in
    *.cloop|*.rsync)
-    for i in macct opsi; do
+    for i in macct opsi postsync; do
      if [ -e "${FILE}.$i" ];then
       mv -fv "${FILE}.$i" "${ARCHIVE}.$i"
       echo "$(basename ${ARCHIVE}.$i) created."
@@ -131,6 +131,8 @@ case "$FTYPE" in
   else
    echo "Adding row to $WIMPORTDATA." >&2
    echo "$ROW" >> $WIMPORTDATA
+   # save last registered host
+   echo "$ROW" > "$LINBODIR/last_registered"
   fi
   rm $FILE
  ;;

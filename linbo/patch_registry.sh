@@ -6,7 +6,7 @@
 # $2 is the path to the windows system root
 #
 # thomas@linuxmuster.net
-# 31.10.2013
+# 28.09.2015
 #
 
 # trust in this code
@@ -27,15 +27,15 @@ leftchop(){
 } 
 
 leftget(){
-  echo "$1" | awk -F\\ '{print $1}' 
+  echo "$1" | cut -d \\ -f 1
 }
 
 leftgetvalue(){
-  echo "$1" | awk -F'=' '{print $1}'
+  echo "$1" | cut -d \= -f 1
 }
 
 rightgetvalue(){
-  echo "$1" | awk -F'=' '{print $2}'
+  echo "$1" | cut -d \= -f 2
 }
 
 rightchopend(){
@@ -57,7 +57,7 @@ test_key() {
  else
   cmd="ls\nq\ny\n"
  fi
- echo -e "$cmd" | reged -e "$hive" | grep -i "<${2}>" | awk -F\< '{ print $2 }' | awk -F\> '{ print $1 }'
+ echo -e "$cmd" | reged -e "$hive" | grep -i "<${2}>" | cut -d \< -f 2 | cut -d \> -f 1
 }
 
 # create_fullkey key (creates the full key path if necessary)

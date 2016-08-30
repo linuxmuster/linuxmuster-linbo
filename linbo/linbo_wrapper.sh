@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 09.10.2014
+# 04.02.2016
 # GPL V3
 #
 
@@ -13,7 +13,7 @@ ARGS="$@"
 
 # check for concurrent processes
 if ps w | grep linbo_cmd | grep -v grep; then
- echo "There is already a linbo_cmd process running. Aborting!"
+ echo "Es läuft bereits ein linbo_cmd-Prozess. Breche ab!"
  exit 1
 fi
 
@@ -29,12 +29,26 @@ isinteger () {
  esac
 }
 
+islinked(){
+ local i
+ for i in $(ifconfig | grep ^e | awk '{ print $1 }'); do
+  ethtool "$i" | grep -i "link detected" | grep -qi "yes" && return 0
+ done
+ return 1
+}
+
 # get server ip
 get_server(){
  server=`grep ^linbo_server /tmp/dhcp.log | awk -F\' '{ print $2 }'`
  if [ -z "$server" ]; then
-  echo "Cannot determine server ip!"
-  exit 1
+  islinked && udhcpc
+  server=`grep ^serverid /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1`
+  server_check=`grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1`
+  if [ "$server_check" = "$server" ]; then
+   touch /tmp/network.ok
+  else
+   return 1
+  fi
  fi
  echo "$server"
 }
@@ -65,7 +79,7 @@ get_images(){
 get_os(){
  # check for valid start.conf
  if ! grep -qi ^"\[os\]" /start.conf; then
-  echo "Error! No os definitions found in start.conf!"
+  echo "Error! Keine OS-Definition in start.conf gefunden!"
   return 1
  fi
  local line=""
@@ -130,11 +144,11 @@ stripvalue(){
 get_partitions() {
  # check for valid start.conf
  if ! grep -qi ^"\[partition\]" /start.conf; then
-  echo "Error! No partition definitions found in start.conf!"
+  echo "Error! Keine Partitions-Definition in start.conf gefunden!"
   return 1
  fi
  if ! grep -qi ^"\[os\]" /start.conf; then
-  echo "Error! No os definitions found in start.conf!"
+  echo "Error! Keine OS-Definition in start.conf gefunden!"
   return 1
  fi
  # define local variables
@@ -188,27 +202,22 @@ format_partition(){
   [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $dev" ;;
   [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs -Q $dev" ;;
   [Vv][Ff][Aa][Tt]) fcmd="mkdosfs -F 32 $dev" ;;
-  *) echo "Unknown filesystem: $fstype!"
+  *) echo "Unbekanntes Dateisystem: $fstype!"
      return 1 ;;
  esac
  if [ -n "$fcmd" ]; then
-  # abort if partitioning fails
-  if ! linbo_cmd partition_noformat $partitions; then
-   echo "Partitioning error ... aborting!"
-   return 1
-  fi
   # test if device is present after partitioning, if not wait 3 secs
   if [ ! -b "$dev" ]; then
-   echo "Partition $dev is not yet ready ... waiting 3 seconds ..."
+   echo "Partition $dev ist noch nicht bereit ... Warte 3 Sekunden ..."
    sleep 3
   fi
   # test again, abort if device is not there
   if [ ! -b "$dev" ]; then
-   echo "Partition $dev does not exist ... aborting!"
+   echo "Partition $dev existiert nicht ... Breche ab!"
    return 1
   fi
   if ! $fcmd; then
-   echo "Error on formatting $dev ... aborting!"
+   echo "Fehler beim Formatieren von $dev ... Breche ab!"
    return 1
   fi
  fi
@@ -239,38 +248,38 @@ create_desc(){
 # print help
 help(){
  echo
- echo "Usage: `basename $0` <command1 command2 ...>"
+ echo "Benutzung: `basename $0` <command1 command2 ...>"
  echo
- echo "`basename $0` allows the use of linbo_cmd easyly on the commandline."
- echo "It reads the start.conf file and builds the commands accordingly."
+ echo "`basename $0` erlaubt die einfache Benutzung von linbo_cmd auf der Kommandozeile."
+ echo "Es liest die start.conf und setzt die entsprechenden Befehle zusammen."
  echo
- echo "Allowed commands are:"
+ echo "Verfügbare Befehle sind:"
  echo
- echo "partition                : Writes the partition table."
- echo "format                   : Writes the partition table and formats all"
- echo "                           partitions."
- echo "format:<#>               : Writes the partition table and formats only"
- echo "                           partition nr <#>."
- echo "initcache:<dltype>       : Updates local cache. <dltype> is one of"
- echo "                           rsync|multicast|torrent."
- echo "                           If dltype is not specified it is read from"
- echo "                           start.conf."
- echo "sync:<#>                 : Syncs the operating system on position nr <#>."
- echo "start:<#>                : Starts the operating system on pos. nr <#>."
- echo "create_cloop:<#>:<\"msg\"> : Creates a cloop image from operating system nr <#>."
- echo "create_rsync:<#>:<\"msg\"> : Creates a rsync image from operating system nr <#>."
- echo "upload_cloop:<#>         : Uploads the cloop image from operating system nr <#>."
- echo "upload_rsync:<#>         : Uploads the rsync image from operating system nr <#>."
- echo "reboot                   : Reboots the client."
- echo "halt                     : Shuts the client down."
- echo "help                     : Shows this page."
+ echo "partition                : Schreibe die Partitionstabelle."
+ echo "format                   : Schreibt die Partitionstabelle und formatiert"
+ echo "                           alle Partitionen."
+ echo "format:<#>               : Schreibt die Partitionstabelle und formatiert"
+ echo "                           nur Partition Nr. <#>."
+ echo "initcache:<dltype>       : Aktualisiert den lokalen Cache. <dltype> ist"
+ echo "                           rsync, multicast oder torrent."
+ echo "                           Wenn <dltype> nicht angegeben ist wird er aus der"
+ echo "                           start.conf gelesen."
+ echo "sync:<#>                 : Synchronisiert das Betriebssystem auf Position Nr. <#>."
+ echo "start:<#>                : Startet das Betriebssystem auf Position Nr. <#>."
+ echo "create_cloop:<#>:<\"msg\"> : Erstellt ein CLOOP-image von Betriebssystem Nr. <#>."
+ echo "create_rsync:<#>:<\"msg\"> : Erstellt ein RSYNC-image von Betriebssystem Nr. <#>."
+ echo "upload_cloop:<#>         : Lädt das CLOOP-image von Betriebssystem Nr. <#> hoch."
+ echo "upload_rsync:<#>         : Lädt das RSYNC-image von Betriebssystem Nr. <#> hoch."
+ echo "update                   : Aktualisiere LINBOs Kernel/RAM-Disk und installiere GRUB."
+ echo "reboot                   : Client neustarten."
+ echo "halt                     : Client herunterfahren."
+ echo "help                     : Zeigt diese Hilfe."
  echo
- echo "<\"msg\"> is an optional image comment."
- echo "The position numbers are related to the position in start.conf."
- echo "The commands are processed in the commandline given order."
- echo "The upload commands expect a file /tmp/rsyncd.secrets with rsync credentials"
- echo "in the form:"
- echo "user:password"
+ echo "<\"msg\"> ist ein optionaler Image-Kommentar."
+ echo "Die Positions-Nummern beziehen sich auf die Position in der start.conf."
+ echo "Die Befehle werden in der Reihenfolge ausgeführt, in der sie übergeben werden."
+ echo "Der upload-Befehl erwartet eine Datei /tmp/rsyncd.secrets mit RSYNC-Anmeldedaten"
+ echo "in der Form: <Benutzername>:<Passwort>"
  echo
  exit
 }
@@ -286,10 +295,10 @@ while [ "$#" -gt "0" ]; do
  customimage=`echo "$1" | awk -F\: '{ print $4 }'`
 
  # do not print linbo password
- echo "command      : $cmd"
- [ -n "$param" -a "$cmd" != "linbo" ] && echo "parameter    : $param"
- [ -n "$msg" ] && echo "comment      : $msg"
- [ -n "$customimage" ] && echo "custom image : $customimage"
+ echo "Befehl      : $cmd"
+ [ -n "$param" -a "$cmd" != "linbo" ] && echo "Parameter    : $param"
+ [ -n "$msg" ] && echo "Kommentar      : $msg"
+ [ -n "$customimage" ] && echo "Benutzerdefiniertes Image : $customimage"
 
  case "$cmd" in
 
@@ -318,6 +327,7 @@ while [ "$#" -gt "0" ]; do
 
   initcache)
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && return 1
    [ -z "$cachedev" ] && get_cachedev
    if [ "$param" = "rsync" -o "$param" = "multicast" -o "$param" = "torrent" ]; then
     downloadtype="$param"
@@ -328,69 +338,70 @@ while [ "$#" -gt "0" ]; do
    if [ -n "$server" -a -n "$cachedev" -a -n "$images" ]; then
     linbo_cmd initcache $server $cachedev $downloadtype $images
    else
-    echo "Failed! One or more necessary parameters are missing!"
-    echo "Initcache command was: linbo_cmd initcache $server $cachedev $downloadtype $images"
+    echo "Fehlgeschlagen! Einer oder mehrere benötigte Parameter fehlen!"
+    echo "Initcache-Befehl war: linbo_cmd initcache $server $cachedev $downloadtype $images"
    fi
   ;;
 
   create_cloop)
    osnr="$param"
    if ! isinteger "$osnr"; then
-    echo "$osnr is not an integer!"
+    echo "$osnr ist keine Zahl!"
     shift
     continue
    fi
    get_os
-   echo "Creating $baseimage from $osname ..."
+   echo "Erstelle $baseimage von $osname ..."
    [ -z "$cachedev" ] && get_cachedev
    [ -n "$customimage" ] && baseimage="$customimage"
    if [ -n "$cachedev" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
     create_desc "$baseimage"
     linbo_cmd create "$cachedev" "$baseimage" "" "$bootdev" "$rootdev" "$kernel" "$initrd"
    else
-    echo "Failed! One or more necessary parameters are missing!"
-    echo "Create command was: linbo_cmd create $cachedev $baseimage $bootdev $rootdev $kernel $initrd"
+    echo "Fehlgeschlagen! Einer oder mehrere benötigte Parameter fehlen!"
+    echo "Create-Befehl war: linbo_cmd create $cachedev $baseimage $bootdev $rootdev $kernel $initrd"
    fi
   ;;
 
   upload_cloop)
    osnr="$param"
    if ! isinteger "$osnr"; then
-    echo "$osnr is not an integer!"
+    echo "$osnr ist keine Zahl!"
     shift
     continue
    fi
    get_os
    get_passwd
-   echo "Uploading $baseimage to $server ..."
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && return 1
+   echo "Lade $baseimage zu $server hoch ..."
    [ -z "$cachedev" ] && get_cachedev
    [ -n "$customimage" ] && baseimage="$customimage"
    if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$baseimage" ]; then
     linbo_cmd upload "$server" "$user" "$password" "$cachedev" "$baseimage"
    else
-    echo "Failed! One or more necessary parameters are missing!"
-    echo "Upload command was: linbo_cmd upload $server $user $password $cachedev $baseimage"
+    echo "Fehlgeschlagen! Einer oder mehrere benötigte Parameter fehlen!"
+    echo "Upload-Befehl war: linbo_cmd upload $server $user $password $cachedev $baseimage"
    fi
   ;;
 
   create_rsync)
    osnr="$param"
    if ! isinteger "$osnr"; then
-    echo "$osnr is not an integer!"
+    echo "$osnr ist keine Zahl!"
     shift
     continue
    fi
    get_os
-   echo "Creating $image from $osname ..."
+   echo "Erstelle $image von $osname ..."
    [ -z "$cachedev" ] && get_cachedev
    [ -n "$customimage" ] && image="$customimage"
    if [ -n "$cachedev" -a -n "$image" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
     create_desc "$image"
     linbo_cmd create "$cachedev" "$image" "$baseimage" "$bootdev" "$rootdev" "$kernel" "$initrd"
    else
-    echo "Failed! One or more necessary parameters are missing!"
-    echo "Create command was: linbo_cmd create $cachedev $image $bootdev $rootdev $kernel $initrd"
+    echo "Fehlgeschlagen! Einer oder mehrere benötigte Parameter fehlen!"
+    echo "Create-Befehl war: linbo_cmd create $cachedev $image $bootdev $rootdev $kernel $initrd"
    fi
   ;;
 
@@ -405,6 +416,7 @@ while [ "$#" -gt "0" ]; do
    get_passwd
    echo "Uploading $image to $server ..."
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && return 1
    [ -z "$cachedev" ] && get_cachedev
    [ -n "$customimage" ] && image="$customimage"
    if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$image" ]; then
@@ -425,6 +437,7 @@ while [ "$#" -gt "0" ]; do
    get_os
    echo "Syncing $osname ..."
    [ -z "$server" ] && get_server
+   [ -z "$server" ] && server="offline"
    [ -z "$cachedev" ] && get_cachedev
    if [ -n "$server" -a -n "$cachedev" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
     linbo_cmd synconly "$server" "$cachedev" "$baseimage" "$image" "$bootdev" "$rootdev" "$kernel" "$initrd" "$append"
@@ -437,18 +450,31 @@ while [ "$#" -gt "0" ]; do
   start)
    osnr="$param"
    if ! isinteger "$osnr"; then
-    echo "$osnr is not an integer!"
+    echo "$osnr ist keine Zahl!"
     shift
     continue
    fi
    get_os
-   echo "Starting $osname ..."
+   echo "Starte $osname ..."
    [ -z "$cachedev" ] && get_cachedev
    if [ -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" -a -n "$cachedev" ]; then
     linbo_cmd start "$bootdev" "$rootdev" "$kernel" "$initrd" "$append" "$cachedev"
    else
-    echo "Failed! One or more necessary parameters are missing!"
-    echo "Start command was: linbo_cmd start $bootdev $rootdev $kernel $initrd $append $cachedev"
+    echo "Fehlgeschlagen! Einer oder mehrere benötigte Parameter fehlen!"
+    echo "Start-Befehl war: linbo_cmd start $bootdev $rootdev $kernel $initrd $append $cachedev"
+    exit 1
+   fi
+  ;;
+
+  update)
+   echo "Aktualisiere LINBOs Kernel/RAM-Disk und installiere GRUB ..."
+   [ -z "$server" ] && get_server
+   [ -z "$cachedev" ] && get_cachedev
+   if [ -n "$server" -a -n "$cachedev" ]; then
+    linbo_cmd update "$server" "$cachedev"
+   else
+    echo "Fehlgeschlagen! Einer oder mehrere benötigte Parameter fehlen!"
+    echo "Update-Befehl war: linbo_cmd update $server $cachedev"
     exit 1
    fi
   ;;
@@ -464,4 +490,3 @@ while [ "$#" -gt "0" ]; do
 done
 
 exit 0
-

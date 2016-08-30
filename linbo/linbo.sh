@@ -3,8 +3,8 @@
 # This is a busybox 1.1.3 script
 # (C) Klaus Knopper 2007
 # License: GPL V2
-# tschmitt@linuxmuster.net
-# 01.02.2014
+# thomas@linuxmuster.net
+# 02.11.2015
 #
 
 # Reset fb color mode
@@ -20,20 +20,22 @@ CMDLINE="$(cat /proc/cmdline)"
 case "$CMDLINE" in *\ debug*)
  for i in /tmp/linbo_gui.*.log; do
   if [ -s "$i" ]; then
-   echo "There is a log from an earlier start of linbo_gui in $i:"
+   echo "Es gibt ein Log von einem früheren Start von linbo_gui in $i::"
    cat "$i"
-   echo -n "Hit return to continue."
+   echo -n "Eingabetaste zum fortfahren drücken."
    read dummy
    rm -f "$i"
   fi
  done
- echo "Starting DEBUG Shell, leave with 'exit'."
+ echo "Starte DEBUG-Shell, verlassen mit 'exit'."
  ash >/dev/tty1 2>&1 < /dev/tty1
  ;;
 esac
 
 # Start LINBO GUI
-DISPLAY=""
-case "$(fbset -i 2>/dev/null)" in *640\ 480\ 4*) DISPLAY="-display VGA16:0";; esac
+#DISPLAY=""
+# not necessary anymore?
+#case "$(fbset 2>/dev/null)" in *640x480*) DISPLAY="-display VGA16:0";; esac
 export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
-exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
+#exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
+exec linbo_gui -qws >/tmp/linbo_gui.$$.log 2>&1

@@ -1,6 +1,8 @@
-This package was debianized by Klaus Knopper <knoppix@knopper.net> on
-Sat, 22 Sep 2007 03:00:00 +0200
-
-Author(s): Klaus Knopper, Martin Oehler, Thomas Schmitt (Landesmedienzentrum Baden Wuerttemberg)
+Thomas Schmitt, linuxmuster.net e.V.
+23.10.2015
 
 Copyright: GPL V2
+See https://www.gnu.org/licenses/gpl-2.0.html
+
+lsaSecretStore.exe:
+MIT license, see source package lsaSecrets-src

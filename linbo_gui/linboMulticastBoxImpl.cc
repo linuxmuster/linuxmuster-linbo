@@ -1,4 +1,5 @@
 #include "linboMulticastBoxImpl.hh"
+#include <unistd.h>
 #include "linboProgressImpl.hh"
 #include <q3progressbar.h>
 #include <qapplication.h>

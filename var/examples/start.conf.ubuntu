@@ -6,69 +6,72 @@
 # Festplatte 160G
 
 [LINBO]                             # Start der globalen Konfiguration
-Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhält
-Group = gruppe           # Name der Rechnergruppe für die diese Konfigurationsdatei gilt
+Server = 10.16.1.1                  # IP des Linbo-Servers, der das Linbo-Repository vorhaelt
+Group = gruppe                      # Name der Rechnergruppe fuer die diese Konfigurationsdatei gilt
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
 Cache = /dev/sda2                   # lokale Cache Partition
 RootTimeout = 600                   # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no                  # keine automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no                     # kein automatisches Formatieren aller Partitionen beim LINBO-Start
-AutoInitCache = no                  # kein automatisches Befüllen des Caches beim LINBO-Start
+AutoInitCache = no                  # kein automatisches Befuellen des Caches beim LINBO-Start
 DownloadType = torrent              # Image-Download per torrent|multicast|rsync, default ist rsync
 BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
 ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
-ConsoleFontColorStderr = orange     # Konsolenschriftfarbe für Fehler-/Warnmeldungen (default: red)
-KernelOptions =          # Beispiele:
-#KernelOptions = acpi=noirq irqpoll  # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
-#KernelOptions = server=10.16.1.5  # Abweichende Linbo-Server-IP als Kerneloption gesetzt
-                                   # falls gesetzt wird diese IP beim Workstationsimport verwendet 
+ConsoleFontColorStderr = orange     # Konsolenschriftfarbe fuer Fehler-/Warnmeldungen (default: red)
+SystemType = bios64                 # moeglich ist bios|bios64|efi32|efi64 (Standard: bios fuer bios 32bit)
+KernelOptions = quiet splash        # Beispiele:
+#KernelOptions = acpi=noirq irqpoll # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
+#KernelOptions = server=10.16.1.5   # Abweichende Linbo-Server-IP als Kerneloption gesetzt
+                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet 
 
 [Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Ubuntu)
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
-Size = 10000000          # Partitionsgroesse in kB (Bsp.: ca. 10G)
+Label = ubuntu           # Partitionslabel
+Size = 20G               # Partitionsgroesse 20G, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext4            # Dateisystem ext4
-Bootable = no            # Bootable-Flag
+Bootable = yes           # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Cachepartition
 Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster Platte)
-Size = 10000000          # Partitionsgroesse 8388608 kB (Bsp.: ca. 10G)
+Label = cache            # Partitionslabel
+Size = 20G               # Partitionsgroesse 20G
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext4            # Dateisystem ext4
-Bootable = no            # Bootable-Flag
+Bootable = yes           # Bootable-Flag
 
 [Partition]              # Definition der Swap-Partition
 Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster Platte)
-Size = 2000000           # Partitionsgroesse in kB (Bsp.: ca. 2G)
+Label = swap             # Partitionslabel
+Size = 8G                # Partitionsgroesse 8G
 Id = 82                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = swap            # Dateisystem swap
 Bootable = no            # Bootable-Flag
 
 [Partition]              # Start einer Partitionsdefinition, Datenpartition
+Label = daten            # Partitionslabel
 Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster Platte)
-Size =                   # Partitionsgroesse in kB (Bsp.: keine Angabe = Rest der Platte, ca. 138G)
+Size =                   # Partitionsgroesse (Bsp.: keine Angabe = Rest der Platte)
 Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
 FSType = ext4            # Dateisystem ext4
 Bootable = no            # Bootable-Flag
 
 [OS]
-Name = Ubuntu                       # Name des Betriebssystems
-Version =                           # Version (optional)
-Description = Ubuntu 10.04 Lucid    # Beschreibung
-IconName = ubuntu.png               # Icon für die Startseite, muss unter /var/linbo/icons abgelegt sein
-#Image =  ubuntu.rsync              # Dateiname des differentiellen Images (Erweiterung .rsync)
-Image =                             # erst eintragen, wenn es erzeugt werden soll
-BaseImage = ubuntu.cloop            # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1                    # Partition, die Kernel & Initrd enthaelt
-Root = /dev/sda1                    # Rootpartition, in die das BS installiert ist
-Kernel = vmlinuz                    # Relativer Pfad zum Kernel
-Initrd = initrd.img                 # Relativer Pfad zur Initrd
-Append = ro splash                  # Kernel-Append-Parameter, ggf. anpassen
-StartEnabled = yes                  # "Start"-Button anzeigen
-SyncEnabled = yes                   # "Sync+Start"-Button anzeigen
-NewEnabled = yes                    # "Neu+Start"-Button anzeigen
-Hidden = yes                        # verstecke OS-Reiter
-Autostart = no                      # automatischer synchronisierter Start dieses Betriebssystems: yes|no
-DefaultAction = sync                # DefaultAction bei Autostart: start|sync|new
-AutostartTimeout = 5                # Timeout in Sekunden für Benutzerabbruch bei Autostart
-
+Name = Ubuntu                     # Name des Betriebssystems
+Version =                         # Version (unbenutzt, leer lassen)
+Description = Ubuntu 14.04 Trusty # Beschreibung
+IconName = ubuntu.png             # Icon fuer die Startseite, muss unter /var/linbo/icons abgelegt sein
+Image =                           # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = ubuntu.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1                  # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda1                  # Rootpartition, in die das BS installiert ist
+Kernel = vmlinuz                  # Relativer Pfad zum Kernel
+Initrd = initrd.img               # Relativer Pfad zur Initrd
+Append = ro splash                # Kernel-Append-Parameter, ggf. anpassen
+StartEnabled = yes                # "Start"-Button anzeigen
+SyncEnabled = yes                 # "Sync+Start"-Button anzeigen
+NewEnabled = yes                  # "Neu+Start"-Button anzeigen
+Autostart = no                    # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5              # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
+DefaultAction = sync              # Standardaktion bei Autostart: start|sync|new
+Hidden = yes                      # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
