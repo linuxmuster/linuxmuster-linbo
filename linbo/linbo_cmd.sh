@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20160804
+# 20160830
 # GPL v3
 #
 
@@ -1710,7 +1710,7 @@ cp_cloop_ntfs(){
    return 1
   fi
   # increase the filesystem size
-  ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
+  echo -e "y\n" | ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
   [ "$RC" = "0" ] || echo "Vergroesserung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
  else
   echo "Vergroesserung ist nicht notwendig." | tee -a /tmp/image.log
@@ -2581,7 +2581,8 @@ download_if_newer(){
   fi
   # update regpatch and postsync script
   rm -rf "$2".reg "$2".postsync
-  download_all "$1" "$2".reg "$2".postsync >/dev/null 2>&1
+  download "$1" "$2".reg important
+  download "$1" "$2".postsync important
  fi
  # start torrent service for others if there is no image to download
  [ "$DLTYPE" = "torrent" -a -n "$IMAGE" -a -z "$DOWNLOAD_ALL" ] && download_torrent "$2"

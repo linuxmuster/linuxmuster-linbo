@@ -498,7 +498,7 @@ set_autostart() {
   echo "$line" | grep -qi ^autostart || echo "$line" >> /start.conf.new
   # write autostart line for specific OS
   if [ "$found" = "1" ]; then
-   echo "Aktiviere autostart für OS Nr. $c."
+   echo "Aktiviere autostart fuer OS Nr. $c."
    echo "Autostart = yes" >> /start.conf.new
    found=0
   fi
@@ -520,7 +520,7 @@ network(){
  echo
  echo "Starte Netzwerkkonfiguration ..."
  if [ -n "$localmode" ]; then
-  echo "Localmode konfiguriert, überspringe Netzwerkkonfiguration."
+  echo "Localmode konfiguriert, ueberspringe Netzwerkkonfiguration."
   copyfromcache "start.conf icons"
   do_housekeeping
   touch /tmp/linbo-network.done

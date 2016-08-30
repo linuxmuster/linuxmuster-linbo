@@ -1,6 +1,13 @@
+linuxmuster-linbo (2.3.8-0) babo62; urgency=low
+
+  * added and fixed several example files.
+  * fixed security query for ntfsresize (closes #622).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 30 Aug 2016 15:14:13 +0200
+
 linuxmuster-linbo (2.3.7-0) babo62; urgency=low
 
-  * removed hostname sanitation in busyboxes udhcpc.
+  * removed hostname sanitation in busyboxes udhcpc (closes #621).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Aug 2016 11:07:43 +0200
 

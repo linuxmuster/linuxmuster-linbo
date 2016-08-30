@@ -1,5 +1,5 @@
 # LINBO start.conf Beispiel mit
-# Windows 7 auf Partition 1 (NTFS)
+# Windows 10 auf Partition 1 (NTFS)
 # Cache auf Partition 2
 # Daten auf Partition 3
 # Festplatte 160G
@@ -47,22 +47,22 @@ Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
 FSType = ntfs            # Dateisystem swap
 Bootable = no            # Bootable-Flag
 
-[OS]                        # Beginn einer Betriebssystemdefinition
-Name = Windows 7            # Name des Betriebssystems
-Version =                   # Version (unbenutzt, leer lassen)
-Description = Windows 7 SP1 # Beschreibung
-IconName = win7.png         # Icon fuer den Startbutton, muss unter /var/linbo/icons abgelegt sein
-Image =                     # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
-BaseImage = win7.cloop      # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1            # Bootpartition (unbenutzt, immer gleich Rootpartition)
-Root = /dev/sda1            # Rootpartition, in die das BS installiert ist
-Kernel = auto               # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
-Initrd =                    # Windows: leer
-Append =                    # Windows: leer
-StartEnabled = yes          # "Start"-Button anzeigen
-SyncEnabled = yes           # "Sync+Start"-Button anzeigen
-NewEnabled = yes            # "Neu+Start"-Button anzeigen
-Autostart = no              # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5        # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
-DefaultAction = sync        # Standardaktion bei Autostart: start|sync|new
-Hidden = yes                # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
+[OS]                       # Beginn einer Betriebssystemdefinition
+Name = Windows 10          # Name des Betriebssystems
+Version =                  # Version (unbenutzt, leer lassen)
+Description = Windows 10   # Beschreibung
+IconName = win10.png       # Icon fuer den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                    # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = win10.cloop    # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda1           # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda1           # Rootpartition, in die das BS installiert ist
+Kernel = auto              # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
+Initrd =                   # Windows: leer
+Append =                   # Windows: leer
+StartEnabled = yes         # "Start"-Button anzeigen
+SyncEnabled = yes          # "Sync+Start"-Button anzeigen
+NewEnabled = yes           # "Neu+Start"-Button anzeigen
+Autostart = no             # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5       # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
+DefaultAction = sync       # Standardaktion bei Autostart: start|sync|new
+Hidden = yes               # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
