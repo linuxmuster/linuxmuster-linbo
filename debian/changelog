@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.9-0) babo62; urgency=low
+
+  * added linbo.iso to www_links.
+  * minor example fixes.
+  * make different grub cd/usb and net boot images for i386-efi and x86_64-efi
+    to reduce size for netboot images.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Sep 2016 10:54:50 +0200
+
 linuxmuster-linbo (2.3.8-0) babo62; urgency=low
 
   * added and fixed several example files.
