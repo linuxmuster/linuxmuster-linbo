@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20160801
+# 20160831
 #
 
 # read linuxmuster environment
@@ -105,7 +105,7 @@ update_linbofs() {
 # create download links for linbo kernel and initrd so it can be downloaded per http
 create_www_links(){
  [ -d /var/www ] || return
- for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz; do
+ for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz linbo.iso; do
   ln -sf "$LINBODIR/$i" /var/www/
  done
 }
@@ -114,9 +114,9 @@ update_linbofs
 update_linbofs -np
 update_linbofs 64
 
-create_www_links
-
 # create iso files
 "$LINBOSHAREDIR"/make-linbo-iso.sh
+
+create_www_links
 
 rm -f "$locker"

@@ -10,7 +10,7 @@
 Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhaelt
 Group = gruppe           # Name der Rechnergruppe fuer die diese Konfigurationsdatei gilt
 # Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
-Cache = /dev/sda5        # lokale Cache Partition
+Cache = /dev/sda4        # lokale Cache Partition
 RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
 AutoPartition = no       # automatische Partitionsreparatur beim LINBO-Start
 AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start

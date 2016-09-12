@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20160805
+# 20160912
 # GPL V3
 #
 
@@ -18,8 +18,8 @@ GRUBDIR="$LINBODIR/boot/grub"
 GRUBEFI32DIR="$GRUBDIR/i386-efi"
 GRUBEFI64DIR="$GRUBDIR/x86_64-efi"
 GRUBBIOSDIR="$GRUBDIR/i386-pc"
-CORE32EFI="$GRUBEFI32DIR/core.efi"
-CORE64EFI="$GRUBEFI64DIR/core.efi"
+CORE32EFI="$GRUBEFI32DIR/core.iso"
+CORE64EFI="$GRUBEFI64DIR/core.iso"
 
 ISOCACHE="/var/cache/linuxmuster-linbo/iso"
 mkdir -p "$ISOCACHE"
