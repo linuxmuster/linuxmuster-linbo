@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.10-0) babo62; urgency=low
+
+  * /dev/mmcblk disknumber fix (closes #626 partially).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Sep 2016 08:59:39 +0200
+
 linuxmuster-linbo (2.3.9-0) babo62; urgency=low
 
   * added linbo.iso to www_links.

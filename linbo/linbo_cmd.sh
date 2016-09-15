@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20160830
+# 20160915
 # GPL v3
 #
 
@@ -841,7 +841,7 @@ print_grubpart(){
  [ -b "$partition" ] || return 1
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
  case "$partition" in
-  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]*\)p[0-9]*|\1|')" ;;
+  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
   *)
    local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
    local disknr=$(( $ord - 97 ))
