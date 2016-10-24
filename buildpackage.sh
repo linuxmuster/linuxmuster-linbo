@@ -1,6 +1,10 @@
 #!/bin/bash
+#
+# thomas@linuxmuster.net
+# 20161022
+#
 
-for i in conf debian etc graphics linbo share var; do
+for i in conf debian files graphics linbofs; do
  find ${i}/ -type f -name \*~ -exec rm '{}' \;
 done
 

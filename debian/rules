@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20160804
+# 20161022
 # GPL v3
 #
 
@@ -108,6 +108,9 @@ BIN32_DEBS=acl bc bluez bvi cloop-utils coreutils ctorrent dosfstools dropbear-b
            ncurses-bin parted pcmciautils reiserfsprogs rsync systemd sysvinit-utils \
            udev udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
            zlib1g zlib1g-dev
+
+# linbofs files for initramfs
+LINBOINITRAMFS=$(CURDIR)/cache/linbo_initramfs.conf
 
 configure: configure-stamp
 configure-stamp:
@@ -553,18 +556,18 @@ install: build
 	#dh_clean -k
 	dh_installdirs
 	dh_install
-	# kernel
+	## kernel, modules, initrd go to linuxmuster-linbo-common package
 	( cd $(KERNEL_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking LINBO kernel to /var/linbo/linbo.[0m" ; \
-	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo
+	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo
 	# kernel non pae
 	( cd $(KERNELNP_DIR) && mkdir -p ../modules ; ARCH=i386 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking non pae LINBO kernel to /var/linbo/linbo-np.[0m" ; \
-	cp $(KERNELNP_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo-np
+	cp $(KERNELNP_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np
 	# kernel64
 	( cd $(KERNEL64_DIR) && mkdir -p ../modules ; ARCH=x86_64 make INSTALL_MOD_PATH=../modules modules_install )
 	@echo "[1mLinking 64bit LINBO kernel to /var/linbo/linbo64.[0m" ; \
-	cp $(KERNEL64_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo64
+	cp $(KERNEL64_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64
 	# cloop module
 	mkdir -p kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
 	cp $(CLOOP_DIR)/cloop.ko kernel/modules/lib/modules/$(KVERS)/kernel/drivers/block/
@@ -589,8 +592,12 @@ install: build
 	-/sbin/depmod -a -b kernel/modules $(KVERS)
 	-/sbin/depmod -a -b kernel-np/modules $(KVERS)
 	-/sbin/depmod -a -b kernel64/modules $(KVERS)
-	# initrd
-	echo "LINBO $(LVERS)" > linbo/etc/linbo-version
+	# initrd build
+	# linbo version
+	echo "LINBO $(LVERS)" > linbofs/etc/linbo-version
+	# fetch common linbofs files
+	( cd linbofs && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|dir \./|dir /|g' -e 's|file \./|file /|g' -e 's|\./|\.\./\.\./linbofs/|g' >$(LINBOINITRAMFS)
+	# start building x86 linbofs
 	@echo "[1mBuilding LINBOFS...[0m" ; \
 	cd $(KERNEL_DIR) ; \
 	ln -snf ../initramfs.conf . ; \
@@ -608,8 +615,9 @@ install: build
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs.lz
-	# initrd non pae
+	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel/initramfs.conf ; \
+	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbofs.lz
+	# start building x86 non pae linbofs
 	@echo "[1mBuilding non pae LINBOFS...[0m" ; \
 	cd $(KERNELNP_DIR) ; \
 	ln -snf ../initramfs.conf . ; \
@@ -626,8 +634,9 @@ install: build
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel-np/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs-np.lz
-	# initrd 64bit
+	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel-np/initramfs.conf ; \
+	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbofs-np.lz
+	# start building 64bit linbofs
 	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
 	cd $(KERNEL64_DIR) ; \
 	ln -snf ../initramfs.conf ./initramfs.conf ; \
@@ -645,30 +654,43 @@ install: build
 	echo >> ../initramfs.conf ; \
 	echo "# busybox applets" >> ../initramfs.conf ; \
 	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbofs64.lz
-	# package files
-    # linbo md5sums
-	md5sum $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo.md5
-	md5sum $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo-np | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo-np.md5
-	md5sum $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo/var/linbo/linbo64.md5
-	# /etc
-	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
-	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
-	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
-	install -m 755 debian/linbo-multicast debian/linuxmuster-linbo/etc/init.d/
-	install -m 600 etc/ssh_config debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
-	install -m 644 etc/start.conf debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
+	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel64/initramfs.conf ; \
+	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbofs64.lz
+
+	### scripts and config files to package
+	# linbo md5sums
+	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo.md5
+	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np.md5
+	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64.md5
+	## linuxmuster-linbo-common
 	# /var/linbo
-	cp -r var/* debian/linuxmuster-linbo/var/linbo
-	install -m 644 linbo/etc/linbo-version debian/linuxmuster-linbo/var/linbo
-	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo/var/linbo/linuxmuster-win
+	cp -r files/common/var/* debian/linuxmuster-linbo-common/var/
+	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo-common/var/linbo
+	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo-common/var/linbo/linuxmuster-win
 	# grub netboot
 	debian/mkgrubnetdir.sh
-	install -m 644 share/templates/grub.cfg.pxe debian/linuxmuster-linbo/var/linbo/boot/grub/grub.cfg
-	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo/var/linbo/boot/grub/ipxe.lkrn
-	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo/var/linbo/boot/grub/ipxe.efi
-	# /usr/share/linuxmuster-linbo
-	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	install -m 644 files/common/usr/share/linuxmuster-linbo/templates/grub.cfg.pxe debian/linuxmuster-linbo-common/var/linbo/boot/grub/grub.cfg
+	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.lkrn
+	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.efi
+
+	## linuxmuster-linbo
+	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
+	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo/etc/init.d/linbo-multicast
+	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
+	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
+	cp -r files/common/etc/* debian/linuxmuster-linbo/etc/
+	cp -r files/common/usr/* debian/linuxmuster-linbo/usr/
+	cp -r files/lmn6/usr/* debian/linuxmuster-linbo/usr/
+
+	## linuxmuster-linbo7
+	install -m 644 debian/default debian/linuxmuster-linbo7/etc/default/linbo-multicast
+	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
+	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
+	cp -r files/common/etc/* debian/linuxmuster-linbo7/etc/
+	cp -r files/common/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
+	cp -r files/lmn7/usr/* debian/linuxmuster-linbo7/usr/
+	cp -r files/lmn7/etc/* debian/linuxmuster-linbo7/etc/
+	chmod 755 debian/linuxmuster-linbo7/etc/init.d/*
 
 # Build architecture-independent files here.
 binary-indep: build install

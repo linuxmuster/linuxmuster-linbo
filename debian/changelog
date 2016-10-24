@@ -1,3 +1,21 @@
+linuxmuster-linbo (2.3.11-0) babo62; urgency=low
+
+  * splitted package in linuxmuster-linbo, which contains the scripts,
+    and linuxmuster-linbo-common, which contains the kernel and the grub
+    configuration.
+  * added supplemental package linuxmuster-linbo7 for lmn7 stuff.
+  * reworked source package structure.
+  * preinst fix to make pkg installable in lmn7.
+  * removed obsolete bios/efi dirs in /var/linbo.
+  * added ntpd to busybox (closes #638).
+  * build dependencies fixes.
+  * moved back to fifo patched tftpd-hpa.
+  * added rtc support to linbo kernel.
+  * kernel update to 4.4.26.
+  * get partition size from /proc/partitions instead of gparted (#637).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 24 Oct 2016 11:28:27 +0200
+
 linuxmuster-linbo (2.3.10-0) babo62; urgency=low
 
   * /dev/mmcblk disknumber fix (closes #626 partially).

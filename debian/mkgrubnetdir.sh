@@ -2,7 +2,7 @@
 #
 # creates directory structure for grub network boot
 # thomas@linuxmuster.net
-# 20160912
+# 20160916
 # GPL V3
 #
 
@@ -24,7 +24,7 @@ GRUB_EFI32_ISO_MODULES="$GRUB_ISO_MODULES $GRUB_EFI32_MODULES"
 GRUB_EFI64_ISO_MODULES="$GRUB_ISO_MODULES $GRUB_EFI64_MODULES"
 
 # dirs
-NETDIR="debian/linuxmuster-linbo/var/linbo"
+NETDIR="debian/linuxmuster-linbo-common/var/linbo"
 SUBDIR="/boot/grub"
 
 # image files

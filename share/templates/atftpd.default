@@ -1,9 +1,0 @@
-#
-# atftpd daemon options for linuxmuster-linbo
-# thomas@linuxmuster.net
-# 02.02.2014
-#
-
-USE_INETD=false
-OPTIONS="--daemon --bind-address @@serverip@@ --tftpd-timeout 300 --retry-timeout 5 --maxthread 100 --verbose=5 @@linbodir@@"
-

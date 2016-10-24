@@ -1,0 +1,166 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          linbo-multicast
+# Required-Start:    $network $local_fs
+# Required-Stop:     $network $local_fs
+# Should-Start:      
+# Should-Stop:       
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts per image multicast sessions
+# Description:       Starts a multicast session for each LINBO image
+### END INIT INFO
+
+# thomas@linuxmuster.net
+# GPL v3
+# 20160917
+
+#set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DESC="Multicast session for"
+DAEMON=/usr/share/linuxmuster-linbo/linbo-mcasthelper.sh
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# read cmdline
+action="$1"
+images="$2"
+force="$3"
+
+# defaults
+LINBODIR=/var/linbo
+START_MULTICAST=no
+PORTBASE=9000
+MINCLIENTS=16
+MINSECONDS=60
+MAXSECONDS=90
+MULTICASTLIST=$LINBODIR/multicast.list
+INTERFACE=eth0
+SERVERIP=10.16.1.1
+
+# read necessary functions and constants
+. /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
+[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+[ -f /etc/default/linuxmuster-linbo ] && . /etc/default/linuxmuster-linbo
+[ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
+. /lib/lsb/init-functions
+
+# reading internal interface name
+if [ -s /etc/default/linuxmuster-base ]; then
+ . /etc/default/linuxmuster-base
+ [ -n "$IFACE" ] && INTERFACE=$IFACE
+fi
+
+# reading server ip
+[ -f /var/lib/linuxmuster/network.settings ] && . /var/lib/linuxmuster/network.settings && SERVERIP=$serverip
+
+create_multicast_list() {
+  echo -n "Creating multicast.list"
+  [ -e "$MULTICASTLIST" ] && mv $MULTICASTLIST $MULTICASTLIST.old
+  p=$PORTBASE
+  for i in $images; do
+    echo "$i $SERVERIP:$p" >> $MULTICASTLIST
+    let "p+=2"
+  done
+  echo .
+}
+
+images="$(active_images)"
+
+start() {
+  if [ -z "$images" ]; then
+   echo "There exist no images yet!"
+   rm -f "$MULTICASTLIST"
+   exit 0
+  fi
+
+  create_multicast_list
+  cd $LINBODIR
+
+  while read file serverport relax; do
+   port="${serverport##*:}"
+   if [ -s "$file" ]; then
+    # start daemon stuff
+    #[ "$port" = "$PORTBASE" ] || echo
+    log_daemon_msg "Starting $DESC" "$file"
+
+    if screen -list | grep -q "$file.mcast"; then
+     echo
+     log_failure_msg "Multicast for $file is already running. Skipped!"
+     continue
+    fi
+
+    LOGFILE="$LINBODIR/log/${file}_mcast.log"
+
+    screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
+    sleep 1
+    if ! screen -list | grep -q "$file.mcast"; then
+     echo -n " "
+     log_failure_msg "failed!"
+    else
+     RC=0
+     log_end_msg "$RC"
+    fi
+
+   fi
+  done < "$MULTICASTLIST"
+  #echo
+}
+
+stop(){
+
+ local i=""
+ local pid=""
+ for i in $images; do
+  if screen -list | grep -q "$i.mcast"; then
+    log_daemon_msg "Stopping $DESC" "$i"
+    pid="$(screen -list | grep "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    kill $pid ; RC="$?"
+    log_end_msg "$RC"
+  fi
+ done
+ local pids="$(screen -list | grep mcast | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+ if [ -n "$pids" ]; then
+  log_daemon_msg "Sending all remaining linbo-multicast processes the TERM signal."
+  kill $pids ; RC="$?"
+  log_end_msg "$RC"
+ fi
+}
+
+status(){
+   local line=""
+   local pid=""
+   local screen=""
+   local status=""
+   local c=0
+   local d=""
+   screen -wipe | grep [ioy][nos][cop].mcast | while read line; do
+    let c+=1
+    pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    screen="$(echo $line | awk '{ print $1 }')"
+    screen="${screen#*.}"
+    status="$(echo $line | awk '{ print $2 }')"
+    d=""
+    [ $c -lt 100 ] && d=" "
+    [ $c -lt 10 ] && d="  "
+    echo -e "$d$c\t$pid\t$screen\t$status"
+   done
+}
+
+case "$action" in
+ start) start ;;
+ stop) stop ;;
+ restart)
+  stop
+  start ;;
+ status) status ;;
+ *)
+  echo "Usage: $0 {start|stop|restart|status}" >&2
+  exit 1 ;;
+esac
+
+exit 0
+
