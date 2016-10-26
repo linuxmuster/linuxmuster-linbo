@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20161024
+# 20161025
 # GPL v3
 #
 
@@ -1499,7 +1499,7 @@ prepare_fs(){
    local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
-    echo "Sichere Windows-Bootloader fuer Gruppe $group."
+    echo "Sichere Windows-BCD fuer Gruppe $group."
     # BCD group specific and partition specific on efi systems
     if [ -n "$efipart" ]; then
      cp -f "$bcd" "$bcd"."$group"."$(basename "$2")"
@@ -1507,14 +1507,19 @@ prepare_fs(){
      cp -f "$bcd" "$bcd"."$group"
     fi
     # boot sector backup group specific
-    echo "Sichere Disk-Bootsektoren fuer Gruppe $group."
     # delete obsolete mbr backups
-    rm -f "$targetdir/winmbr.$group" "$targetdir/win7mbr.$group" "$targetdir/winmbr446.$group"
+    rm -f "$targetdir/winmbr.$group" "$targetdir/win7mbr.$group" "$targetdir/winmbr446.$group" "$targetdir/bsvbr.$group"
     local disk="$(get_disk_from_partition "$2")"
     local bsmbr="$targetdir/bsmbr.$group"
+    # save bootloader sectors
+    echo "Sichere Bootloadersektoren fuer Gruppe $group."
     dd if="$disk" of="$bsmbr" bs=446 count=1 2>> /tmp/linbo.log
-    local bsvbr="$targetdir/bsvbr.$group"
-    dd if="$disk" of="$bsvbr" bs=446 count=63 2>> /tmp/linbo.log
+    # in case of gpt partition label
+    if fdisk -l "$disk" | grep -q "GPT"; then
+     echo "Sichere GPT-Label fuer Gruppe $group."
+     local gptlabel="$targetdir/gptlabel.$group"
+     dd if="$disk" of="$gptlabel" bs=512 count=34 2>> /tmp/linbo.log
+    fi
     # ntfs partition id
     echo "Sichere NTFS-ID."
     local ntfsid="$targetdir/ntfs.id"
@@ -1674,8 +1679,12 @@ cp_cloop_ntfs(){
  local RC=1
  local targetdev="$1"
  echo "Restauriere Partition $targetdev mit ntfsclone..." | tee -a /tmp/image.log
- interruptible ntfsclone -q -f --overwrite "$targetdev" /dev/cloop 2>> /tmp/image.log ; RC="$?"
- if [ "$RC" != "0" ]; then
+ interruptible ntfsclone -q -f --overwrite "$targetdev" /dev/cloop 2>&1 | tee -a /tmp/image.log
+ # in case of cluster referenced twice error give sync a second chance
+ if (grep -i error /tmp/image.log | grep -i cluster | grep -qi 'referenced twice' && [ ! -e /tmp/.twice.done ]); then
+  touch /tmp/.twice
+  RC="0"
+ elif grep -qi error /tmp/image.log; then
   echo 'FEHLER!' | tee -a /tmp/image.log
   return "$RC"
  fi
@@ -1689,7 +1698,7 @@ cp_cloop_ntfs(){
  if ! isinteger "$volsizemb"; then
   echo "Kann Dateisystemgroesse nicht bestimmen." | tee -a /tmp/image.log
   return 1
- fi  
+ fi
  echo "Dateisystem: $volsizemb MB" | tee -a /tmp/image.log
  # get partition size in mb
  local devsizemb="$(grep "Current device size" /tmp/ntfs.info | awk -F\( '{ print $2 }' | awk '{ print $1}')"
@@ -1858,6 +1867,11 @@ restore(){
    fi
    if [ "$force" = "force" -a "$fstype" = "ntfs" ]; then
     cp_cloop "$1" "$2" ; RC="$?"
+    if [ -e /tmp/.twice -a ! -e /tmp/.twice.done ]; then
+     echo "Referenced-Twice-Fehler bei ntfsclone, versuche Datei-Sync..."
+     sync_cloop "$1" "$2" ; RC="$?"
+     touch /tmp/.twice.done
+    fi
    else
     sync_cloop "$1" "$2" ; RC="$?"
    fi
@@ -2067,6 +2081,17 @@ restore_winact(){
  cp "/cache/$image.winact.cmd" "$batchfile"
 }
 
+
+# print windows version
+winver(){
+ local hive="$(ls -1d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2> /dev/null)"
+ [ -z "$hive" ] && return 1
+ local winverhex="$(echo -e "cd \Microsoft\Windows NT\CurrentVersion\ncat CurrentMajorVersionNumber\nq\n" | reged -e "$hive" | grep ^0x 2> /dev/null)"
+ [ -z "$winverhex" ] && return 1
+ printf "%d\n" "$winverhex"
+}
+
+
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC="1"
@@ -2216,7 +2241,7 @@ syncl(){
 
   # restore bcd
   if [ -s "$bcd_backup" ]; then
-   echo "Restauriere die Windows-$sysname-Bootkonfiguration aus $(basename "$bcd_backup")."
+   echo "Restauriere Windows-BCD aus $(basename "$bcd_backup")."
    cp -f "$bcd_backup" "$bootdir"/BCD
   fi
 
@@ -2228,7 +2253,7 @@ syncl(){
   [ -e "$bsmbr" ] || bsmbr="$bootdir"/winmbr."$group"
   [ -e "$bsmbr" ] || bsmbr="$bootdir"/win7mbr."$group"
   if [ -e "$bsmbr" ]; then
-   echo -n "Restauriere den Disk-Bootsektor aus $(basename "$bsmbr")"
+   echo "Restauriere Windows-Bootloader aus $(basename "$bsmbr")" | tee -a /tmp/linbo.log
    case "$bsmbr" in
     *bsmbr.*)
      dd if="$bsmbr" of="$disk" bs=446 count=1 2>> /tmp/linbo.log
@@ -2241,12 +2266,13 @@ syncl(){
      ;;
    esac
   fi
-  local bsvbr="$bootdir"/bsvbr."$group"
-  if [ -e "$bsvbr" ]; then
-   echo " und $bsvbr."
-   dd if="$bsvbr" of="$disk" bs=446 count=63 2>> /tmp/linbo.log   
-  else
-   echo "."
+  # restore gpt label
+  if fdisk -l "$disk" | grep -q "GPT"; then
+   local gptlabel="$bootdir"/gptlabel."$group"
+   if [ -s "$gptlabel" ]; then
+    echo "Restauriere GPT-Label aus $(basename "$gptlabel")." | tee -a /tmp/linbo.log
+    dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+   fi
   fi
 
   # restore ntfs id
@@ -2339,6 +2365,9 @@ syncl(){
  # all done
  sync; sync; sleep 1
  umount /mnt || umount -l /mnt
+ 
+ # restore partition layout if it was altered above
+ #[ -n "$repair_parts" ] && partition | tee -a /tmp/linbo.log
  sendlog
  cd / # ; mountcache "$1" -r
  return "$RC"

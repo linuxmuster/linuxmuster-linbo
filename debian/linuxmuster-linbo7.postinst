@@ -97,9 +97,6 @@ case "$1" in
   tftpd_restart=yes
  fi
  [ -n "$tftpd_restart" ] && service tftpd-hpa restart
-
- # update linbofs.lz if system is setup
- [ -e "$SETUPINI" ] && update-linbofs
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)

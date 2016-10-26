@@ -210,9 +210,6 @@ print ""
  [ -e "$LINBODIR/icons/linbo_wallpaper.png" ] || ln -sf linbo_wallpaper_800x600.png "$LINBODIR/icons/linbo_wallpaper.png"
  [ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
  ln -sf ../../linbo_wallpaper.png "$LINBODIR/boot/grub/themes/linbo/linbo_wallpaper.png"
-
- # update linbofs.lz
- $LINBOUPDATE
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)

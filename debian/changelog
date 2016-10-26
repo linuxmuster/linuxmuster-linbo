@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.12-0) babo62; urgency=low
+
+  * fixed patch_registry script filename.
+  * further more package consolidation, moving postinst stuff to linuxmuster-linbo-common.
+  * fallback to file sync in case of ntfsclone's cluster referenced twice error.
+  * excluded partition table from mbr backup and restore of windows systems (another attempt to fix #637).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Oct 2016 11:37:05 +0200
+
 linuxmuster-linbo (2.3.11-0) babo62; urgency=low
 
   * splitted package in linuxmuster-linbo, which contains the scripts,
@@ -12,9 +21,9 @@ linuxmuster-linbo (2.3.11-0) babo62; urgency=low
   * moved back to fifo patched tftpd-hpa.
   * added rtc support to linbo kernel.
   * kernel update to 4.4.26.
-  * get partition size from /proc/partitions instead of gparted (#637).
+  * get partition size from /proc/partitions instead of parted (#637).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 24 Oct 2016 11:28:27 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 23 Oct 2016 13:47:48 +0200
 
 linuxmuster-linbo (2.3.10-0) babo62; urgency=low
 
