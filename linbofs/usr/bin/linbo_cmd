@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20161025
+# 20161118
 # GPL v3
 #
 
@@ -1329,10 +1329,6 @@ update_win(){
  mkdir -p /mnt/linuxmuster-win
  # copy scripts to os rootdir
  rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
- # install start tasks
- if [ "$RC" = "0" ]; then
-  /linuxmuster-win/install-start-tasks.sh || RC="1"
- fi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }

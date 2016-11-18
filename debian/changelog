@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.13-0) babo62; urgency=low
+
+  * control file improvements.
+  * linbo_cmd, update_win(): removed automated installation of linuxmuster
+    start tasks on windows systems (closes #648).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 18 Nov 2016 14:38:34 +0100
+
 linuxmuster-linbo (2.3.12-2) babo62; urgency=low
 
   * linuxmuster-linbo7:

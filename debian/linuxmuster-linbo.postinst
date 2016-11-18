@@ -3,7 +3,7 @@
 # postinst script for linuxmuster-linbo
 # thomas@linuxmuster.net
 # GPL v3
-# 20161021
+# 20161118
 #
 
 set -e
@@ -150,7 +150,10 @@ SystemType = bios" -i "$conf"
   sed -i "s|^TFTP_DIRECTORY=.*|TFTP_DIRECTORY=\"$LINBODIR\"|" "$conf"
   tftpd_restart=yes
  fi
- [ -n "$tftpd_restart" ] && service tftpd-hpa restart
+ if [ -n "$tftpd_restart" ]; then
+  service tftpd-hpa stop &> /dev/null
+  service tftpd-hpa start
+ fi
 
  # update rsyncd.conf
  conf=/etc/rsyncd.conf

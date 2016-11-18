@@ -6,8 +6,8 @@ Build-Depends: acl, bc, bison, build-essential, bvi, cloop-utils, coreutils, cto
 
 Package: linuxmuster-linbo
 Architecture: all
-Conflicts: linuxmuster-linbo7
-Depends: linuxmuster-base (>= 6.2.0), linuxmuster-linbo-common, tftpd-hpa (>= 5.2-1ubuntu1fifopatch)
+Conflicts: linuxmuster-linbo7, atftpd
+Depends: linuxmuster-base (>= 6.2.0), linuxmuster-linbo-common (>= 2.3.13), tftpd-hpa (>= 5.2-1ubuntu1fifopatch)
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo scripts
  This package contains the scripts for the Linux-based Network Boot
@@ -15,13 +15,15 @@ Description: linuxmuster-linbo scripts
 
 Package: linuxmuster-linbo-common
 Architecture: all
+Replaces: linuxmuster-linbo (<< 2.3.13)
+Breaks: linuxmuster-linbo (<< 2.3.13)
 Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
 Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
 
 Package: linuxmuster-linbo7
 Architecture: all
-Conflicts: linuxmuster-linbo
-Depends: linuxmuster-base7, python3, linuxmuster-linbo-common, tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
+Conflicts: linuxmuster-linbo, atftpd
+Depends: linuxmuster-base7, python3, linuxmuster-linbo-common (>= 2.3.13), tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo scripts
  This package contains the scripts for the Linux-based Network Boot

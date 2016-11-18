@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20160831
+# 20161118
 #
 
 # read linuxmuster environment
@@ -61,7 +61,7 @@ update_linbofs() {
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
  else
   sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
-  [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
+  [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
   # md5sum of linbo password goes into ramdisk
   local linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
  fi
