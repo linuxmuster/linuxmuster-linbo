@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.14-0) babo62; urgency=low
+
+  * kernel updated to 4.8.10:
+    - added surface 3 support for 64bit kernel.
+    - removed experimental sata drivers.
+    - removed btrfs driver.
+  * cloop 4.8 update, fetched from http://debian-knoppix.alioth.debian.org/packages/linux-source-4.7.3/ and modified for kernel 4.8.10 (see https://lists.debian.org/debian-knoppix/2016/10/msg00001.html).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Nov 2016 15:32:36 +0100
+
 linuxmuster-linbo (2.3.13-0) babo62; urgency=low
 
   * control file improvements.

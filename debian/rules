@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20161022
+# 20161120
 # GPL v3
 #
 
@@ -42,18 +42,20 @@ KERNEL64_DIR=kernel64/linux-$(KVERS)
 #BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
 
 # cloop
-CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+#CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
+CLOOP_ARCHIVE=$(shell grep cloop- debian/md5sums.src | awk '{ print $$2 }')
+#CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+CLOOP_DIR=kernel/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
 #CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
 #CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 CLOOP_URL=$(LML_URL)
 
 # cloop non pae
-CLOOPNP_DIR=kernel-np/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+CLOOPNP_DIR=kernel-np/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
 
 # cloop64
 #CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+CLOOP64_DIR=kernel64/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
@@ -247,23 +249,23 @@ configure-stamp:
 	fi
 
 	# cloop
-#	-@if [ ! -d $(CLOOP_DIR) ]; then \
-#		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-#		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-#		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-#	fi
-
-	# cloop with patch
 	-@if [ ! -d $(CLOOP_DIR) ]; then \
 		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-		( cd $(CLOOP_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
 		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 	fi
+
+	# cloop with patch
+#	-@if [ ! -d $(CLOOP_DIR) ]; then \
+#		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+#		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+#		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
+#		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
+#		( cd $(CLOOP_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
+#		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
+#	fi
 
 	# cloop non pae
 	-@if [ ! -d $(CLOOPNP_DIR) ]; then \
@@ -271,7 +273,6 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking non pae $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel-np; \
-		( cd $(CLOOPNP_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
 		ln -sf ../$(CLOOPNP_DIR) kernel-np/cloop; \
 	fi
 
@@ -281,7 +282,6 @@ configure-stamp:
 		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
 		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
-		( cd $(CLOOP64_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
 		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
 	fi
 
@@ -291,7 +291,6 @@ configure-stamp:
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel; \
-		( cd kernel && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
 		echo "[1mPatching kernel sources...[0m" ; \
 		( cd $(KERNEL_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel.conf $(KERNEL_DIR)/.config; \
@@ -303,7 +302,6 @@ configure-stamp:
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking non pae $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel-np; \
-		( cd kernel-np && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
 		echo "[1mPatching non pae kernel sources...[0m" ; \
 		( cd $(KERNELNP_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel-np.conf $(KERNELNP_DIR)/.config; \
@@ -315,7 +313,6 @@ configure-stamp:
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel64; \
-		( cd kernel64 && mv linux-$(KMAINVERS) linux-$(KVERS) ); \
 		echo "[1mPatching 64bit kernel sources...[0m" ; \
 		( cd $(KERNEL64_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
