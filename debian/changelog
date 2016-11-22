@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.15-0) babo62; urgency=low
+
+  * update-linbofs.sh: avoided multiple invokation of sophomorix-passwd.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Nov 2016 15:32:36 +0100
+
 linuxmuster-linbo (2.3.14-0) babo62; urgency=low
 
   * kernel updated to 4.8.10:

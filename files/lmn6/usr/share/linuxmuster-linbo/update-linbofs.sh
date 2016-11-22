@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20161118
+# 20161122
 #
 
 # read linuxmuster environment
@@ -60,8 +60,15 @@ update_linbofs() {
  if [ -z "$linbo_passwd" ]; then
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
  else
-  sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
-  [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
+  if [ "$LINBOPW" = "false" ]; then
+   sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
+   LINBOPW=true
+   if [ "$RC" = "0" ]; then
+    echo "Successfully set linbo password."
+   else
+    echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
+   fi
+  fi
   # md5sum of linbo password goes into ramdisk
   local linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
  fi
@@ -109,6 +116,9 @@ create_www_links(){
   ln -sf "$LINBODIR/$i" /var/www/
  done
 }
+
+# avoid linbo password being set multiple times
+LINBOPW=false
 
 update_linbofs
 update_linbofs -np
