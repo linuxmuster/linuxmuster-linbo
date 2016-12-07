@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20161011
+# 20161207
 #
 
 # read linuxmuster environment
@@ -57,8 +57,15 @@ update_linbofs() {
  if [ -z "$linbo_passwd" ]; then
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
  else
-  sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
-  [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
+  if [ "$LINBOPW" = "false" ]; then
+   sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
+   LINBOPW=true
+   if [ "$RC" = "0" ]; then
+    echo "Successfully set linbo password."
+   else
+    echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
+   fi
+  fi
   # md5sum of linbo password goes into ramdisk
   local linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
  fi
@@ -78,9 +85,9 @@ update_linbofs() {
  mkdir -p etc/dropbear
  cp $SYSDIR/linbo/dropbear_*_host_key etc/dropbear
  mkdir -p etc/ssh
- cp $SYSDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
+ cp $SYSDIR/linbo/ssh_host_*_key* etc/ssh
  mkdir -p .ssh
- cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
+ cat /root/.ssh/id_*.pub > .ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 
@@ -106,6 +113,9 @@ create_www_links(){
   ln -sf "$LINBODIR/$i" /var/www/
  done
 }
+
+# avoid linbo password being set multiple times
+LINBOPW=false
 
 update_linbofs
 update_linbofs -np

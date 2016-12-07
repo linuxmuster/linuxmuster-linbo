@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 20161122
+# 20161207
 #
 
 # read linuxmuster environment
@@ -88,9 +88,9 @@ update_linbofs() {
  mkdir -p etc/dropbear
  cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
  mkdir -p etc/ssh
- cp $SYSCONFDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
+ cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
  mkdir -p .ssh
- cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
+ cat /root/.ssh/id_*.pub > .ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 

@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20161118
+# 20161207
 # GPL v3
 #
 
@@ -547,14 +547,9 @@ mountcache(){
    ;;
   /dev/*) # local cache
    # Check if cache partition exists
-   if grep -q "${1##*/}" /proc/partitions; then
-#    if cat /proc/mounts | grep -q /cache; then
-#     echo "Cache ist bereits gemountet."
-#     RC=0
-#    else
-     echo "Mounte Cache-Partition $1 ..."
-     mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
-#    fi
+   if [ -b "$1" ]; then
+    echo "Mounte Cache-Partition $1 ..."
+    mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
      local cachefs="$(fstype_startconf "$1")"
@@ -1387,10 +1382,18 @@ start(){
 # arg: partition
 get_partition_size(){
  local part="$1"
+ # fix wrong invokation by linbo_gui
+ [ "$part" = "/dev/mmcblkp" ] && part="/dev/mmcblk0"
  # fix vanished cloop symlink
  if [ "$part" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
   part="/dev/cloop0"
+ elif [ -L "$part" ]; then
+  local partsrc="$(stat "$part" | grep File | awk -F\' '{ print $4}')"
+  if ! echo "$partsrc" | grep -q '/dev/'; then
+    partsrc="/dev/$partsrc"
+  fi
+  [ -b "$partsrc" ] && part="$partsrc"
  fi
  local size="$(grep -w "${part#\/dev\/}" /proc/partitions | awk '{ print $3 }' 2>> /tmp/linbo.log)"
  if [ -n "$size" ]; then
@@ -2094,7 +2097,7 @@ syncl(){
  local patchfile=""
  local postsync=""
  local rootdev="$5"
- local disk="${rootdev%%[1-9]*}"
+ local disk="$(get_disk_from_partition "$rootdev")"
  local group="$(hostgroup)"
  local bootdir
 

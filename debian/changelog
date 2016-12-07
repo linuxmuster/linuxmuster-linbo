@@ -1,8 +1,18 @@
 linuxmuster-linbo (2.3.15-0) babo62; urgency=low
 
-  * update-linbofs.sh: avoided multiple invokation of sophomorix-passwd.
+  * update-linbofs.sh:
+    - avoid multiple invokation of sophomorix-passwd.
+    - add root's rsa keys.
+  * added new ci graphics.
+  * added udev qemu rules for mmcblk devices to linbofs.
+  * linbo_cmd:
+    - syncl(): disk fix (affects only mmcblk0 devices).
+    - get_partition_size(): fixed size for devices which are symlinks.
+    - get_partition_size(): handle wrong invokation by linbo_gui for mmcblk0 devices.
+  * Kernel: add surface 3 touchscreen driver.
+  * Fix #657 - update-linbofs copies id_dsa.pub only.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Nov 2016 15:32:36 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Dec 2016 21:22:48 +0100
 
 linuxmuster-linbo (2.3.14-0) babo62; urgency=low
 
