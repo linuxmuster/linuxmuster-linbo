@@ -19,4 +19,9 @@ rm -fv "${TARGET_DIR}"/usr/lib/libQt5Xml.so*
 rm -fv "${TARGET_DIR}"/usr/bin/b{more,vedit,view}
 rm -fv "${TARGET_DIR}"/usr/bin/grub-{file,fstest,glue-efi,menulst2cfg,mklayout,mknetdir,mkpasswd-pbkdf2,mkrescue,mkstandalone,render-label,script-check,syslinux2cfg}
 rm -fv "${TARGET_DIR}"/usr/sbin/grub-{macbless,sparc64-setup}
-rm -fv "${TARGET_DIR}"/usr/bin/pcretest
+rm -fv "${TARGET_DIR}"/usr/bin/pcretest                                                                           
+
+# benötigte Verzeichnisse erstellen
+mkdir -p "${TARGET_DIR}"/cache
+
+
