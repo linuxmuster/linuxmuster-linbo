@@ -1,7 +1,0 @@
-config BR2_PACKAGE_MUSL_OBSTACK
-    bool "musl-obstack"
-    help
-      The musl-obstack package is a copy + paste of the obstack functions
-      and macros found in GNU gcc libiberty library for use with musl libc.
-
-      https://github.com/pullmoll/musl-obstack

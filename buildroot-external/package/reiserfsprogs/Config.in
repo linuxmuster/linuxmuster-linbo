@@ -1,7 +1,6 @@
 config BR2_PACKAGE_REISERFSPROGS
     bool "reiserfsprogs"
     select BR2_PACKAGE_UTIL_LINUX_LIBUUID
-    select BR2_PACKAGE_MUSL_OBSTACK
     help
       This package contains reiserfsprogs.
 

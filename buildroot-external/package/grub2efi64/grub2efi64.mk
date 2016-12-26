@@ -6,7 +6,7 @@
 
 GRUB2EFI64_VERSION = 2.02-beta3
 GRUB2EFI64_SOURCE = grub-2.02~beta3.tar.gz
-GRUB2EFU64_SITE = http://alpha.gnu.org/gnu/grub
+GRUB2EFI64_SITE = http://alpha.gnu.org/gnu/grub
 GRUB2EFI64_LICENSE = GPLv3
 GRUB2EFI64_LICENSE_FILES = COPYING
 
