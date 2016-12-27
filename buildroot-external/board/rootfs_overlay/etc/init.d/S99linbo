@@ -5,6 +5,9 @@ if [ "$1" = "start" ]; then
 # Ignore signals
 trap "" 1 2 11 15
 
+# set terminal
+export TERM=xterm
+
 # Reset fb color mode
 RESET="]R"
 # ANSI COLORS
@@ -142,7 +145,7 @@ printcache(){
 # copytocache file - copies start.conf to local cache
 copytocache(){
  local cachedev="$(printcache)"
- [ -z "$cachedev" ] && return 1
+ [ -b "$cachedev" ] || return 1
  case "$cachedev" in
   /dev/*) # local cache
    if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
@@ -173,7 +176,7 @@ copytocache(){
 
 # copy extra start.conf given on cmdline
 copyextra(){
- [ -z "$confpart" ] && return 1
+ [ -b "$confpart" ] || return 1
  [ -z "$extraconf" ] && return 1
  mkdir -p /extra
  mount "$confpart" /extra || return 1
@@ -367,11 +370,14 @@ save_winact(){
 do_housekeeping(){
  local device="" 
  local cachedev="$(printcache)"
+ [ -b "$cachedev" ] || return 1
  if ! mount "$cachedev" /cache; then
   echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
   return 1
  fi
- grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
+ grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; 
+ do
+  [ -b "$device" ] || continue
   if mount "$device" /mnt 2> /dev/null; then
    # save windows activation files
    ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
@@ -418,8 +424,11 @@ network(){
  else
   # iterate over ethernet interfaces
   echo "Frage IP-Adresse per DHCP an ..."
-  for i in /sys/class/net/e*; do
-   dev="${i##*/}"
+  # dhcp retries
+  [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
+  local RC="0"
+  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
+   echo "Interface $dev ... "
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null
@@ -432,11 +441,12 @@ network(){
    else
     dhcpdev="$dev"
    fi
-   # dhcp retries
-   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null
-   # set mtu
-   [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+   udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
+   if [ "$RC" = "0" ]; then
+    # set mtu
+    [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+    break
+   fi
   done
  fi
  # Network is up now, fetch a new start.conf
@@ -499,7 +509,7 @@ network(){
 # Main
 #clear
 echo
-echo 'Wilkommen zu'
+echo 'Wilkommen zu '
 echo ' _      _____ _   _ ____   ____'
 echo '| |    |_   _| \ | |  _ \ / __ \'
 echo '| |      | | |  \| | |_) | |  | |'

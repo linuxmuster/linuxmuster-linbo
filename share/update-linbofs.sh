@@ -6,7 +6,7 @@
 # 
 # thomas@linuxmuster.net
 # GPL V3
-# 08.03.2016
+# 20161207
 #
 
 # read linuxmuster environment
@@ -28,20 +28,14 @@ if [ -e "$locker" ]; then
 	exit 1
 fi
 touch $locker || exit 1
-chmod 400 $locker
+chmod 400 "$locker"
 curdir=`pwd`
-tmpdir="/var/tmp/linbofs.$$"
-[ -e "$tmpdir" ] && rm -rf $tmpdir
-tmpdir64="/var/tmp/linbofs64.$$"
-[ -e "$tmpdir64" ] && rm -rf $tmpdir64
 
 # clean tmpdir and exit with error
 bailout() {
  echo "$1"
  cd "$curdir"
- [ -n "$tmpdir" -a -e "$tmpdir" ] && rm -rf $tmpdir
- [ -n "$tmpdir64" -a -e "$tmpdir64" ] && rm -rf $tmpdir64
- [ -n "$locker" -a -e "$locker" ] && rm -f $locker
+ [ -n "$locker" -a -e "$locker" ] && rm -f "$locker"
  exit 1
 }
 
@@ -49,33 +43,43 @@ bailout() {
 [ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
 
 update_linbofs() {
- local _64=$1
- local linbofscachedir="/var/cache/linuxmuster-linbo/linbofs$_64"
+ local suffix=$1
+ local linbofscachedir="/var/cache/linuxmuster-linbo/linbofs$suffix"
+ local linbofs="$LINBODIR/linbofs${suffix}.lz"
+ local linbofs_md5="$linbofs".md5
+ rm -f "$linbofs_md5"
  rm -rf "$linbofscachedir"
  mkdir -p "$linbofscachedir"
 
- # check for default linbofs${_64}.lz
- [ ! -s "$LINBODIR/linbofs${_64}.lz" ] && bailout "Error: $LINBODIR/linbofs${_64}.lz not found!"
+ # check for default linbofs${suffix}.lz
+ [ ! -s "$LINBODIR/linbofs${suffix}.lz" ] && bailout "Error: $LINBODIR/linbofs${suffix}.lz not found!"
 
  # grep linbo rsync password to sync it with linbo account
  [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
- linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
+ local linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
  if [ -z "$linbo_passwd" ]; then
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
  else
-  sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
-  [ "$RC" != "0" ] && echo "WARNING: Sophomorix failed to set linbo password! Expect problems with the user db!"
+  if [ "$LINBOPW" = "false" ]; then
+   sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
+   LINBOPW=true
+   if [ "$RC" = "0" ]; then
+    echo "Successfully set linbo password."
+   else
+    echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
+   fi
+  fi
   # md5sum of linbo password goes into ramdisk
-  linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+  local linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
  fi
 
- # begin to process linbofs${_64}.lz
- echo "Processing linbofs${_64} update ..."
+ # begin to process linbofs${suffix}.lz
+ echo "Processing linbofs${suffix} update ..."
 
  # unpack linbofs.lz to cache dir
  cd "$linbofscachedir" || bailout "Cannot change to $linbofscachedir!"
- xzcat $LINBODIR/linbofs${_64}.lz | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
- [ $RC -ne 0 ] && bailout " Failed to unpack linbofs${_64}.lz!"
+ xzcat "$linbofs" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
+ [ $RC -ne 0 ] && bailout " Failed to unpack $(basename "$linbofs")!"
 
  # store linbo md5 password
  [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
@@ -84,18 +88,22 @@ update_linbofs() {
  mkdir -p etc/dropbear
  cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
  mkdir -p etc/ssh
- cp $SYSCONFDIR/linbo/ssh_host_[dr]sa_key* etc/ssh
+ cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
  mkdir -p root/.ssh
- cp /root/.ssh/id_dsa.pub root/.ssh/authorized_keys
+ cat /root/.ssh/id_*.pub > .ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 
  # copy default start.conf
  cp -f $LINBODIR/start.conf .
 
- # pack default linbofs${_64}.lz again
- find . | cpio --quiet -o -H newc | lzma -zcv > $LINBODIR/linbofs${_64}.lz ; RC="$?"
+ # pack default linbofs${suffix}.lz again
+ find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
  [ $RC -ne 0 ] && bailout "failed!"
+ # create md5sum file
+ md5sum "$linbofs"  | awk '{ print $1 }' > "$linbofs_md5"
+
+ cd "$curdir"
 
  echo "Ok!"
 
@@ -104,20 +112,20 @@ update_linbofs() {
 # create download links for linbo kernel and initrd so it can be downloaded per http
 create_www_links(){
  [ -d /var/www ] || return
- for i in linbo linbo64 linbofs.lz linbofs64.lz; do
+ for i in linbo linbo64 linbofs.lz linbofs64.lz linbo.iso; do
   ln -sf "$LINBODIR/$i" /var/www/
  done
 }
 
-update_linbofs
+# avoid linbo password being set multiple times
+LINBOPW=false
 
+update_linbofs
 update_linbofs 64
+
+# create iso files
+"$LINBOSHAREDIR"/make-linbo-iso.sh
 
 create_www_links
 
-# clean tmpdir
-cd "$curdir"
-rm -rf $tmpdir
-rm -rf $tmpdir64
-rm -f $locker
-
+rm -f "$locker"

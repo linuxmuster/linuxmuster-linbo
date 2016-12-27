@@ -2,12 +2,14 @@
 #
 # preinst script for linuxmuster
 # thomas@linuxmuster.net
-# 05.02.2014
+# 20160916
 #
 
-if [ "$1" = "upgrade" ]; then
 
- . /usr/share/linuxmuster/config/dist.conf || exit 1
+DISTCONF=/usr/share/linuxmuster/config/dist.conf
+[ -e "$DISTCONF" ] || exit 0
+
+if [ "$1" = "upgrade" ]; then
  
  # remove obsolete examples link
  [ -L "$LINBODIR/examples" ] && rm "$LINBODIR/examples"

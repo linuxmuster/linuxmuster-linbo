@@ -1,6 +1,6 @@
 # Beispiel fuer ein Postsync-Skript, das nach der Synchronisation noch
 # eine zweite Partition synchronisiert.
-# Wird als Datei /var/linbo/<Image>.postsync abgelegt, wobei <Image> für die
+# Wird als Datei /var/linbo/<Image>.postsync abgelegt, wobei <Image> fuer die
 # Imagedatei steht, nach deren Synchronisation noch ein weiteres Image gesynct
 # werden soll. Bsp.: /var/linbo/winxp.cloop.postsync.
 #

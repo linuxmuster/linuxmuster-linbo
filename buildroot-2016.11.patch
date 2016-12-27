@@ -1,6 +1,15 @@
 diff -ur buildroot/package/busybox/busybox.config linuxmuster-linbo/buildroot/package/busybox/busybox.config
 --- buildroot/package/busybox/busybox.config	2016-06-01 10:35:42.319982641 +0200
 +++ linuxmuster-linbo/buildroot/package/busybox/busybox.config	2016-06-01 10:33:15.721948386 +0200
+@@ -874,7 +874,7 @@
+ CONFIG_NSLOOKUP=y
+ CONFIG_NTPD=y
+ # CONFIG_FEATURE_NTPD_SERVER is not set
+-# CONFIG_FEATURE_NTPD_CONF is not set
++CONFIG_FEATURE_NTPD_CONF=y
+ # CONFIG_PSCAN is not set
+ CONFIG_ROUTE=y
+ # CONFIG_SLATTACH is not set
 @@ -1026,9 +1026,9 @@
  CONFIG_FEATURE_SH_IS_ASH=y
  # CONFIG_FEATURE_SH_IS_HUSH is not set

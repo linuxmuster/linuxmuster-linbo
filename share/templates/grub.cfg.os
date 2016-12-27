@@ -1,6 +1,6 @@
 # group specific grub.cfg template for linbo net boot, should work with linux and windows operating systems
 # thomas@linuxmuster.net
-# 11.02.2016
+# 20160804
 #
 
 # start "@@osname@@" directly

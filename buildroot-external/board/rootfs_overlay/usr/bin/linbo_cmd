@@ -36,6 +36,8 @@ fi
 rm -f "$TMP"
 # EOF Debugging
 
+# set terminal & PATH
+export TERM=xterm
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 printargs(){
@@ -545,14 +547,9 @@ mountcache(){
    ;;
   /dev/*) # local cache
    # Check if cache partition exists
-   if grep -q "${1##*/}" /proc/partitions; then
-#    if cat /proc/mounts | grep -q /cache; then
-#     echo "Cache ist bereits gemountet."
-#     RC=0
-#    else
-     echo "Mounte Cache-Partition $1 ..."
-     mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
-#    fi
+   if [ -b "$1" ]; then
+    echo "Mounte Cache-Partition $1 ..."
+    mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
     if [ "$RC" != "0" ]; then
      # Cache partition has not been formatted yet?
      local cachefs="$(fstype_startconf "$1")"
@@ -839,7 +836,7 @@ print_grubpart(){
  [ -b "$partition" ] || return 1
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
  case "$partition" in
-  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]*\)p[0-9]*|\1|')" ;;
+  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
   *)
    local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
    local disknr=$(( $ord - 97 ))
@@ -1327,16 +1324,6 @@ update_win(){
  mkdir -p /mnt/linuxmuster-win
  # copy scripts to os rootdir
  rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
- # install start tasks
- if [ "$RC" = "0" ]; then
-  /linuxmuster-win/install-start-tasks.sh || RC="1"
-  # set machine account password on server
-  #download "$(serverip)" set.mpw
- fi
- # handle machine password
-# if [ "$RC" = "0" ]; then
-#  do_machinepw || RC="1"
-# fi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -1395,23 +1382,26 @@ start(){
 # arg: partition
 get_partition_size(){
  local part="$1"
- local disk="$(get_disk_from_partition "${part}")"
- if echo "${part}" | grep -q '^/dev/mmcblk'; then
-  local partnr="$(echo "${part}" | sed -e 's|/dev/mmcblk[0-9]p||')"
- else
-  local partnr="$(echo "${part}" | sed -e 's|/dev/[hsv]d[abcdefgh]||')"
- fi
+ # fix wrong invokation by linbo_gui
+ [ "$part" = "/dev/mmcblkp" ] && part="/dev/mmcblk0"
  # fix vanished cloop symlink
- if [ "$1" = "/dev/cloop" ]; then
+ if [ "$part" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
+  part="/dev/cloop0"
+ elif [ -L "$part" ]; then
+  local partsrc="$(stat "$part" | grep File | awk -F\' '{ print $4}')"
+  if ! echo "$partsrc" | grep -q '/dev/'; then
+    partsrc="/dev/$partsrc"
+  fi
+  [ -b "$partsrc" ] && part="$partsrc"
  fi
- if  [ "$disk" = "$part" ]; then
-  parted -sm "$disk" unit kiB print | grep ^${disk}: | awk -F\: '{ print $2 }' | sed 's|kiB||' 2>> /tmp/linbo.log
+ local size="$(grep -w "${part#\/dev\/}" /proc/partitions | awk '{ print $3 }' 2>> /tmp/linbo.log)"
+ if [ -n "$size" ]; then
+  echo "$size"
+  return 0
  else
-  parted -sm "$disk" unit kiB print | grep ^${partnr}: | awk -F\: '{ print $4 }' | sed 's|kiB||' 2>> /tmp/linbo.log
+  return 1
  fi
- #sfdisk -s "$1" 2>> /tmp/linbo.log
- return $?
 }
 
 # echo file size in bytes
@@ -1467,6 +1457,7 @@ set_guid(){
  local partition="$1"
  local guid="$2"
  [ -z "$partition" -a -z "$guid" ] && return 1
+ echo "Restauriere Partitions-GUID von $partition."
  local disk="$(get_disk_from_partition "${partition}")"
  local partnr="$(echo "$partition" | sed "s|$disk||")"
  echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" &> /tmp/image.log || return 1
@@ -1507,19 +1498,31 @@ prepare_fs(){
    local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
    local group="$(hostgroup)"
    if [ -n "$bcd" -a -n "$group" ]; then
-    echo "Sichere Windows-Bootdateien fuer Gruppe $group."
+    echo "Sichere Windows-BCD für Gruppe $group."
     # BCD group specific and partition specific on efi systems
     if [ -n "$efipart" ]; then
      cp -f "$bcd" "$bcd"."$group"."$(basename "$2")"
     else
      cp -f "$bcd" "$bcd"."$group"
     fi
-    # 4 bytes mbr group specific
-    local mbr=$targetdir/win7mbr.$group
-    dd if=$disk of=$mbr bs=1 count=4 skip=440 2>> /tmp/linbo.log
+    # boot sector backup group specific
+    # delete obsolete mbr backups
+    rm -f "$targetdir/winmbr.$group" "$targetdir/win7mbr.$group" "$targetdir/winmbr446.$group" "$targetdir/bsvbr.$group"
+    local disk="$(get_disk_from_partition "$2")"
+    local bsmbr="$targetdir/bsmbr.$group"
+    # save bootloader sectors
+    echo "Sichere Bootloadersektoren fuer Gruppe $group."
+    dd if="$disk" of="$bsmbr" bs=446 count=1 2>> /tmp/linbo.log
+    # in case of gpt partition label
+    if fdisk -l "$disk" | grep -q "GPT"; then
+     echo "Sichere GPT-Label fuer Gruppe $group."
+     local gptlabel="$targetdir/gptlabel.$group"
+     dd if="$disk" of="$gptlabel" bs=512 count=34 2>> /tmp/linbo.log
+    fi
     # ntfs partition id
-    local ntfsid=$targetdir/ntfs.id
-    dd if=$2 of=$ntfsid bs=8 count=1 skip=9 2>> /tmp/linbo.log
+    echo "Sichere NTFS-ID."
+    local ntfsid="$targetdir/ntfs.id"
+    dd if="$2" of="$ntfsid" bs=8 count=1 skip=9 2>> /tmp/linbo.log
    fi
   fi
  )
@@ -1537,6 +1540,10 @@ mk_cloop(){
  [ -e "/cache/$3.complete" ] && rm "/cache/$3.complete"
  local RC=1
  local size="$(get_partition_size $2)"
+ if [ -z "$size" ]; then
+  echo "Kann Größe von $2 nicht bestimmen!" 2>&1 | tee -a /tmp/image.log
+  return 1
+ fi
  local imgsize=0
  case "$1" in
   partition) # full partition dump
@@ -1671,8 +1678,12 @@ cp_cloop_ntfs(){
  local RC=1
  local targetdev="$1"
  echo "Restauriere Partition $targetdev mit ntfsclone..." | tee -a /tmp/image.log
- interruptible ntfsclone -f --overwrite "$targetdev" /dev/cloop 2>> /tmp/image.log ; RC="$?"
- if [ "$RC" != "0" ]; then
+ interruptible ntfsclone -q -f --overwrite "$targetdev" /dev/cloop 2>&1 | tee -a /tmp/image.log
+ # in case of cluster referenced twice error give sync a second chance
+ if (grep -i error /tmp/image.log | grep -i cluster | grep -qi 'referenced twice' && [ ! -e /tmp/.twice.done ]); then
+  touch /tmp/.twice
+  RC="0"
+ elif grep -qi error /tmp/image.log; then
   echo 'FEHLER!' | tee -a /tmp/image.log
   return "$RC"
  fi
@@ -1706,7 +1717,7 @@ cp_cloop_ntfs(){
    return 1
   fi
   # increase the filesystem size
-  ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
+  echo -e "y\n" | ntfsresize -f -s "$devsize" "$targetdev" ; RC="$?"
   [ "$RC" = "0" ] || echo "Vergrößerung von $targetdev ist fehlgeschlagen." | tee -a /tmp/image.log
  else
   echo "Vergrößerung ist nicht notwendig." | tee -a /tmp/image.log
@@ -1732,7 +1743,7 @@ cp_cloop(){
    cp_cloop_ntfs "$targetdev" ; RC="$?"
   else
    # old cp_cloop stuff
-   local s1="$(get_partition_size /dev/cloop)"
+   local s1="$(get_partition_size /dev/cloop0)"
    local s2="$(get_partition_size $targetdev)"
    local block="$(($CLOOP_BLOCKSIZE / 1024))"
    if [ "$(($s1 - $block))" -gt "$s2" ] 2>/dev/null; then
@@ -1855,6 +1866,11 @@ restore(){
    fi
    if [ "$force" = "force" -a "$fstype" = "ntfs" ]; then
     cp_cloop "$1" "$2" ; RC="$?"
+    if [ -e /tmp/.twice -a ! -e /tmp/.twice.done ]; then
+     echo "Referenced-Twice-Fehler bei ntfsclone, versuche Datei-Sync..."
+     sync_cloop "$1" "$2" ; RC="$?"
+     touch /tmp/.twice.done
+    fi
    else
     sync_cloop "$1" "$2" ; RC="$?"
    fi
@@ -1865,8 +1881,11 @@ restore(){
    ;;
  esac
  if [ "$RC" = "0" ]; then
+  # ntfsfix after sync
+  #[ "$fstype" = "ntfs" ] && ntfsfix -d "$2"
   echo "Fertig."
  else
+  echo "Fehler!" >&2
   return "$RC"
  fi
  return "$RC"
@@ -1945,6 +1964,7 @@ do_opsi(){
  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
  local opsiip="${serverip/.1.1/.1.2}"
  local image
+ local key
  local RC="0"
  if [ -n "$2" ]; then
   image="$2"
@@ -1952,8 +1972,15 @@ do_opsi(){
   image="$1"
  fi
  # request opsikey
- rsync "$serverip"::linbo/"$ip.opsikey" /cache/opsikey
- [ -s /cache/opsikey ] && local key="$(cat /cache/opsikey)"
+ localmode || rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey
+ if [ -s /tmp/opsikey ]; then
+  key="$(cat /tmp/opsikey)"
+  # save opsi host key for offline use
+  remote_cache "$(cachedev)" || cp /tmp/opsikey /cache
+ else
+  # load opsi from cache
+  [ -s /cache/opsikey ] && key="$(cat /cache/opsikey)"
+ fi
  if [ -n "$key" ]; then
   echo "Opsi-Host-Key heruntergeladen."
   # patch opsi host key
@@ -1968,12 +1995,11 @@ do_opsi(){
    echo "Opsi-Clientkonfiguration konnte nicht aktualisiert werden."
   fi
  else
-  echo "Opsi-Host-Key konnte nicht heruntergeladen werden."
-  RC="1"
+  echo "Opsi-Host-Key ist nicht verfügbar."
  fi
- rm -f /cache/opsikey
+ rm -f /tmp/opsikey
  # request opsi host ini update
- rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
+ localmode || rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
  return "$RC"
 }
 
@@ -2054,14 +2080,25 @@ restore_winact(){
  cp "/cache/$image.winact.cmd" "$batchfile"
 }
 
+
+# print windows version
+winver(){
+ local hive="$(ls -1d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2> /dev/null)"
+ [ -z "$hive" ] && return 1
+ local winverhex="$(echo -e "cd \Microsoft\Windows NT\CurrentVersion\ncat CurrentMajorVersionNumber\nq\n" | reged -e "$hive" | grep ^0x 2> /dev/null)"
+ [ -z "$winverhex" ] && return 1
+ printf "%d\n" "$winverhex"
+}
+
+
 # syncl cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncl(){
  local RC="1"
  local patchfile=""
  local postsync=""
  local rootdev="$5"
- local disk="${rootdev%%[1-9]*}"
- local group="$(hostgroup)"
+ local disk="$(get_disk_from_partition "$rootdev")"
+
  local bootdir
 
  # don't sync in that case
@@ -2099,11 +2136,14 @@ syncl(){
  fi
 
  # detect windows os
- [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] ] && local is_win="yes"
+ [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -o -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32 ] && local is_win="yes"
 
  # get hostname
  local HOSTNAME
  [ "$(localmode)" = "0" -a -s /cache/hostname ] && HOSTNAME="$(cat /cache/hostname)"
+ if localmode; then
+  [ -s /cache/hostname ] && HOSTNAME="$(cat /cache/hostname)"
+ fi
  [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
 
  # detect efi system if efi partition exists
@@ -2201,32 +2241,55 @@ syncl(){
 
   # restore bcd
   if [ -s "$bcd_backup" ]; then
-   echo "Restauriere die Windows-$sysname-Bootkonfiguration $(basename "$bcd_backup")."
+   echo "Restauriere die Windows-BCD aus $(basename "$bcd_backup")."
    cp -f "$bcd_backup" "$bootdir"/BCD
   fi
 
-  # restore win7 mbr flag
-  [ -e "$bootdir"/win7mbr."$group" ] && local mbr="$(ls "$bootdir"/win7mbr."$group" 2> /dev/null)"
-  if [ -n "$mbr" -a -s "$mbr" ]; then
-   echo "Restauriere Win7-MBR."
-   dd if=$mbr of=$disk bs=1 count=4 seek=440 2>> /tmp/linbo.log
+  # restore disk boot sector
+  # detect old versions
+  local bsmbr="$bootdir"/bsmbr."$group"
+  local bsmbr_old="$bootdir"/winmbr446."$group"
+  [ -e "$bsmbr_old" ] && mv "$bsmbr_old" "$bsmbr"
+  [ -e "$bsmbr" ] || bsmbr="$bootdir"/winmbr."$group"
+  [ -e "$bsmbr" ] || bsmbr="$bootdir"/win7mbr."$group"
+  if [ -e "$bsmbr" ]; then
+   echo "Restauriere Windows-Bootloader aus $(basename "$bsmbr")" | tee -a /tmp/linbo.log
+   case "$bsmbr" in
+    *bsmbr.*)
+     dd if="$bsmbr" of="$disk" bs=446 count=1 2>> /tmp/linbo.log
+     ;;
+    *winmbr.*)
+     dd if="$bsmbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
+     ;;
+    *win7mbr.*)
+     dd if="$bsmbr" of="$disk" bs=1 count=4 skip=440 2>> /tmp/linbo.log
+     ;;
+   esac
+  fi
+  # restore gpt label
+  if fdisk -l "$disk" | grep -q "GPT"; then
+   local gptlabel="$bootdir"/gptlabel."$group"
+   if [ -s "$gptlabel" ]; then
+    echo "Restauriere GPT-Label aus $(basename "$gptlabel")." | tee -a /tmp/linbo.log
+    dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+   fi
   fi
 
   # restore ntfs id
   [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
   if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
-   echo "Restauriere NTFS-ID."
-   dd if=$ntfsid of=$rootdev bs=8 count=1 seek=9 2>> /tmp/linbo.log
+   echo "Restauriere NTFS-ID $(basename "$ntfsid")."
+   dd if="$ntfsid" of="$rootdev" bs=8 count=1 seek=9 2>> /tmp/linbo.log
   fi
 
   # write partition boot sector (vfat and 32bit only)
-  if [ "$(fstype "$5")" = "vfat" -a -z "$(get_64)" ]; then
+  if [ "$(fstype "$rootdev")" = "vfat" -a -z "$(get_64)" ]; then
    local msopt=""
    [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] ] && msopt="-2"
    [ -e /mnt/[Ii][Oo].[Ss][Yy][Ss] ] && msopt="-3"
    if [ -n "$msopt" ]; then
     echo "Schreibe Partitionsbootsektor." | tee -a /tmp/patch.log
-    ms-sys "$msopt" "$5" | tee -a /tmp/patch.log
+    ms-sys "$msopt" "$rootdev" | tee -a /tmp/patch.log
    fi
   fi
 
@@ -2302,6 +2365,9 @@ syncl(){
  # all done
  sync; sync; sleep 1
  umount /mnt || umount -l /mnt
+
+ # restore partition layout if it was altered above
+ #[ -n "$repair_parts" ] && partition | tee -a /tmp/linbo.log
  sendlog
  cd / # ; mountcache "$1" -r
  return "$RC"
@@ -2321,6 +2387,8 @@ create(){
  cd /cache
  local RC="1"
  local type="$(fstype "$5")"
+ # ntfsfix before image creation
+ #[ "$type" = "ntfs" ] && ntfsfix -d "$5"
  echo "Erzeuge Image '$2' von Partition '$5'..." | tee -a /tmp/image.log
  case "$2" in
   *.[Cc][Ll][Oo]*)
@@ -2651,7 +2719,7 @@ upload(){
   local FILES="$5"
   # file list is obsolete
   #for ext in info list reg desc torrent; do
-  for ext in info reg desc torrent; do
+  for ext in info postsync reg desc torrent; do
    [ -s "${5}.${ext}" ] && FILES="$FILES ${5}.${ext}"
   done
   echo "Lade $FILES auf $1 hoch ..." | tee -a /tmp/linbo.log
@@ -2737,20 +2805,53 @@ update(){
  mkdir -p "$grubdir"
 
  cd /cache
- local is_64="$(get_64)"
- local kernel="linbo${is_64}"
- local kernelfs="linbofs${is_64}.lz"
+ local suffix="$(get_64)"
+ # detect non pae cpu
+ #if [ -z "$suffix" ]; then
+ #  grep ^flags /proc/cpuinfo | head -1 | grep -wq pae || suffix="-np"
+ #fi
+ local kernel="linbo${suffix}"
+ local kernelfs="linbofs${suffix}.lz"
  local md5_before
  local md5_after
+ local md5_current
  local i
  local myname="$(clientname)"
 
  # local restore of start.conf in cache (necessary if cache partition was formatted before)
  [ -s start.conf ] || cp /start.conf .
 
- # get current linbo kernel/initrd and group specific and local grub configs from server
- echo "Aktualisiere LINBO-Kernel und GRUB-Konfiguration."
- for i in "$kernel" "$kernelfs" boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
+ # check for linbo/linbofs updates on server
+ # download newer linbo/linbofs if applicable and check download
+ echo "Prüfe auf LINBO-Aktualisierungen."
+ for i in "$kernel" "$kernelfs"; do
+  md5_before="" ; md5_after="" ; md5_current=""
+  [ -s "$i" ] && md5_before="$(md5sum "$i" | awk '{ print $1 }')"
+  rm -f "${i}.md5"
+  download "$server" "${i}.md5" && md5_after="$(cat "$i".md5 2> /dev/null)"
+  if [ -z "$md5_after" ]; then
+   echo "Download-Fehler bei ${i}.md5!" >&2
+   rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+   return 1
+  fi
+  if [ -z "$md5_before" -o "$md5_before" != "$md5_after" ]; then
+   download "$server" "$i" && md5_current="$(md5sum "$i" | awk '{ print $1 }')"
+   if [ "$md5_after" = "$md5_current" ]; then
+    echo "$i wurde erfolgreich aktualisiert."
+    reboot="yes"
+   else
+    echo "Download-Fehler bei $i!" >&2
+    rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+    return 1
+   fi
+  else
+   echo "$i ist aktuell."
+  fi
+ done
+
+ # get group specific and local grub configs from server
+ echo "Aktualisiere GRUB-Konfiguration."
+ for i in boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
   # collect md5 before download
   if [ "$i" = "boot/grub/$group.cfg" ]; then
    md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
@@ -2961,13 +3062,12 @@ ready(){
 }
 
 mac(){
- local interface="$(grep interface /tmp/dhcp.log | head -n 1 | cut -d\' -f2)"
- local mac=""
  if [ -z "$interface" ]; then
-  mac="OFFLINE"
- else
-  mac="$(cat /sys/class/net/$interface/address)"
- fi
+ local iface
+ local mac
+ iface="$(LANG=C route | grep ^default | awk '{ print $8 }' 2> /dev/null)"
+ [ -n "$iface" ] && mac="$(LANG=C ifconfig "$iface" | grep HWaddr | awk '{print $5}' | tr a-z A-Z)"
+ [ -z $mac ] && mac="OFFLINE"
  echo "$mac"
 }
 
@@ -3009,7 +3109,10 @@ register(){
 }
 
 getip(){
- local ip="$(ip -4 route get 1 | head -n 1 | cut -d' ' -f8)"
+ local iface
+ local ip
+ iface="$(LANG=C route | grep ^default | awk '{ print $8 }' 2> /dev/null)"
+ [ -n "$iface" ] && ip="$(LANG=C ifconfig "$iface" | grep 'inet addr:' | awk -F\: '{ print $2 }' | awk '{ print $1 }')"
  [ -z "$ip" ] && ip="OFFLINE"
  echo "$ip"
 }

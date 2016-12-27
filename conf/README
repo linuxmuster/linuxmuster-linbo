@@ -1,0 +1,23 @@
+Files in this directory:
+
+* busybox.conf: Busybox build configuration
+  -> src|src64/busybox/.config
+
+* initramfs_kernel.conf: general structure of linbofs
+  -> kernel|kernel-np|kernel64/initramfs_kernel.conf
+
+* initramfs.conf: supplemental content of linbofs and linbofs-np
+  -> kernel|kernel-np/initramfs.conf
+
+* initramfs64.conf: supplemental content of linbofs64
+  -> kernel64/initramfs.conf
+
+* kernel.conf: Configuration of i386 kernel
+  -> kernel/linux-x.x.x/.config
+
+* kernel-np.conf: Configuration of non pae kernel
+  -> kernel-np/linux-x.x.x/.config
+
+* kernel64.conf: Configuration of 64bit kernel
+  -> kernel64/linux-x.x.x/.config
+

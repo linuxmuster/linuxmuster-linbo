@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 12.02.2016
+# 20160804
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -13,24 +13,27 @@ set fallback=1
 
 set gfxpayload=800x600x16
 
-# set apropriate linbo kernel and initrd
+# 32bit pae, non pae or 64bit kernel
 if cpuid -l; then
  set linbo_kernel=/linbo64
  set linbo_initrd=/linbofs64.lz
-else
+elif cpuid -p; then
  set linbo_kernel=/linbo
  set linbo_initrd=/linbofs.lz
+else
+ set linbo_kernel=/linbo-np
+ set linbo_initrd=/linbofs-np.lz
 fi
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt
-set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
+#set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
 
 # load theme
-if [ -e "$theme" -a -e "$font" ]; then
- loadfont "$font"
+#if [ -e "$theme" -a -e "$font" ]; then
+# loadfont "$font"
  export theme
-fi
+#fi
 
 clear
 

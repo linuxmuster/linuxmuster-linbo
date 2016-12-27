@@ -8,13 +8,12 @@ Build-Depends: autoconf, automake, bc, bison, ca-certificates, cpio, debhelper,
 
 Package: linuxmuster-linbo
 Architecture: all
+Conflicts: atftpd, linuxmuster-linbo-common
 Depends: linuxmuster-base (>= 6.2.0), rsync (>= 3), bittorrent, dropbear, ssh,
- sed, screen, mkisofs, syslinux, dosfstools, atftpd (>= 0.7.dfsg-11.1) | tftpd,
- udpcast, xz-utils, zip, mbr, wakeonlan
+ sed, screen, mkisofs, syslinux, dosfstools, tftpd-hpa,
+ isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03),
+ xorriso (>= 1.4.2), udpcast, xz-utils, zip, mbr, wakeonlan
 Suggests: isc-dhcp-server | dhcp3-server
-Recommends: wodim, ldap-utils
-Description: LINBO PXE boot files
- This package contains the bootfiles and multicast startscripts
- for the Linux-based Network Boot (LINBO) boot/install/repair system.
- Installation and configuration of a DHCP, TFTP and RSYNC server, as well
- as udpcast, is highly recommended for this to work.
+Description: linuxmuster-linbo scripts
+ This package contains the scripts for the Linux-based Network Boot
+ (LINBO) boot/install/repair system.

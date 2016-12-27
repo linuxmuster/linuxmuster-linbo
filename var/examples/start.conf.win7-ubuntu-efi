@@ -1,7 +1,7 @@
 # LINBO start.conf Beispiel mit EFI (GPT)
 # EFI 64 Partition 1
 # MSR  Partition 2
-# Windows 7  Partition 3
+# Windows 7 Partition 3
 # Ubuntu Partition 4
 # Swap Partition 5
 # Cache auf Partition 6
@@ -82,31 +82,31 @@ Id = 7                   # Partitionstyp 7
 FSType = ntfs            # Dateisystem ntfs
 Bootable = no            # kein Bootable-Flag
 
-[OS]                         # Beginn einer Betriebssystemdefinition
-Name = Windows 7             # Name des Betriebssystems
-Version =                    # Version (unbenutzt, leer lassen)
-Description = Windows 7 SP1  # Beschreibung
-IconName = winxp.png         # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
-Image =                      # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
-BaseImage = win7.cloop       # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda3             # Bootpartition (unbenutzt, immer gleich Rootpartition)
-Root = /dev/sda3             # Rootpartition, in die das BS installiert ist
-Kernel = auto                # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
-Initrd =                     # Windows: leer
-Append =                     # Windows: leer
-StartEnabled = yes           # "Start"-Button anzeigen
-SyncEnabled = yes            # "Sync+Start"-Button anzeigen
-NewEnabled = yes             # "Neu+Start"-Button anzeigen
-Autostart = no               # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5         # Timeout in Sekunden für Benutzerabbruch bei Autostart
-DefaultAction = sync         # Standardaktion bei Autostart: start|sync|new
-Hidden = yes                 # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
+[OS]                       # Beginn einer Betriebssystemdefinition
+Name = Windows 7           # Name des Betriebssystems
+Version =                  # Version (unbenutzt, leer lassen)
+Description = Windows 7    # Beschreibung
+IconName = win7.png        # Icon fuer den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Image =                    # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
+BaseImage = win7.cloop     # Dateiname des Basisimages (Erweiterung .cloop)
+Boot = /dev/sda3           # Bootpartition (unbenutzt, immer gleich Rootpartition)
+Root = /dev/sda3           # Rootpartition, in die das BS installiert ist
+Kernel = auto              # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
+Initrd =                   # Windows: leer
+Append =                   # Windows: leer
+StartEnabled = yes         # "Start"-Button anzeigen
+SyncEnabled = yes          # "Sync+Start"-Button anzeigen
+NewEnabled = yes           # "Neu+Start"-Button anzeigen
+Autostart = no             # automatischer Start des Betriebssystems (yes|no)
+AutostartTimeout = 5       # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
+DefaultAction = sync       # Standardaktion bei Autostart: start|sync|new
+Hidden = yes               # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
 
 [OS]
 Name = Ubuntu                     # Name des Betriebssystems
 Version =                         # Version (unbenutzt, leer lassen)
-Description = Ubuntu 14.04 Trusty # Beschreibung
-IconName = ubuntu.png             # Icon für den Startbutton, muss unter /var/linbo/icons abgelegt sein
+Description = Ubuntu 16.04 Xenial # Beschreibung
+IconName = ubuntu.png             # Icon fuer den Startbutton, muss unter /var/linbo/icons abgelegt sein
 Image =                           # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
 BaseImage = ubuntu.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
 Boot = /dev/sda4                  # Bootpartition (unbenutzt, immer gleich Rootpartition)
@@ -118,6 +118,6 @@ StartEnabled = yes                # "Start"-Button anzeigen
 SyncEnabled = yes                 # "Sync+Start"-Button anzeigen
 NewEnabled = yes                  # "Neu+Start"-Button anzeigen
 Autostart = no                    # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5              # Timeout in Sekunden für Benutzerabbruch bei Autostart
+AutostartTimeout = 5              # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
 DefaultAction = sync              # Standardaktion bei Autostart: start|sync|new
 Hidden = yes                      # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

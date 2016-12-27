@@ -1,4 +1,4 @@
-REM Tasks, die beim Start ausgeführt werden
+REM Tasks, die beim Start ausgefuehrt werden
 REM thomas@linuxmuster.net
 REM 18.11.2015
 

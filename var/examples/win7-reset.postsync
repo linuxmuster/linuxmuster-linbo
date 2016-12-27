@@ -1,0 +1,24 @@
+# Windows 7 Aktivierung zuruecksetzen
+#
+
+echo "##### POSTSYNC Windows 7 Reset BEGIN #####"
+echo "Loesche Registry-Zweig WPA ..."
+
+cmd="rdel WPA\nq\ny\n"
+hive="/mnt/Windows/System32/config/SYSTEM"
+
+echo -e "$cmd" | reged -e "$hive"
+
+# hier den entsprechenden Default-Produktkey eintragen
+# (siehe http://www.mydigitallife.info/default-windows-7-and-vista-product-keys/)
+key="XXXX-XXXX-XXXX-XXXX"
+
+# Batchdatei anlegen (wird beim Windows-Start ausgefuehrt
+batchdatei="/mnt/linuxmuster-win/winact.cmd"
+echo "Lege $batchdatei an ..."
+echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs /ipk $key" > "$batchdatei"
+
+# Zeile loescht weitere Informationen, bisher nicht notwendig
+# rm -f /mnt/Windows/System32/7B2*
+
+echo "##### POSTSYNC Windows 7 Reset END #####"

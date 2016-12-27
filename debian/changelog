@@ -5,6 +5,188 @@ linuxmuster-linbo (3.0.0-1) babo-testing; urgency=medium
 
  -- Christian Buschau <christian.buschau@mailbox.org>  Fri, 03 Jun 2016 11:00:18 +0200
 
+linuxmuster-linbo (2.3.15-0) babo62; urgency=low
+
+  * update-linbofs.sh:
+    - avoid multiple invokation of sophomorix-passwd.
+    - add root's rsa keys.
+  * added new ci graphics.
+  * added udev qemu rules for mmcblk devices to linbofs.
+  * linbo_cmd:
+    - syncl(): disk fix (affects only mmcblk0 devices).
+    - get_partition_size(): fixed size for devices which are symlinks.
+    - get_partition_size(): handle wrong invokation by linbo_gui for mmcblk0 devices.
+  * Kernel: add surface 3 touchscreen driver.
+  * Fix #657 - update-linbofs copies id_dsa.pub only.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Dec 2016 21:22:48 +0100
+
+linuxmuster-linbo (2.3.14-0) babo62; urgency=low
+
+  * kernel updated to 4.8.10:
+    - added surface 3 support for 64bit kernel.
+    - removed experimental sata drivers.
+    - removed btrfs driver.
+  * cloop 4.8 update, fetched from http://debian-knoppix.alioth.debian.org/packages/linux-source-4.7.3/ and modified for kernel 4.8.10 (see https://lists.debian.org/debian-knoppix/2016/10/msg00001.html).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Nov 2016 15:32:36 +0100
+
+linuxmuster-linbo (2.3.13-0) babo62; urgency=low
+
+  * control file improvements.
+  * linbo_cmd, update_win(): removed automated installation of linuxmuster
+    start tasks on windows systems (closes #648).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 18 Nov 2016 14:38:34 +0100
+
+linuxmuster-linbo (2.3.12-2) babo62; urgency=low
+
+  * linuxmuster-linbo7:
+    - removed atftpd configuration setup.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 11 Nov 2016 11:08:12 +0100
+
+linuxmuster-linbo (2.3.12-1) babo62; urgency=low
+
+  * linuxmuster-linbo7:
+    - changed depends to linuxmuster-base7.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 09 Nov 2016 18:23:17 +0100
+
+linuxmuster-linbo (2.3.12-0) babo62; urgency=low
+
+  * fixed patch_registry script filename.
+  * further more package consolidation, moving postinst stuff to linuxmuster-linbo-common.
+  * fallback to file sync in case of ntfsclone's cluster referenced twice error.
+  * excluded partition table from mbr backup and restore of windows systems (another attempt to fix #637).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Oct 2016 11:37:05 +0200
+
+linuxmuster-linbo (2.3.11-0) babo62; urgency=low
+
+  * splitted package in linuxmuster-linbo, which contains the scripts,
+    and linuxmuster-linbo-common, which contains the kernel and the grub
+    configuration.
+  * added supplemental package linuxmuster-linbo7 for lmn7 stuff.
+  * reworked source package structure.
+  * preinst fix to make pkg installable in lmn7.
+  * removed obsolete bios/efi dirs in /var/linbo.
+  * added ntpd to busybox (closes #638).
+  * build dependencies fixes.
+  * moved back to fifo patched tftpd-hpa.
+  * added rtc support to linbo kernel.
+  * kernel update to 4.4.26.
+  * get partition size from /proc/partitions instead of parted (#637).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 23 Oct 2016 13:47:48 +0200
+
+linuxmuster-linbo (2.3.10-0) babo62; urgency=low
+
+  * /dev/mmcblk disknumber fix (closes #626 partially).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Sep 2016 08:59:39 +0200
+
+linuxmuster-linbo (2.3.9-0) babo62; urgency=low
+
+  * added linbo.iso to www_links.
+  * minor example fixes.
+  * make different grub cd/usb and net boot images for i386-efi and x86_64-efi
+    to reduce size for netboot images.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Sep 2016 10:54:50 +0200
+
+linuxmuster-linbo (2.3.8-0) babo62; urgency=low
+
+  * added and fixed several example files.
+  * fixed security query for ntfsresize (closes #622).
+  * reverted useless postsync download fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 30 Aug 2016 15:39:20 +0200
+
+linuxmuster-linbo (2.3.7-0) babo62; urgency=low
+
+  * removed hostname sanitation in busyboxes udhcpc (closes #621).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Aug 2016 11:07:43 +0200
+
+linuxmuster-linbo (2.3.6-1) babo62; urgency=low
+
+  * rebuild with fixed kernel config.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Aug 2016 13:27:09 +0200
+
+linuxmuster-linbo (2.3.6-0) babo62; urgency=low
+
+  * Kernel:
+    - added more usb host and network drivers.
+    - optimized powermanagement configuration.
+  * linbo_cmd.sh:
+    - fixed boot sector backup and restore for windows 10 uefi systems.
+    - removed german umlauts.
+  * fixed missing linbo_wallpaper.png link in /var/linbo/icons.
+  * remove unifont from grub configuration.
+  * reworked make-linbo-iso.sh, fixed bios cdrom compatibility hopefully.
+  * moved isolinux/syslinux dependencies from build depends to package depends.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 05 Aug 2016 12:29:12 +0200
+
+linuxmuster-linbo (2.3.5-0) babo62; urgency=low
+
+  * iso boot media creation: fixed usb boot support (#611).
+  * kernel update to 4.4.16.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 01 Aug 2016 22:19:17 +0200
+
+linuxmuster-linbo (2.3.4-0) babo62; urgency=low
+
+  * linbo_cmd.sh
+    - upload(): added postsync to uploadable file extensions.
+    - update(): improved linbo md5 download check.
+    - do_opsi(): save opsi host key for offline use in cache.
+    - prepare_fs(), syncl(): save and restore more bytes of windows mbr.
+    - syncl(): fixed hostname in offline mode (closes #616).
+  * init.sh: improved net interface recognition (closes #617).
+  * linbofs: added several utils needed by udev.
+  * removed umlauts from start.conf examples.
+  * removed backports alx module.
+  * added debug entry to iso boot menu.
+  * make-linbo-isos.sh: use isolinux files from xenial build system placed
+    under /var/linbo/boot/isolinux.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 29 Jul 2016 17:04:23 +0200
+
+linuxmuster-linbo (2.3.3-0) babo62; urgency=low
+
+  * added md5sum linbo download check to avoid corrupt linbo downloads.
+  * added alx module from backports again.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Jul 2016 13:29:21 +0200
+
+linuxmuster-linbo (2.3.2-0) babo62; urgency=low
+
+  * init.sh: fixed trying to mount cache partition if no partition is available yet.
+  * linbo_cmd.sh, prepare_fs(), fixed win mbr restore.
+  * added ntfsfix to linbofs.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 17:04:25 +0200
+
+linuxmuster-linbo (2.3.1-1) babo62; urgency=low
+
+  * fixed missing i386 grub stuff in linbo64.
+  * linbo_cmd.sh:
+    - added global TERM variable in linbo_cmd and init.sh (needed for bvi).
+    - update(), moved download of opsi key file to /tmp.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Jul 2016 09:45:17 +0200
+
+linuxmuster-linbo (2.3.1-0) babo62; urgency=low
+
+  * added linbo iso file creation (closes #611).
+  * added non pae kernel (closes #417).
+  * fixed recognition of windows efi systems (closes #609 & #612).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Jul 2016 21:34:26 +0200
+
 linuxmuster-linbo (2.3.0-38) babo62; urgency=low
 
   * added several new start icons.
