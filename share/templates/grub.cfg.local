@@ -83,9 +83,13 @@ menuentry 'OS localboot' {
     linux /vmlinuz $reboot_append
     initrd /initrd.img
     boot
-    elif [ -e /vmlinuz -a -e /initrd ]; then
+   elif [ -e /vmlinuz -a -e /initrd ]; then
     linux /vmlinuz $reboot_append
     initrd /initrd
+    boot
+   elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
+    linux /boot/vmlinuz $reboot_append
+    initrd /boot/initrd
     boot
    elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
@@ -116,16 +120,13 @@ menuentry 'OS localboot' {
 
 # boot linbo local from cache as fallback
 menuentry 'LINBO' {
- # 32bit pae, non pae or 64bit kernel
+ # 32bit or 64bit kernel
  if cpuid -l; then
   set linbo_kernel=/linbo64
   set linbo_initrd=/linbofs64.lz
- elif cpuid -p; then
+ else
   set linbo_kernel=/linbo
   set linbo_initrd=/linbofs.lz
- else
-  set linbo_kernel=/linbo-np
-  set linbo_initrd=/linbofs-np.lz
  fi
 
  set root="${linboroot}"

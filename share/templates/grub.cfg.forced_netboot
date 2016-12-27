@@ -73,16 +73,13 @@ menuentry 'Default' {
  # finally try netboot linbo directly
  set root="${netroot}"
 
- # 32bit pae, non pae or 64bit kernel
+ # 32bit or 64bit kernel
  if cpuid -l; then
   set linbo_kernel=/linbo64
   set linbo_initrd=/linbofs64.lz
- elif cpuid -p; then
+ else
   set linbo_kernel=/linbo
   set linbo_initrd=/linbofs.lz
- else
-  set linbo_kernel=/linbo-np
-  set linbo_initrd=/linbofs-np.lz
  fi
  echo -n "Loading $linbo_kernel .."
  linux $linbo_kernel splash quiet netboot
