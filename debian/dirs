@@ -9,3 +9,10 @@
 /var/linbo/tmp
 /var/linbo/torrentadds
 /var/linbo/winact
+/etc/default
+/etc/init.d
+/etc/linuxmuster/linbo
+/var/cache/linuxmuster-linbo
+/var/log/linuxmuster/linbo
+/usr/sbin
+/usr/share/linuxmuster-linbo/templates
