@@ -507,8 +507,8 @@ mountcache(){
   local RW=""
   echo "$mount_opts" | grep -q ".*rw.*" && RW="true"
   case "$2" in
-   -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache 2>> /tmp/linbo.log ; RC=0 ;; 
-   *) [ -n "$RW" ] || mount -o remount,rw /cache 2>> /tmp/linbo.log ; RC="$?" ;; 
+   -r|-o\ *ro*) [ -n "$RW" ] && mount -o remount,ro /cache 2>> /tmp/linbo.log ; RC=0 ;;
+   *) [ -n "$RW" ] || mount -o remount,rw /cache 2>> /tmp/linbo.log ; RC="$?" ;;
   esac
   return "$RC"
  fi
@@ -662,12 +662,12 @@ mk_parted(){
    isinteger "$size" && size="$size"k
    size="$(convert_size $size)"
    # don't increase the end counter in case of extended partition
-   case "$id" in                                                                                                                
+   case "$id" in
     5|05) extend=$(( $start + $size )) ; extpartend=$extend$unit ;;
     * ) end=$(( $start + $size )) ; partend=$end$unit ;;
    esac
   fi
-  
+
   # handle partition name
   if [ -n "$label" -a "$disklabel" = "gpt" ]; then
    partname="$label"
@@ -679,7 +679,7 @@ mk_parted(){
   [ "$n" = "$lastnr" -a "$parttype" = "logical" -a "$partend" = "100%" -a -n "$extend" ] && partend=$extend$unit
 
   # create partitions
-  case "$id" in                                                                                                                
+  case "$id" in
    c01|0c01) $CMD '"Microsoft reserved partition"' $partstart $partend || RC=1 ; partflag="msftres" ;;
    5|05)
     parttype="extended"
@@ -721,14 +721,14 @@ mk_parted(){
    if [ "$disklabel" = "msdos" ]; then
     echo -e "a\n$n\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
    else
-    # note: with gpt disklabel only one partition can own the bootable 
+    # note: with gpt disklabel only one partition can own the bootable
     # flag, so the last one wins if multiple boot flags were set
     parted -s "$disk" set $n boot on || RC="1"
    fi
   fi
 
-  # set other flags                                                                                                            
-  if [ -n "$partflag" ]; then                                                                                                  
+  # set other flags
+  if [ -n "$partflag" ]; then
    parted -s "$disk" set $n $partflag on || RC="1"
   fi
 
@@ -738,7 +738,7 @@ mk_parted(){
   fi
 
  done < "$table"
- 
+
  if [ "$RC" = "0" ]; then
   echo "Partitionierung von $disk erfolgreich beendet!"
  else
@@ -906,6 +906,7 @@ set_efibootorder(){
  local grubnumber="$(print_efi_bootnr " grub" "$efiout")"
  local netnumbers="$(print_efi_bootnr " ipv4 " "$efiout")"
  netnumbers="$netnumbers $(print_efi_bootnr "efi network" "$efiout")"
+ netnumbers="$netnumbers $(print_efi_bootnr " pxev4 " "$efiout")"
  local bootorder
  if [ -n "$grubnumber" -o -n "$netnumbers" ]; then
   for i in $grubnumber $netnumbers; do
@@ -1005,7 +1006,7 @@ mount_boot(){
 }
 
 # mk_winefiboot: restore and install windows efi boot files
-# args: partition efipart bootloaderid 
+# args: partition efipart bootloaderid
 mk_winefiboot(){
  local partition="$1"
  local doneflag="/tmp/.mk_winefiboot.$(basename "$partition")"
@@ -1136,7 +1137,7 @@ mk_grubboot(){
 }
 
 # prepare_reboot: prepares filesystem for reboot to os
-# args: grubdisk partition grubenv kernel initrd append efipart  
+# args: grubdisk partition grubenv kernel initrd append efipart
 prepare_reboot(){
  local grubdisk="$1"
  local partition="$2"
@@ -1631,7 +1632,7 @@ mk_cloop(){
    else
     RC="$?"
    fi
-  ;; 
+  ;;
  esac
  # create torrent file
  if [ "$RC" = "0" ]; then
@@ -2748,7 +2749,7 @@ upload(){
  else
   echo "Upload von $FILES nach $1 ist fehlgeschlagen." | tee -a /tmp/linbo.log
  fi
- sendlog 
+ sendlog
  cd / ; mountcache "$4" -r
  [ "$RC" = "0" ] && echo "Upload von $FILES nach $1 erfolgreich." || echo "Upload von $FILES nach $1 ist fehlgeschlagen." >&2
  return "$RC"
@@ -2772,7 +2773,7 @@ syncr(){
   # Also update LINBO, while we are here.
   update "$1" "$2"
  fi
- shift 
+ shift
  syncl "$@"
 }
 

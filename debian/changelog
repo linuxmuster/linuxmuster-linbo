@@ -5,6 +5,13 @@ linuxmuster-linbo (3.0.0-1) babo-testing; urgency=medium
 
  -- Christian Buschau <christian.buschau@mailbox.org>  Fri, 03 Jun 2016 11:00:18 +0200
 
+linuxmuster-linbo (2.3.16-0) babo62; urgency=low
+
+  * linbo_cmd, set_efibootorder: improved recognition of efi network devices.
+  * added grub-pc-bin and libcgmanager0 to build-deps.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Dec 2016 21:22:48 +0100
+
 linuxmuster-linbo (2.3.15-0) babo62; urgency=low
 
   * update-linbofs.sh:
@@ -600,7 +607,7 @@ linuxmuster-linbo (2.2.12-0) babo; urgency=low
   * linbo-remote:
     - using wakeonlan instead of etherwake for linbo-remote's wol functions (closes #399).
     - added handling of linbo-clients which are already online (see #391).
-    - fixed standalone usage of -w (closes #400). 
+    - fixed standalone usage of -w (closes #400).
   * init.sh: added disabling of AutoInitCache to noauto kernel option (see #391).
   * rsync-pre-download.sh: fixed machine account password update (closes #396).
   * linbo_cmd (restore_winact), rsync-pre-download.sh:
@@ -625,7 +632,7 @@ linuxmuster-linbo (2.2.10-1) babo; urgency=low
 
 linuxmuster-linbo (2.2.10-0) babo; urgency=low
 
-  * linbo-remote, wake-on-lan: added client boot success test and removement of 
+  * linbo-remote, wake-on-lan: added client boot success test and removement of
     pxe boot files of not booted clients (closes #390).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 10 Oct 2014 20:21:38 +0000
@@ -877,7 +884,7 @@ linuxmuster-linbo (2.1.0-0) precise; urgency=low
   * removed deprecated linbo kernel parameter useide.
   * linbo_cmd.sh:
     * applied jonnys 4k-partitioning patch (closes #31).
-    * restore(), cp_cloop(): forced restore now uses format and rsync for fat 
+    * restore(), cp_cloop(): forced restore now uses format and rsync for fat
       and ntfsclone for ntfs filesystems instead of extract_compressed_fs.
     * added cp_cloop_ntfs() function for full restore of ntfs partitions with
       ntfsresize to expand filesystem to partition size if necessary.
@@ -916,7 +923,7 @@ linuxmuster-linbo (2.0.10-0) precise; urgency=low
 
   * Bugfix: bittorrent log directory and files are not owned by bittorrent user
     (closes #19).
-  * Bugfix: on a linuxmuster.net 6 system config file /etc/default/tftpd-hpa 
+  * Bugfix: on a linuxmuster.net 6 system config file /etc/default/tftpd-hpa
     was not switched to the appropriate ubuntu version (closes #17).
   * postinst creates bittorrent system user if not there (closes #9).
 
@@ -1122,7 +1129,7 @@ linuxmuster-linbo (1.99.40-0) unstable; urgency=low
       o added code to restore windows 7 bcd group file as saved by prepare_fs().
       o removed "mountcache -r" at the end.
   * linbo-bittorrent: starting torrent processes also for iso images.
-  * syslinux: 
+  * syslinux:
     - updated to 4.03,
     - added syslinux64.exe, memdisk and gpelinux.0 to package,
   * updated and added example files for Windows 7, removed examples for Win98/Win2k.
@@ -1355,7 +1362,7 @@ linuxmuster-linbo (1.99.18-0) unstable; urgency=low
   * linbo_gui:
     - merge knopper.net revision 376.
   * linbofs:
-    - linbo_cmd.sh, syncl(): fixed setting of wlan hostname. 
+    - linbo_cmd.sh, syncl(): fixed setting of wlan hostname.
     - init.sh, copytocache(): saving hostname to /cache/hostname for offline
       use, moved from linbo_cmd.sh, syncl().
 
@@ -1510,7 +1517,7 @@ linuxmuster-linbo (1.99.14-0) unstable; urgency=low
         is found (see below).
     - init.sh: resets auto values in start.conf if remote control mode is detected.
     - linbo_wrapper.sh: new wrapper to easily control linbo_cmd on the linbo client
-      console, used as backend for linbo-remote script. 
+      console, used as backend for linbo-remote script.
   * server side scripting:
     - update-linbofs.sh: added ssh key creation. Keys are placed in linbofs under /etc/dropbear
       (dropbear format, used by LINBO's dropbear) and /etc/ssh (for the openssh server on linux clients).
@@ -1778,7 +1785,7 @@ linuxmuster-linbo (1.99.2-0) unstable; urgency=low
     - setting default nls back to iso8859-1
   * linbofs:
     - moved from self compiled mkntfs to Ubuntu's mkntfs
-    - patch_registry: 
+    - patch_registry:
       o some code cleanup
       o improved test_key function
       o added test_value function to patch only values which have changed
@@ -1794,7 +1801,7 @@ linuxmuster-linbo (1.99.2-0) unstable; urgency=low
       o new version 1.14.2
       o removed few unneeded applets
     - rsync: added Knopper's xattr patch
- 
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Tue, 27 Jul 2009 17:06:11 +0200
 
 linuxmuster-linbo (1.99.1-0) unstable; urgency=low
@@ -1802,7 +1809,7 @@ linuxmuster-linbo (1.99.1-0) unstable; urgency=low
   * minor modfication in registry patch example file
   * linbofs:
     - minor fix in patch_registry.
- 
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Sun, 19 Jul 2009 16:47:16 +0200
 
 linuxmuster-linbo (1.99.0-0) unstable; urgency=low
@@ -1822,13 +1829,13 @@ linuxmuster-linbo (1.2.0-0) unstable; urgency=low
     - using ntfs-3g development version 2009.4.4AC.14.
     - enabled rsync imaging for ntfs in linbo_cmd.sh.
     - modified ntfs mount options (streams_interface=xattr).
-      
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Fri, 10 Jul 2009 06:37:08 +0200
 
 linuxmuster-linbo (1.1.22-1) unstable; urgency=low
 
   * kernel: new upstream version 2.6.30.1
-      
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Thu, 09 Jul 2009 08:41:44 +0200
 
 linuxmuster-linbo (1.1.21-1) unstable; urgency=low
@@ -1845,7 +1852,7 @@ linuxmuster-linbo (1.1.21-1) unstable; urgency=low
       o improved linux client fstab patching:
         fstab will be patched only on synchronized start not on every start,
         if fstype of root partition differs it will be corrected.
-      
+
  -- Thomas Schmitt <schmitt@lmz-bw.de>  Wed, 08 Jul 2009 21:46:09 +0200
 
 linuxmuster-linbo (1.1.20-1) unstable; urgency=low
@@ -2893,6 +2900,5 @@ linuxmuster-linbo (1.0-2) unstable; urgency=low
 linuxmuster-linbo (1.0-1) unstable; urgency=low
 
   * Initial release.
-	
- -- Klaus Knopper <knoppix@knopper.net>  Sat, 22 Sep 2007 16:00:00 +0200
 
+ -- Klaus Knopper <knoppix@knopper.net>  Sat, 22 Sep 2007 16:00:00 +0200
