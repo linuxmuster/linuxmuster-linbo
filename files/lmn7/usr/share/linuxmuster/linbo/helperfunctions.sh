@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20160916
+# 20170204
 #
 
 # return active images
@@ -70,6 +70,16 @@ stringinstring() {
   case "$2" in *$1*) return 0;; esac
   return 1
 }
+
+# test if variable is an integer
+isinteger () {
+  [ $# -eq 1 ] || return 1
+
+  case $1 in
+  *[!0-9]*|"") return 1;;
+            *) return 0;;
+  esac
+} # isinteger
 
 # extract ip address from file $WIMPORTDATA
 get_ip() {

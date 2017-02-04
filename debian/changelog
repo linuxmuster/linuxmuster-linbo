@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.18-0) babo62; urgency=low
+
+  * lmn7:
+    - added isinteger() to helperfunctions.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 04 Feb 2017 19:13:12 +0000
+
 linuxmuster-linbo (2.3.17-0) babo62; urgency=low
 
   * lmn7:
