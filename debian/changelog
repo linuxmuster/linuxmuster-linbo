@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.17-0) babo62; urgency=low
+
+  * lmn7:
+    - update-linbofs.sh: removed setting of linbo account password.
+    - updated grub.cfg template for forced netboot.
+    - moved linbo setup script to linuxmuster-base7 package.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 04 Feb 2017 12:54:43 +0000
+
 linuxmuster-linbo (2.3.16-0) babo62; urgency=low
 
   * linbo_cmd, set_efibootorder: improved recognition of efi network devices.

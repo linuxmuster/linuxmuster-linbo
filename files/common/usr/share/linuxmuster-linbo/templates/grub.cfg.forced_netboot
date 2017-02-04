@@ -1,93 +1,58 @@
 #
 # grub.cfg for forced netboot
 # thomas@linuxmuster.net
-# 20160924
+# 20170202
 #
 
+# if you don't want this file being overwritten by import_workstations remove the following line:
+# ### managed by linuxmuster.net ###
+
+# edit to your needs
+set default=0
 set timeout=0
+#set fallback=1
 
-set gfxmode=auto
-set gfxpayload=keep
+set gfxpayload=800x600x16
 
-insmod all_video
-insmod png
-insmod gfxterm
-insmod gfxmenu
-insmod minicmd
-insmod progress
+# 32bit pae, non pae or 64bit kernel
+if cpuid -l; then
+ set linbo_kernel=/linbo64
+ set linbo_initrd=/linbofs64.lz
+elif cpuid -p; then
+ set linbo_kernel=/linbo
+ set linbo_initrd=/linbofs.lz
+else
+ set linbo_kernel=/linbo-np
+ set linbo_initrd=/linbofs-np.lz
+fi
 
-#set font=/boot/grub/fonts/unicode.pf2
-#if [ -s "$font" ]; then
+# theme settings (modify for custom theme)
+set theme=/boot/grub/themes/linbo/theme.txt
+#set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
+
+# load theme
+#if [ -e "$theme" -a -e "$font" ]; then
 # loadfont "$font"
+ export theme
 #fi
 
-terminal_output gfxterm
+clear
 
-set color_normal=white/black
-set color_highlight=yellow/black
-set menu_color_normal=white/black
-set menu_color_highlight=yellow/black
-set prefix=/boot/grub
-set netroot="(tftp)"
+# linbo netboot
+menuentry 'LINBO' --class linux {
 
-# one menu entry does it all
-menuentry 'Default' {
-
- # finally fallback to netboot if previous boot methods were not successful
- set root="${netroot}"
-
- # load background image from server if not done locally
- if [ -z "$bg_image" ]; then
-  set bg_image="$prefix/linbo_wallpaper.png"
-  background_image $bg_image
- fi
-
- # compute path to group specific config
- if [ "$grub_platform" = "efi" ]; then
-  if [ -n "$net_efinet0_extensionspath" ]; then
-   set group="$net_efinet0_extensionspath"
-  elif [ -n "$net_efinet1_extensionspath" ]; then
-   set group="$net_efinet1_extensionspath"
-  elif [ -n "$net_efinet2_extensionspath" ]; then
-   set group="$net_efinet2_extensionspath"
-  fi
- else
-  set group="$net_pxe_extensionspath"
- fi
- set grubcfg="$prefix/${group}.cfg"
-
- # load group specific config from server if exists
- if [ -s "$grubcfg" ]; then
-  configfile $grubcfg
-
- # try local boot in the other case
- elif [ -n "$localroot" ]; then
-  set root="${localroot}"
-  # load local custom.cfg if present
-  set customcfg=$prefix/custom.cfg
-  if [ -s "$customcfg" ]; then
-   configfile $customcfg
-  fi
- fi
-
- # finally try netboot linbo directly
- set root="${netroot}"
-
- # 32bit pae, non pae or 64bit kernel
- if cpuid -l; then
-  set linbo_kernel=/linbo64
-  set linbo_initrd=/linbofs64.lz
- elif cpuid -p; then
-  set linbo_kernel=/linbo
-  set linbo_initrd=/linbofs.lz
- else
-  set linbo_kernel=/linbo-np
-  set linbo_initrd=/linbofs-np.lz
- fi
- echo -n "Loading $linbo_kernel .."
- linux $linbo_kernel splash quiet netboot
+ echo LINBO netboot
  echo
- echo -n "Loading $linbo_initrd .."
+
+ set root="(tftp)"
+ # perhaps faster
+ #set root="(http)"
+
+ echo -n "Loading $linbo_kernel ..."
+ linux $linbo_kernel quiet splash netboot
+ echo
+ echo -n "Loading $linbo_initrd ..."
  initrd $linbo_initrd
+ boot
 
 }
