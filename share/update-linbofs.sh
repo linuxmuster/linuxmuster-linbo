@@ -90,7 +90,7 @@ update_linbofs() {
  mkdir -p etc/ssh
  cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
  mkdir -p root/.ssh
- cat /root/.ssh/id_*.pub > .ssh/authorized_keys
+ cat /root/.ssh/id_*.pub > root/.ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 
