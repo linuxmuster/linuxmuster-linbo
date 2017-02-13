@@ -2,8 +2,73 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20170204
+# 20170213
 #
+
+# converting string to lower chars
+tolower() {
+  unset RET
+  [ -z "$1" ] && return 1
+  RET=`echo $1 | tr A-Z a-z`
+}
+
+# check valid ip
+validip() {
+  if (expr match "$1"  '\(\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)$\)') &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# test valid mac address syntax
+validmac() {
+  [ -z "$1" ] && return 1
+  [ `expr length $1` -ne "17" ] && return 1
+  if (expr match "$1" '\([a-fA-F0-9-][a-fA-F0-9-]\+\(\:[a-fA-F0-9-][a-fA-F0-9-]\+\)\+$\)') &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# test for valid hostname
+validhostname() {
+ [ -z "$1" ] && return 1
+ tolower "$1"
+ if (expr match "$RET" '\([a-z0-9\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
+}
+
+# extract hostname from file $WIMPORTDATA
+get_hostname() {
+  unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  elif validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   local result=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern"` &> /dev/null
+   local i
+   # iterate over results, get exact match
+   for i in $result; do
+    if [ "xxx${i}xxx" = "xxx${pattern}xxx" ]; then
+     RET="$i"
+     break
+    else
+     RET=""
+    fi
+   done
+  fi
+  [ -n "$RET" ] && tolower "$RET"
+  return 0
+}
 
 # return active images
 active_images() {

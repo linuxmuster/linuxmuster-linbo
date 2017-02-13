@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.19-0) babo62; urgency=low
+
+  * lmn7:
+    - added more functions to helperfunctions.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 13 Feb 2017 20:05:38 +0000
+
 linuxmuster-linbo (2.3.18-0) babo62; urgency=low
 
   * lmn7:
