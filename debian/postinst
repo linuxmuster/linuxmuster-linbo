@@ -30,14 +30,9 @@ case "$1" in
 
  configure)
 
-  # read constants & setup values
-    DISTCONF=/usr/share/linuxmuster/config/dist.conf
-    source "$DISTCONF"
-    source "$HELPERFUNCTIONS"
-    [ -e "$INSTALLED" ] || exit 0
+ # read constants & setup values
+ DISTCONF=/usr/share/linuxmuster/config/dist.conf
 
-    update-linbofs
- 
  # init script
  update-rc.d linbo-multicast defaults
  update-rc.d linbo-bittorrent defaults
@@ -46,6 +41,7 @@ case "$1" in
   . $DISTCONF
   . $HELPERFUNCTIONS
   [ -e "$INSTALLED" ] || exit 0
+  update-linbofs
  else
   exit 0
  fi
