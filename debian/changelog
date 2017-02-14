@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.20-0) babo62; urgency=low
+
+  * linbo_cmd: experimental support for nvme0n1 disks.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Feb 2017 09:39:47 +0000
+
 linuxmuster-linbo (2.3.19-0) babo62; urgency=low
 
   * lmn7:
