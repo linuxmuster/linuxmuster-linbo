@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.20-1) babo62; urgency=low
+
+  * linbo_cmd: nvme0n1 disknr fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Feb 2017 11:53:18 +0000
+
 linuxmuster-linbo (2.3.20-0) babo62; urgency=low
 
   * linbo_cmd: experimental support for nvme0n1 disks.
