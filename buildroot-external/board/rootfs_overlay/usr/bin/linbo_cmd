@@ -3063,7 +3063,6 @@ ready(){
 }
 
 mac(){
- if [ -z "$interface" ]; then
  local iface
  local mac
  iface="$(LANG=C route | grep ^default | awk '{ print $8 }' 2> /dev/null)"
