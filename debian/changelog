@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.21-0) babo62; urgency=low
+
+  * kernel 4.9.10.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 16 Feb 2017 08:48:01 +0000
+
 linuxmuster-linbo (2.3.20-1) babo62; urgency=low
 
   * linbo_cmd: nvme0n1 disknr fix.
