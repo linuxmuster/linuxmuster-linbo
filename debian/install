@@ -12,7 +12,9 @@ debian/linbo-bittorrent.init => etc/init.d/linbo-bittorrent
 debian/linbo-multicast.init => etc/init.d/linbo-multicast
 share/templates/grub.cfg.pxe => var/linbo/boot/grub/grub.cfg
 build/build-i386/images/bzImage => var/linbo/linbo
+build/build-i386/images/bzImage.md5 => var/linbo/linbo.md5
 build/build-i386/images/rootfs.cpio.lz => var/linbo/linbofs.lz
 build/build-x86_64/images/bzImage => var/linbo/linbo64
+build/build-x86_64/images/bzImage.md5 => var/linbo/linbo64.md5
 build/build-x86_64/images/rootfs.cpio.lz => var/linbo/linbofs64.lz
 build/grub-pc-i386/unicode.pf2 var/linbo/boot/grub/fonts
