@@ -50,9 +50,9 @@ ifeq ("$(wildcard $(BUILDDIR)/boot)","")
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_PC_MODULES)" -d $(BUILDDIR)/grub-pc-i386/grub-core
 	# make core.iso
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES) $(GRUB_ISO_MODULES)" -d $(BUILDDIR)/grub-efi-i386/grub-core
-	mv $(BUILDDIR)/grub-efi-i386/grub-core/core.efi $(BUILDDIR)/grub-efi-i386/grub-core/core.iso
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES) $(GRUB_ISO_MODULES)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
-	mv $(BUILDDIR)/grub-efi-x86_64/grub-core/core.efi $(BUILDDIR)/grub-efi-x86_64/grub-core/core.iso
+	mv $(BUILDDIR)/boot/grub/i386-efi/core.efi $(BUILDDIR)/boot/grub/i386-efi/core.iso
+	mv $(BUILDDIR)/boot/grub/x86_64-efi/core.efi $(BUILDDIR)/boot/grub/x86_64-efi/core.iso
 	# make core.efi
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES)" -d $(BUILDDIR)/grub-efi-i386/grub-core
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
