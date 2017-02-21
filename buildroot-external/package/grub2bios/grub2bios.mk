@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-GRUB2BIOS_VERSION = 2.02-beta3
-GRUB2BIOS_SOURCE = grub-2.02~beta3.tar.gz
+GRUB2BIOS_VERSION = 2.02-rc1
+GRUB2BIOS_SOURCE = grub-2.02~rc1.tar.gz
 GRUB2BIOS_SITE = http://alpha.gnu.org/gnu/grub
 GRUB2BIOS_LICENSE = GPLv3
 GRUB2BIOS_LICENSE_FILES = COPYING
