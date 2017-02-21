@@ -1,7 +1,6 @@
 etc/linuxmuster/linbo/start.conf.default	var/linbo/start.conf
 var/linbo/examples				usr/share/doc/linuxmuster-linbo/examples
 usr/share/linuxmuster-linbo/update-linbofs.sh 	usr/sbin/update-linbofs
-usr/share/linuxmuster-linbo/make-linbo-media.sh usr/sbin/make-linbo-media
 usr/share/linuxmuster-linbo/linbo-remote.sh 	usr/sbin/linbo-remote
 usr/share/linuxmuster-linbo/linbo-ssh.sh 	usr/sbin/linbo-ssh
 usr/share/linuxmuster-linbo/linbo-scp.sh 	usr/sbin/linbo-scp
