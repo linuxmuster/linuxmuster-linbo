@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.22-0) babo62; urgency=low
+
+  * added wacom tablet drivers.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 17 Feb 2017 11:32:57 +0000
+
 linuxmuster-linbo (2.3.21-0) babo62; urgency=low
 
   * kernel 4.9.10.
