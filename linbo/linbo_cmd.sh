@@ -1058,6 +1058,10 @@ mk_linefiboot(){
  mount "$efipart" /mnt/boot/efi || return 1
  mkdir -p /mnt/boot/efi/EFI
  grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+ mkdir -p /boot/efi/EFI/Boot/
+ cp /boot/efi/EFI/grub/grubx64.efi /boot/efi/EFI/Boot/bootx64.efi
+ mkdir -p /boot/efi/EFI/Microsoft/Boot/
+ cp /boot/efi/EFI/grub/grubx64.efi /boot/efi/EFI/Microsoft/Boot/bootmgfw.efi
  umount /mnt/boot/efi
  [ "$RC" = "0" ] || touch "$doneflag"
  return "$RC"
