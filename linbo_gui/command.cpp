@@ -173,11 +173,13 @@ QStringList Command::mkstartcommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("start");
   os_item os = conf->elements[osnr];
   image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
+  globals config = conf->config;
   saveappend( command, os.get_boot() );
   saveappend( command, os.get_root() );
   saveappend( command, im.get_kernel() );
   saveappend( command, im.get_initrd() );
   saveappend( command, im.get_append() );
+  saveappend( command, config.get_cache() );
   return command;
 }
 

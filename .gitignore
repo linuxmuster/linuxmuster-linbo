@@ -1,4 +1,5 @@
 build
+build-*
 buildroot-external/board/rootfs_overlay/etc/linbo-version
 debian/files
 debian/linuxmuster-linbo
