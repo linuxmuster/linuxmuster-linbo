@@ -65,9 +65,9 @@ void globals::set_backgroundfontcolor( const QString& new_backgroundfontcolor ) 
 void globals::set_consolefontcolorstdout( const QString& new_consolefontcolorstdout ) { consolefontcolorstdout = new_consolefontcolorstdout; };
 void globals::set_consolefontcolorstderr( const QString& new_consolefontcolorstderr ) { consolefontcolorstderr = new_consolefontcolorstderr; };
 void globals::set_downloadtype( const QString& new_downloadtype ) {
-    if(new_downloadtype.compare("Multicast") == 0)
+    if(new_downloadtype.compare(downloadtypeQString[DownloadType::Multicast],Qt::CaseInsensitive) == 0)
         downloadtype = DownloadType::Multicast;
-    else if(new_downloadtype.compare("Torrent") == 0)
+    else if(new_downloadtype.compare(downloadtypeQString[DownloadType::Torrent], Qt::CaseInsensitive) == 0)
         downloadtype = DownloadType::Torrent;
     else
         downloadtype = DownloadType::RSync;

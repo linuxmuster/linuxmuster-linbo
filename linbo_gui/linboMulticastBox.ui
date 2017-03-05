@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Update Cache</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(166, 255, 253);</string>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>

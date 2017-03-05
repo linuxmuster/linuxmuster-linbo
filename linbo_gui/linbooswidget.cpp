@@ -111,9 +111,9 @@ void LinboOSWidget::on_tbNew_clicked()
 
 LinboOSWidget::DefaultButton LinboOSWidget::buttonFromAction(const QString& defaultAction)
 {
-    if(defaultAction.compare(QString("sync"))) {
+    if(defaultAction.compare(QString("sync"),Qt::CaseInsensitive) == 0) {
     return Sync;
-    } else if (defaultAction.compare(QString("new"))) {
+    } else if (defaultAction.compare(QString("new"),Qt::CaseInsensitive) == 0) {
         return New;
     } else {
         return Start;

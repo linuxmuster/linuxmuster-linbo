@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Image Auswahl</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(166, 255, 253);</string>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -119,7 +122,6 @@
        </layout>
       </item>
      </layout>
-     <zorder>checkReboot</zorder>
      <zorder>listBox</zorder>
      <zorder>OSLabel</zorder>
      <zorder>label</zorder>

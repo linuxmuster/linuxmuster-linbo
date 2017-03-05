@@ -1,5 +1,6 @@
 .gitignore
 image_description.o
+linbo_gui.pro.user
 linboConsoleImpl.o
 linboCounterImpl.o
 linboGUIImpl.o
