@@ -128,27 +128,27 @@
            <colorrole role="Button">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
            <colorrole role="Base">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
            <colorrole role="Window">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
@@ -157,27 +157,27 @@
            <colorrole role="Button">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
            <colorrole role="Base">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
            <colorrole role="Window">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
@@ -186,27 +186,27 @@
            <colorrole role="Button">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
            <colorrole role="Base">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
            <colorrole role="Window">
             <brush brushstyle="SolidPattern">
              <color alpha="255">
-              <red>166</red>
-              <green>255</green>
-              <blue>253</blue>
+              <red>173</red>
+              <green>173</green>
+              <blue>173</blue>
              </color>
             </brush>
            </colorrole>
@@ -217,6 +217,9 @@
          <font>
           <pointsize>8</pointsize>
          </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(173, 173, 173);</string>
         </property>
         <property name="verticalScrollBarPolicy">
          <enum>Qt::ScrollBarAlwaysOn</enum>
