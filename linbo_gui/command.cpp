@@ -74,6 +74,11 @@ QStringList Command::parseWrapperCommand(const QString& input)
 
     QStringList cmds;
     bool ok;
+    std::map<QString, Command::CmdValue>::iterator it = s_mapCommand.find(cmd);
+    if( it == s_mapCommand.end() ){
+        qWarning() << "Fehler: unbekannter Befehl " << cmd << "!\n";
+        return QStringList();
+    }
     switch(s_mapCommand.at(cmd)){
     case linbo:
         if(param != NULL){
