@@ -43,6 +43,7 @@ public:
     QStringList mkstartcommand(unsigned int osnr, int imnr = -1);
     QStringList mksyncstartcommand(unsigned int osnr, int imnr = -1, bool format = false);
     QStringList mksynccommand(unsigned int osnr, int imnr = -1);
+    QStringList mksynconlycommand(unsigned int osnr, int imnr = -1);
     QStringList mksyncrcommand(unsigned int osnr, int imnr = -1);
     QStringList mkpartitioncommand();
     QStringList mkpartitioncommand_noformat();

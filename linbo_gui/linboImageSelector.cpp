@@ -118,3 +118,15 @@ void linboImageSelector::on_createUploadButton_clicked()
     finish();
     this->accept();
 }
+
+void linboImageSelector::on_checkReboot_stateChanged(int arg1)
+{
+    if( arg1 == Qt::Checked)
+        ui->checkShutdown->setCheckState(Qt::Unchecked);
+}
+
+void linboImageSelector::on_checkShutdown_stateChanged(int arg1)
+{
+    if( arg1 == Qt::Checked)
+        ui->checkReboot->setCheckState(Qt::Unchecked);
+}

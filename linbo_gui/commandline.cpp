@@ -50,14 +50,17 @@ CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
             cache = s.split("=")[1];
         }
     }
+    //TEST
+    // linbocmds = QString("partition,format,initcache:torrent,sync:1,start:1");
+    //TEST-ENDE
     // read wrapper commands from downloaded file and remove file
     QFile linbocmdfile("/linbocmd");
     if(!linbocmdfile.open(QIODevice::ReadOnly)){
-        qDebug() << "No file /linbocmd found.";
+        qDebug() << "No file /linbocmd found.\n";
         return;
     }
     else {
-        qDebug() << "File /linbocmd found.";
+        qDebug() << "File /linbocmd found.\n";
         QTextStream ts(&linbocmdfile);
         if(linbocmds.size() > 0){
             linbocmds.append(Command::LINBOCMDSEP);

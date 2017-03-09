@@ -38,6 +38,10 @@ public:
     ~Configuration();
 
     CommandLine getCommandLine();
+
+    // value: 1basiert, ret: 0basiert
+    int toPartitionNr(const QString& value, bool *ok);
+    int toOSNr(const QString& value, bool *ok);
 };
 
 #endif // CONFIGURATION_H

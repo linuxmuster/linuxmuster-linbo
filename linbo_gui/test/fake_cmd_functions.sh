@@ -225,7 +225,7 @@ synconly()
       || [[ "${append}" == "noresume splash=silent quiet showopts klassenarbeit=1" ]]; then
         return 0
     else
-        echo "Wrong parameters: «$*»"
+        echo "Wrong append parameters: «$*»"
         return 1
     fi
 }

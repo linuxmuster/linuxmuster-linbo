@@ -39,6 +39,10 @@ private slots:
 
   void on_createUploadButton_clicked();
 
+  void on_checkReboot_stateChanged(int arg1);
+
+  void on_checkShutdown_stateChanged(int arg1);
+
 private:
   Ui::linboImageSelector *ui;
   void finish();

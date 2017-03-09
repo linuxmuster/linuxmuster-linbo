@@ -57,6 +57,7 @@ std::map<QString, Command::CmdValue> Command::s_mapCommand
 // parse Warpper command
 QStringList Command::parseWrapperCommand(const QString& input)
 {
+    qDebug() << "parseWrapperCommand: " << input;
     QString s = input;
     QStringList parts = s.split(":");
     QString cmd = QString(""), param = QString(""), msg = QString(""), customimage = QString("");
@@ -71,16 +72,8 @@ QStringList Command::parseWrapperCommand(const QString& input)
            }
     }
 
-    int osnr = 1;
-    if(param != NULL){
-        bool ok;
-        osnr = param.toInt(&ok);
-        if(!ok || osnr < 1){
-            osnr = 1;
-        }
-    }
-    os_item os = conf->elements[osnr];
     QStringList cmds;
+    bool ok;
     switch(s_mapCommand.at(cmd)){
     case linbo:
         if(param != NULL){
@@ -90,13 +83,6 @@ QStringList Command::parseWrapperCommand(const QString& input)
 
     case partition:
         return mkpartitioncommand_noformat();
-
-    case format:
-        if( param != NULL && param.compare(QString("")) != 0){
-            return mkformatcommand(osnr);
-        } else {
-            return mkpartitioncommand();
-        }
 
     case initcache:
         if(param == NULL || param.compare(QString("")) == 0){
@@ -113,33 +99,6 @@ QStringList Command::parseWrapperCommand(const QString& input)
             return mkcacheinitcommand(false, type);
         }
 
-    case create_cloop:
-        if(customimage == NULL || customimage.compare(QString("")) == 0){
-            customimage = os.get_baseimage();
-        }
-        //FIXME create_desc
-        return mkcreatecommand(osnr, customimage, QString(""));
-
-    case upload_cloop:
-    case upload_rsync:
-        if(customimage == NULL || customimage.compare(QString("")) == 0){
-            customimage = os.get_baseimage();
-        }
-        return mkuploadcommand(customimage);
-
-    case create_rsync:
-        if(customimage == NULL || customimage.compare(QString("")) == 0){
-            customimage = os.get_baseimage();
-        }
-        //FIXME create_desc
-        return mkcreatecommand(osnr, customimage, os.get_baseimage());
-
-    case sync:
-        return mksynccommand(osnr);
-
-    case start:
-        return mkstartcommand(osnr);
-
     case update:
         return mklinboupdatecommand();
 
@@ -153,15 +112,109 @@ QStringList Command::parseWrapperCommand(const QString& input)
         cmds = QStringList("busybox");
         cmds.append("halt");
         return cmds;
-    }
 
+    // commands with parameter "partition nr (extern: 1,... | intern: 0,...)
+    case format:
+        if( param != NULL && param.compare(QString("")) != 0){
+            int partnr = conf->toPartitionNr(param, &ok);
+            if(ok){
+                return mkformatcommand(partnr);
+            } else {
+                qWarning() << "Fehler: Ungültige Partitionsnummer!\n";
+            }
+        } else {
+            return mkpartitioncommand();
+        }
+        break;
+
+    // commands with parameter "os nr (extern: 1,... | intern: 0,...)
+    case upload_cloop:
+    case upload_rsync:
+        if( param != NULL && param.compare(QString("")) != 0){
+            int osnr = conf->toOSNr(param, &ok);
+            if(ok){
+                os_item os = conf->elements[osnr];
+                if(customimage == NULL || customimage.compare(QString("")) == 0){
+                    customimage = os.get_baseimage();
+                }
+                return mkuploadcommand(customimage);
+            } else {
+                qWarning() << "Fehler: Ungültige OS-Nr!\n";
+            }
+        } else {
+            qWarning() << "Fehler: Keine OS-Nr!\n";
+        }
+        break;
+
+    case create_cloop:
+        if( param != NULL && param.compare(QString("")) != 0){
+            int osnr = conf->toOSNr(param, &ok);
+            os_item os = conf->elements[osnr];
+            if(ok){
+                if(customimage == NULL || customimage.compare(QString("")) == 0){
+                    customimage = os.get_baseimage();
+                }
+                //FIXME create_desc
+                return mkcreatecommand(osnr, customimage, QString(""));
+            } else {
+                qWarning() << "Fehler: Ungültige OS-Nr!\n";
+            }
+        } else {
+            qWarning() << "Fehler: Keine Partitionsnummer!\n";
+        }
+        break;
+
+    case create_rsync:
+        if( param != NULL && param.compare(QString("")) != 0){
+            int osnr = conf->toOSNr(param, &ok);
+            os_item os = conf->elements[osnr];
+            if(ok){
+                if(customimage == NULL || customimage.compare(QString("")) == 0){
+                    customimage = os.get_baseimage();
+                }
+                //FIXME create_desc
+                return mkcreatecommand(osnr, customimage, os.get_baseimage());
+            } else {
+                qWarning() << "Fehler: Ungültige OS-Nr!\n";
+            }
+        } else {
+            qWarning() << "Fehler: Keine OS-Nr!\n";
+        }
+        break;
+
+    case sync:
+        if( param != NULL && param.compare(QString("")) != 0){
+            int osnr = conf->toOSNr(param, &ok);
+            if(ok){
+                return mksynconlycommand(osnr);
+            } else {
+                qWarning() << "Fehler: Ungültige OS-Nr!\n";
+            }
+        } else {
+            qWarning() << "Fehler: Keine OS-Nr!\n";
+        }
+        break;
+
+    case start:
+        if( param != NULL && param.compare(QString("")) != 0){
+            int osnr = conf->toOSNr(param, &ok);
+            if(ok){
+                return mkstartcommand(osnr);
+            } else {
+                qWarning() << "Fehler: Ungültige OS-Nr!\n";
+            }
+        } else {
+            qWarning() << "Fehler: Keine OS-Nr!\n";
+        }
+        break;
+    }
     return QStringList();
 }
 
 // format partition
 QStringList Command::mkformatcommand(unsigned int partnr) {
   QStringList command = LINBO_CMD("format");
-  diskpartition part = conf->partitions[partnr-1];
+  diskpartition part = conf->partitions[partnr];
   saveappend( command, part.get_dev() );
   saveappend( command, part.get_fstype() );
   saveappend( command, part.get_label() );
@@ -202,6 +255,25 @@ QStringList Command::mksyncstartcommand(unsigned int osnr,int imnr, bool format)
   if( format ){
       saveappend( command, QString("force") );
   }
+  return command;
+}
+
+// Only sync image from cache
+QStringList Command::mksynconlycommand(unsigned int osnr, int imnr) {
+  QStringList command = LINBO_CMD("synconly");
+  os_item os = conf->elements[osnr];
+  image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
+  QString imgname = os.get_baseimage().compare(im.get_image()) == 0 ? "" : im.get_image();
+  globals config = conf->config;
+  saveappend( command, config.get_server() );
+  saveappend( command, config.get_cache() );
+  saveappend( command, os.get_baseimage() );
+  saveappend( command, imgname );
+  saveappend( command, os.get_boot() );
+  saveappend( command, os.get_root() );
+  saveappend( command, im.get_kernel() );
+  saveappend( command, im.get_initrd() );
+  saveappend( command, im.get_append() );
   return command;
 }
 

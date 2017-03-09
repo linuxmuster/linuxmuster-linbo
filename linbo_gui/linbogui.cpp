@@ -1,6 +1,7 @@
 #include <vector>
 
 #include <QMessageBox>
+#include <QDebug>
 #include <qfile.h>
 #include <qtextstream.h>
 #include <qobject.h>
@@ -94,6 +95,7 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     remoteTimer->start(2000);
     //process linbocmds
     if(conf->getCommandLine().getLinbocmd() != NULL){
+        qDebug() << "Found linbocmd(s), starting 'doWrapperCommands'";
         QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
     }
     else if(autostartnr > -1){
@@ -374,6 +376,7 @@ void LinboGUI::doWrapperCommands()
     vector<QStringList> cmds =  command->parseWrapperCommands(conf->getCommandLine().getLinbocmd());
     for(vector<QStringList>::iterator it = cmds.begin();it != cmds.end();++it){
         QStringList cmd = *it;
+        qDebug() << "doWrapperCommand: " << cmd.join("@") <<"\n";
         doCommand(cmd, false, cmd.at(1), Aktion::None, &details);
     }
     if(autostartnr > -1){
