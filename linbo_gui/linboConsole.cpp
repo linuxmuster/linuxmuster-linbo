@@ -13,6 +13,7 @@ linboConsole::linboConsole(  QWidget* parent, linboLogConsole* newLog ) : QDialo
 
 linboConsole::~linboConsole()
 {
+    delete ui;
 } 
 
 void linboConsole::on_pushButton_clicked()

@@ -90,17 +90,6 @@ void diskpartition::set_bootable( const bool& new_bootable ) { bootable = new_bo
 
 image_item::image_item() { autostart = false; autostarttimeout = 0; hidden = false; defaultaction = QString("sync"); }
 image_item::~image_item() {}
-const QString& image_item::quote(const QString& unquoted){
-    if(unquoted == NULL)
-        return unquoted;
-    if(! unquoted.contains(" "))
-        return unquoted;
-    const QString* tmp = new QString((unquoted.startsWith("\"")? QString("") : QString("\""))
-                                     + unquoted
-                                     + (unquoted.endsWith("\"")? QString("") : QString("\"")));
-    return *tmp;
-}
-
 const QString& image_item::get_version() const { return version; }
 const QString& image_item::get_description() const { return description; }
 const QString& image_item::get_image() const { return image; }
@@ -120,7 +109,7 @@ void image_item::set_description( const QString& new_description ) { description
 void image_item::set_image( const QString& new_image ) { image = new_image; }
 void image_item::set_kernel( const QString& new_kernel ) { kernel = new_kernel; }
 void image_item::set_initrd( const QString& new_initrd ) { initrd = new_initrd; }
-void image_item::set_append( const QString& new_append ) { append = quote(new_append); }
+void image_item::set_append( const QString& new_append ) { append = new_append; }
 void image_item::set_syncbutton( const bool& new_syncbutton ) { syncbutton = new_syncbutton; }
 void image_item::set_startbutton( const bool& new_startbutton ) { startbutton = new_startbutton; }
 void image_item::set_newbutton( const bool& new_newbutton ) { newbutton = new_newbutton; }

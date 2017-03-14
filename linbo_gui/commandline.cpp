@@ -14,7 +14,7 @@ const QString CommandLine::LINBOCMD = QString("linbocmd");
 const QString CommandLine::SERVER = QString("server");
 const QString CommandLine::CACHE = QString("cache");
 
-CommandLine::CommandLine(): args(),autostart(-1),extraconf(),server(),cache()
+CommandLine::CommandLine(): args(),autostart(-1),use_autostart(false),extraconf(),server(),cache()
 {
     QFile f("/proc/cmdline");
     if(!f.open(QIODevice::ReadOnly)){

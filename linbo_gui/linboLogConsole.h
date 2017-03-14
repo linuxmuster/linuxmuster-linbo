@@ -29,9 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 #include "linbogui.h"
 
-class linboLogConsole
-{
-
+class linboLogConsole {
 private:
     static const QString STDLOGFILEPATH;
 

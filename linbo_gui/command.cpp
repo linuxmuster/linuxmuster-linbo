@@ -15,6 +15,44 @@ const QString Command::DESCEXT = ".desc";
 const QString Command::TMPDIR = "/tmp/";
 const QString Command::LINBOCMDSEP = ",";
 
+//Pattern mit genau einer heraus gefilterten ganzen Zahl
+std::map<Command::CmdValue, QString> Command::mapMaxPattern
+= {
+      {linbo,"DONT MATCH"},
+      {partition,"DONT MATCH"},
+      {format,"DONT MATCH"},
+      {initcache,"Total\\:\\s+(\\d+)\\s+MB"},
+      {create_cloop,"Block size \\d+, expected number of blocks: (\\d+)"},
+      {upload_cloop,"DONT MATCH"}, //es bleibt bei der Prozentanzeige
+      {create_rsync,"DONT MATCH"},
+      {upload_rsync,"DONT MATCH"},
+      {sync,"DONT MATCH"},
+      {start,"DONT MATCH"},
+      {update,"DONT MATCH"},
+      {reboot,"DONT MATCH"},
+      {halt,"DONT MATCH"},
+      {poweroff,"DONT MATCH"}
+};
+
+// Pattern mit genau einer heraus gefilterten ganzen Zahl
+std::map<Command::CmdValue, QString> Command::mapValPattern
+= {
+      {linbo,"DONT MATCH"},
+      {partition,"DONT MATCH"},
+      {format,"DONT MATCH"},
+      {initcache,"\\d+\\]\\s+(\\d+)MB,"},
+      {create_cloop,"Blk#\\s+(\\d+),"},
+      {upload_cloop,"\\s+(\\d+)%\\s+"},
+      {create_rsync,"DONT MATCH"},
+      {upload_rsync,"DONT MATCH"},
+      {sync,"DONT MATCH"},
+      {start,"DONT MATCH"},
+      {update,"DONT MATCH"},
+      {reboot,"DONT MATCH"},
+      {halt,"DONT MATCH"},
+      {poweroff,"DONT MATCH"}
+};
+
 // this appends a quoted space in case item is empty and resolves
 // problems with linbo_cmd's weird "shift"-usage
 void Command::saveappend( QStringList& command, const QString& item ) {
@@ -282,6 +320,25 @@ QStringList Command::mksynconlycommand(unsigned int osnr, int imnr) {
   return command;
 }
 
+// Only sync image from cache
+QStringList Command::mksynconlycommand(unsigned int osnr, int imnr) {
+  QStringList command = LINBO_CMD("synconly");
+  os_item os = conf->elements[osnr];
+  image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
+  QString imgname = os.get_baseimage().compare(im.get_image()) == 0 ? "" : im.get_image();
+  globals config = conf->config;
+  saveappend( command, config.get_server() );
+  saveappend( command, config.get_cache() );
+  saveappend( command, os.get_baseimage() );
+  saveappend( command, imgname );
+  saveappend( command, os.get_boot() );
+  saveappend( command, os.get_root() );
+  saveappend( command, im.get_kernel() );
+  saveappend( command, im.get_initrd() );
+  saveappend( command, im.get_append() );
+  return command;
+}
+
 // Sync image from cache
 QStringList Command::mksynccommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("sync");
@@ -445,6 +502,7 @@ QString Command::doSimpleCommand(const QString& cmd, const QString& arg)
         qWarning() << "Der Prozess " << cmd << " wurde nicht korrekt durchgeführt.";
      }
     QString result = QString(process->readAllStandardOutput());
+    delete process;
     result.remove(QRegExp("\\t"));
     result.remove(QRegExp("[\\n\\r]{1,2}$"));
     return result;
@@ -461,9 +519,11 @@ bool Command::doAuthenticateCommand(const QString &password)
     while( !process->waitForFinished(10000)) {}
     if( process->exitCode() == 0 ) {
         this->password = password;
+        delete process;
         return true;
     } else {
         this->password = "";
+        delete process;
         return false;
     }
 }
@@ -477,6 +537,7 @@ void Command::doReadfileCommand(const QString &source, const QString &destinatio
     QProcess *process = new QProcess();
     process->start( command.join(" ") );
     while( !process->waitForFinished(10000)) {}
+    delete process;
 }
 
 void Command::doWritefileCommand(const QString &source, const QString &destination)
@@ -488,11 +549,17 @@ void Command::doWritefileCommand(const QString &source, const QString &destinati
     QProcess *process = new QProcess();
     process->start( command.join(" ") );
     while( !process->waitForFinished(10000)) {}
+    delete process;
 }
 
 Command::Command(Configuration *conf)
 {
     this->conf = conf;
+}
+
+Command::~Command()
+{
+
 }
 
 void Command::clearPassword()

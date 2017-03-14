@@ -37,9 +37,9 @@ SOURCES += main.cpp\
     commandline.cpp \
     ip4validator.cpp \
     linboremote.cpp \
-    filter.cpp \
-    filtercreate.cpp \
-    filtertime.cpp
+    filtertime.cpp \
+    filterregex.cpp \
+    filter.cpp
 
 HEADERS  += linbogui.h\
     registrierungsdialog.h \
@@ -63,9 +63,9 @@ HEADERS  += linbogui.h\
     commandline.h \
     ip4validator.h \
     linboremote.h \
-    filter.h \
-    filtercreate.h \
-    filtertime.h
+    filtertime.h \
+    filterregex.h \
+    filter.h
 
 FORMS    += linbogui.ui\
     registrierungsdialog.ui \
@@ -83,3 +83,12 @@ FORMS    += linbogui.ui\
 RESOURCES += \
     linbo_icons.qrc \
     linbooswidget_icons.qrc
+
+DISTFILES += \
+    test/fake_cmd_create.sh \
+    test/fake_cmd_functions.sh \
+    test/fake_cmd.sh \
+    test/linbo_cmd \
+    test/start.conf \
+    test/fake_cmd_upload.sh \
+    test/fake_cmd_initcache.sh

@@ -47,5 +47,9 @@ void RegistrierungsDialog::accept()
     QString *clientGroup = new QString(ui->clientGroup->text());
 
     emit(finished(*roomName, *clientName, *ipAddress, *clientGroup));
+    delete roomName;
+    delete clientName;
+    delete ipAddress;
+    delete clientGroup;
     close();
 }

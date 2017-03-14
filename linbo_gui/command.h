@@ -14,10 +14,6 @@
 class Command
 {
 private:
-    enum CmdValue { linbo, partition, format, initcache, create_cloop, upload_cloop,
-                    create_rsync, upload_rsync, sync, start, update, reboot, halt, poweroff };
-
-    static std::map<QString, CmdValue> s_mapCommand;
 
     static const QString USER;
 
@@ -36,6 +32,14 @@ public:
     static const QString DESCEXT;
     static const QString TMPDIR;
     static const QString LINBOCMDSEP;
+
+    enum CmdValue { linbo, partition, format, initcache, create_cloop, upload_cloop,
+                    create_rsync, upload_rsync, sync, start, update, reboot, halt, poweroff };
+
+    static std::map<QString, CmdValue> s_mapCommand;
+
+    static std::map<CmdValue, QString> mapMaxPattern;
+    static std::map<CmdValue, QString> mapValPattern;
 
     vector<QStringList> parseWrapperCommands(const QString& input);
 

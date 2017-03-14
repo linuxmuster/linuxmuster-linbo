@@ -11,6 +11,10 @@ fi
 . "${DIR}/fake_cmd_functions.sh"
 # shellcheck source=fake_cmd_create.sh
 . "${DIR}/fake_cmd_create.sh"
+# shellcheck source=fake_cmd_upload.sh
+. "${DIR}/fake_cmd_upload.sh"
+# shellcheck source=fake_cmd_initcache.sh
+. "${DIR}/fake_cmd_initcache.sh"
 
 cmd="${1}"
 if [[ -n "${cmd}" ]]; then

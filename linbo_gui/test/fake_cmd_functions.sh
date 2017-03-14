@@ -128,26 +128,6 @@ preregister()
     fi
 }
 
-# linbo_cmd initcache 10.16.1.1 /dev/sda4 torrent opensuse-cpqmini.cloop
-initcache()
-{
-    local parameters="$*"
-    local server="$1"
-    local cachedev="$2"
-    local downloadtype="$3"
-    shift; shift; shift
-    local images=("$@")
-    if [[ "${server}" != "10.16.1.1" ]] \
-      || [[ "${cachedev}" != "/dev/sda4" ]] \
-      || [[ "${downloadtype}" != "torrent" ]] \
-      || [[ "${images}" != "opensuse-cpqmini.cloop" ]]; then
-        echo "Wrong parameters: «${parameters}»"
-        return 1
-    else
-        return 0
-    fi
-}
-
 # linbo_cmd mountcache /dev/sda4 [options]
 mountcache()
 {
@@ -245,30 +225,10 @@ update()
     fi
 }
 
-# linbo_cmd upload 10.16.1.1 linbo pw123 /dev/sda4 file
-upload()
-{
-    local server="$1"
-    local user="$2"
-    local password="$3"
-    local cachedev="$4"
-    local file="$5"
-    if [[ "${server}" != "10.16.1.1" ]] \
-      || [[ "${user}" != "linbo" ]] \
-      || [[ "${password}" != "pw123" ]] \
-      || [[ "${cachedev}" != "/dev/sda4" ]] \
-      || [[ -z "${filename}" ]]; then
-        echo "Wrong parameters: «$*»"
-        return 1
-    else
-        return 0
-    fi
-}
-
 # linbo_cmd version
 version()
 {
-    echo "LINBO 2.3.0-99"
+    echo "LINBO 3.0.0-1"
 }
 
 # linbo_cmd writefile /dev/sda4 filename

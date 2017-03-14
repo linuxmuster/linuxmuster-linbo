@@ -5,10 +5,12 @@
 #include <qprocess.h>
 #include <qbytearray.h>
 #include <qevent.h>
+#include <qobject.h>
 
 #include "linboLogConsole.h"
 #include "aktion.h"
 #include "linboremote.h"
+#include "filtertime.h"
 #include "fortschrittdialog.h"
 #include "ui_fortschrittdialog.h"
 
@@ -21,27 +23,28 @@
  * @param titel
  * @param aktion
  * @param newDetails
+ * @param new_filter
  */
 FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringList* command, linboLogConsole* new_log,
-                                     const QString& titel, Aktion aktion, bool* newDetails,
-                                     int (*new_maximum)(const QByteArray& output),
-                                     int (*new_value)(const QByteArray& output)):
-    QDialog(parent), active(new_active), details(newDetails), process((new_active?new QProcess(this):NULL)), logConsole(new_log), logDetails(),
-    timerId(0), maximum(new_maximum), value(new_value),
+                                     const QString& new_title, Aktion aktion, bool* newDetails,
+                                     Filter *new_filter):
+    QDialog(parent), active(new_active), title(new_title), ldetails(false),
+    details(newDetails), process((new_active?new QProcess(this):NULL)),
+    logConsole(new_log), timerId(0), filter(new_filter),
     ui(new Ui::FortschrittDialog)
 {
     ui->setupUi(this);
     if(details == NULL){
-        details = new bool(false);
+        details = &ldetails;
     }
     ui->details->setChecked(*details);
     logDetails = new linboLogConsole();
     logDetails->setLinboLogConsole(logConsole == NULL ? linboLogConsole::COLORSTDOUT
-                                                        : logConsole->get_colorstdout(),
-                                     logConsole == NULL ? linboLogConsole::COLORSTDERR
-                                                        : logConsole->get_colorstderr(),
-                                     ui->log, NULL);
-    ui->aktion->setText(titel == NULL ? QString("unbekannt") : titel );
+                                                      : logConsole->get_colorstdout(),
+                                   logConsole == NULL ? linboLogConsole::COLORSTDERR
+                                                      : logConsole->get_colorstderr(),
+                                   ui->log, NULL);
+    ui->aktion->setText(title == NULL ? QString("unbekannt") : title );
     if(aktion == Aktion::None) {
         ui->folgeAktion->hide();
     } else {
@@ -49,11 +52,11 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
     }
     if(active){
         connect( process, &QProcess::readyReadStandardOutput,
-             this, &FortschrittDialog::processReadyReadStandardOutput);
+                 this, &FortschrittDialog::processReadyReadStandardOutput);
         connect( process, &QProcess::readyReadStandardError,
-             this, &FortschrittDialog::processReadyReadStandardError);
+                 this, &FortschrittDialog::processReadyReadStandardError);
         connect( process, SIGNAL(finished(int,QProcess::ExitStatus)),
-             this, SLOT(processFinished(int,QProcess::ExitStatus)));
+                 this, SLOT(processFinished(int,QProcess::ExitStatus)));
 
         //args need to be passed separate because of empty args
         cmd = command->at(0);
@@ -62,15 +65,29 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
         const QStringList cargs = args;
         process->start(cmd, args, QIODevice::ReadWrite );
     }
-    ui->progressBar->setMinimum( 0 );
-    ui->progressBar->setMaximum( 100 );
+    if(filter == 0){
+        filter = new FilterTime(this, ui->processTime);
+    }
+    connect(filter,&Filter::valueChanged,ui->progressBar,&QProgressBar::setValue);
+    connect(filter,&Filter::maximumChanged,ui->progressBar,&QProgressBar::setMaximum);
+    connect(filter,&Filter::titleChanged,this,&FortschrittDialog::appendTitle);
     ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(100);
     timerId = startTimer( 1000 );
 }
 
 FortschrittDialog::~FortschrittDialog()
 {
+    delete logDetails;
     delete ui;
+}
+
+void FortschrittDialog::appendTitle(const QString& new_title)
+{
+    if(new_title != NULL && new_title.compare(QString("")) != 0)
+        ui->aktion->setText(title + QString(": ") + new_title);
+    else
+        ui->aktion->setText(title);
 }
 
 void FortschrittDialog::killLinboCmd() {
@@ -87,10 +104,6 @@ void FortschrittDialog::killLinboCmd() {
 void FortschrittDialog::timerEvent(QTimerEvent *event) {
     if(event->timerId() == timerId){
         ui->processTime->setTime(ui->processTime->time().addSecs(1));
-        if( maximum == NULL || value == NULL ){
-            // die Automatik benötigt 60 Sekunden für 1x 100%
-            ui->progressBar->setValue(ui->processTime->time().second()*10/6);
-        }
         if(!active && !LinboRemote::is_running()){
             close();
         }
@@ -103,10 +116,7 @@ void FortschrittDialog::processReadyReadStandardOutput()
         return;
     }
     QByteArray data = process->readAllStandardOutput();
-    if( maximum != NULL && value != NULL ){
-        ui->progressBar->setMaximum(maximum(data));
-        ui->progressBar->setValue(value(data));
-    }
+    filter->filter(data);
     logDetails->writeStdOut(data);
     if(logConsole != NULL)
         logConsole->writeStdOut(data);
@@ -130,15 +140,10 @@ void FortschrittDialog::processFinished( int exitCode, QProcess::ExitStatus exit
     }
     if(logConsole != NULL){
         logConsole->writeStdOut(process->program() + " " + process->arguments().join(" ")
-                            + " was finished");
+                                + " was finished");
         logConsole->writeResult(exitCode, exitStatus, exitCode);
     }
     this->close();
-}
-
-void FortschrittDialog::setProgress(int i)
-{
-    ui->progressBar->setValue(i);
 }
 
 void FortschrittDialog::keyPressEvent(QKeyEvent *event)

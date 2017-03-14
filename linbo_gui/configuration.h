@@ -19,6 +19,7 @@ private:
     CommandLine commandline;
 
     void read_qstring(QString& tmp);
+    void quote(QString& unquoted);
     void read_bool(bool& tmp);
     bool read_pair(QString& key, QString& value);
     bool toBool(const QString& value);

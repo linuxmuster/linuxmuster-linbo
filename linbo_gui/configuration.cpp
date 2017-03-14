@@ -17,6 +17,16 @@ void Configuration::read_qstring( QString& tmp ) {
     tmp = QString::fromUtf8( line, -1 ).trimmed();
 }
 
+void Configuration::quote(QString& unquoted){
+    if(unquoted == NULL)
+        return;
+    if(! unquoted.contains(" "))
+        return;
+    unquoted = (unquoted.startsWith("\"")? QString("") : QString("\""))
+           + unquoted
+           + (unquoted.endsWith("\"")? QString("") : QString("\""));
+}
+
 void Configuration::read_bool(bool& tmp) {
     char line[500];
     input.getline(line,500,'\n');
@@ -69,6 +79,30 @@ int Configuration::toOSNr(const QString& value, bool *ok) {
     return (osnr-1);
 }
 
+// value: 1basiert, ret: 0basiert
+int Configuration::toPartitionNr(const QString& value, bool *ok) {
+    int partnr = value.toInt(ok);
+    if(!ok)
+        return -1;
+    if( partnr < 1 || (uint)partnr > partitions.size() ){
+        *ok = false;
+        return -1;
+    }
+    return (partnr-1);
+}
+
+// value: 1basiert, ret: 0basiert
+int Configuration::toOSNr(const QString& value, bool *ok) {
+    int osnr = value.toInt(ok);
+    if(!ok)
+        return -1;
+    if( osnr < 1 || (uint)osnr > elements.size() ){
+        *ok = false;
+        return -1;
+    }
+    return (osnr-1);
+}
+
 void Configuration::read_os( os_item& tmp_os, image_item& tmp_image ) {
     QString key, value;
     while(!input.eof() && read_pair(key, value)) {
@@ -83,6 +117,7 @@ void Configuration::read_os( os_item& tmp_os, image_item& tmp_image ) {
         else if(key.compare("kernel") == 0)       tmp_image.set_kernel(value);
         else if(key.compare("initrd") == 0)       tmp_image.set_initrd(value);
         else if(key.compare("append") == 0) {
+            quote(value);
             tmp_image.set_append(value);
         }
         else if(key.compare("syncenabled") == 0)  tmp_image.set_syncbutton(toBool(value));
@@ -252,6 +287,11 @@ Configuration::Configuration(): commandline()
             }
         }
     }
+}
+
+Configuration::~Configuration()
+{
+
 }
 
 CommandLine Configuration::getCommandLine()

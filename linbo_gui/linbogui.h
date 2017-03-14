@@ -21,6 +21,7 @@
 #include "fortschrittdialog.h"
 #include "aktion.h"
 #include "downloadtype.h"
+#include "filter.h"
 
 #define ADMINTAB ui->systeme->count()-2
 #define LOGTAB ui->systeme->count()-1
@@ -122,7 +123,7 @@ private:
     void doCreate();
     void doUpload();
     int doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
-                   Aktion aktion = Aktion::None, bool* details = NULL);
+                   Aktion aktion = Aktion::None, bool* details = NULL, Filter *filter = 0);
     Ui::LinboGUI *ui;
 };
 

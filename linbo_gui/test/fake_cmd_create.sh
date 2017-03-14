@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# linbo_cmd create /dev/sda4 test.cloop opensuse-cpqmini.cloop /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd
+# linbo_cmd create /dev/sda4 opensuse-cpqmini.cloop opensuse-cpqmini.cloop /dev/sda1 /dev/sda1 /boot/vmlinuz /boot/initrd
 create()
 {
     # TODO: check $baseimagefile $imagefile
@@ -12,7 +12,7 @@ create()
     local kernel="$6"
     local initrd="$7"
     if [[ "${cachedev}" != "/dev/sda4" ]] \
-      || [[ "${imagefile}" != "test.cloop" ]] \
+      || [[ "${imagefile}" != "opensuse-cpqmini.cloop" ]] \
       || [[ "${baseimagefile}" != "opensuse-cpqmini.cloop" ]] \
       || [[ "${bootdev}" != "/dev/sda1" ]] \
       || [[ "${rootdev}" != "/dev/sda1" ]] \
@@ -23,10 +23,10 @@ create()
     fi
 
 
-echo 'create 1:�/dev/sda4� 2:�test.cloop� 3:�opensuse-cpqmini.cloop� 4:�/dev/sda1� 5:�/dev/sda1� 6:�/boot/vmlinuz� 7:�/boot/initrd� '
+echo 'create 1:�/dev/sda4� 2:�opensuse-cpqmini.cloop� 3:�opensuse-cpqmini.cloop� 4:�/dev/sda1� 5:�/dev/sda1� 6:�/boot/vmlinuz� 7:�/boot/initrd� '
 echo 'Mounte Cachepartition /dev/sda4 ...'
-echo 'Erzeuge Image 'test.cloop' von Partition '/dev/sda1'...'
-echo '## Mon Apr 11 08:52:51 UTC 2016 : Starte Erstellung von test.cloop.'
+echo 'Erzeuge Image 'opensuse-cpqmini.cloop' von Partition '/dev/sda1'...'
+echo '## Mon Apr 11 08:52:51 UTC 2016 : Starte Erstellung von opensuse-cpqmini.cloop.'
 echo 'Bereite Partition /dev/sda1 (Gr��e=15728640K) f�r Komprimierung vor...'
 echo 'Entferne tmp/kde-schueler.'
 echo 'Entferne tmp/klassenarbeit.txt.'
@@ -43,8 +43,8 @@ echo '2.9G genullt... '
 sleep 1
 echo '3.5G genullt... '
 sleep 1
-echo 'Starte Kompression von /dev/sda1 -> test.cloop (ganze Partition, 15728640K).'
-echo 'create_compressed_fs -B 131072 -L 1 -t 2 -s 15728640K /dev/sda1 test.cloop'
+echo 'Starte Kompression von /dev/sda1 -> opensuse-cpqmini.cloop (ganze Partition, 15728640K).'
+echo 'create_compressed_fs -B 131072 -L 1 -t 2 -s 15728640K /dev/sda1 opensuse-cpqmini.cloop'
 echo '2 processor core(s) detected'
 echo 'Block size 131072, expected number of blocks: 122880'
 echo '[ 1] Blk#     0, [ratio/avg.   2%/  2%], avg.speed: 131072 b/s, ETA: 122879s'
@@ -2523,7 +2523,7 @@ echo '7zip:     0 (    0%)'
 echo 'Writing index for 122880 block(s)...'
 echo 'Writing compressed data...'
 echo 'Fertig.'
-echo '-rw-rw-r--    1 root     root     5668275056 Apr 11 09:03 test.cloop'
+echo '-rw-rw-r--    1 root     root     5668275056 Apr 11 09:03 opensuse-cpqmini.cloop'
 echo 'Erstelle torrent Dateien ...'
 sleep 0.05
 echo 'Create hash table: 1/21623'
@@ -2729,8 +2729,8 @@ sleep 0.05
 echo 'Create hash table: 21601/21623'
 sleep 0.05
 echo 'Create hash table: 21623/21623'
-echo 'Create metainfo file test.cloop.torrent successful.'
-echo '## Mon Apr 11 09:07:13 UTC 2016 : Beende Erstellung von test.cloop.'
+echo 'Create metainfo file opensuse-cpqmini.cloop.torrent successful.'
+echo '## Mon Apr 11 09:07:13 UTC 2016 : Beende Erstellung von opensuse-cpqmini.cloop.'
 echo 'Fertig.'
 echo 'Veranlasse Upload von image.log.'
 echo 'Veranlasse Upload von linbo.log.'
