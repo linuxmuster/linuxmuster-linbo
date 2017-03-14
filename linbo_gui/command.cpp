@@ -320,25 +320,6 @@ QStringList Command::mksynconlycommand(unsigned int osnr, int imnr) {
   return command;
 }
 
-// Only sync image from cache
-QStringList Command::mksynconlycommand(unsigned int osnr, int imnr) {
-  QStringList command = LINBO_CMD("synconly");
-  os_item os = conf->elements[osnr];
-  image_item im = os.image_history[imnr == -1 ? os.find_current_image() : imnr];
-  QString imgname = os.get_baseimage().compare(im.get_image()) == 0 ? "" : im.get_image();
-  globals config = conf->config;
-  saveappend( command, config.get_server() );
-  saveappend( command, config.get_cache() );
-  saveappend( command, os.get_baseimage() );
-  saveappend( command, imgname );
-  saveappend( command, os.get_boot() );
-  saveappend( command, os.get_root() );
-  saveappend( command, im.get_kernel() );
-  saveappend( command, im.get_initrd() );
-  saveappend( command, im.get_append() );
-  return command;
-}
-
 // Sync image from cache
 QStringList Command::mksynccommand(unsigned int osnr, int imnr) {
   QStringList command = LINBO_CMD("sync");

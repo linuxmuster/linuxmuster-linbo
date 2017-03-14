@@ -79,30 +79,6 @@ int Configuration::toOSNr(const QString& value, bool *ok) {
     return (osnr-1);
 }
 
-// value: 1basiert, ret: 0basiert
-int Configuration::toPartitionNr(const QString& value, bool *ok) {
-    int partnr = value.toInt(ok);
-    if(!ok)
-        return -1;
-    if( partnr < 1 || (uint)partnr > partitions.size() ){
-        *ok = false;
-        return -1;
-    }
-    return (partnr-1);
-}
-
-// value: 1basiert, ret: 0basiert
-int Configuration::toOSNr(const QString& value, bool *ok) {
-    int osnr = value.toInt(ok);
-    if(!ok)
-        return -1;
-    if( osnr < 1 || (uint)osnr > elements.size() ){
-        *ok = false;
-        return -1;
-    }
-    return (osnr-1);
-}
-
 void Configuration::read_os( os_item& tmp_os, image_item& tmp_image ) {
     QString key, value;
     while(!input.eof() && read_pair(key, value)) {

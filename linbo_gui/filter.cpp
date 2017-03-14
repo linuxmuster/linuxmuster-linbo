@@ -1,16 +1,4 @@
 #include "filter.h"
 
-Filter::Filter()
-{
-
-}
-
-int Filter::maximum(const QByteArray& output)
-{
-    return 100;
-}
-
-int Filter::value(const QByteArray& output)
-{
-    return 0;
-}
+Filter::Filter(QObject *parent) : QObject(parent){}
+Filter::~Filter(){}
