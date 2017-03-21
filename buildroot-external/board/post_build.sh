@@ -24,4 +24,5 @@ rm -fv "${TARGET_DIR}"/usr/bin/pcretest
 # benötigte Verzeichnisse erstellen
 mkdir -p "${TARGET_DIR}"/cache
 
-
+# create target copy of grub.cfg.local
+cp -v ../../share/templates/grub.cfg.local "${TARGET_DIR}"/usr/share/grub/grub.cfg
