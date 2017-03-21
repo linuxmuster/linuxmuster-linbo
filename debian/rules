@@ -25,6 +25,9 @@ GRUB_ISO_MODULES=iso9660 usb
 GRUB_PC_MODULES=biosdisk ntldr pxe
 GRUB_EFI_MODULES=efi_gop efi_uga efinet tftp
 GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
+ifeq ("$(BR2_DL_DIR)","")
+	BR2_DL_DIR=$(BUILDROOT)/dl
+endif
 
 clean:
 	dh clean
