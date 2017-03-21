@@ -1,3 +1,9 @@
+linuxmuster-linbo (3.0.0-2) babo62; urgency=medium
+
+  * add missing grub.cfg to image
+
+ -- Frank Schütte <fschuett@gymhim.de>  Tue, 21 Mar 2017 18:09:18 +0100
+
 linuxmuster-linbo (3.0.0-1) babo-testing; urgency=medium
 
   * Add Qt5-GUI
