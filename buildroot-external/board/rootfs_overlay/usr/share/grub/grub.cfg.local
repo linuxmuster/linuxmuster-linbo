@@ -1,0 +1,150 @@
+#
+# default grub.cfg, local boot version (placed in linbo cache)
+# thomas@linuxmuster.net
+# 20160804
+#
+
+set default=0
+set fallback=1
+set timeout=0
+
+set gfxmode=auto
+set gfxpayload=keep
+
+#loadfont "$prefix/unicode.pf2"
+if [ "$grub_platform" = "pc" ]; then
+ insmod biosdisk
+ insmod ntldr
+else
+ insmod efi_gop
+ insmod efi_uga
+ insmod linuxefi
+fi
+insmod all_video
+insmod png
+insmod gfxterm
+insmod gfxmenu
+insmod chain
+insmod configfile
+insmod ext2
+insmod fat
+insmod ntfs
+insmod linux
+insmod loadenv
+insmod minicmd
+insmod part_msdos
+insmod part_gpt
+insmod progress
+insmod reiserfs
+insmod search
+insmod terminal
+insmod test
+
+# find cache partition and set it as root
+if search --set root --file /start.conf; then
+ set linboroot="${root}"
+
+ #loadfont $prefix/fonts/unicode.pf2
+
+ terminal_output gfxterm
+ background_image $prefix/linbo_wallpaper.png
+fi
+
+set color_normal=white/black
+set color_highlight=yellow/black
+set menu_color_normal=white/black
+set menu_color_highlight=yellow/black
+set prefix=/boot/grub
+
+# try to boot os directly if reboot is set
+menuentry 'OS localboot' {
+  if [ -s $prefix/grubenv ] ; then
+   echo -n Loading grub environment ...
+   load_env
+   echo
+  fi
+
+  if [ "${reboot_grub}" ] ; then
+
+   echo Booting operating system ...
+   echo
+
+   set tmproot="${reboot_grub}"
+   set reboot_grub=""
+   save_env reboot_grub
+   set root="${tmproot}"
+   set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
+
+   if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
+    linux $reboot_kernel $reboot_append
+    initrd $reboot_initrd
+    boot
+   elif [ -e /vmlinuz -a -e /initrd.img ]; then
+    linux /vmlinuz $reboot_append
+    initrd /initrd.img
+    boot
+   elif [ -e /vmlinuz -a -e /initrd ]; then
+    linux /vmlinuz $reboot_append
+    initrd /initrd
+    boot
+   elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
+    linux /boot/vmlinuz $reboot_append
+    initrd /boot/initrd
+    boot
+   elif [ -s /boot/grub/grub.cfg ] ; then
+    configfile /boot/grub/grub.cfg
+   elif [ "$grub_platform" = "pc" ]; then
+    if [ -s /bootmgr ] ; then
+     ntldr /bootmgr
+     boot
+    elif [ -s /ntldr ] ; then
+     ntldr /ntldr
+     boot
+    elif [ -s /grldr ] ; then
+     ntldr /grldr
+     boot
+    else
+     chainloader +1
+     boot
+    fi
+   elif [ -e "$win_efiloader" ]; then
+    chainloader $win_efiloader
+    boot
+   fi
+
+  # if no reboot is set load group specific custom.cfg if present  
+  elif [ -s /boot/grub/custom.cfg ] ; then
+   configfile /boot/grub/custom.cfg
+  fi
+}
+
+# boot linbo local from cache as fallback
+menuentry 'LINBO' {
+ # 32bit or 64bit kernel
+ if cpuid -l; then
+  set linbo_kernel=/linbo64
+  set linbo_initrd=/linbofs64.lz
+ else
+  set linbo_kernel=/linbo
+  set linbo_initrd=/linbofs.lz
+ fi
+
+ set root="${linboroot}"
+ if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
+  echo -n "Loading $linbo_kernel .."
+  linux $linbo_kernel splash quiet localboot
+  echo
+  echo -n "Loading $linbo_initrd .."
+  initrd $linbo_initrd
+  boot
+ else
+  if [ "$grub_platform" = "pc" ]; then
+   set ipxe="/ipxe.lkrn"
+  fi
+  if [ -e "$ipxe" ]; then
+   echo -n "Initiating pxe boot ..."
+   linux16 $ipxe dhcp
+   boot
+  fi
+ fi
+}
