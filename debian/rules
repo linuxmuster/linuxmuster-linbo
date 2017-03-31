@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20161120
+# 20170331
 # GPL v3
 #
 
@@ -124,7 +124,7 @@ configure-stamp:
 	#ln -sf i386-linux-gnu-gcc $(TOOLCHAIN)/gcc
 	#ln -sf i386-linux-gnu-g++ $(TOOLCHAIN)/g++
 	#ln -sf i386-linux-gnu-c++ $(TOOLCHAIN)/c++
-	
+
 	# make necessary build dirs
 	mkdir -p cache || true
 	mkdir -p kernel || true
@@ -541,7 +541,7 @@ distclean: clean
 	rm -rf linbo_gui32 || true
 	rm -rf linbo_gui64 || true
 
-clean: 
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
@@ -661,7 +661,7 @@ install: build
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64.md5
 	## linuxmuster-linbo-common
 	# /var/linbo
-	cp -r files/common/var/* debian/linuxmuster-linbo-common/var/
+	cp -r files/common/linbo/* debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo-common/var/linbo/linuxmuster-win
 	# grub netboot
@@ -670,17 +670,24 @@ install: build
 	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.lkrn
 	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.efi
 
+	# linuxmuster-linbo-common7
+	cp -r debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
+	mkdir -p debian/linuxmuster-linbo-common7/srv
+	rm -rf debian/linuxmuster-linbo-common7/srv/linbo
+	mv debian/linuxmuster-linbo-common7/var/linbo debian/linuxmuster-linbo-common7/srv
+	rm -rf debian/linuxmuster-linbo-common7/var
+
 	## linuxmuster-linbo
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
 	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo/etc/init.d/linbo-multicast
-	install -m 644 debian/default debian/linuxmuster-linbo/etc/default/linuxmuster-linbo
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
+	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo/etc/default/linbo-multicast
 	cp -r files/common/etc/* debian/linuxmuster-linbo/etc/
 	cp -r files/common/usr/* debian/linuxmuster-linbo/usr/
 	cp -r files/lmn6/usr/* debian/linuxmuster-linbo/usr/
 
 	## linuxmuster-linbo7
-	install -m 644 debian/default debian/linuxmuster-linbo7/etc/default/linbo-multicast
+	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
 	cp -r files/common/etc/* debian/linuxmuster-linbo7/etc/
@@ -697,7 +704,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installdebconf	
+	dh_installdebconf
 	dh_installdocs
 #	dh_installexamples
 #	dh_installmenu
@@ -711,7 +718,7 @@ binary-arch: build install
 #	dh_installinfo
 #	dh_undocumented
 	dh_install
-	dh_installchangelogs 
+	dh_installchangelogs
 	dh_link
 	dh_strip
 #	dh_compress

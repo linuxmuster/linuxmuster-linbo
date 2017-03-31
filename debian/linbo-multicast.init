@@ -4,8 +4,8 @@
 # Provides:          linbo-multicast
 # Required-Start:    $network $local_fs
 # Required-Stop:     $network $local_fs
-# Should-Start:      
-# Should-Stop:       
+# Should-Start:
+# Should-Stop:
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Starts per image multicast sessions
@@ -14,13 +14,31 @@
 
 # thomas@linuxmuster.net
 # GPL v3
-# 20160917
+# 20170331
 
 #set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Multicast session for"
-DAEMON=/usr/share/linuxmuster-linbo/linbo-mcasthelper.sh
+
+# lmn specific paths
+# lmn7
+if [ -d /usr/share/linuxmuster/linbo ]; then
+  source /usr/share/linuxmuster/defaults.sh || exit 1
+  INTERFACE="$(grep ^iface "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  SERVERIP="$(grep ^serverip "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+# lmn6x
+elif [ -d /usr/share/linuxmuster-linbo ]; then
+  source /usr/share/linuxmuster/config/dist.conf || exit 1
+  source /var/lib/linuxmuster/network.settings
+  SERVERIP=$serverip
+  source /etc/default/linuxmuster-base
+  INTERFACE=$IFACE
+else
+  exit 1
+fi
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
@@ -31,31 +49,17 @@ images="$2"
 force="$3"
 
 # defaults
-LINBODIR=/var/linbo
 START_MULTICAST=no
 PORTBASE=9000
 MINCLIENTS=16
 MINSECONDS=60
 MAXSECONDS=90
 MULTICASTLIST=$LINBODIR/multicast.list
-INTERFACE=eth0
-SERVERIP=10.16.1.1
 
 # read necessary functions and constants
-. /usr/share/linuxmuster-linbo/helperfunctions.sh || exit 1
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
-[ -f /etc/default/linuxmuster-linbo ] && . /etc/default/linuxmuster-linbo
+source /etc/default/linbo-multicast || exit 1
 [ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
-. /lib/lsb/init-functions
-
-# reading internal interface name
-if [ -s /etc/default/linuxmuster-base ]; then
- . /etc/default/linuxmuster-base
- [ -n "$IFACE" ] && INTERFACE=$IFACE
-fi
-
-# reading server ip
-[ -f /var/lib/linuxmuster/network.settings ] && . /var/lib/linuxmuster/network.settings && SERVERIP=$serverip
+source /lib/lsb/init-functions
 
 create_multicast_list() {
   echo -n "Creating multicast.list"
@@ -163,4 +167,3 @@ case "$action" in
 esac
 
 exit 0
-

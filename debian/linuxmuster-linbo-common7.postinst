@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# postinst script for linuxmuster-linbo
+# postinst script for linuxmuster-linbo7
 # thomas@linuxmuster.net
 # GPL v3
 # 20170331
@@ -25,16 +25,13 @@ set -e
 
 #db_version 2.0
 
-
 case "$1" in
 
  configure)
 
   # read constants & setup values
-  DISTCONF=/usr/share/linuxmuster/config/dist.conf
-  source "$DISTCONF"
-  source "$HELPERFUNCTIONS"
-  [ -e "$INSTALLED" ] || exit 0
+  source /usr/share/linuxmuster/defaults.sh
+  [ -e "$SETUPINI" ] || exit 0
   update-linbofs
 
  ;;

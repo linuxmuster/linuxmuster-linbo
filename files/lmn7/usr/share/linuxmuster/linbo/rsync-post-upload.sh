@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20160916
+# 20170218
 #
 
 # read in linuxmuster specific environment
@@ -28,6 +28,7 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
+compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "FILE: $FILE"
@@ -77,16 +78,13 @@ case "$FTYPE" in
   LDBSEARCH="$(which ldbsearch)"
   if [ -n "$RSYNC_HOST_NAME" -a -n "$LDBSEARCH" -a -n "$basedn" ]; then
    #  fetch samba nt password hash from ldap machine account
-   . $NETWORKSETTINGS # read basedn
    url="--url=/var/lib/samba/private/sam.ldb"
-   uc_compname="$(echo "$compname" | tr a-z A-Z)"
-   unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$uc_compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+   unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
    if [ -n "$unicodepwd" ]; then
     echo "Writing samba password hash file for image $image."
     template="$LINBOTPLDIR/machineacct"
     imagemacct="$LINBODIR/$image.macct"
-    sed -e "s|@@basedn@@|$basedn|
-            s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
+    sed -e "s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
     chmod 600 "$imagemacct"
    else
     rm -f "$imagemacct"
@@ -135,4 +133,3 @@ echo "RC: $RSYNC_EXIT_STATUS"
 echo "### rsync post upload end: $(date) ###"
 
 exit $RSYNC_EXIT_STATUS
-

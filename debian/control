@@ -20,10 +20,17 @@ Breaks: linuxmuster-linbo (<< 2.3.13)
 Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
 Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
 
+Package: linuxmuster-linbo-common7
+Architecture: all
+Replaces: linuxmuster-linbo-common
+Breaks: linuxmuster-linbo-common
+Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
+Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
+
 Package: linuxmuster-linbo7
 Architecture: all
 Conflicts: linuxmuster-linbo, atftpd
-Depends: linuxmuster-base7, python3, linuxmuster-linbo-common (>= 2.3.13), tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
+Depends: linuxmuster-base7, python3, linuxmuster-linbo-common7 (>= 2.3.13), tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo scripts
  This package contains the scripts for the Linux-based Network Boot

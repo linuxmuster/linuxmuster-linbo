@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20160916
+# 20170218
 #
 
 # read in linuxmuster specific environment
@@ -22,7 +22,7 @@ EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
-compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
+compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
 
 # recognize upload of windows activation tokens
 stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
@@ -40,19 +40,26 @@ case $EXT in
 
  # handle machine account password
  *.macct)
-  LDBMODIFY="$(which ldbmodify)"
+  url="--url=/var/lib/samba/private/sam.ldb"
+  LDBSEARCH="$(which ldbsearch) $url"
+  LDBMODIFY="$(which ldbmodify) $url"
   imagemacct="$LINBODIR/${RSYNC_REQUEST##*/}"
   # upload samba machine password hashes to host's ad machine account
   if [ -s "$imagemacct" ]; then
-   echo "Machine account file: $imagemacct"
+   echo "Machine account ldif file: $imagemacct"
    echo "Host: $compname"
-   echo "Writing samba machine password hashes to ad account:"
-   ldif="/var/tmp/${compname}_macct.$$"
-   url="--url=/var/lib/samba/private/sam.ldb"
-   ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
-   sed -e "s|@@compname@@|$compname|" "$imagemacct" > "$ldif"
-   "$LDBMODIFY" "$url" $ldbopts "$ldif"
-   rm -f "$ldif"
+   # get dn of host
+   dn="$($LDBSEARCH "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
+   if [ -n "$dn" ]; then
+    echo "DN: $dn"
+    ldif="/var/tmp/${compname}_macct.$$"
+    ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
+    sed -e "s|@@dn@@|$dn|" "$imagemacct" > "$ldif"
+    $LDBMODIFY $ldbopts "$ldif"
+    rm -f "$ldif"
+   else
+    echo "Cannot determine DN of $compname! Aborting!"
+   fi
   fi
  ;;
 

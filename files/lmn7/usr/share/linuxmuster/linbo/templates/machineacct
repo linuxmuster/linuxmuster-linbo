@@ -1,4 +1,4 @@
-dn: CN=@@COMPNAME@@,CN=Computers,@@basedn@@
+dn: @@dn@@
 changetype: modify
 replace: unicodePwd
 unicodePwd:: @@unicodepwd@@

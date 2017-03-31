@@ -112,6 +112,7 @@ update_linbofs 64
 # create iso files
 "$LINBOSHAREDIR"/make-linbo-iso.sh
 
-create_www_links
+# obsolete
+#create_www_links
 
 rm -f "$locker"

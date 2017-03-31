@@ -1,14 +1,11 @@
 # default start values for LINBO bittorrent server
+# thomas@linuxmuster.net
+# 20170331
+#
 
 # start the LINBO bittorrent server (0 | 1)?
 # to enable set this to "1"
-START_BITTORRENT=0
-
-# where the linbo stuff is located
-LINBODIR=/var/linbo
-
-# path to file with workstation data
-WIMPORTDATA=/etc/linuxmuster/workstations
+START_BITTORRENT=1
 
 # set portnum as the minimum port to listen on,
 # counts up if unavailable (default 6881)
@@ -61,4 +58,3 @@ DISPLAY_INTERVAL=1
 
 # requests from peers larger than bytes bytes are ignored (default 131072)
 MAX_SLICE_LENGTH=131072
-
