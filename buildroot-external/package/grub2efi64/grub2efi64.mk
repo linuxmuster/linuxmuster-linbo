@@ -14,7 +14,7 @@ GRUB2EFI64_CONF_ENV = \
 	CPP="$(TARGET_CC) -E"
 GRUB2EFI64_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-cache-stats --disable-boot-time --disable-grub-mkfont \
-	--disable-grub-themes --disable-grub-mount --enable-device-mapper \
+	--disable-grub-mount --enable-device-mapper \
 	--disable-liblzma --disable-libzfs --with-platform=efi --target=x86_64
 
 define GRUB2EFI64_CLEANUP

@@ -16,7 +16,7 @@ LINBO_VERSION=$(shell dpkg-parsechangelog -SVersion)
 
 GRUBNAME=grub-2.02~rc1
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
- --disable-boot-time --disable-grub-mkfont --disable-grub-themes \
+ --disable-boot-time --disable-grub-mkfont \
  --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
 GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd \
  fat gettext gfxmenu gfxterm http ntfs linux loadenv minicmd net part_gpt \
