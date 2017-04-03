@@ -14,7 +14,7 @@ BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
 LINBO_VERSION=$(shell dpkg-parsechangelog -SVersion)
 
-GRUBNAME=grub-2.02~rc1
+GRUBNAME=grub-2.02~rc2
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
  --disable-boot-time --disable-grub-mkfont \
  --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
