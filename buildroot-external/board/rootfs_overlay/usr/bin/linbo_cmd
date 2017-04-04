@@ -905,6 +905,7 @@ set_efibootorder(){
  efibootmgr | grep ^Boot[0-9] > "$efiout"
  local grubnumber="$(print_efi_bootnr " grub" "$efiout")"
  local netnumbers="$(print_efi_bootnr " ipv4 " "$efiout")"
+ netnumbers="$netnumbers $(print_efi_bootnr "(IPV4)" "$efiout")"
  netnumbers="$netnumbers $(print_efi_bootnr "efi network" "$efiout")"
  netnumbers="$netnumbers $(print_efi_bootnr " pxev4 " "$efiout")"
  local bootorder
@@ -995,13 +996,14 @@ mount_boot(){
   mount --bind /cache/boot /boot || return 1
  fi
  if [ -n "$efipart" ]; then
+  mkdir -p /boot/efi
   if ! mount | grep -q " /boot/efi "; then
-   mkdir -p /boot/efi
    if ! mount "$efipart" /boot/efi; then
     umount_boot
     return 1
    fi
   fi
+  mkdir -p /boot/efi/EFI
  fi
 }
 
