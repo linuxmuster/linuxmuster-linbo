@@ -30,6 +30,9 @@ stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
+# recognize download request of start.conf-ip
+[[ ${FILE##$RSYNC_MODULE_PATH/} =~ start\.conf-[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] && EXT="start.conf.gruppe"
+
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
@@ -158,6 +161,14 @@ case $EXT in
   startconf="$LINBODIR/start.conf.$group"
   append="$(linbo_kopts "$startconf") localboot"
   sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
+ ;;
+
+ # create download link start.conf-ip
+ start.conf.gruppe)
+  dhcp_cache="host_${FILE##*-}"
+  group="$(cat ${DHCPDCACHE}/${dhcp_cache} |grep 'option extensions-path ' | awk '{ print $3 }' | sed -e 's/"//g' -e 's/;//g' )"
+  echo "Gruppe: $group create link to $FILE"
+  [[ -n $group ]] && ln -sf "$LINBODIR/start.conf.$group" "$FILE"
  ;;
 
  *) ;;
