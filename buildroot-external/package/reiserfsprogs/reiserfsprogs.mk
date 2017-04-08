@@ -6,7 +6,7 @@
 
 REISERFSPROGS_VERSION = 3.6.24
 REISERFSPROGS_SOURCE = reiserfsprogs-$(REISERFSPROGS_VERSION).tar.xz
-REISERFSPROGS_SITE = http://ftp.kernel.org/pub/linux/kernel/people/jeffm/reiserfsprogs/v$(REISERFSPROGS_VERSION)
+REISERFSPROGS_SITE = https://www.kernel.org/pub/linux/kernel/people/jeffm/reiserfsprogs/v$(REISERFSPROGS_VERSION)
 REISERFSPROGS_LICENSE = GPLv2 with modifications
 REISERFSPROGS_LICENSE_FILES = COPYING README
 REISERFSPROGS_DEPENDENCIES = util-linux
