@@ -1,0 +1,3 @@
+srv/linbo/examples				usr/share/doc/linuxmuster-linbo/examples
+etc/linuxmuster/linbo/start.conf.default	srv/linbo/start.conf
+var/log/linuxmuster/linbo			srv/linbo/log

@@ -1,0 +1,11 @@
+/srv/linbo/examples
+/srv/linbo/boot/grub/themes/linbo
+/srv/linbo/boot/grub/i386-pc
+/srv/linbo/boot/grub/i386-efi
+/srv/linbo/boot/grub/spool
+/srv/linbo/boot/grub/x86_64-efi
+/srv/linbo/icons
+/srv/linbo/linbocmd
+/srv/linbo/tmp
+/srv/linbo/torrentadds
+/srv/linbo/winact

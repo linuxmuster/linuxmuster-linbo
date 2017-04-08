@@ -1,5 +1,5 @@
 #!/usr/bin/dh-exec
-etc/ssh_config etc/linuxmuster/linbo/
+files/lmn6/etc/linuxmuster/linbo/ssh_config etc/linuxmuster/linbo/
 etc/start.conf.default etc/linuxmuster/linbo/
 files/common/var/linbo/* var/linbo/
 buildroot-external/board/rootfs_overlay/etc/linbo-version var/linbo/

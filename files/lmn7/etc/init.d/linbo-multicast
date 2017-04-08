@@ -4,8 +4,8 @@
 # Provides:          linbo-multicast
 # Required-Start:    $network $local_fs
 # Required-Stop:     $network $local_fs
-# Should-Start:
-# Should-Stop:
+# Should-Start:      
+# Should-Stop:       
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Starts per image multicast sessions
@@ -14,31 +14,13 @@
 
 # thomas@linuxmuster.net
 # GPL v3
-# 20170331
+# 20160917
 
 #set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Multicast session for"
-
-# lmn specific paths
-# lmn7
-if [ -d /usr/share/linuxmuster/linbo ]; then
-  source /usr/share/linuxmuster/defaults.sh || exit 1
-  INTERFACE="$(grep ^iface "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  SERVERIP="$(grep ^serverip "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-# lmn6x
-elif [ -d /usr/share/linuxmuster-linbo ]; then
-  source /usr/share/linuxmuster/config/dist.conf || exit 1
-  source /var/lib/linuxmuster/network.settings
-  SERVERIP=$serverip
-  source /etc/default/linuxmuster-base
-  INTERFACE=$IFACE
-else
-  exit 1
-fi
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
-DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
+DAEMON=/usr/share/linuxmuster/linbo/linbo-mcasthelper.sh
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
@@ -49,6 +31,7 @@ images="$2"
 force="$3"
 
 # defaults
+LINBODIR=/var/linbo
 START_MULTICAST=no
 PORTBASE=9000
 MINCLIENTS=16
@@ -57,9 +40,15 @@ MAXSECONDS=90
 MULTICASTLIST=$LINBODIR/multicast.list
 
 # read necessary functions and constants
-source /etc/default/linbo-multicast || exit 1
+. /usr/share/linuxmuster/defaults.sh || exit 1
+. /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+. /etc/default/linbo-multicast || exit 1
 [ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
-source /lib/lsb/init-functions
+. /lib/lsb/init-functions
+
+# reading internal interface name
+INTERFACE="$iface"
+SERVERIP="$serverip"
 
 create_multicast_list() {
   echo -n "Creating multicast.list"
@@ -167,3 +156,4 @@ case "$action" in
 esac
 
 exit 0
+
