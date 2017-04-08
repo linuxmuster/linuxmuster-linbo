@@ -67,13 +67,6 @@ GDB_DISABLE_BINUTILS_CONF_OPTS = \
 	--disable-ld \
 	--disable-gas
 
-# Starting with gdb 7.11, the bundled gnulib tries to use
-# rpl_gettimeofday (gettimeofday replacement) due to the code being
-# unable to determine if the replacement function should be used or
-# not when cross-compiling with uClibc or musl as C libraries. So use
-# gl_cv_func_gettimeofday_clobber=no to not use rpl_gettimeofday,
-# assuming musl and uClibc have a properly working gettimeofday
-# implementation.
 GDB_CONF_ENV = \
 	ac_cv_type_uintptr_t=yes \
 	gt_cv_func_gettext_libintl=yes \
@@ -83,8 +76,18 @@ GDB_CONF_ENV = \
 	bash_cv_must_reinstall_sighandlers=no \
 	bash_cv_func_sigsetjmp=present \
 	bash_cv_have_mbstate_t=yes \
-	gdb_cv_func_sigsetjmp=yes \
-	gl_cv_func_gettimeofday_clobber=no
+	gdb_cv_func_sigsetjmp=yes
+
+# Starting with gdb 7.11, the bundled gnulib tries to use
+# rpl_gettimeofday (gettimeofday replacement) due to the code being
+# unable to determine if the replacement function should be used or
+# not when cross-compiling with uClibc or musl as C libraries. So use
+# gl_cv_func_gettimeofday_clobber=no to not use rpl_gettimeofday,
+# assuming musl and uClibc have a properly working gettimeofday
+# implementation. It needs to be passed to GDB_MAKE_ENV and not
+# GDB_CONF_ENV, because otherwise it does not get passed to the
+# configure script of nested packages.
+GDB_MAKE_ENV = gl_cv_func_gettimeofday_clobber=no
 
 # The shared only build is not supported by gdb, so enable static build for
 # build-in libraries with --enable-static.
@@ -104,6 +107,12 @@ GDB_CONF_OPTS = \
 # So we pass --disable-build-with-cxx config option to force gdb not to
 # be built as C++ app.
 ifeq ($(BR2_arc),y)
+GDB_CONF_OPTS += --disable-build-with-cxx
+endif
+
+# gdb 7.12+ by default builds with a C++ compiler, which doesn't work
+# when we don't have C++ support in the toolchain
+ifneq ($(BR2_INSTALL_LIBSTDCPP),y)
 GDB_CONF_OPTS += --disable-build-with-cxx
 endif
 
