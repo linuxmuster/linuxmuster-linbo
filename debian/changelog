@@ -11,6 +11,41 @@ linuxmuster-linbo (3.0.0-1) babo-testing; urgency=medium
 
  -- Christian Buschau <christian.buschau@mailbox.org>  Fri, 03 Jun 2016 11:00:18 +0200
 
+linuxmuster-linbo (2.3.20-1) babo62; urgency=low
+
+  * linbo_cmd: nvme0n1 disknr fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Feb 2017 11:53:18 +0000
+
+linuxmuster-linbo (2.3.20-0) babo62; urgency=low
+
+  * linbo_cmd: experimental support for nvme0n1 disks.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Feb 2017 09:39:47 +0000
+
+linuxmuster-linbo (2.3.19-0) babo62; urgency=low
+
+  * lmn7:
+    - added more functions to helperfunctions.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 13 Feb 2017 20:05:38 +0000
+
+linuxmuster-linbo (2.3.18-0) babo62; urgency=low
+
+  * lmn7:
+    - added isinteger() to helperfunctions.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 04 Feb 2017 19:13:12 +0000
+
+linuxmuster-linbo (2.3.17-0) babo62; urgency=low
+
+  * lmn7:
+    - update-linbofs.sh: removed setting of linbo account password.
+    - updated grub.cfg template for forced netboot.
+    - moved linbo setup script to linuxmuster-base7 package.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 04 Feb 2017 12:54:43 +0000
+
 linuxmuster-linbo (2.3.16-0) babo62; urgency=low
 
   * linbo_cmd, set_efibootorder: improved recognition of efi network devices.
