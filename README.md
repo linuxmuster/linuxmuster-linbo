@@ -1,5 +1,5 @@
-linuxmuster-linbo
-=================
+oss-linbo
+==========
 
 GNU/Linux Network Boot  
 Lizenz: GNU General Public License Version 2
@@ -7,17 +7,22 @@ Lizenz: GNU General Public License Version 2
 Buildroot
 ---------
 
-Verwendet wird gerade `buildroot-2016.05`.
-Der Buildroot-Subtree sollte nicht veraendert werden, alle Aenderungen gehen in den Ordner `buildroot-external`. Bei ein paar Sachen liess sich das aber nicht vermeiden, die Veraenderungen sind in `buildroot-2016.05.patch` aufgefuehrt.
+Verwendet wird gerade `buildroot-2017.02.1`.
+Der Buildroot-Subtree sollte nicht veraendert werden, alle Aenderungen gehen in den Ordner `buildroot-external`. Bei ein paar Sachen liess sich das aber nicht vermeiden, die Veraenderungen sind in `buildroot-2016.11.patch` aufgefuehrt.
 
 ### Update
 
-Buildroot bringt alle drei Monate eine neue Version raus. Der Subtree laesst sich so updaten (Branch, an dem gearbeitet wird heisst `buildroot`):
+Buildroot bringt alle drei Monate eine neue Version raus.
+Falls man mit `git subtree pull` arbeitet, erhält man viele Konflikte, stattdessn lässt
+sich der Subtree so updaten (Branch, an dem gearbeitet wird heisst `buildroot`):
 
-    $ git checkout -b buildroot-2016.05  
-    $ git subtree pull --prefix buildroot git://git.buildroot.net/buildroot 2016.05  
-    $ git checkout buildroot  
-    $ git merge --squash buildroot-2016.05  
+    $ git checkout -b buildroot-2017.02.1
+    $ git rm -r buildroot
+    $ rm -r buildroot
+    $ git commit -a
+    $ git subtree add --prefix buildroot git://git.buildroot.net/buildroot 2017.02.1
+    $ git checkout buildroot
+    $ git merge -Xtheirs --squash buildroot-2017.02.1
 
 ### Konfiguration anpassen
 
@@ -46,9 +51,9 @@ Um die defconfig vom Kernel zu aktualisieren:
 Paket bauen
 -----------
 
-Getestet auf Ubuntu 16.04 amd64
+Getestet auf SuSE Linux Enterprise SLE-11
 
-    $ dpkg-buildpackage -us -uc
+    $ rpmbuild -ba oss-linbo.spec
 
 **ACHTUNG**: In der rules-Datei wird vor jedem Paketbau auch der `build`-Ordner geloescht, damit saubere Pakete entstehen.
-Zum  Basteln also immer mit `-nc` bauen, denn der Paketbau dauert mindestens 2h!
+Zum  Basteln also immer mit `--short-circuit` bauen, denn der Paketbau dauert mindestens 2h!
