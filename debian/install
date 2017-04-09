@@ -1,7 +1,7 @@
 #!/usr/bin/dh-exec
-files/lmn6/etc/linuxmuster/linbo/ssh_config etc/linuxmuster/linbo/
+etc/ssh_config etc/linuxmuster/linbo/
 etc/start.conf.default etc/linuxmuster/linbo/
-files/common/var/linbo/* var/linbo/
+var/* var/linbo
 buildroot-external/board/rootfs_overlay/etc/linbo-version var/linbo/
 build/ipxe.lkrn var/linbo/boot/grub/
 build/ipxe.efi var/linbo/boot/grub/

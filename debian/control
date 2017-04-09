@@ -8,31 +8,11 @@ Build-Depends: autoconf, automake, bc, bison, ca-certificates, cpio, debhelper,
 
 Package: linuxmuster-linbo
 Architecture: all
-Conflicts: atftpd, linuxmuster-linbo7
-Depends: linuxmuster-base (>= 6.2.0), linuxmuster-linbo-common (>= 3.0.0), tftpd-hpa (>= 5.2-1ubuntu1fifopatch)
-Suggests: isc-dhcp-server | dhcp3-server
-Description: linuxmuster-linbo scripts
- This package contains the scripts for the Linux-based Network Boot
- (LINBO) boot/install/repair system.
-
-Package: linuxmuster-linbo-common
-Architecture: all
-Replaces: linuxmuster-linbo (<< 3.0.0)
-Breaks: linuxmuster-linbo (<< 3.0.0)
-Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
-Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
-
-Package: linuxmuster-linbo-common7
-Architecture: all
-Replaces: linuxmuster-linbo-common
-Breaks: linuxmuster-linbo-common
-Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
-Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
-
-Package: linuxmuster-linbo7
-Architecture: all
-Conflicts: linuxmuster-linbo, atftpd
-Depends: linuxmuster-base7, python3, linuxmuster-linbo-common7 (>= 2.3.13), tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
+Conflicts: atftpd, linuxmuster-linbo-common
+Depends: linuxmuster-base (>= 6.2.0), rsync (>= 3), bittorrent, dropbear, ssh,
+ sed, screen, mkisofs, syslinux, dosfstools, tftpd-hpa,
+ isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03),
+ xorriso (>= 1.4.2), udpcast, xz-utils, zip, mbr, wakeonlan
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo scripts
  This package contains the scripts for the Linux-based Network Boot

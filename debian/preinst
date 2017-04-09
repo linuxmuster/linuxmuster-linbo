@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# preinst script for linuxmuster
+# thomas@linuxmuster.net
+# 20160916
+#
+
+
+DISTCONF=/usr/share/linuxmuster/config/dist.conf
+[ -e "$DISTCONF" ] || exit 0
+
+if [ "$1" = "upgrade" ]; then
+ 
+ # remove obsolete examples link
+ [ -L "$LINBODIR/examples" ] && rm "$LINBODIR/examples"
+ 
+ # remove obsolete examples dir
+ [ -d /usr/share/doc/linuxmuster-linbo/examples ] && rm -rf /usr/share/doc/linuxmuster-linbo/examples
+
+ # add bittorrent user if not present
+ if ! id bittorrent &> /dev/null; then
+  adduser --gecos "BitTorrent User" --home /var/lib/bittorrent --ingroup nogroup --system bittorrent
+  dpkg-statoverride --add bittorrent nogroup 755 /var/lib/bittorrent || true
+  dpkg-statoverride --add bittorrent nogroup 755 /var/log/bittorrent || true
+  chown bittorrent:nogroup /var/lib/bittorrent -R
+  chown bittorrent:nogroup /var/log/bittorrent -R
+ fi
+
+fi
+
+exit 0
+
