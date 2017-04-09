@@ -46,6 +46,9 @@ fi
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
+# recognize download request of start.conf-ip
+[[ ${FILE##$RSYNC_MODULE_PATH/} =~ start\.conf-[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] && EXT="start.conf.gruppe"
+
 case $EXT in
 
  # remove linbocmd file after download
@@ -167,6 +170,12 @@ case $EXT in
    echo "Removing $FILE."
    rm -f "$FILE"
   fi
+ ;;
+
+ # remove download link start.conf-ip
+ start.conf.gruppe)
+  echo "remove link to $FILE"
+  [[ -L $FILE ]] && rm -f "$FILE"
  ;;
 
  *) ;;
