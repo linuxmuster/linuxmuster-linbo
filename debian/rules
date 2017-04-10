@@ -138,14 +138,14 @@ configure-stamp:
 
 	# setup 32bit linbo_gui dir
 	-@if [ ! -e linbo_gui32/build_gui ]; then \
-		echo "[1mCreating 32bit linbo_gui...[0m" ; \
-		cp -R linbo_gui/* linbo_gui32; \
+		echo "[1mCreating 32bit linbo_gui-1.0...[0m" ; \
+		cp -R linbo_gui-1.0/* linbo_gui32; \
 	fi
 
 	# setup 64bit linbo_gui dir
 	-@if [ ! -e linbo_gui64/build_gui ]; then \
-		echo "[1mCreating 64bit linbo_gui...[0m" ; \
-		cp -R linbo_gui/* linbo_gui64; \
+		echo "[1mCreating 64bit linbo_gui-1.0...[0m" ; \
+		cp -R linbo_gui-1.0/* linbo_gui64; \
 		(cd linbo_gui64 && patch -p2 <$(CURDIR)/patches/linbo_gui64.patch); \
 	fi
 
@@ -424,14 +424,14 @@ build-stamp: configure-stamp
 
 	# linbo_gui32
 	-@if [ ! -e $(CURDIR)/linbo_gui32/linbo_gui ]; then \
-		echo "[1mBuilding 32bit linbo_gui...[0m" ; \
+		echo "[1mBuilding 32bit linbo_gui-1.0...[0m" ; \
 		cp var/icons/linbo_wallpaper_800x600.png linbo_gui32/icons/linbo_wallpaper.png ; \
 		( cd linbo_gui32 && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 ./build_gui ); \
 	fi
 
 	# linbo_gui64
 	-@if [ ! -e $(CURDIR)/linbo_gui64/linbo_gui ]; then \
-		echo "[1mBuilding 64bit linbo_gui...[0m" ; \
+		echo "[1mBuilding 64bit linbo_gui-1.0...[0m" ; \
 		cp var/icons/linbo_wallpaper_800x600.png linbo_gui64/icons/linbo_wallpaper.png ; \
 		( cd linbo_gui64 && ./build_gui ); \
 	fi
