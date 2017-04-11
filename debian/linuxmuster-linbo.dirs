@@ -1,6 +1,6 @@
 /etc/default
 /etc/init.d
-/etc/linuxmuster/linbo
+/etc/linbo
 /var/cache/linuxmuster-linbo
 /var/log/linuxmuster/linbo
 /usr/sbin
