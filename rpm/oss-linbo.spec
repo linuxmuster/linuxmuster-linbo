@@ -208,8 +208,8 @@ install oss/etc/logrotate %{buildroot}/etc/logrotate.d/linbo
 mkdir -p %{buildroot}/srv/tftp/{linbocmd,torrentadds,winact,tmp,backup}
 mkdir -p %{buildroot}/srv/tftp/boot/grub/spool
 # rsyncd conf
-install etc/rsyncd.conf.in %{buildroot}/etc/rsyncd.conf.in
-install etc/rsyncd.secrets.in %{buildroot}/etc/rsyncd.secrets.in
+install etc/rsyncd.conf.oss %{buildroot}/etc/rsyncd.conf.in
+install etc/rsyncd.secrets.oss %{buildroot}/etc/rsyncd.secrets.in
 # bittorrent
 install rpm/bittorrent.init %{buildroot}/etc/init.d/bittorrent
 mkdir -p %{buildroot}/var/adm/fillup-templates
