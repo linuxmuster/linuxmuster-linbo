@@ -175,8 +175,8 @@ mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfit.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
 mkdir -p %{buildroot}/etc/init.d
-install oss/etc/linbo-bittorrent.init %{buildroot}/etc/init.d/linbo-bittorrent
-install oss/etc/linbo-multicast.init %{buildroot}/etc/init.d/linbo-multicast
+install rpm/linbo-bittorrent.init %{buildroot}/etc/init.d/linbo-bittorrent
+install rpm/linbo-multicast.init %{buildroot}/etc/init.d/linbo-multicast
 install share/templates/grub.cfg.pxe %{buildroot}/srv/tftp/boot/grub/grub.cfg
 install build/build-i386/images/bzImage %{buildroot}/srv/tftp/linbo
 install build/build-i386/images/bzImage.md5 %{buildroot}/srv/tftp/linbo.md5
