@@ -1,4 +1,0 @@
-# LINBO empty start.conf
-
-[LINBO]                  # globale Konfiguration
-Server = #SCHOOL_SERVER# # IP des TFTP-Servers, der Images vorhaelt

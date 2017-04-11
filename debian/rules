@@ -691,7 +691,8 @@ install: build
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo/etc/default/linbo-multicast
 	mkdir -p debian/linuxmuster-linbo/etc/linbo/
-	cp -r files/common/etc/* debian/linuxmuster-linbo/etc/linbo/
+	install m 644 etc/ssh_config.lmn6 debian/linuxmuster-linbo/etc/linbo/ssh_config
+	install m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
 	cp -r files/common/share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	cp -r files/lmn6/share/* debian/linuxmuster-linbo/usr/linuxmuster-linbo/
@@ -701,11 +702,11 @@ install: build
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
 	mkdir -p debian/linuxmuster-linbo7/etc/linbo/
-	cp -r files/common/etc/* debian/linuxmuster-linbo7/etc/linbo/
+	install -m 644 etc/ssh_config.lmn7 debian/linuxmuster-linbo7/etc/linbo/ssh_config
+	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r files/common/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r files/lmn7/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	cp files/lmn7/etc/ssh_config debian/linuxmuster-linbo7/etc/linbo/
 	mkdir -p debian/linuxmuster-linbo7/etc/init.d/
 	cp files/lmn7/etc/linbo-bittorrent.init debian/linuxmuster-linbo7/etc/init.d/linbo-bittorrent
 	cp files/lmn7/etc/linbo-multicast.init debian/linuxmuster-linbo7/etc/init.d/linbo-multicast

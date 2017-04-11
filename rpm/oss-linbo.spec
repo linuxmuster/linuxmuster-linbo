@@ -155,8 +155,8 @@ EOF
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.oss-linbo %{buildroot}/var/adm/fillup-templates/sysconfig.oss-linbo
 mkdir -p %{buildroot}/etc/linbo
-install etc/ssh_config %{buildroot}/etc/linbo/ssh_config
-install etc/start.conf.default.in %{buildroot}/etc/linbo/start.conf.default.in
+install etc/ssh_config.oss %{buildroot}/etc/linbo/ssh_config
+install etc/start.conf.default %{buildroot}/etc/linbo/start.conf.default.in
 install rpm/workstations.in %{buildroot}/etc/linbo/workstations.in
 mkdir -p %{buildroot}/srv/tftp
 cp -r var/* %{buildroot}/srv/tftp
@@ -260,7 +260,7 @@ then
    fi
    SCHOOL_SERVER=10.0.0.2
    [ -e /etc/sysconfig/schoolserver ] && . /etc/sysconfig/schoolserver
-   sed -i s@#SCHOOL_SERVER#@$SCHOOL_SERVER@g $FILE
+   sed -i s@Server = .*@Server = $SCHOOL_SERVER@g $FILE
    [ -e /srv/tftp/start.conf ] || ln -sf $FILE /srv/tftp/start.conf
    
    # create dropbear ssh keys
