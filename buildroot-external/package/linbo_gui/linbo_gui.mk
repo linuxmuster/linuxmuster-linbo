@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-LINBO_GUI_VERSION = 1.1
+LINBO_GUI_VERSION = 2.0
 LINBO_GUI_DEPENDENCIES = qt5base
-LINBO_GUI_SITE = $(TOPDIR)/../linbo_gui
+LINBO_GUI_SITE = $(TOPDIR)/../linbo_gui-2.0
 LINBO_GUI_SITE_METHOD = local
 
 define LINBO_GUI_CONFIGURE_CMDS

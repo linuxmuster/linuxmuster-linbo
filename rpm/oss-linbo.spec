@@ -142,13 +142,22 @@ make -f rpm/Makefile build
 export PATH=$OPATH
 
 %install
+# install main conf
+mkdir -p %{buildroot}/etc/linbo
+cat >%{buildroot}/etc/linbo/linbo.conf <<EOF
+# /etc/linbo/linbo.conf
+# main conf file
+FLAVOUR=oss
+
+EOF
+
 # install files and directories
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.oss-linbo %{buildroot}/var/adm/fillup-templates/sysconfig.oss-linbo
-mkdir -p %{buildroot}/etc/sysconfig/linbo
-install etc/ssh_config %{buildroot}/etc/sysconfig/linbo/ssh_config
-install etc/start.conf.default.in %{buildroot}/etc/sysconfig/linbo/start.conf.default.in
-install rpm/workstations.in %{buildroot}/etc/sysconfig/linbo/workstations.in
+mkdir -p %{buildroot}/etc/linbo
+install etc/ssh_config %{buildroot}/etc/linbo/ssh_config
+install etc/start.conf.default.in %{buildroot}/etc/linbo/start.conf.default.in
+install rpm/workstations.in %{buildroot}/etc/linbo/workstations.in
 mkdir -p %{buildroot}/srv/tftp
 cp -r var/* %{buildroot}/srv/tftp
 pushd %{buildroot}/srv/tftp/boot/grub/
@@ -207,7 +216,7 @@ install rpm/sysconfig.bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig
 mkdir -p %{buildroot}/var/lib/bittorrent
 mkdir -p %{buildroot}/var/log/bittorrent
 
-mkdir -p %{buildroot}/etc/sysconfig/linbo/import-workstations.d
+mkdir -p %{buildroot}/etc/linbo/import-workstations.d
 mkdir -p %{buildroot}/usr/sbin
 install rpm/import_workstations %{buildroot}/usr/sbin/import_workstations
 install rpm/oss_modify_dhcpStatements.pl %{buildroot}/usr/sbin/oss_modify_dhcpStatements.pl
@@ -239,12 +248,12 @@ then
      LINBOPW="$(pwgen -1)"
      sed s/#LINBOPW#/$LINBOPW/ -i $FILE
    fi
-   FILE=/etc/sysconfig/linbo/start.conf.default
+   FILE=/etc/linbo/start.conf.default
    if [ -e $FILE ]; then
      cp $FILE $FILE.$DATE
    fi
    cp $FILE.in $FILE
-   FILE=/etc/sysconfig/linbo/workstations
+   FILE=/etc/linbo/workstations
    if [ ! -e $FILE ]
    then
      cp $FILE.in $FILE
@@ -255,17 +264,17 @@ then
    [ -e /srv/tftp/start.conf ] || ln -sf $FILE /srv/tftp/start.conf
    
    # create dropbear ssh keys
-   if [ ! -s "/etc/sysconfig/linbo/ssh_host_rsa_key" ]; then
-     ssh-keygen -t rsa -N "" -f /etc/sysconfig/linbo/ssh_host_rsa_key
-     dropbearconvert openssh dropbear /etc/sysconfig/linbo/ssh_host_rsa_key /etc/sysconfig/linbo/dropbear_rsa_host_key
+   if [ ! -s "/etc/linbo/ssh_host_rsa_key" ]; then
+     ssh-keygen -t rsa -N "" -f /etc/linbo/ssh_host_rsa_key
+     dropbearconvert openssh dropbear /etc/linbo/ssh_host_rsa_key /etc/linbo/dropbear_rsa_host_key
    fi
-   if [ ! -s "/etc/sysconfig/linbo/ssh_host_dsa_key" ]; then
-     ssh-keygen -t dsa -N "" -f /etc/sysconfig/linbo/ssh_host_dsa_key
-     dropbearconvert openssh dropbear /etc/sysconfig/linbo/ssh_host_dsa_key /etc/sysconfig/linbo/dropbear_dsa_host_key
+   if [ ! -s "/etc/linbo/ssh_host_dsa_key" ]; then
+     ssh-keygen -t dsa -N "" -f /etc/linbo/ssh_host_dsa_key
+     dropbearconvert openssh dropbear /etc/linbo/ssh_host_dsa_key /etc/linbo/dropbear_dsa_host_key
    fi
-   if [ ! -s "/etc/sysconfig/linbo/ssh_host_ecdsa_key" ]; then
-     ssh-keygen -t ecdsa -N "" -f /etc/sysconfig/linbo/ssh_host_ecdsa_key
-     dropbearconvert openssh dropbear /etc/sysconfig/linbo/ssh_host_ecdsa_key /etc/sysconfig/linbo/dropbear_ecdsa_host_key
+   if [ ! -s "/etc/linbo/ssh_host_ecdsa_key" ]; then
+     ssh-keygen -t ecdsa -N "" -f /etc/linbo/ssh_host_ecdsa_key
+     dropbearconvert openssh dropbear /etc/linbo/ssh_host_ecdsa_key /etc/linbo/dropbear_ecdsa_host_key
    fi
    # create missing ecdsa ssh key
    rootkey="/root/.ssh/id_ecdsa"
@@ -288,11 +297,11 @@ fi
 
 %files
 %defattr(-,root,root)
-%dir /etc/sysconfig/linbo
-%dir /etc/sysconfig/linbo/import-workstations.d
-%config /etc/sysconfig/linbo/ssh_config
-%config /etc/sysconfig/linbo/start.conf.default.in
-%config /etc/sysconfig/linbo/workstations.in
+%dir /etc/linbo
+%dir /etc/linbo/import-workstations.d
+%config /etc/linbo/ssh_config
+%config /etc/linbo/start.conf.default.in
+%config /etc/linbo/workstations.in
 %config /etc/logrotate.d/oss-linbo
 %attr(-,nobody,root) %dir /var/log/oss-linbo
 %dir /var/cache/oss-linbo

@@ -660,6 +660,10 @@ install: build
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np.md5
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64.md5
 	## linuxmuster-linbo-common
+	mkdir -p debian/linuxmuster-linbo-common/etc/linbo/
+	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
+	echo "# main conf file" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
+	echo "FLAVOUR=lmn6" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	# /var/linbo
 	cp -r files/common/linbo/* debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo-common/var/linbo
@@ -672,6 +676,10 @@ install: build
 
 	# linuxmuster-linbo-common7
 	cp -r debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
+	mkdir -p debian/linuxmuster-linbo-common7/etc/linbo/
+	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
+	echo "# main conf file" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
+	echo "FLAVOUR=lmn7" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	mkdir -p debian/linuxmuster-linbo-common7/srv
 	rm -rf debian/linuxmuster-linbo-common7/srv/linbo
 	mv debian/linuxmuster-linbo-common7/var/linbo debian/linuxmuster-linbo-common7/srv
