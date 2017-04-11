@@ -700,6 +700,8 @@ install: build
 	cp -r files/lmn6/share/* debian/linuxmuster-linbo/usr/linuxmuster-linbo/
 
 	## linuxmuster-linbo7
+	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo7/etc/init.d/linbo-bittorrent
+	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo7/etc/init.d/linbo-multicast
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
@@ -710,9 +712,6 @@ install: build
 	cp -r files/common/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r files/lmn7/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	mkdir -p debian/linuxmuster-linbo7/etc/init.d/
-	cp files/lmn7/etc/linbo-bittorrent.init debian/linuxmuster-linbo7/etc/init.d/linbo-bittorrent
-	cp files/lmn7/etc/linbo-multicast.init debian/linuxmuster-linbo7/etc/init.d/linbo-multicast
-	chmod 755 debian/linuxmuster-linbo7/etc/init.d/*
 
 # Build architecture-independent files here.
 binary-indep: build install

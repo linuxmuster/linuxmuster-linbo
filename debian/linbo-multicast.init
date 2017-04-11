@@ -21,15 +21,14 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Multicast session for"
 
-# lmn specific paths
-# lmn7
-if [ -d /usr/share/linuxmuster/linbo ]; then
-  source /usr/share/linuxmuster/defaults.sh || exit 1
-  INTERFACE="$(grep ^iface "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  SERVERIP="$(grep ^serverip "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-# lmn6x
-elif [ -d /usr/share/linuxmuster-linbo ]; then
-  source /usr/share/linuxmuster/config/dist.conf || exit 1
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+
+if [ "$FLAVOUR" = "lmn7" ]; then
+  INTERFACE="$iface"
+  SERVERIP="$serverip"
+elif [ "$FLAVOUR" = "lmn6" ]; then
   source /var/lib/linuxmuster/network.settings
   SERVERIP=$serverip
   source /etc/default/linuxmuster-base
@@ -37,7 +36,7 @@ elif [ -d /usr/share/linuxmuster-linbo ]; then
 else
   exit 1
 fi
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+
 DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
 
 # Gracefully exit if the package has been removed.

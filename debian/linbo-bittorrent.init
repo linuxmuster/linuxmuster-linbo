@@ -21,18 +21,11 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="BitTorrent service for"
 
-# lmn specific paths
-# lmn7
-if [ -d /usr/share/linuxmuster/linbo ]; then
- source /usr/share/linuxmuster/defaults.sh || exit 1
-#lmn6x
-elif [ -d /usr/share/linuxmuster-linbo ]; then
-  source /usr/share/linuxmuster/config/dist.conf || exit 1
-else
-  exit 1
-fi
-DAEMON=$LINBOSHAREDIR/linbo-torrenthelper.sh
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+
+DAEMON=$LINBOSHAREDIR/linbo-torrenthelper.sh
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
@@ -104,8 +97,10 @@ start(){
  local RC=0
  local c=0
 
- # read server ip
- serverip="$(grep ^Server "$LINBODIR/start.conf" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ if [ -z "$serverip" ]; then
+   # read server ip
+   serverip="$(grep ^Server "$LINBODIR/start.conf" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+ fi
 
  write_client_config > "$CLIENT_CONFIG"
 
