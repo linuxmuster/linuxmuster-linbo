@@ -20,15 +20,6 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="BitTorrent service for"
-DAEMON=/usr/share/linbo/linbo-torrenthelper.sh
-
-# Gracefully exit if the package has been removed.
-test -x $DAEMON || exit 0
-
-# read necessary functions and constants
-. /usr/share/linbo/helperfunctions.sh || exit 1
-[ -e /usr/share/linbo/dist.conf ] && . /usr/share/linbo/dist.conf
-. /lib/lsb/init-functions
 
 # read cmdline
 action="$1"
@@ -53,13 +44,30 @@ UPLOAD_RATE_FUDGE=5
 DISPLAY_INTERVAL=1
 MAX_SLICE_LENGTH=131072
 CLIENT_CONFIG="torrent-client.conf"
+SERVERIP=10.0.0.2
+
+# read necessary functions and constants
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+source /lib/lsb/init-functions
+
+DAEMON=$LINBOSHAREDIR/linbo-torrenthelper.sh
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
 
 # read defaults
-[ -e /etc/sysconfig/linbo-bittorrent ] || exit 1
-. /etc/sysconfig/linbo-bittorrent
+source /etc/sysconfig/linbo-bittorrent || exit 1
 [ "$START_BITTORRENT" = "1" ] || exit 0
-. /etc/sysconfig/bittorrent || exit 1
+source /etc/sysconfig/bittorrent || exit 1
 [ "$START_BTTRACK" = "1" ] || exit 0
+
+# reading server ip
+if [ -s /etc/sysconfig/schoolserver ]; then
+ . /etc/sysconfig/schoolserver
+ SERVERIP=${SCHOOL_SERVER}
+fi
 
 cd $LINBODIR
 
@@ -96,9 +104,6 @@ start(){
  local RC=0
  local c=0
 
- # read server ip
- serverip="$(grep ^Server "$LINBODIR/start.conf" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-
  write_client_config > "$CLIENT_CONFIG"
 
  # check and create torrents first
@@ -116,7 +121,7 @@ start(){
    fi
   fi
   # create torrent files if necessary
-  [ ! -e "$tfile" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+  [ ! -e "$tfile" -o "$force" = "force" ] && create_torrent "$i" "$SERVERIP" "$PORT"
  done
 
  # restart tracker

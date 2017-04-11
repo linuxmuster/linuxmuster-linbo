@@ -20,16 +20,6 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Multicast session for"
-DAEMON=/usr/share/linuxmuster-linbo/linbo-mcasthelper.sh
-
-# Gracefully exit if the package has been removed.
-test -x $DAEMON || exit 0
-
-# read cmdline
-action="$1"
-images="$2"
-force="$3"
-
 # defaults
 LINBODIR=/srv/tftp
 START_MULTICAST=no
@@ -42,11 +32,22 @@ INTERFACE=eth0
 SERVERIP=10.0.0.2
 
 # read necessary functions and constants
-. /usr/share/oss-linbo/helperfunctions.sh || exit 1
-[ -e /usr/share/oss-linbo/config/dist.conf ] && . /usr/share/oss-linbo/config/dist.conf
-[ -f /etc/sysconfig/oss-linbo ] && . /etc/sysconfig/oss-linbo
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+source /etc/sysconfig/linbo || exit 1
 [ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
-. /lib/lsb/init-functions
+DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# read cmdline
+action="$1"
+images="$2"
+force="$3"
+
+source /lib/lsb/init-functions
 
 # reading internal interface name
 if [ -s /etc/sysconfig/dhcpd ]; then
