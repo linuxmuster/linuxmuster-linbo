@@ -1,0 +1,90 @@
+## Path:	Network/BitTorrent
+## Description:	Configuration for BitTorrent bttrack daemon
+
+## Type:	string
+## Default:	"1"
+## ServiceRestart: bittorrent
+#
+# Default configuration for bittorrent tracker, bttrack
+# If you want the bittorrent tracker to run, switch this to 1.
+# If you change this, you will probably want to change 
+# ALLOWED_DIR as well, or anyone will be able to track anything
+# just by pointing the .torrent at your server.
+#
+START_BTTRACK="1"
+
+## Type:	string
+## Default:	"/var/lib/bittorrent/bttrack.state"
+## ServiceRestart: bittorrent
+#
+# Set any bttrack option --foo by defining the variable FOO to the argument
+# you'd like to pass with the --foo option.  See `man bttrack` for a detailed
+# discussion of the options.
+#
+# Persistent state file
+#
+DFILE="/var/lib/bittorrent/bttrack.state"
+
+## Type:	string
+## Default:	"80"
+## ServiceRestart: bittorrent
+#
+# Port defaults to 80, which tends to be inconvenient
+#
+PORT="6969"
+
+## Type:	string
+## Default:	"/srv/ftp"
+## ServiceRestart: bittorrent
+#
+# Only allow downloads for .torrent files in this directory
+#
+ALLOWED_DIR=/srv/ftp
+
+## Type:	string
+## Default:	"bittorrent"
+## ServiceRestart: bittorrent
+#
+# Run under this uid.  Must have access to all files and directories involved,
+# naturally, but should otherwise have minimal privileges to minimize any
+# security risk.
+#
+DAEMONUSER="bittorrent"
+
+# chroot to this directory before starting the daemon.  This can also help keep
+# the daemon secure, but may interact with all sorts of file locations in
+# unexpected ways.
+#DAEMONCHROOT=/var/local/lib/bttrack-sandbox
+
+# Move to this directory before starting the daemon.  This may be useful in
+# conjunction with DAEMONCHROOT.
+#DAEMONCHDIR=/var/local/lib/bttrack-sandbox
+
+## Type:	string
+## Default:	"5"
+## ServiceRestart: bittorrent
+#
+# Run the daemon at this "nice" priority.  Setting a positive value here will
+# dissuade the system from giving all its CPU time to bttrack requests from the
+# network.
+#
+DAEMONNICE="5"
+
+## Type:	string
+## Default:	"/var/log/bittorrent/bttrack.log"
+## ServiceRestart: bittorrent
+#
+# Append log output from daemon to this file.  Make sure this log is rotated
+# from time to time so it doesn't fill up your disk.  The daemon will of course
+# need write access to the log file.
+#
+DAEMONLOGFILE="/var/log/bittorrent/bttrack.log"
+
+## Type:	string
+## Default:	"15"
+## ServiceRestart: bittorrent
+#
+# seconds downloaders should wait between reannouncements (default 1800)
+# 15 seconds is recommended value for linuxmuster-linbo
+#
+REANNOUNCE_INTERVAL="60"

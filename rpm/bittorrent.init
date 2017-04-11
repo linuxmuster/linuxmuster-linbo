@@ -1,0 +1,127 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:		bittorrent
+# Required-Start:	$network $local_fs
+# Required-Stop:	$network $local_fs
+# Should-Start:		
+# Should-Stop:		
+# Default-Start:	2 3 5
+# Default-Stop:		
+# Short-Description:	Start a bittorrent tracker
+# Description:		Starts a bittorrent tracker, which
+#               	aids bittorrent clients by locating
+#               	other clients.
+### END INIT INFO
+
+set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DESC="BitTorrent tracker"
+NAME=bttrack
+DAEMON=/usr/bin/$NAME
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/bittorrent
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+PORT=6969
+DFILE=/var/lib/bittorrent/bttrack.state
+
+# Read config file if it is present.
+if [ -r /etc/sysconfig/bittorrent ]; then
+	. /etc/sysconfig/bittorrent
+fi
+
+# Add optional option $1 with argument $2 to OPTS, if $2 is nonempty
+add_opt () {
+	if ! test -z "$2" ; then
+		OPTS="$OPTS $1 $2"
+	fi
+}
+
+# Compose command-line arguments list for bttrack daemon, based on variables
+# set in /etc/sysconfig/$NAME
+OPTS=""
+add_opt --dfile "$DFILE"
+add_opt --port "$PORT"
+add_opt --bind "$BIND"
+add_opt --socket_timeout "$SOCKET_TIMEOUT"
+add_opt --save_dfile_interval "$SAVE_DFILE_INTERVAL"
+add_opt --timeout_downloaders_interval "$TIMEOUT_DOWNLOADERS_INTERVAL"
+add_opt --reannounce_interval "$REANNOUNCE_INTERVAL"
+add_opt --respose_size "$RESPONSE_SIZE"
+add_opt --timeout_check_interval "$TIMEOUT_CHECK_INTERVAL"
+add_opt --nat_check "$NAT_CHECK"
+add_opt --min_time_between_log_flushes "$MIN_TIME_BETWEEN_LOG_FLUSHES"
+add_opt --allowed_dir "$ALLOWED_DIR"
+add_opt --parse_allowed_interval "$PARSE_ALLOWED_INTERVAL"
+add_opt --show_names "$SHOW_NAMES"
+add_opt --logfile "$DAEMONLOGFILE"
+DAEMONOPTS="$OPTS"
+
+# Add arguments for start-stop-daemon, based on variables set in
+# /etc/sysconfig/$NAME
+OPTS=""
+add_opt -u "$DAEMONUSER"
+add_opt --chroot "$DAEMONCHROOT"
+add_opt --chdir "$DAEMONCHDIR"
+add_opt -n "$DAEMONNICE"
+METAOPTS="$OPTS"
+
+#
+#Function that starts the daemon/service.
+#
+d_start() {
+	if [ $START_BTTRACK -ne 1 ]; then
+		log_progress_msg "disabled in /etc/sysconfig/bittorrent"
+		return 1
+	else
+		startproc -q \
+		-p "$PIDFILE" \
+		$METAOPTS \
+		$DAEMON $DAEMONOPTS
+		return 0
+	fi
+}
+
+#
+#Function that stops the daemon/service.
+#
+d_stop() {
+	start-stop-daemon --stop --oknodo --quiet --pidfile "$PIDFILE"
+}
+
+case "$1" in
+  start)
+  	echo -n "Starting $DESC" "$NAME"
+	d_start
+	rc_status -v
+	;;
+  stop)
+  	echo -n "Stopping $DESC" "$NAME"
+	d_stop
+	rc_status -v
+	;;
+  restart|force-reload)
+  	echo -n "Restarting $DESC" "$NAME"
+	d_stop
+	sleep 1
+	d_start
+	rc_status -v
+	;;
+  status)
+	echo -n "Checking $DESC" "$NAME"
+	checkproc $DAEMON
+	rc_status -v
+	;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	exit 2
+	;;
+esac
+
+exit 0

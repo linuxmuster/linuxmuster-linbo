@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# wrapper for workstation import scripts
+#
+# Thomas Schmitt <thomas@linuxmuster.net>
+#
+# for oss-linbo
+# Frank Schütte <fschuett@gymhim.de>
+# 17.03.2017
+# GPL v3
+#
+
+# check for import_workstations lockfile
+locker=/tmp/.import_workstations.lock
+if [ -e "$locker" ]; then
+	echo "Caution! Probably there is another import_workstations process running!"
+	echo "If this is not the case you can safely remove the lockfile $locker"
+	echo "and give import_workstations another try."
+	echo "Workstation import is locked! Exiting!"
+	exit 1
+fi
+touch $locker
+chmod 400 $locker
+
+# read environment
+. /usr/share/oss-linbo/config/dist.conf
+. $HELPERFUNCTIONS
+LOGFILE="$LOGDIR/import_workstations.log"
+TMPLOG=/var/tmp/import_workstations.log
+[ -e "$TMPLOG" ] && rm -f $TMPLOG
+
+echo | tee -a $TMPLOG
+echo "#####################################################################" | tee -a $TMPLOG
+echo "Starting import workstations session at `date`" | tee -a $TMPLOG
+echo | tee -a $TMPLOG
+
+# start nscd if not running
+if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
+	service nscd start | tee -a $TMPLOG
+	echo | tee -a $TMPLOG
+fi
+
+RC=0
+
+# backing up workstation data file
+echo -n "Backing up $WIMPORTDATA ... " | tee -a $TMPLOG
+if backup_file $WIMPORTDATA &> /dev/null; then
+ echo "Ok!" | tee -a $TMPLOG
+else
+ echo "failed!" | tee -a $TMPLOG
+fi
+
+# source import script
+echo | tee -a $TMPLOG
+. $LINBOSHAREDIR/wimport.sh | tee -a $TMPLOG
+RC_ML=${PIPESTATUS[0]}
+[ $RC_ML -ne 0 ] && RC=$RC_ML
+
+# restart nscd service
+service nscd restart| tee -a $TMPLOG
+
+# restart dhcp service
+service dhcpd restart| tee -a $TMPLOG
+
+# running user scripts
+echo | tee -a $TMPLOG
+echo "### Running user scripts - Begin ###" | tee -a $TMPLOG
+#TODO
+#run-parts "$SYSCONFDIR/import_workstations.d" | tee -a $TMPLOG
+echo "### Running user scripts - End ###" | tee -a $TMPLOG
+
+echo | tee -a $TMPLOG
+echo "Ending import workstations session at `date`" | tee -a $TMPLOG
+echo "#####################################################################" | tee -a $TMPLOG
+
+if [ $RC -ne 0 ]; then
+	echo | tee -a $TMPLOG
+	echo "Finished with error(s)! Please look at $LOGFILE! Detailed output will be mailed to $ADMINISTRATOR!" | tee -a $TMPLOG
+	cat $TMPLOG | mail -s "import_workstations finished with error(s)!" $ADMINISTRATOR@localhost
+fi
+
+# append log
+cat $TMPLOG >> $LOGFILE
+rm -f $TMPLOG
+
+# delete locker
+rm -f $locker
+
+exit $RC
+

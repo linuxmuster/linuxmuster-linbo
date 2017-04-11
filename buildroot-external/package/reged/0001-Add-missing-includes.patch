@@ -1,0 +1,33 @@
+diff -ur a/chntpw-140201/edlib.c b/chntpw-140201/edlib.c
+--- a/chntpw-140201/edlib.c	2016-05-07 22:14:10.258572209 +0200
++++ b/chntpw-140201/edlib.c	2016-05-07 22:14:55.339171903 +0200
+@@ -42,6 +42,7 @@
+  */
+ 
+ 
++#include <stdint.h>
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <stdlib.h>
+diff -ur a/chntpw-140201/ntreg.c b/chntpw-140201/ntreg.c
+--- a/chntpw-140201/ntreg.c	2014-02-01 17:54:37.000000000 +0100
++++ b/chntpw-140201/ntreg.c	2016-05-07 22:15:06.869325199 +0200
+@@ -70,6 +70,7 @@
+  * 
+  */ 
+ 
++#include <stdint.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <ctype.h>
+diff -ur a/chntpw-140201/reged.c b/chntpw-140201/reged.c
+--- a/chntpw-140201/reged.c	2014-02-01 17:54:37.000000000 +0100
++++ b/chntpw-140201/reged.c	2016-05-07 22:15:16.526120228 +0200
+@@ -30,6 +30,7 @@
+  */
+ 
+ 
++#include <stdint.h>
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <stdlib.h>

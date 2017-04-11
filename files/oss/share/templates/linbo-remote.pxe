@@ -1,0 +1,5 @@
+default linbo-remote
+
+label linbo-remote
+  kernel @@kernel@@
+  append initrd=@@kernelfs@@ vga=788 quiet splash @@kopts@@ linbocmd=@@linbocmd@@

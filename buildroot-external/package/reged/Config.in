@@ -1,0 +1,6 @@
+config BR2_PACKAGE_REGED
+    bool "reged"
+    help
+      This package contains reged, a simple registry edit utility for Windows registry hives.
+
+      http://pogostick.net/~pnh/ntpasswd

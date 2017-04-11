@@ -1,0 +1,100 @@
+## Path:	linbo/bittorrent
+## Description:	Linbo bittorrent configuration
+#
+# default start values for LINBO bittorrent server
+#
+## Type:	string
+## Default:	0
+# start the LINBO bittorrent server (0 | 1)?
+# to enable set this to "1"
+#
+START_BITTORRENT=0
+
+## Type:	string
+## Default:	/srv/tftp/workstations
+# path to file with workstation data
+WIMPORTDATA=/srv/tftp/workstations
+
+## Type:	string
+## Default:	6881
+# set portnum as the minimum port to listen on,
+# counts up if unavailable (default 6881)
+MINPORT=6881
+
+## Type:	string
+## Default:	4
+# only allow num uploads at once per image (default 4)
+MAX_UPLOADS=4
+
+## Type:	string
+## Default:	0
+# maximum rate to upload at in kilobytes per image,
+# 0 means no limit (default 0)
+MAX_UPLOAD_RATE=0
+
+## Type:	string
+## Default:	60
+# request more peers every secs seconds (default 300)
+REREQUEST_INTERVAL=60
+
+## Type:	string
+## Default:	20
+# do not rerequest if we have num peers already (default 20)
+MIN_PEERS=20
+
+## Type:	string
+## Default:	40
+# stop initiating new connections when we have num peers (default 40)
+MAX_INITIATE=40
+
+## Type:	string
+## Default:	120
+# pause secs seconds between sending keepalives (default 120)
+KEEPALIVE_INTERVAL=120
+
+## Type:	string
+## Default:	131072
+# query for bytes bytes per request (default 32768)
+DOWNLOAD_SLICE_SIZE=131072
+
+## Type:	string
+## Default:	5
+# keep num requests in a single pipe at once (default 5)
+REQUEST_BACKLOG=5
+
+## Type:	string
+## Default:	8388608
+# set bytes to the maximum length prefix encoding you’ll accept over the wire -
+# larger  values get the connection dropped (default 8388608)
+MAX_MESSAGE_LENGTH=8388608
+
+## Type:	string
+## Default:	300
+# wait secs before closing sockets which nothing has been received on (default 300)
+TIMEOUT=300
+
+## Type:	string
+## Default:	60
+# check whether connections have timed out every secs seconds (default 60)
+TIMEOUT_CHECK_INTERVAL=60
+
+## Type:	string
+## Default:	20
+# set  secs  to  the  maximum  amount  of  time  to guess the current rate
+# estimate represents (default 20)
+MAX_RATE_PERIOD=20
+
+## Type:	string
+## Default:	5
+# set the time equivalent of writing to kernel-level TCP buffer to secs (default 5)
+UPLOAD_RATE_FUDGE=5
+
+## Type:	string
+## Default:	1
+# update displayed information every secs seconds (default 0.1)
+DISPLAY_INTERVAL=1
+
+## Type:	string
+## Default:	131072
+# requests from peers larger than bytes bytes are ignored (default 131072)
+MAX_SLICE_LENGTH=131072

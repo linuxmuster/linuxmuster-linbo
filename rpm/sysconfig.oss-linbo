@@ -1,0 +1,49 @@
+## Path:	OSS-Linbo
+## Description:	OSS Linbo configuration
+#
+# default values for linbo multicast server
+# $Id: default 1084 2011-06-07 10:28:53Z tschmitt $
+
+## Type:	string
+## Default:	/srv/tftp
+# where the linbo stuff is located
+#
+LINBODIR=/srv/tftp
+
+## Type:	string
+## Default:	/srv/tftp
+# path to the list of files to be multicasted
+#
+MULTICASTLIST=$LINBODIR/multicast.list
+
+## Type:	yesno
+## Default:	yes
+# start the multicast server?
+#
+START_MULTICAST=yes
+
+# variables for udpcast
+
+## Type:	string
+## Default:	9000
+# multicast base port
+#
+PORTBASE=9000
+
+## Type:	string
+## Default:	15
+# minimum multicast clients
+#
+MINCLIENTS=15
+
+## Type:	string
+## Default:	30
+# minimum wait time before start
+#
+MINSECONDS=30
+
+## Type:	string
+## Default:	60
+# maximum wait time before start
+#
+MAXSECONDS=60

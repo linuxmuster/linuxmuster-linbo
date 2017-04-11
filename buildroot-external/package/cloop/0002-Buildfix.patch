@@ -1,0 +1,13 @@
+diff -ur cloop-3.14.1.2.orig/advfs.cc cloop-3.14.1.2/advfs.cc
+--- cloop-3.14.1.2.orig/advfs.cc	2015-05-03 13:22:21.000000000 +0200
++++ cloop-3.14.1.2/advfs.cc	2016-05-07 19:45:22.805167535 +0200
+@@ -62,9 +62,6 @@
+ #include <netdb.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
+-#if defined(__linux__)
+-#include <sys/socketvar.h>
+-#endif
+ #include "lib/mng.h"
+ #include "lib/endianrw.h"
+ 

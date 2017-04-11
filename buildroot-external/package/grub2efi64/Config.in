@@ -1,0 +1,6 @@
+config BR2_PACKAGE_GRUB2EFI64
+    bool "grub2efi64"
+    help
+      This package contains GRUB2 for 64-bit EFI targets.
+
+        https://www.gnu.org/software/grub/

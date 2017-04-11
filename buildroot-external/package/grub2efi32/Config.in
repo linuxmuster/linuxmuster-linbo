@@ -1,0 +1,6 @@
+config BR2_PACKAGE_GRUB2EFI32
+    bool "grub2efi32"
+    help
+      This package contains GRUB2 for 32-bit EFI targets.
+
+      https://www.gnu.org/software/grub/

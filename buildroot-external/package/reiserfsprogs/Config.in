@@ -1,0 +1,7 @@
+config BR2_PACKAGE_REISERFSPROGS
+    bool "reiserfsprogs"
+    select BR2_PACKAGE_UTIL_LINUX_LIBUUID
+    help
+      This package contains reiserfsprogs.
+
+        https://www.kernel.org/
