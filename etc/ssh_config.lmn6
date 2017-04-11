@@ -47,7 +47,7 @@ Host *
     GSSAPIAuthentication yes
     GSSAPIDelegateCredentials no
 # needed for linbo remote client connections
-    PubkeyAcceptedKeyTypes=+ssh-dss
+#    PubkeyAcceptedKeyTypes=+ssh-dss
     StrictHostKeyChecking no
     UserKnownHostsFile ~/.ssh/linbo_hosts
     Port 2222
