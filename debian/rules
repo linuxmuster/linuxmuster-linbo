@@ -664,6 +664,7 @@ install: build
 	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	echo "# main conf file" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	echo "FLAVOUR=lmn6" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
+	echo "ENVDEFAULTS=/usr/share/linuxmuster/config/dist.conf" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	# /var/linbo
 	cp -r files/common/linbo/* debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo-common/var/linbo
@@ -680,6 +681,7 @@ install: build
 	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	echo "# main conf file" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	echo "FLAVOUR=lmn7" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
+	echo "ENVDEFAULTS=/usr/share/linuxmuster/defaults.sh" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	mkdir -p debian/linuxmuster-linbo-common7/srv
 	rm -rf debian/linuxmuster-linbo-common7/srv/linbo
 	mv debian/linuxmuster-linbo-common7/var/linbo debian/linuxmuster-linbo-common7/srv

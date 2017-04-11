@@ -14,8 +14,8 @@ list = yes
 uid = nobody
 gid = nogroup
 dont compress = *.cloop *.rsync *.gz
-pre-xfer exec = /usr/share/oss-linbo/rsync-pre-download.sh
-post-xfer exec = /usr/share/oss-linbo/rsync-post-download.sh
+pre-xfer exec = /usr/share/linbo/rsync-pre-download.sh
+post-xfer exec = /usr/share/linbo/rsync-post-download.sh
 
 [linbo-upload]
 comment = LINBO Upload directory
@@ -29,5 +29,5 @@ gid = root
 dont compress = *.cloop *.rsync *.gz
 auth users = linbo
 secrets file = /etc/rsyncd.secrets
-pre-xfer exec = /usr/share/oss-linbo/rsync-pre-upload.sh
-post-xfer exec = /usr/share/oss-linbo/rsync-post-upload.sh
+pre-xfer exec = /usr/share/linbo/rsync-pre-upload.sh
+post-xfer exec = /usr/share/linbo/rsync-post-upload.sh

@@ -6,9 +6,9 @@
 #
 
 # read in oss-linbo specific environment
-. /usr/share/oss-linbo/config/dist.conf || exit 1
+. /usr/share/linbo/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
-. /usr/share/oss-linbo/helperfunctions.sh || exit 1
+. /usr/share/linbo/helperfunctions.sh || exit 1
 
 LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
 

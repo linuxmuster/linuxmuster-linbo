@@ -8,7 +8,7 @@
 #
 
 # read environment
-. /usr/share/oss-linbo/config/dist.conf || exit 1
+. /usr/share/linbo/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
 # check & set lockfile
@@ -34,7 +34,7 @@ bailout() {
 
 update_linbofs() {
  local suffix=$1
- local linbofscachedir="/var/cache/oss-linbo/linbofs$suffix"
+ local linbofscachedir="/var/cache/linbo/linbofs$suffix"
  local linbofs="$LINBODIR/linbofs${suffix}.lz"
  local linbofs_md5="$linbofs".md5
  rm -f "$linbofs_md5"

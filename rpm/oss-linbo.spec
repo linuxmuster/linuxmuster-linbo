@@ -148,12 +148,13 @@ cat >%{buildroot}/etc/linbo/linbo.conf <<EOF
 # /etc/linbo/linbo.conf
 # main conf file
 FLAVOUR=oss
+ENVDEFAULTS=/usr/share/linbo/dist.conf
 
 EOF
 
 # install files and directories
 mkdir -p %{buildroot}/var/adm/fillup-templates
-install rpm/sysconfig.oss-linbo %{buildroot}/var/adm/fillup-templates/sysconfig.oss-linbo
+install rpm/sysconfig.linbo %{buildroot}/var/adm/fillup-templates/sysconfig.linbo
 mkdir -p %{buildroot}/etc/linbo
 install etc/ssh_config.oss %{buildroot}/etc/linbo/ssh_config
 install etc/start.conf.default %{buildroot}/etc/linbo/start.conf.default.in
@@ -168,9 +169,9 @@ mkdir -p %{buildroot}/srv/tftp/boot/grub
 install %{S:121} %{buildroot}/srv/tftp/boot/grub/
 install %{S:122} %{buildroot}/srv/tftp/boot/grub/
 cp -r build/boot/grub/* %{buildroot}/srv/tftp/boot/grub/
-mkdir -p %{buildroot}/usr/share/oss-linbo
-cp -r share/* %{buildroot}/usr/share/oss-linbo/
-mkdir -p %{buildroot}/var/cache/oss-linbo
+mkdir -p %{buildroot}/usr/share/linbo
+cp -r share/* %{buildroot}/usr/share/linbo/
+mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfit.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
 mkdir -p %{buildroot}/etc/init.d
@@ -187,23 +188,23 @@ install build/build-x86_64/images/rootfs.cpio.lz %{buildroot}/srv/tftp/linbofs64
 install build/build-x86_64/images/rootfs.cpio.lz.md5 %{buildroot}/srv/tftp/linbofs64.lz.md5
 mkdir -p %{buildroot}/srv/tftp/boot/grub/fonts
 install buildroot-external/board/rootfs_overlay/usr/share/grub/unicode.pf2 %{buildroot}/srv/tftp/boot/grub/fonts
-mkdir -p %{buildroot}/var/log/oss-linbo
+mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
-ln -sf ../../var/log/oss-linbo log
+ln -sf ../../var/log/linbo log
 popd
 mkdir -p %{buildroot}/usr/sbin
 pushd %{buildroot}/usr/sbin/
-ln -sf ../share/oss-linbo/linbo-ssh.sh linbo-ssh
-ln -sf ../share/oss-linbo/linbo-scp.sh linbo-scp
-ln -sf ../share/oss-linbo/linbo-remote.sh linbo-remote
-ln -sf ../share/oss-linbo/update-linbofs.sh update-linbofs
+ln -sf ../share/linbo/linbo-ssh.sh linbo-ssh
+ln -sf ../share/linbo/linbo-scp.sh linbo-scp
+ln -sf ../share/linbo/linbo-remote.sh linbo-remote
+ln -sf ../share/linbo/update-linbofs.sh update-linbofs
 popd
 mkdir -p %{buildroot}/usr/share/doc/packages/oss-linbo
 pushd %{buildroot}/usr/share/doc/packages/oss-linbo/
 ln -sf ../../../../../srv/tftp/examples examples
 popd
 mkdir -p %{buildroot}/etc/logrotate.d
-install oss/etc/logrotate %{buildroot}/etc/logrotate.d/oss-linbo
+install oss/etc/logrotate %{buildroot}/etc/logrotate.d/linbo
 mkdir -p %{buildroot}/srv/tftp/{linbocmd,torrentadds,winact,tmp,backup}
 mkdir -p %{buildroot}/srv/tftp/boot/grub/spool
 # rsyncd conf
@@ -222,8 +223,8 @@ install rpm/import_workstations %{buildroot}/usr/sbin/import_workstations
 install rpm/oss_modify_dhcpStatements.pl %{buildroot}/usr/sbin/oss_modify_dhcpStatements.pl
 install rpm/oss_workstations_sync_hosts.pl %{buildroot}/usr/sbin/oss_workstations_sync_hosts.pl
 
-mkdir -p %{buildroot}/usr/share/oss-linbo
-install rpm/wimport.sh %{buildroot}/usr/share/oss-linbo/wimport.sh
+mkdir -p %{buildroot}/usr/share/linbo
+install rpm/wimport.sh %{buildroot}/usr/share/linbo/wimport.sh
 
 %pre
 if ! grep -qw ^bittorrent /etc/passwd; then
@@ -302,9 +303,9 @@ fi
 %config /etc/linbo/ssh_config
 %config /etc/linbo/start.conf.default.in
 %config /etc/linbo/workstations.in
-%config /etc/logrotate.d/oss-linbo
-%attr(-,nobody,root) %dir /var/log/oss-linbo
-%dir /var/cache/oss-linbo
+%config /etc/logrotate.d/linbo
+%attr(-,nobody,root) %dir /var/log/linbo
+%dir /var/cache/linbo
 %dir /srv/tftp
 %dir /srv/tftp/log
 %dir /srv/tftp/linbocmd
@@ -319,7 +320,7 @@ fi
 /etc/init.d/bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-bittorrent
-%attr(0644,root,root) /var/adm/fillup-templates/sysconfig.oss-linbo
+%attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo
 /etc/init.d/linbo-bittorrent
 /etc/init.d/linbo-multicast
 %attr(0640,root,root) /etc/rsyncd.conf.in
@@ -346,7 +347,7 @@ fi
 /srv/tftp/examples
 /srv/tftp/linuxmuster-win
 /srv/tftp/linbo-version
-/usr/share/oss-linbo
+/usr/share/linbo
 /usr/share/doc/packages/oss-linbo/examples
 %defattr(0755,root,root)
 /usr/sbin/linbo-ssh

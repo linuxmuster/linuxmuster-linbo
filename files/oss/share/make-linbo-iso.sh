@@ -8,7 +8,7 @@
 #
 
 # read linuxmuster environment
-. /usr/share/oss-linbo/config/dist.conf || exit 1
+. /usr/share/linbo/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
 curdir="$(pwd)"

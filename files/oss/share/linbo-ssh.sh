@@ -10,7 +10,7 @@
 #
 
 # read oss-linbo environment
-. /usr/share/oss-linbo/config/dist.conf || exit 1
+. /usr/share/linbo/dist.conf || exit 1
 
 SSH_CONFIG="$SYSCONFDIR/linbo/ssh_config"
 

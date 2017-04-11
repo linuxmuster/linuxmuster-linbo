@@ -11,7 +11,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 [ -f "$NETWORKSETTINGS" ] && . $NETWORKSETTINGS
 
 # lockfile
-lockflag=/tmp/.oss-linbo.lock
+lockflag=/tmp/.linbo.lock
 
 # date & time
 [ -e /bin/date ] && DATETIME=`date +%y%m%d-%H%M%S`

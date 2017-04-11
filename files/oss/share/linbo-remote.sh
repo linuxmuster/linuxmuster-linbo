@@ -8,7 +8,7 @@
 #
 
 # read linuxmuster environment
-. /usr/share/oss-linbo/config/dist.conf || exit 1
+. /usr/share/linbo/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
 KNOWNCMDS="partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
