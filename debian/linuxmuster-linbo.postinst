@@ -25,8 +25,6 @@ set -e
 
 #db_version 2.0
 
-DISTCONF=/usr/share/linuxmuster/config/dist.conf
-
 case "$1" in
 
  configure)
@@ -36,13 +34,10 @@ case "$1" in
  update-rc.d linbo-bittorrent defaults
 
  # linuxmuster related stuff
- if [ -e "$DISTCONF" ]; then
-  . $DISTCONF
-  . $HELPERFUNCTIONS
-  [ -e "$INSTALLED" ] || exit 0
- else
-  exit 0
- fi
+ source /etc/linbo/linbo.conf || exit 0
+ source $ENVDEFAULTS || exit 0
+ source $HELPERFUNCTIONS || exit 0
+ [ -e "$INSTALLED" ] || exit 0
 
  # config file backup dir
  mkdir -p "$LINBODIR/backup"
@@ -161,7 +156,7 @@ SystemType = bios" -i "$conf"
  if ! grep rsync-post-download.sh "$conf" &> /dev/null; then
   echo "Updating $conf."
   [ -e "$conf" ] && cp "$conf" "$conf.dpkg-bak"
-  sed -e "s|@@linbodir@@|$LINBODIR|g" "$tpl" > "$conf"
+  sed -e "s|@@linbodir@@|$LINBODIR|g" -e "|@@linbosharedir@@|$LINBOSHAREDIR|g" "$tpl" > "$conf"
   service rsync restart
  fi
 

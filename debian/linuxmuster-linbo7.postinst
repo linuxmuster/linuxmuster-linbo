@@ -26,7 +26,8 @@ set -e
 #db_version 2.0
 
 # read constants & setup values
-source /usr/share/linuxmuster/defaults.sh
+source /etc/linbo/linbo.conf
+source $ENVDEFAULTS
 
 case "$1" in
 

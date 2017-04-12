@@ -211,8 +211,8 @@ install oss/etc/logrotate %{buildroot}/etc/logrotate.d/linbo
 mkdir -p %{buildroot}/srv/tftp/{linbocmd,torrentadds,winact,tmp,backup}
 mkdir -p %{buildroot}/srv/tftp/boot/grub/spool
 # rsyncd conf
-install etc/rsyncd.conf.oss %{buildroot}/etc/rsyncd.conf.in
-install etc/rsyncd.secrets.oss %{buildroot}/etc/rsyncd.secrets.in
+install share/templates/rsyncd.conf.oss %{buildroot}/etc/rsyncd.conf.in
+install share/templates/rsyncd.secrets.oss %{buildroot}/etc/rsyncd.secrets.in
 # bittorrent
 install rpm/bittorrent.init %{buildroot}/etc/init.d/bittorrent
 mkdir -p %{buildroot}/var/adm/fillup-templates
@@ -239,12 +239,19 @@ fi
 if [ -d /home/sysadmins/admin ]
 then
    DATE=`date +%Y-%m-%d:%H-%M`
+   SCHOOL_SERVER=10.0.0.2
+   [ -e /etc/sysconfig/schoolserver ] && . /etc/sysconfig/schoolserver
+   LINBODIR=/srv/tftp
+   LINBOSHAREDIR=/usr/share/linbo
+   [ -e /etc/linbo/linbo.conf ] && . /etc/linbo/linbo.conf
+   [ -e $ENVDEFAULTS ] && . $ENVDEFAULTS
    FILE=/etc/rsyncd.conf
    if [ -e $FILE ]
    then
      cp $FILE $FILE.$DATE
    fi
    cp $FILE.in $FILE
+   sed -i -e s|@@linbodir@@|$LINBODIR|g -e s|@@linbosharedir@@|$LINBOSHAREDIR|g $FILE
    FILE=/etc/rsyncd.secrets
    if [ ! -e $FILE ]
    then
@@ -262,8 +269,6 @@ then
    then
      cp $FILE.in $FILE
    fi
-   SCHOOL_SERVER=10.0.0.2
-   [ -e /etc/sysconfig/schoolserver ] && . /etc/sysconfig/schoolserver
    sed -i s@Server = .*@Server = $SCHOOL_SERVER@g $FILE
    [ -e /srv/tftp/start.conf ] || ln -sf $FILE /srv/tftp/start.conf
    

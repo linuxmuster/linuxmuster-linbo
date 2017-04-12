@@ -671,7 +671,7 @@ install: build
 	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo-common/var/linbo/linuxmuster-win
 	# grub netboot
 	debian/mkgrubnetdir.sh
-	install -m 644 files/common/share/templates/grub.cfg.pxe debian/linuxmuster-linbo-common/var/linbo/boot/grub/grub.cfg
+	install -m 644 share/templates/grub.cfg.pxe debian/linuxmuster-linbo-common/var/linbo/boot/grub/grub.cfg
 	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.lkrn
 	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.efi
 
@@ -696,10 +696,11 @@ install: build
 	install m 644 etc/ssh_config.lmn6 debian/linuxmuster-linbo/etc/linbo/ssh_config
 	install m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
-	cp -r files/common/share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	cp -r files/lmn6/share/* debian/linuxmuster-linbo/usr/linuxmuster-linbo/
 
 	## linuxmuster-linbo7
+	mkdir -p debian/linuxmuster-linbo7/etc/init.d/
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo7/etc/init.d/linbo-bittorrent
 	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo7/etc/init.d/linbo-multicast
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
@@ -709,9 +710,8 @@ install: build
 	install -m 644 etc/ssh_config.lmn7 debian/linuxmuster-linbo7/etc/linbo/ssh_config
 	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	cp -r files/common/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
+	cp -r share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r files/lmn7/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	mkdir -p debian/linuxmuster-linbo7/etc/init.d/
 
 # Build architecture-independent files here.
 binary-indep: build install
