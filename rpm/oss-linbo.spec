@@ -7,7 +7,7 @@
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
 Version:	3.0.0
-Release:	3.3
+Release:	4
 License:	GPLv3
 Vendor:		openSUSE Linux
 Distribution:	SLE11
