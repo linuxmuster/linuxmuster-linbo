@@ -160,7 +160,10 @@ install etc/ssh_config.oss %{buildroot}/etc/linbo/ssh_config
 install etc/start.conf.default %{buildroot}/etc/linbo/start.conf.default.in
 install rpm/workstations.in %{buildroot}/etc/linbo/workstations.in
 mkdir -p %{buildroot}/srv/tftp
-cp -r var/* %{buildroot}/srv/tftp
+for d in boot examples icons linuxmuster-win; do
+  mkdir -p %{buildroot}/srv/tftp/${d}
+  cp -r linbo/${d}/* %{buildroot}/srv/tftp/${d}/
+done
 pushd %{buildroot}/srv/tftp/boot/grub/
 ln -sf ../../icons/linbo_wallpaper_1024x768.png linbo_wallpaper.png
 popd
