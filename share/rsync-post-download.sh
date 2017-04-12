@@ -31,11 +31,6 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 FILE="$(<$PIDFILE)"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
 
-echo "HOSTNAME: $RSYNC_HOST_NAME"
-echo "FILE: $FILE"
-echo "PIDFILE: $PIDFILE"
-echo "EXT: $EXT"
-
 pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
 
 # handle request for obsolete menu.lst
@@ -47,6 +42,16 @@ fi
 
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
+
+if [ "$FLAVOUR" = "oss" ]; then
+ # recognize download request of start.conf-ip
+ [[ ${FILE##$RSYNC_MODULE_PATH/} =~ start\.conf-[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] && EXT="start.conf.gruppe"
+fi
+
+echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "FILE: $FILE"
+echo "PIDFILE: $PIDFILE"
+echo "EXT: $EXT"
 
 case $EXT in
 
@@ -153,21 +158,31 @@ case $EXT in
  ;;
 
  upgrade)
-  # update old 2.2 clients
-  LINBOFSCACHE="$LINBOCACHEDIR/linbofs"
-  linbo-ssh "$RSYNC_HOST_NAME" 'echo -e "#!/bin/sh\necho \"Processing LINBO upgrade ... waiting for reboot ...\"\nsleep 120\n/sbin/reboot" > /linbo.sh'
-  linbo-ssh "$RSYNC_HOST_NAME" chmod +x /linbo.sh
-  linbo-scp --exclude start.conf --exclude linbo.sh -a "$LINBOFSCACHE/" "${RSYNC_HOST_NAME}:/"
-  for i in linbo64 linbofs64.lz; do
-   linbo-scp "$LINBODIR/$i" "${RSYNC_HOST_NAME}:/cache"
-  done
-  linbo-ssh "$RSYNC_HOST_NAME" /usr/bin/linbo_cmd update "$serverip" "$CACHE"
+  if [ "$FLAVOUR" != "oss" ]; then
+   # update old 2.2 client
+   LINBOFSCACHE="$LINBOCACHEDIR/linbofs"
+   linbo-ssh "$RSYNC_HOST_NAME" 'echo -e "#!/bin/sh\necho \"Processing LINBO upgrade ... waiting for reboot ...\"\nsleep 120\n/sbin/reboot" > /linbo.sh'
+   linbo-ssh "$RSYNC_HOST_NAME" chmod +x /linbo.sh
+   linbo-scp --exclude start.conf --exclude linbo.sh -a "$LINBOFSCACHE/" "${RSYNC_HOST_NAME}:/"
+   for i in linbo64 linbofs64.lz; do
+    linbo-scp "$LINBODIR/$i" "${RSYNC_HOST_NAME}:/cache"
+   done
+   linbo-ssh "$RSYNC_HOST_NAME" /usr/bin/linbo_cmd update "$serverip" "$CACHE"
+  fi
  ;;
 
  grub-local)
   if [ -e "$FILE" ]; then
    echo "Removing $FILE."
    rm -f "$FILE"
+  fi
+ ;;
+
+ # remove download link start.conf-ip
+ start.conf.gruppe)
+  if [ "$FLAVOUR" = "oss" ]; then
+    echo "remove link to $FILE"
+    [[ -L $FILE ]] && rm -f "$FILE"
   fi
  ;;
 

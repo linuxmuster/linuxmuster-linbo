@@ -206,3 +206,43 @@ upload_password_to_ldap(){
    fi
   fi
 }
+
+# get active groups
+get_active_groups(){
+  local actgroups="$(grep ^[-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] $WIMPORTDATA | awk -F\; '{ print $3 }' | sort -u)"
+  return "$actgroups"
+}
+
+# create torrent file for image
+create_torrent() {
+ local image="$1"
+ local RC=1
+ cd "$LINBODIR"
+ [ -s "$image" ] || return "$RC"
+ local serverip="$2"
+ local port="$3"
+ echo "Creating $image.torrent ..."
+ btmakemetafile "$image" http://${serverip}:${port}/announce ; RC="$?"
+ return "$RC"
+}
+
+# test for pxe
+is_pxe(){
+  local IP="$1"
+  local pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
+  return "$pxe"
+}
+
+# get IPs from group
+get_ips_from_group(){
+  local GROUP="$1"
+  local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
+  return "$IP"
+}
+
+# get IPs from room
+get_ips_from_room(){
+  local ROOM="$1"
+  local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
+  return "$IP"
+}

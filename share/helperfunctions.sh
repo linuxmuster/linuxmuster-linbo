@@ -14,7 +14,7 @@ active_images() {
  [ -z "$WIMPORTDATA" ] && return 1
  [ -s "$WIMPORTDATA" ] || return 1
  # get active groups
- local actgroups="$(grep ^[-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] $WIMPORTDATA | awk -F\; '{ print $3 }' | sort -u)"
+ local actgroups="$(get_active_images)"
  [ -z "$actgroups" ] && return 0
  # compute images used by active groups
  local tmpfile=/var/tmp/active_images.$$
@@ -54,17 +54,3 @@ check_torrent() {
  [ "$filesize" = "$imagesize" ] || return 1
  return 0
 }
-
-# create torrent file for image
-create_torrent() {
- local image="$1"
- local RC=1
- cd "$LINBODIR"
- [ -s "$image" ] || return "$RC"
- local serverip="$2"
- local port="$3"
- echo "Creating $image.torrent ..."
- btmakemetafile "$image" http://${serverip}:${port}/announce ; RC="$?"
- return "$RC"
-}
-

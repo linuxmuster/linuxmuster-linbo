@@ -15,10 +15,12 @@ source $ENVDEFAULTS || exit 1
 source $HELPERFUNCTIONS || exit 1
 [ -n "$LINBOCACHEDIR" ] || LINBOCACHEDIR="/var/cache/linuxmuster-linbo"
 
-if [ ! -e "$SETUPINI" -a ! -e "$INSTALL" ]; then
- echo "linuxmuster.net is not configured! Aborting!"
- [ "$FLAVOUR" = "lmn6" ] && exit 1
- exit 0
+if [ "$FLAVOUR" != "oss" ]; then
+  if [ ! -e "$SETUPINI" -a ! -e "$INSTALL" ]; then
+    echo "linuxmuster.net is not configured! Aborting!"
+    [ "$FLAVOUR" = "lmn6" ] && exit 1
+    exit 0
+  fi
 fi
 
 # check & set lockfile
@@ -80,8 +82,13 @@ update_linbofs() {
    cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
    cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
  fi
- mkdir -p .ssh
- cat /root/.ssh/id_*.pub > .ssh/authorized_keys
+ if [ "$FLAVOUR" = "oss" ]; then
+   ROOTSSH="root/.ssh"
+ else
+   ROOTSSH=".ssh"
+ fi
+ mkdir -p $ROOTSSH
+ cat /root/.ssh/id_{ec,}dsa.pub > $ROOTSSH/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 
@@ -127,7 +134,7 @@ linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
 
 # process linbofs updates
 update_linbofs
-update_linbofs -np
+[ "$FLAVOUR" != "oss" ] && update_linbofs -np
 update_linbofs 64
 
 # create iso files

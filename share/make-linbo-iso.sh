@@ -58,9 +58,15 @@ mkdir -p "$GRUBPREFIX"
 rsync -a -L --delete --delete-excluded --exclude=*.cfg* --exclude=spool "$GRUBDIR/" "$GRUBPREFIX/"
 cp "$GRUBCFG" "$GRUBPREFIX/grub.cfg"
 cp "$LINBOCFG" "$GRUBPREFIX/linbo.cfg"
-for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz linbo-version; do
- cp "$LINBODIR/$i" "$ISOCACHE"
-done
+if [ "$FLAVOUR" = "oss" ]; then
+ for i in linbo linbo64 linbofs.lz linbofs64.lz linbo-version; do
+  cp "$LINBODIR/$i" "$ISOCACHE"
+ done
+else
+ for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz linbo-version; do
+  cp "$LINBODIR/$i" "$ISOCACHE"
+ done
+fi
 sed -i 's|"LINBO Start-Menue"|"LINBO Start-Menue (EFI-Modus)"|' "$GRUBTHEMETXT"
 
 # isolinux stuff

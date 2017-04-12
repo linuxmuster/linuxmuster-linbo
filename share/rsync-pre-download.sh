@@ -33,6 +33,11 @@ stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
+if [ "$FLAVOUR" = "oss" ]; then
+  # recognize download request of start.conf-ip
+  [[ ${FILE##$RSYNC_MODULE_PATH/} =~ start\.conf-[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] && EXT="start.conf.gruppe"
+fi
+
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
@@ -136,6 +141,15 @@ case $EXT in
   startconf="$LINBODIR/start.conf.$group"
   append="$(linbo_kopts "$startconf") localboot"
   sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
+ ;;
+
+ # create download link start.conf-ip
+ start.conf.gruppe)
+  if [ "$FLAVOUR" = "oss" ]; then
+    group="$(get_hwconf_group $compname)"
+    echo "Gruppe: $group create link to $FILE"
+    [[ -n $group ]] && ln -sf "$LINBODIR/start.conf.$group" "$FILE"
+  fi
  ;;
 
  *) ;;

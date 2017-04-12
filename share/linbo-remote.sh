@@ -303,15 +303,15 @@ if [ -n "$IP" ]; then
   IP="$RET"
  fi
  # test for pxe flag
- pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
+ pxe="$(is_pxe $IP)"
  [ "$pxe" = "0" ] && usage
 
 elif [ -n "$GROUP" ]; then # hosts in group with pxe flag set
- IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
+ IP="$(get_ips_from_group $GROUP)"
  [ -z "$IP" ] && usage
 
 else # hosts in room with pxe flag set
- IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
+ IP="$(get_ips_from_room $ROOM)"
  [ -z "$IP" ] && usage
 fi
 
