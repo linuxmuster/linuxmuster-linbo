@@ -177,7 +177,7 @@ cp -r share/* %{buildroot}/usr/share/linbo/
 install rpm/dist.conf %{buildroot}/usr/share/linbo/dist.conf
 mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
-install rpm/sysconfit.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
+install rpm/sysconfig.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
 mkdir -p %{buildroot}/etc/init.d
 install rpm/linbo-bittorrent.init %{buildroot}/etc/init.d/linbo-bittorrent
 install rpm/linbo-multicast.init %{buildroot}/etc/init.d/linbo-multicast
