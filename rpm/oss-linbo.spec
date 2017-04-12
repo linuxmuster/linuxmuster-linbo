@@ -208,7 +208,7 @@ pushd %{buildroot}/usr/share/doc/packages/oss-linbo/
 ln -sf ../../../../../srv/tftp/examples examples
 popd
 mkdir -p %{buildroot}/etc/logrotate.d
-install oss/etc/logrotate %{buildroot}/etc/logrotate.d/linbo
+install rpm/logrotate %{buildroot}/etc/logrotate.d/linbo
 mkdir -p %{buildroot}/srv/tftp/{linbocmd,torrentadds,winact,tmp,backup}
 mkdir -p %{buildroot}/srv/tftp/boot/grub/spool
 # rsyncd conf
