@@ -8,8 +8,9 @@
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source /etc/linbo/linbo.conf
+source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
 
 KNOWNCMDS="partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
 DLTYPES="multicast rsync torrent"
