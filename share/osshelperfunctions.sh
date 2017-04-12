@@ -272,7 +272,7 @@ get_hwconf_group(){
 get_compname_from_rsync(){
   local rsync_host_name="$1"
   local compname="$(echo $rsync_host_name | awk -F\. '{ print $1 }')"
-  return "$compname"
+  echo "$compname"
 }
 
 # save_image_macct compname image
@@ -1079,7 +1079,7 @@ toupper() {
 # get active groups
 get_active_groups(){
   local actgroups="$(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW))" description | grep '^description: ' | awk '{ print $2 }'| sort -u)"
-  return "$actgroups"
+  echo "$actgroups"
 }
 
 # create torrent file for image
@@ -1107,12 +1107,12 @@ is_pxe(){
 get_ips_from_group(){
   local GROUP="$1"
   local IP="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(dhcpStatements=HW=$GROUP))" dhcpStatements | grep '^dhcpStatements: fixed-address ' | awk '{ print $3 }')"
-  return "$IP"
+  echo "$IP"
 }
 
 # get IPs from room
 get_ips_from_room(){
   local ROOM="$1"
   local IP="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(cn:dn:=$ROOM))" dhcpStatements | grep '^dhcpStatements: fixed-address ' | awk '{ print $3 }')"
-  return "$IP"
+  echo "$IP"
 }

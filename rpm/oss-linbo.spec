@@ -270,12 +270,12 @@ then
      cp $FILE $FILE.$DATE
    fi
    cp $FILE.in $FILE
+   sed -i "s@Server = .*@Server = $SCHOOL_SERVER@g" $FILE
    FILE=/etc/linbo/workstations
    if [ ! -e $FILE ]
    then
      cp $FILE.in $FILE
    fi
-   sed -i "s@Server = .*@Server = $SCHOOL_SERVER@g" $FILE
    [ -e /srv/tftp/start.conf ] || ln -sf $FILE /srv/tftp/start.conf
    
    # create dropbear ssh keys
@@ -315,9 +315,9 @@ fi
 %dir /etc/linbo
 %dir /etc/linbo/import-workstations.d
 %config /etc/linbo/linbo.conf
-%config /etc/linbo/ssh_config
-%config /etc/linbo/start.conf.default.in
-%config /etc/linbo/workstations.in
+%attr(644,root,root) %config /etc/linbo/ssh_config
+%attr(644,root,root) %config /etc/linbo/start.conf.default.in
+%attr(644,root,root) %config /etc/linbo/workstations.in
 %config /etc/logrotate.d/linbo
 %attr(-,nobody,root) %dir /var/log/linbo
 %dir /var/cache/linbo
@@ -352,11 +352,11 @@ fi
 /srv/tftp/boot/grub/themes
 /srv/tftp/icons
 /srv/tftp/linbo
-/srv/tftp/linbo.md5
+%attr(0644,-,-) /srv/tftp/linbo.md5
 /srv/tftp/linbofs.lz
 /srv/tftp/linbofs.lz.md5
 /srv/tftp/linbo64
-/srv/tftp/linbo64.md5
+%attr(0644,-,-) /srv/tftp/linbo64.md5
 /srv/tftp/linbofs64.lz
 /srv/tftp/linbofs64.lz.md5
 /srv/tftp/examples
