@@ -152,3 +152,57 @@ opsimanaged() {
  done
  return 1
 }
+
+# get_compname_from_rsync RSYNC_HOST_NAME
+get_compname_from_rsync(){
+  local rsync_host_name="$1"
+  local compname="$(echo $rsync_host_name | awk -F\. '{ print $1 }' | tr A-Z a-z)"
+  return "$compname"
+}
+
+# save_image_macct compname image
+save_image_macct(){
+  local compname="$1"
+  local image="$2"
+  local LDBSEARCH="$(which ldbsearch)"
+  if [ -n "$compname" -a -n "$LDBSEARCH" -a -n "$basedn" ]; then
+   #  fetch samba nt password hash from ldap machine account
+   url="--url=/var/lib/samba/private/sam.ldb"
+   unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+   if [ -n "$unicodepwd" ]; then
+    echo "Writing samba password hash file for image $image."
+    template="$LINBOTPLDIR/machineacct"
+    imagemacct="$LINBODIR/$image.macct"
+    sed -e "s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
+    chmod 600 "$imagemacct"
+   else
+    rm -f "$imagemacct"
+   fi
+  fi
+}
+
+# upload_pwd_to_ldap compname imagemacct
+upload_password_to_ldap(){
+  local compname="$1"
+  local imagemacct="$LINBODIR/$2"
+  local url="--url=/var/lib/samba/private/sam.ldb"
+  local LDBSEARCH="$(which ldbsearch) $url"
+  local LDBMODIFY="$(which ldbmodify) $url"
+  # upload samba machine password hashes to host's ad machine account
+  if [ -s "$imagemacct" ]; then
+   echo "Machine account ldif file: $imagemacct"
+   echo "Host: $compname"
+   # get dn of host
+   dn="$($LDBSEARCH "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
+   if [ -n "$dn" ]; then
+    echo "DN: $dn"
+    ldif="/var/tmp/${compname}_macct.$$"
+    ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
+    sed -e "s|@@dn@@|$dn|" "$imagemacct" > "$ldif"
+    $LDBMODIFY $ldbopts "$ldif"
+    rm -f "$ldif"
+   else
+    echo "Cannot determine DN of $compname! Aborting!"
+   fi
+  fi
+}

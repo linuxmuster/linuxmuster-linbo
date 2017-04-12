@@ -8,7 +8,12 @@
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
+source /etc/linbo/linbo.conf
+source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
+
+[ -n "$LINBOTPLDIR" ] || LINBOTPLDIR="$LINBOSHAREDIR/templates"
+[ -n "$LINBOCACHEDIR" ] || LINBOCACHEDIR="/var/cache/linuxmuster-linbo"
 
 curdir="$(pwd)"
 LINBOISO="$LINBODIR/linbo.iso"

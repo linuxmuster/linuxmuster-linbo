@@ -1,24 +1,17 @@
 #!/bin/bash
-# (C) Klaus Knopper 2007
-# License: GPL V2
-# Post-Upload script for rsync/LINBO:
-# Moves old version of file out of the way,
-# and installs a new version.
 #
 # thomas@linuxmuster.net
-# 13.07.2015
+# 20170218
 #
 
-# read in paedml specific environment
-. /usr/share/linuxmuster/config/dist.conf || exit 1
-. $HELPERFUNCTIONS || exit 1
-
-LOGFILE=rsync-post-upload.log
-if [ -n "$LINBODIR" ]; then
- LOGFILE="$LINBODIR/log/$LOGFILE"
-else
- LOGFILE="/var/log/$LOGFILE"
-fi
+# read in linuxmuster specific environment
+source /etc/inbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
+[ "$FLAVOUR" = "lmn6" ] && source "$LINBOSHAREDIR/lmn6helperfunctions.sh"
+[ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
+[ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
+LOGFILE="$LINBOLOGDIR/rsync-post-upload.log"
 
 # Debug
 exec >>$LOGFILE 2>&1
@@ -38,6 +31,7 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
+compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "FILE: $FILE"
@@ -84,22 +78,7 @@ case "$FTYPE" in
   /etc/init.d/linbo-multicast restart >&2
 
   # save samba passwords of host we made the new image
-  LDAPSEARCH="$(which ldapsearch)"
-  ldapsec="/etc/ldap.secret"
-  compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
-  if [ -n "$RSYNC_HOST_NAME" -a -n "$LDAPSEARCH" -a -s "$ldapsec" -a -n "$NETWORKSETTINGS" ]; then
-   #  fetch samba nt password hash from ldap machine account
-   . $NETWORKSETTINGS # read basedn
-   sambaNTpwhash="$("$LDAPSEARCH" -y "$ldapsec" -D cn=admin,$basedn -x -h localhost "(uid=$compname$)" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
-   if [ -n "$sambaNTpwhash" ]; then
-    echo "Writing samba password hash file for image $image."
-    template="$LINBOTPLDIR/machineacct"
-    imagemacct="$LINBODIR/$image.macct"
-    sed -e "s|@@basedn@@|$basedn|
-            s|@@sambaNTpwhash@@|$sambaNTpwhash|" "$template" > "$imagemacct"
-    chmod 600 "$imagemacct"
-   fi
-  fi
+  save_image_macct $compname $image
 
   # update opsi settings if host is managed
   if ([ -n "$opsiip" ] && opsimanaged "$compname"); then
@@ -143,4 +122,3 @@ echo "RC: $RSYNC_EXIT_STATUS"
 echo "### rsync post upload end: $(date) ###"
 
 exit $RSYNC_EXIT_STATUS
-

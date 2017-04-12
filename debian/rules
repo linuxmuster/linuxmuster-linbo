@@ -699,7 +699,6 @@ install: build
 	install m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
-	cp -r files/lmn6/share/* debian/linuxmuster-linbo/usr/linuxmuster-linbo/
 
 	## linuxmuster-linbo7
 	mkdir -p debian/linuxmuster-linbo7/etc/init.d/
@@ -713,7 +712,6 @@ install: build
 	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	cp -r files/lmn7/share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 
 # Build architecture-independent files here.
 binary-indep: build install

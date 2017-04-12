@@ -11,14 +11,11 @@
 #
 
 # read in paedml specific environment
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
-
-LOGFILE=rsync-pre-upload.log
-if [ -n "$LINBODIR" ]; then
- LOGFILE="$LINBODIR/log/$LOGFILE"
-else
- LOGFILE="/var/log/$LOGFILE"
-fi
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+[ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
+[ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
+LOGFILE="$LINBOLOGDIR/rsync-pre-upload.log"
 
 # Debug
 exec >>$LOGFILE 2>&1

@@ -2,13 +2,16 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 08.03.2016
+# 20170218
 #
 
-# read in linuxmuster.net specific environment
-. /usr/share/linuxmuster/config/dist.conf || exit 1
-. $HELPERFUNCTIONS || exit 1
-
+# read in linuxmuster specific environment
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
+[ "$FLAVOUR" = "lmn6" ] && source "$LINBOSHAREDIR/lmn6helperfunctions.sh"
+[ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
+[ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
 LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
 
 # Debug
@@ -22,7 +25,7 @@ EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
-compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }')"
+compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
 
 # recognize upload of windows activation tokens
 stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
@@ -39,33 +42,8 @@ echo "EXT: $EXT"
 case $EXT in
 
  # handle machine account password
-# *.mpw)
-  # set machine account password
-#  MACHINEPW="12345678"
-#  echo -e "${MACHINEPW}\n${MACHINEPW}\n" | smbpasswd -e -s "$compname$"
-#  MACHINEPW="$(pwgen -s 10 1)"
-#  if ! sophomorix-passwd --force --user "$compname$" --pass "$MACHINEPW" | grep -qi "error"; then
-#   echo "$MACHINEPW" > "$FILE"
-#  fi
  *.macct)
-  LDAPMODIFY="$(which ldapmodify)"
-  LDAPSEARCH="$(which ldapsearch)"
-  imagemacct="$LINBODIR/${RSYNC_REQUEST##*/}"
-  ldapsec="/etc/ldap.secret"
-  # upload samba machine password hashes to host's machine account
-  if [ -s "$imagemacct" -a -n "$basedn" ]; then
-   echo "Machine account file: $imagemacct"
-   echo "Host: $compname"
-   echo "Writing samba machine password hashes to ldap account:"
-   sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
-   # check for success
-   sambaNTpwhash_cur="$("$LDAPSEARCH" -y "$ldapsec" -D cn=admin,$basedn -x -h localhost "(uid=$compname$)" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
-   sambaNTpwhash_new="$(grep ^sambaNTPassword: "$imagemacct" | awk '{ print $2 }')"
-   if [ "$sambaNTpwhash_new" != "$sambaNTpwhash_cur" ]; then
-    echo "Not successfull, once again:"
-    sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -x -y "$ldapsec" -D "cn=admin,$basedn" -h localhost
-   fi
-  fi
+  upload_password_to_ldap $compname ${RSYNC_REQUEST##*/}
  ;;
 
  # fetch logfiles from client

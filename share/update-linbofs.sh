@@ -3,19 +3,22 @@
 # creating/updating linbofs.lz with linbo password and ssh keys
 # has to be invoked during linuxmuster-setup,  package upgrade or
 # linbo password change in /etc/rsyncd.secrets.
-# 
+#
 # thomas@linuxmuster.net
 # GPL V3
-# 20161207
+# 20170130
 #
 
 # read linuxmuster environment
-. /usr/share/linuxmuster/config/dist.conf || exit 1
-. $HELPERFUNCTIONS || exit 1
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
+[ -n "$LINBOCACHEDIR" ] || LINBOCACHEDIR="/var/cache/linuxmuster-linbo"
 
-if [ ! -e "$INSTALLED" ]; then
+if [ ! -e "$SETUPINI" -a ! -e "$INSTALL" ]; then
  echo "linuxmuster.net is not configured! Aborting!"
- exit 1
+ [ "$FLAVOUR" = "lmn6" ] && exit 1
+ exit 0
 fi
 
 # check & set lockfile
@@ -39,12 +42,14 @@ bailout() {
  exit 1
 }
 
-# this script makes only sense if imaging=linbo
-[ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
+if [ "$FLAVOUR" = "lmn6" ]; then
+  # this script makes only sense if imaging=linbo
+  [ "$imaging" != "linbo" ] && bailout "Imaging system is $imaging and not linbo!"
+fi
 
 update_linbofs() {
  local suffix=$1
- local linbofscachedir="/var/cache/linuxmuster-linbo/linbofs$suffix"
+ local linbofscachedir="$LINBOCACHEDIR/linbofs$suffix"
  local linbofs="$LINBODIR/linbofs${suffix}.lz"
  local linbofs_md5="$linbofs".md5
  rm -f "$linbofs_md5"
@@ -53,25 +58,6 @@ update_linbofs() {
 
  # check for default linbofs${suffix}.lz
  [ ! -s "$LINBODIR/linbofs${suffix}.lz" ] && bailout "Error: $LINBODIR/linbofs${suffix}.lz not found!"
-
- # grep linbo rsync password to sync it with linbo account
- [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
- local linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
- if [ -z "$linbo_passwd" ]; then
-  bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
- else
-  if [ "$LINBOPW" = "false" ]; then
-   sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
-   LINBOPW=true
-   if [ "$RC" = "0" ]; then
-    echo "Successfully set linbo password."
-   else
-    echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
-   fi
-  fi
-  # md5sum of linbo password goes into ramdisk
-  local linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
- fi
 
  # begin to process linbofs${suffix}.lz
  echo "Processing linbofs${suffix} update ..."
@@ -82,13 +68,18 @@ update_linbofs() {
  [ $RC -ne 0 ] && bailout " Failed to unpack $(basename "$linbofs")!"
 
  # store linbo md5 password
- [ -n "$linbo_md5passwd" ] && echo -n "$linbo_md5passwd" > etc/linbo_passwd
+ echo -n "$linbo_md5passwd" > etc/linbo_passwd
 
  # provide dropbear ssh host key
  mkdir -p etc/dropbear
- cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
  mkdir -p etc/ssh
- cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
+ if [ "$FLAVOUR" = "lmn7" ]; then
+   cp $SYSDIR/linbo/dropbear_*_host_key etc/dropbear
+   cp $SYSDIR/linbo/ssh_host_*_key* etc/ssh
+ else
+   cp $SYSCONFDIR/linbo/dropbear_*_host_key etc/dropbear
+   cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
+ fi
  mkdir -p .ssh
  cat /root/.ssh/id_*.pub > .ssh/authorized_keys
  mkdir -p var/log
@@ -117,9 +108,24 @@ create_www_links(){
  done
 }
 
-# avoid linbo password being set multiple times
-LINBOPW=false
+# grep linbo rsync password to sync it with linbo account
+[ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
+linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
+if [ -z "$linbo_passwd" ]; then
+  bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
+elif [ "$FLAVOUR" = "lmn6" ]; then
+  sophomorix-passwd --user linbo --pass "$linbo_passwd" &> /dev/null ; RC="$?"
+  if [ "$RC" = "0" ]; then
+    echo "Successfully set linbo password."
+  else
+    echo "WARNING: Sophomorix failed to set linbo password! Probably postgres or slapd services do not run!"
+  fi
+fi
 
+# md5sum of linbo password goes into ramdisk
+linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+
+# process linbofs updates
 update_linbofs
 update_linbofs -np
 update_linbofs 64
@@ -127,6 +133,7 @@ update_linbofs 64
 # create iso files
 "$LINBOSHAREDIR"/make-linbo-iso.sh
 
-create_www_links
+# obsolete
+[ "$FLAVOUR" = "lmn6" ] && create_www_links
 
 rm -f "$locker"
