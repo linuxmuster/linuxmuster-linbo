@@ -33,8 +33,8 @@ cp -v "${BASE_DIR}"/../../share/templates/grub.cfg.local "${TARGET_DIR}"/usr/sha
 LINBOFS_DIR="${BASE_DIR}"/../../linbofs
 cp -v "${LINBOFS_DIR}"/etc/newdev-patch.bvi "${TARGET_DIR}"/etc/newdev-patch.bvi
 cp -v "${LINBOFS_DIR}"/bin/patch_registry "${TARGET_DIR}"/usr/bin/
-cp -v "${LINBOFS_DIR}"/usr/bin/linbo_cmd.oss "${TARGET_DIR}"/usr/bin/linbo_cmd
-cp -v "${LINBOFS_DIR}"/usr/bin/linbo_wrapper.oss "${TARGET_DIR}"/usr/bin/linbo_wrapper
+cp -v "${BASE_DIR}"/../../rpm/linbo_cmd.oss "${TARGET_DIR}"/usr/bin/linbo_cmd
+cp -v "${BASE_DIR}"/../../rpm/linbo_wrapper.oss "${TARGET_DIR}"/usr/bin/linbo_wrapper
 cp -v "${LINBOFS_DIR}"/usr/share/udhcpc/default.script "${TARGET_DIR}"/usr/share/udhcpc/default.script.d/linbo.sh
 # copy linbo files to target
 LINBO_DIR="${BASE_DIR}"/../../linbo

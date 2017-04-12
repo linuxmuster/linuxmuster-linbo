@@ -212,7 +212,7 @@ install oss/etc/logrotate %{buildroot}/etc/logrotate.d/linbo
 mkdir -p %{buildroot}/srv/tftp/{linbocmd,torrentadds,winact,tmp,backup}
 mkdir -p %{buildroot}/srv/tftp/boot/grub/spool
 # rsyncd conf
-install share/templates/rsyncd.conf.oss %{buildroot}/etc/rsyncd.conf.in
+install share/templates/rsyncd.conf %{buildroot}/etc/rsyncd.conf.in
 install share/templates/rsyncd.secrets.oss %{buildroot}/etc/rsyncd.secrets.in
 # bittorrent
 install rpm/bittorrent.init %{buildroot}/etc/init.d/bittorrent
@@ -252,13 +252,13 @@ then
      cp $FILE $FILE.$DATE
    fi
    cp $FILE.in $FILE
-   sed -i -e s|@@linbodir@@|$LINBODIR|g -e s|@@linbosharedir@@|$LINBOSHAREDIR|g $FILE
+   sed -i -e "s|@@linbodir@@|$LINBODIR|g" -e "s|@@linbosharedir@@|$LINBOSHAREDIR|g" $FILE
    FILE=/etc/rsyncd.secrets
    if [ ! -e $FILE ]
    then
      cp $FILE.in $FILE
      LINBOPW="$(pwgen -1)"
-     sed s/#LINBOPW#/$LINBOPW/ -i $FILE
+     sed "s/#LINBOPW#/$LINBOPW/" -i $FILE
    fi
    FILE=/etc/linbo/start.conf.default
    if [ -e $FILE ]; then
@@ -270,7 +270,7 @@ then
    then
      cp $FILE.in $FILE
    fi
-   sed -i s@Server = .*@Server = $SCHOOL_SERVER@g $FILE
+   sed -i "s@Server = .*@Server = $SCHOOL_SERVER@g" $FILE
    [ -e /srv/tftp/start.conf ] || ln -sf $FILE /srv/tftp/start.conf
    
    # create dropbear ssh keys
@@ -309,6 +309,7 @@ fi
 %defattr(-,root,root)
 %dir /etc/linbo
 %dir /etc/linbo/import-workstations.d
+%config /etc/linbo/linbo.conf
 %config /etc/linbo/ssh_config
 %config /etc/linbo/start.conf.default.in
 %config /etc/linbo/workstations.in

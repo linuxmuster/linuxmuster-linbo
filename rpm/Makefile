@@ -5,7 +5,8 @@ BUILDROOT=$(CURDIR)/buildroot
 BUILDDIR=$(CURDIR)/build
 BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
-LINBO_VERSION=$(shell head -n 1 debian/changelog | sed 's/.*\([0-9]\{1,2\}\.[0-9]\{1,2\}\.[0-9]\{1,2\}\-[0-9]\{1,2\}\).*/\1/')
+LINBO_VERSION=$(shell cat rpm/oss-linbo.spec | grep '^Version:' | awk '{ print $2 }')
+LINBO_RELEASE=$(shell cat rpm/oss-linbo.spec | grep '^Release:' | awk '{ print $2 }')
 
 GRUBNAME=grub-2.02~rc2
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
@@ -28,8 +29,7 @@ clean:
 .PHONY: build-linbo build-grub build
 
 build-linbo:
-	echo "LINBO $(LINBO_VERSION)"
-	echo "LINBO $(LINBO_VERSION)" > $(BUILDROOT)-external/board/rootfs_overlay/etc/linbo-version
+	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" > $(BUILDROOT)-external/board/rootfs_overlay/etc/linbo-version
 	cd $(BUILDROOT); make O=$(BUILD32) BR2_EXTERNAL=$(BUILDROOT)-external linbo-i386_defconfig
 	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD32)
