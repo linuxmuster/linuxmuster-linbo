@@ -174,6 +174,11 @@ install %{S:122} %{buildroot}/srv/tftp/boot/grub/
 cp -r build/boot/grub/* %{buildroot}/srv/tftp/boot/grub/
 mkdir -p %{buildroot}/usr/share/linbo
 cp -r share/* %{buildroot}/usr/share/linbo/
+find %{buildroot}/usr/share/linbo/templates -name '*.lmn?' -exec rm -f {} \;
+for f in `find %{buildroot}/usr/share/linbo/templates -name '*.oss'`; do
+  nf=${f%.oss}
+  mv $f $nf
+done
 install rpm/dist.conf %{buildroot}/usr/share/linbo/dist.conf
 mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
