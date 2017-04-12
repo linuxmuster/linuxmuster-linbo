@@ -174,6 +174,7 @@ install %{S:122} %{buildroot}/srv/tftp/boot/grub/
 cp -r build/boot/grub/* %{buildroot}/srv/tftp/boot/grub/
 mkdir -p %{buildroot}/usr/share/linbo
 cp -r share/* %{buildroot}/usr/share/linbo/
+install rpm/dist.conf %{buildroot}/usr/share/linbo/dist.conf
 mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfit.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
