@@ -50,7 +50,7 @@ kernelfstype(){
 get_compname_from_rsync(){
   local rsync_host_name="$1"
   local compname="$(echo $rsync_host_name | awk -F\. '{ print $1 }')"
-  return "$compname"
+  echo "$compname"
 }
 
 # save_image_macct compname image
@@ -101,7 +101,7 @@ upload_password_to_ldap(){
 # get active groups
 get_active_groups(){
   local actgroups="$(grep ^[-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] $WIMPORTDATA | awk -F\; '{ print $3 }' | sort -u)"
-  return "$actgroups"
+  echo "$actgroups"
 }
 
 # create torrent file for image
@@ -128,12 +128,12 @@ is_pxe(){
 get_ips_from_group(){
   local GROUP="$1"
   local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
-  return "$IP"
+  echo "$IP"
 }
 
 # get IPs from room
 get_ips_from_room(){
   local ROOM="$1"
   local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
-  return "$IP"
+  echo "$IP"
 }

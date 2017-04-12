@@ -23,8 +23,9 @@ touch $locker
 chmod 400 $locker
 
 # read environment
-. /usr/share/oss-linbo/config/dist.conf
-. $HELPERFUNCTIONS
+source /etc/linbo/linbo.conf || exit 1
+source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
 LOGFILE="$LOGDIR/import_workstations.log"
 TMPLOG=/var/tmp/import_workstations.log
 [ -e "$TMPLOG" ] && rm -f $TMPLOG
@@ -75,8 +76,8 @@ echo "#####################################################################" | t
 
 if [ $RC -ne 0 ]; then
 	echo | tee -a $TMPLOG
-	echo "Finished with error(s)! Please look at $LOGFILE! Detailed output will be mailed to $ADMINISTRATOR!" | tee -a $TMPLOG
-	cat $TMPLOG | mail -s "import_workstations finished with error(s)!" $ADMINISTRATOR@localhost
+	echo "Finished with error(s)! Please look at $LOGFILE! Detailed output will be mailed to admin!" | tee -a $TMPLOG
+	cat $TMPLOG | mail -s "import_workstations finished with error(s)!" admin@localhost
 fi
 
 # append log
