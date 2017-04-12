@@ -5,8 +5,8 @@ BUILDROOT=$(CURDIR)/buildroot
 BUILDDIR=$(CURDIR)/build
 BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
-LINBO_VERSION=$(shell cat rpm/oss-linbo.spec | grep '^Version:' | awk '{ print $2 }')
-LINBO_RELEASE=$(shell cat rpm/oss-linbo.spec | grep '^Release:' | awk '{ print $2 }')
+LINBO_VERSION=$(shell cat rpm/oss-linbo.spec | grep '^Version:' | awk '{ print $$2 }')
+LINBO_RELEASE=$(shell cat rpm/oss-linbo.spec | grep '^Release:' | awk '{ print $$2 }')
 
 GRUBNAME=grub-2.02~rc2
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
