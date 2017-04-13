@@ -5,4 +5,4 @@
 /var/cache/linuxmuster-linbo
 /var/log/linuxmuster/linbo
 /usr/sbin
-/usr/share/linuxmuster-linbo/templates
+/usr/share/linuxmuster-linbo/templates/isolinux

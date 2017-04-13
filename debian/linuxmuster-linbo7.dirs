@@ -2,7 +2,8 @@
 /etc/init.d
 /etc/logrotate.d
 /etc/linbo
+/etc/linuxmuster/linbo
 /usr/lib/linuxmuster/setup.d
-/usr/share/linuxmuster/linbo/templates
+/usr/share/linuxmuster/linbo/templates/isolinux
 /var/cache/linuxmuster/linbo
 /var/log/linuxmuster/linbo

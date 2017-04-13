@@ -660,7 +660,6 @@ install: build
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np.md5
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64.md5
 	## linuxmuster-linbo-common
-	mkdir -p debian/linuxmuster-linbo-common/etc/linbo/
 	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	echo "# main conf file" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	echo "FLAVOUR=lmn6" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
@@ -678,7 +677,6 @@ install: build
 
 	# linuxmuster-linbo-common7
 	cp -r debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
-	mkdir -p debian/linuxmuster-linbo-common7/etc/linbo/
 	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	echo "# main conf file" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	echo "FLAVOUR=lmn7" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
@@ -694,10 +692,8 @@ install: build
 	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo/etc/init.d/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo/etc/default/linbo-multicast
-	mkdir -p debian/linuxmuster-linbo/etc/linuxmuster/linbo/
 	install -m 644 etc/ssh_config.lmn6 debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
 	install -m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
-	mkdir -p debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn7' -exec rm -f {} \;
 	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.oss' -exec rm -f {} \;
@@ -707,20 +703,17 @@ install: build
 	done
 
 	## linuxmuster-linbo7
-	mkdir -p debian/linuxmuster-linbo7/etc/init.d/
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo7/etc/init.d/linbo-bittorrent
 	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo7/etc/init.d/linbo-multicast
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
-	mkdir -p debian/linuxmuster-linbo7/etc/linuxmuster/linbo/
 	install -m 644 etc/ssh_config.lmn7 debian/linuxmuster-linbo7/etc/linuxmuster/linbo/ssh_config
 	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linuxmuster/linbo/start.conf.default
-	mkdir -p debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	find debian/linuxmuster-linbo/usr/share/linuxmuster/linbo/templates -name '*.lmn6' -exec rm -f {} \;
-	find debian/linuxmuster-linbo/usr/share/linuxmuster/linbo/templates -name '*.oss' -exec rm -f {} \;
-	for f in `find debian/linuxmuster-linbo/usr/share/linuxmuster/linbo/templates -name '*.lmn7'`; do \
+	find debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/templates -name '*.lmn6' -exec rm -f {} \;
+	find debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/templates -name '*.oss' -exec rm -f {} \;
+	for f in `find debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/templates -name '*.lmn7'`; do \
 		nf=$${f%.lmn7} ; \
 		mv $$f $$nf ; \
 	done
