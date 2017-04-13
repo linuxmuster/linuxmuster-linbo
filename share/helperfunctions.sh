@@ -14,7 +14,7 @@ active_images() {
  [ -z "$WIMPORTDATA" ] && return 1
  [ -s "$WIMPORTDATA" ] || return 1
  # get active groups
- local actgroups="$(get_active_images)"
+ local actgroups="$(get_active_groups)"
  [ -z "$actgroups" ] && return 0
  # compute images used by active groups
  local tmpfile=/var/tmp/active_images.$$

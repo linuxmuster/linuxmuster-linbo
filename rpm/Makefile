@@ -29,7 +29,7 @@ clean:
 .PHONY: build-linbo build-grub build
 
 build-linbo:
-	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" > $(BUILDROOT)-external/board/rootfs_overlay/etc/linbo-version
+	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
 	cd $(BUILDROOT); make O=$(BUILD32) BR2_EXTERNAL=$(BUILDROOT)-external linbo-i386_defconfig
 	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD32)

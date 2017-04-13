@@ -1,6 +1,6 @@
 build
 build-*
-buildroot-external/board/rootfs_overlay/etc/linbo-version
+linbofs/etc/linbo-version
 src
 src64
 kernel
