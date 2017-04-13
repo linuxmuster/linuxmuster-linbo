@@ -23,7 +23,5 @@ fakeroot dpkg-buildpackage \
     -Ikernel \
     -Ikernel-np \
     -Ikernel64 \
-    -Ilinbo_gui-1.0/linbo_gui \
-    -Ilinbo_gui-1.0/qt-* \
     -Ilinbo_gui32 \
     -Ilinbo_gui64
