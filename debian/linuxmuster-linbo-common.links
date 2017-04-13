@@ -1,3 +1,3 @@
-var/linbo/examples				usr/share/doc/linuxmuster-linbo/examples
+var/linbo/examples				usr/share/doc/linuxmuster-linbo-common/examples
 etc/linbo/start.conf.default	var/linbo/start.conf
 var/log/linuxmuster/linbo			var/linbo/log

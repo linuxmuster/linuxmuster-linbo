@@ -694,16 +694,16 @@ install: build
 	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo/etc/init.d/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo/etc/default/linbo-multicast
-	mkdir -p debian/linuxmuster-linbo/etc/linbo/
-	install m 644 etc/ssh_config.lmn6 debian/linuxmuster-linbo/etc/linbo/ssh_config
-	install m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linbo/start.conf.default
+	mkdir -p debian/linuxmuster-linbo/etc/linuxmuster/linbo/
+	install -m 644 etc/ssh_config.lmn6 debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
+	install -m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates/
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
 	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn7' -exec rm -f {} \;
 	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.oss' -exec rm -f {} \;
 	for f in `find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn6'`; do \
-		nf=$${f%.lmn6} \
-		mv $$f $$nf \
+		nf=$${f%.lmn6} ; \
+		mv $$f $$nf ; \
 	done
 
 	## linuxmuster-linbo7
@@ -713,16 +713,16 @@ install: build
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
-	mkdir -p debian/linuxmuster-linbo7/etc/linbo/
-	install -m 644 etc/ssh_config.lmn7 debian/linuxmuster-linbo7/etc/linbo/ssh_config
-	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linbo/start.conf.default
+	mkdir -p debian/linuxmuster-linbo7/etc/linuxmuster/linbo/
+	install -m 644 etc/ssh_config.lmn7 debian/linuxmuster-linbo7/etc/linuxmuster/linbo/ssh_config
+	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linuxmuster/linbo/start.conf.default
 	mkdir -p debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	cp -r share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn6' -exec rm -f {} \;
-	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.oss' -exec rm -f {} \;
-	for f in `find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn7'`; do \
-		nf=$${f%.lmn7} \
-		mv $$f $$nf \
+	find debian/linuxmuster-linbo/usr/share/linuxmuster/linbo/templates -name '*.lmn6' -exec rm -f {} \;
+	find debian/linuxmuster-linbo/usr/share/linuxmuster/linbo/templates -name '*.oss' -exec rm -f {} \;
+	for f in `find debian/linuxmuster-linbo/usr/share/linuxmuster/linbo/templates -name '*.lmn7'`; do \
+		nf=$${f%.lmn7} ; \
+		mv $$f $$nf ; \
 	done
 
 # Build architecture-independent files here.
