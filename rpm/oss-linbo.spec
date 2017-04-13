@@ -108,7 +108,7 @@ BuildRequires:	ncurses-devel  python rsync texinfo makeinfo unzip wget efont-uni
 BuildRequires:  cmake
 
 BuildRoot:    %{_tmppath}/%{name}-root
-Requires:	logrotate
+Requires:	logrotate wakeonlan BitTorrent
 Requires(post):	%insserv_prereq %fillup_prereq dropbear pwgen
 
 PreReq: %insserv_prereq openschool-base
@@ -263,7 +263,7 @@ then
    then
      cp $FILE.in $FILE
      LINBOPW="$(pwgen -1)"
-     sed "s/#LINBOPW#/$LINBOPW/" -i $FILE
+     sed "s/^linbo:.*/linbo:$LINBOPW/" -i $FILE
    fi
    FILE=/etc/linbo/start.conf.default
    if [ -e $FILE ]; then
