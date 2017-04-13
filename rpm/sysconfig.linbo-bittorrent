@@ -11,9 +11,9 @@
 START_BITTORRENT=0
 
 ## Type:	string
-## Default:	/srv/tftp/workstations
+## Default:	/etc/linbo/workstations
 # path to file with workstation data
-WIMPORTDATA=/srv/tftp/workstations
+WIMPORTDATA=/etc/linbo/workstations
 
 ## Type:	string
 ## Default:	6881
