@@ -4,6 +4,7 @@
 /etc/linbo
 /etc/linuxmuster/linbo
 /usr/lib/linuxmuster/setup.d
+/usr/share/linuxmuster/templates
 /usr/share/linuxmuster/linbo/templates/isolinux
 /var/cache/linuxmuster/linbo
 /var/log/linuxmuster/linbo

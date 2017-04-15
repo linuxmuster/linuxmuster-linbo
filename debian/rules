@@ -717,6 +717,7 @@ install: build
 		nf=$${f%.lmn7} ; \
 		mv $$f $$nf ; \
 	done
+	mv debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/templates/rsyncd.conf debian/linuxmuster-linbo7/usr/share/linuxmuster/templates
 
 # Build architecture-independent files here.
 binary-indep: build install
