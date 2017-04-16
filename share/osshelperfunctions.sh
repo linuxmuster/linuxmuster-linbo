@@ -152,29 +152,19 @@ upload_password_to_ldap(){
 #######################
 # workstation related #
 #######################
-# TODO mac, hostname -> ip from LDAP
-# extract ip address from file $WIMPORTDATA
+# extract ip address from ldap
 get_ip() {
   unset RET
   local pattern="$1"
-  if validmac "$pattern"; then
-   RET=$(oss_ldapsearch ...)
-  else # assume hostname
-   RET=$(oss_ldapsearch ...)
-  fi
+  RET=$(oss_ldapsearch "(&(objectClass=dhcpHost)(|(dhcpHWAddress=ethernet\\20$pattern)(cn=$pattern)))" | grep "dhcpStatements: fixed-address " | awk '{ print $3 }')
   return 0
 }
 
-# TODO ip -> mac from LDAP
-# extract mac address from file $WIMPORTDATA
+# extract mac address from ldap
 get_mac() {
   unset RET
   local pattern="$1"
-  if validip "$pattern"; then
-   RET=$(oss_ldapsearch ...)
-  else # assume hostname
-   RET=$(oss_ldapsearch ...)
-  fi
+  RET=$(oss_ldapsearch "(&(objectClass=dhcpHost)(|(dhcpStatements=fixed-address\\20$pattern)(cn=$pattern)))" | grep "dhcpHWAddress: ethernet " | awk '{ print $3 }')
   [ -n "$RET" ] && toupper "$RET"
   return 0
 }
@@ -194,28 +184,18 @@ get_hostname() {
   return 0
 }
 
-# TODO ip,hostname -> pxe from LDAP
 # get pxe flag: get_pxe ip|host
 get_pxe() {
- [ -f "$WIMPORTDATA" ] || return 1
  local pattern="$1"
+ local hw
  local res
- local i
  if validip "$pattern"; then
-  i=get_hostname "$pattern"
-  res="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | grep \;$pattern\; | awk -F\; '{ print $11 }')"
- else
-  # assume hostname
-  get_ip "$pattern"
-  # perhaps a host with 2 ips
-  for i in $RET; do
-   if [ -z "$res" ]; then
-    res="$(get_pxe "$i")"
-   else
-    res="$res $(get_pxe "$i")"
-   fi
-  done
+  pattern=get_hostname "$pattern"
  fi
+ # assume hostname
+ hw=$(oss_ldapsearch "(cn=$pattern)" | grep "configurationValue: HW=" | awk -F\= '{ print $2 }')
+ res=$(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(description=$hw)(configurationValue=Imaging=linbo))")
+ [ -n "$res" ] && res=1 || res=0
  echo "$res"
 }
 
