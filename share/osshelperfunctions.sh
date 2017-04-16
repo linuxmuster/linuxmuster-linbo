@@ -156,12 +156,11 @@ upload_password_to_ldap(){
 # extract ip address from file $WIMPORTDATA
 get_ip() {
   unset RET
-  [ -f "$WIMPORTDATA" ] || return 1
   local pattern="$1"
   if validmac "$pattern"; then
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=$(oss_ldapsearch ...)
   else # assume hostname
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=$(oss_ldapsearch ...)
   fi
   return 0
 }
@@ -170,13 +169,11 @@ get_ip() {
 # extract mac address from file $WIMPORTDATA
 get_mac() {
   unset RET
-  [ -f "$WIMPORTDATA" ] || return 1
   local pattern="$1"
   if validip "$pattern"; then
-   pattern="${pattern//./\\.}"
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=$(oss_ldapsearch ...)
   else # assume hostname
-   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=$(oss_ldapsearch ...)
   fi
   [ -n "$RET" ] && toupper "$RET"
   return 0
@@ -205,6 +202,7 @@ get_pxe() {
  local res
  local i
  if validip "$pattern"; then
+  i=get_hostname "$pattern"
   res="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | grep \;$pattern\; | awk -F\; '{ print $11 }')"
  else
   # assume hostname
