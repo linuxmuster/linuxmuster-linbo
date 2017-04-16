@@ -246,8 +246,32 @@ toupper() {
 
 # get active groups
 get_active_groups(){
-  local actgroups="$(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW))" description | grep '^description: ' | awk '{ print $2 }'| sort -u)"
+  local actgroups="$(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" description | grep '^description: ' | awk '{ print $2 }'| sort -u)"
   echo "$actgroups"
+}
+
+# return active images
+active_images() {
+ # get active groups
+ local actgroups="$(get_active_groups)"
+ [ -z "$actgroups" ] && return 0
+ # compute images used by active groups
+ local tmpfile=/var/tmp/active_images.$$
+ rm -f $tmpfile
+ touch $tmpfile || return 1
+ local i=""
+ for i in $actgroups; do
+  if [ -s "$LINBODIR/start.conf.$i" ]; then
+   grep -i ^baseimage $LINBODIR/start.conf.$i | awk -F\= '{ print $2 }' | awk '{ print $1 }' >> $tmpfile
+   grep -i ^image $LINBODIR/start.conf.$i | awk -F\= '{ print $2 }' | awk '{ print $1 }' >> $tmpfile
+  fi
+ done
+ local actimages="$(sort -u $tmpfile)"
+ rm $tmpfile
+ for i in $actimages; do
+  [ -s "$LINBODIR/$i" ] && echo "$i"
+ done
+ return 0
 }
 
 # create torrent file for image
