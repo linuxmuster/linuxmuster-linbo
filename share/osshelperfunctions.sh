@@ -305,3 +305,17 @@ get_ips_from_room(){
   local IP="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(cn:dn:=$ROOM))" dhcpStatements | grep '^dhcpStatements: fixed-address ' | awk '{ print $3 }')"
   echo "$IP"
 }
+
+# get_win_key compname
+get_win_key(){
+  local compname="$1"
+  local winkey="$(oss_ldapsearch "(&(objectclass=SchoolWorkstations)(cn=$compname))" | grep "configurationValue: winkey=" | awk -F\= '{ print $2 }')"
+  echo "$winkey"
+}
+
+# get_office_key compname
+get_office_key(){
+  local compname="$1"
+  local officekey="$(oss_ldapsearch "(&(objectclass=SchoolWorkstations)(cn=$compname))" | grep "configurationValue: officekey=" | awk -F\= '{ print $2 }')"
+  echo "$officekey"
+}

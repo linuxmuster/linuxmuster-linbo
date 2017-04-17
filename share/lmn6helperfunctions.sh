@@ -164,3 +164,17 @@ get_ips_from_room(){
   local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
   echo "$IP"
 }
+
+# get_win_key compname
+get_win_key(){
+  local compname="$1"
+  local winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+  echo "$winkey"
+}
+
+# get_office_key compname
+get_office_key(){
+  local compname="$1"
+  local officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+  echo "$officekey"
+}

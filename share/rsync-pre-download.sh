@@ -86,8 +86,8 @@ case $EXT in
  *.winkey)
   # get key from workstations and write it to temporary file
   if [ -n "$compname" ]; then
-   winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
-   officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+   winkey="$(get_win_key $compname)"
+   officekey="$(get_office_key $compname)"
    [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
    [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"
   fi
