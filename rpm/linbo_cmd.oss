@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 30.06.2016
+# 20170328
 # GPL v3
 #
 
@@ -834,12 +834,14 @@ print_efipart(){
 print_grubpart(){
  local partition="$1"
  [ -b "$partition" ] || return 1
- local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||')"
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||')"
  case "$partition" in
-  /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
-  *)
-   local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
-   local disknr=$(( $ord - 97 ))
+   /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
+   /dev/nvme0n*) local disknr="$(echo "$partition" | sed 's|/dev/nvme0n\([0-9]\)p[1-9]|\1|')"
+                       disknr=$(( $disknr - 1 )) ;;
+   *)
+     local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
+     local disknr=$(( $ord - 97 ))
    ;;
  esac
  echo "(hd${disknr},${partnr})"
@@ -1387,6 +1389,7 @@ get_partition_size(){
  local part="$1"
  # fix wrong invokation by linbo_gui
  [ "$part" = "/dev/mmcblkp" ] && part="/dev/mmcblk0"
+ [ "$part" = "/dev/nvmenp" ] && part="/dev/nvme0n1"
  # fix vanished cloop symlink
  if [ "$part" = "/dev/cloop" ]; then
   [ -e "/dev/cloop" ] || ln -sf /dev/cloop0 /dev/cloop
