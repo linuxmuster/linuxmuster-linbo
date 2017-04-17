@@ -315,8 +315,6 @@ oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG
 if [ "$RC" = "0" ]; then
  echo "Done!"
  echo
- # restart nameserver
- service named reload
 else
  echo "oss_workstations_sync_hosts.pl exits with error!"
  echo
@@ -335,10 +333,11 @@ sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
  hostname="$(echo "$line" | awk -F\; '{ print $2 }')"
  hostgroup="$(echo "$line" | awk -F\; '{ print $3 }')"
  hostgroup="$(echo "$hostgroup" | awk -F\, '{ print $1 }')"
- ip="$(host $hostname | sed 's/.* //g')"
+ get_ip $hostname
+ ip="$RET"
  mac="$(echo "$line" | awk -F\; '{ print $4 }')"
  pxe="$(echo "$line" | awk -F\; '{ print $11 }')"
-
+ 
  # create dhcpd entries for hosts in ldap
  case "$pxe" in
   1|2|3|22)
