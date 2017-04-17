@@ -255,12 +255,15 @@ sed -e 's/\(^[A-Za-z0-9].*\)/\L\1/
 
 # check workstation data
 echo "Checking workstation data ..."
+echo -n " - checking rooms..."
 # rooms
 rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
 for i in $rooms; do
  check_string "$i" || exitmsg "$i is no valid room name!"
 done
+echo "done."
 
+echo -n " - checking hostgroups..."
 # hostgroups
 hostgroups="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$3"#" }' | sort -u)"
 echo "$hostgroups" | grep -q "##" && exitmsg "Empty hostgroup found! Check your data!"
@@ -268,7 +271,9 @@ hostgroups="${hostgroups//#/}"
 for i in $hostgroups; do
  check_string "$i" || exitmsg "$i is no valid hostgroup name!"
 done
+echo "done."
 
+echo -n " - checking hostnames..."
 # hostnames, one host can have two entries with different macs (wired and wlan)
 hostnames="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$2"#" }')"
 echo "$hostnames" | grep -q "##" && exitmsg "Empty hostname found! Check your data!"
@@ -285,7 +290,9 @@ check_unique "$hostnames" | while read line; do
  get_mac "$i"
  [ -n "$(check_unique "$RET")" ] && exitmsg "Macs for host $i are not unique: $RET!"
 done
+echo "done."
 
+echo -n " - checking macs..."
 # macs
 macs="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$4"#" }')"
 echo "$macs" | grep -q "##" && exitmsg "Empty mac address found! Check your data!"
@@ -295,6 +302,7 @@ for i in $macs; do
 done
 RET="$(check_unique "$macs")"
 [ -n "$RET" ] && exitmsg "Not unique mac(s) detected: $RET!"
+echo "done."
 
 # tests are done
 echo " Ok!"
