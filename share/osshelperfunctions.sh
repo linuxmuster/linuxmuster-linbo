@@ -7,9 +7,6 @@
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
-# source network settings
-[ -f "$NETWORKSETTINGS" ] && . $NETWORKSETTINGS
-
 # lockfile
 lockflag=/tmp/.linbo.lock
 
