@@ -213,6 +213,33 @@ get_active_groups(){
   echo "$actgroups"
 }
 
+# return active images
+active_images() {
+ # check for workstation data
+ [ -z "$WIMPORTDATA" ] && return 1
+ [ -s "$WIMPORTDATA" ] || return 1
+ # get active groups
+ local actgroups="$(get_active_groups)"
+ [ -z "$actgroups" ] && return 0
+ # compute images used by active groups
+ local tmpfile=/var/tmp/active_images.$$
+ rm -f $tmpfile
+ touch $tmpfile || return 1
+ local i=""
+ for i in $actgroups; do
+  if [ -s "$LINBODIR/start.conf.$i" ]; then
+   grep -i ^baseimage $LINBODIR/start.conf.$i | awk -F\= '{ print $2 }' | awk '{ print $1 }' >> $tmpfile
+   grep -i ^image $LINBODIR/start.conf.$i | awk -F\= '{ print $2 }' | awk '{ print $1 }' >> $tmpfile
+  fi
+ done
+ local actimages="$(sort -u $tmpfile)"
+ rm $tmpfile
+ for i in $actimages; do
+  [ -s "$LINBODIR/$i" ] && echo "$i"
+ done
+ return 0
+}
+
 # create torrent file for image
 create_torrent() {
  local image="$1"
@@ -245,4 +272,18 @@ get_ips_from_room(){
   local ROOM="$1"
   local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
   echo "$IP"
+}
+
+# get_win_key compname
+get_win_key(){
+  local compname="$1"
+  local winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+  echo "$winkey"
+}
+
+# get_office_key compname
+get_office_key(){
+  local compname="$1"
+  local officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
+  echo "$officekey"
 }

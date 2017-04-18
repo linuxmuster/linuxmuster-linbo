@@ -18,17 +18,45 @@ sub get_bootfilename($)
     my $systemtype = shift || 'bios';
     if( $systemtype =~ /bios64/ )
     {
-	return 'filename "boot/grub/i386-pc/core.0"';
+	return "boot/grub/i386-pc/core.0";
     } elsif( $systemtype =~ /efi32/ )
     {
-	return 'filename "boot/grub/i386-efi/core.efi"';
+	return "boot/grub/i386-efi/core.efi";
     } elsif( $systemtype =~ /efi64/ )
     {
-	return 'filename "boot/grub/x86_64-efi/core.efi"';
+	return "boot/grub/x86_64-efi/core.efi";
     } else {
-	return 'filename "boot/grub/i386-pc/core.0"';
+	return "boot/grub/i386-pc/core.0";
     }
 }
+
+sub set_dhcpStatements($$$$)
+{
+    my $oss_base  = shift;
+    my $dn        = shift;
+    my $extpath   = shift;
+    my $filename  = shift;
+
+    my $entry     = $oss_base->get_entry( $dn, 1);
+    my @configs   = $entry->get_value('dhcpStatements');
+    foreach my $config ( @configs )
+    {
+        if( $config =~ /^option extensions-path /i or $config =~ /^filename /i )
+	{
+	    $entry->delete( dhcpStatements => [ $config ] );
+	}
+    }
+    $entry->add( dhcpStatements => 'option extensions-path "'.$value1.'"' );
+    $entry->add( dhcpStatements => 'filename "'.$value2.'"' );
+    my $mesg = $entry->update( $oss_base->{LDAP} );
+    if( $mesg->code() )
+    {
+	$oss_base->ldap_error($mesg);
+	return 0;
+    }
+    return 1;
+}
+
 
 while(my $param = shift)
 {
@@ -93,16 +121,7 @@ foreach my $HOST (@hosts)
 	die "  > Host " . $HOST->{name} . " has no valid systemtype.";
     }
     print "  * DHCP for $dn...\n";
-    my $le = $oss_base->get_entry($dn);
-    foreach my $line (@{$le->{'dhcpstatements'}})
-    {
-	if($line =~ /^option extensions-path / or $line =~ /^filename /)
-	{
-	    $oss_base->del_attribute($dn,'dhcpstatements',$line);
-	}
-    }
-    $oss_base->add_attribute($dn,'dhcpstatements','option extensions-path "' . $group . '"');
-    $oss_base->add_attribute($dn,'dhcpstatements',get_bootfilename($HOST->{systemtype}));
+    set_dhcpStatements($oss_base,$dn,$group,get_bootfilename($HOST->{systemtype}));
     if( $DEBUG )
     {
         open(OUT,">/tmp/ldap_modify.dhcpStatements");
