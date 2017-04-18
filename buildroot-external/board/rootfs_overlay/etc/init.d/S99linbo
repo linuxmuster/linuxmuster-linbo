@@ -80,6 +80,9 @@ init_setup(){
  fi
 
  loadkmap < /usr/share/de-latin1-nodeadkeys.kmap
+
+ # efibootmgr(0.14) needs efivarfs
+ [ -d /sys/firmware/efi ] && mount -t efivarfs none /sys/firmware/efi/efivars
 }
 
 # trycopyfromdevice device filenames
