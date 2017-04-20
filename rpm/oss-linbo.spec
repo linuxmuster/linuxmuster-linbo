@@ -108,7 +108,7 @@ BuildRequires:	ncurses-devel  python rsync texinfo makeinfo unzip wget efont-uni
 BuildRequires:  cmake
 
 BuildRoot:    %{_tmppath}/%{name}-root
-Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses
+Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6
 Requires(post):	%insserv_prereq %fillup_prereq dropbear pwgen
 
 PreReq: %insserv_prereq openschool-base
