@@ -35,13 +35,8 @@ GRUBCFG="$LINBOTPLDIR/grub.cfg.iso"
 LINBOCFG="$LINBOTPLDIR/linbo.cfg.iso"
 
 ISOLINUXCFG="$LINBOTPLDIR/isolinux"
-if [ "FLAVOUR" = "oss" ]; then
-  SYSLINUXSRC="/usr/share/syslinux"
-  ISOLINUXSRC="$SYSLINUXSRC"
-else
-  ISOLINUXSRC="/usr/lib/ISOLINUX"
-  SYSLINUXSRC="/usr/lib/syslinux/modules/bios"
-fi
+[ -n "$ISOLINUXSRC" ] ||  ISOLINUXSRC="/usr/lib/ISOLINUX"
+[ -n "$SYSLINUXSRC" ] ||  SYSLINUXSRC="/usr/lib/syslinux/modules/bios"
 ISOLINUXBIN="$ISOLINUXSRC/isolinux.bin"
 ISOHDPFX="$ISOLINUXSRC/isohdpfx.bin"
 SYSLINUXMODS="config ifcpu64 ldlinux libcom32 libutil vesamenu"
