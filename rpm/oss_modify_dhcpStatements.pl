@@ -46,8 +46,8 @@ sub set_dhcpStatements($$$$)
 	    $entry->delete( dhcpStatements => [ $config ] );
 	}
     }
-    $entry->add( dhcpStatements => 'option extensions-path "'.$value1.'"' );
-    $entry->add( dhcpStatements => 'filename "'.$value2.'"' );
+    $entry->add( dhcpStatements => 'option extensions-path "'.$extpath.'"' );
+    $entry->add( dhcpStatements => 'filename "'.$filename.'"' );
     my $mesg = $entry->update( $oss_base->{LDAP} );
     if( $mesg->code() )
     {
