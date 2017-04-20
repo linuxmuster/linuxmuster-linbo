@@ -64,7 +64,10 @@ CommandLine::CommandLine(): args(),autostart(-1),use_autostart(false),extraconf(
         QTextStream ts(&linbocmdfile);
         if(linbocmds.size() > 0){
             linbocmds.append(Command::LINBOCMDSEP);
-            linbocmds.append(linbocmdfile.readAll());
+            linbocmds.append(ts.readAll());
+        }
+        else {
+            linbocmds = ts.readAll();
         }
         if(linbocmds.contains(" ")){
             QStringList largs = linbocmds.split(" ");
