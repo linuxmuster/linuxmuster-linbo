@@ -150,7 +150,7 @@ cat >%{buildroot}/etc/linbo/linbo.conf <<EOF
 FLAVOUR=oss
 ENVDEFAULTS=/usr/share/linbo/dist.conf
 SYSLINUXSRC="/usr/share/syslinux"
-ISOLINUXSRC="$SYSLINUXSRC"
+ISOLINUXSRC="\$SYSLINUXSRC"
 
 EOF
 
