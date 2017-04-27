@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-GRUB2EFI32_VERSION = 2.02-rc2
-GRUB2EFI32_SOURCE = grub-2.02~rc2.tar.gz
-GRUB2EFI32_SITE = http://alpha.gnu.org/gnu/grub
+GRUB2EFI32_VERSION = 2.02
+GRUB2EFI32_SOURCE = grub-$(GRUB2EFI32_VERSION).tar.gz
+GRUB2EFI32_SITE = ftp://ftp.gnu.org/gnu/grub
 GRUB2EFI32_LICENSE = GPLv3
 GRUB2EFI32_LICENSE_FILES = COPYING
 

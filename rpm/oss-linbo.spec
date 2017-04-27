@@ -48,7 +48,7 @@ Source28:	glibc-2.24.tar.xz
 Source29:	gmp-6.1.2.tar.xz
 Source30:	gperf-3.0.4.tar.gz
 Source31:	gptfdisk-1.0.0.tar.gz
-Source32:	grub-2.02~rc2.tar.gz
+Source32:	grub-2.02.tar.gz
 Source33:	inputproto-2.3.2.tar.bz2
 Source34:	intltool-0.51.0.tar.gz
 Source35:	kbproto-1.0.7.tar.bz2

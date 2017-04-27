@@ -8,7 +8,7 @@ BUILD64=$(BUILDDIR)/build-x86_64
 LINBO_VERSION=$(shell cat rpm/oss-linbo.spec | grep '^Version:' | awk '{ print $$2 }')
 LINBO_RELEASE=$(shell cat rpm/oss-linbo.spec | grep '^Release:' | awk '{ print $$2 }')
 
-GRUBNAME=grub-2.02~rc2
+GRUBNAME=grub-2.02
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
  --disable-boot-time --disable-grub-mkfont \
  --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
