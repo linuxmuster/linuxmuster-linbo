@@ -237,6 +237,9 @@ install rpm/oss_workstations_sync_hosts.pl %{buildroot}/usr/sbin/oss_workstation
 mkdir -p %{buildroot}/usr/share/linbo
 install rpm/wimport.sh %{buildroot}/usr/share/linbo/wimport.sh
 
+mkdir -p %{buildroot}/usr/share/oss/plugins/add_user
+install rpm/add_linbopxe.pl %{buildroot}/usr/share/oss/plugins/add_user/add_linbpxe.pl
+
 %pre
 if ! grep -qw ^bittorrent /etc/passwd; then
     useradd -r -g nogroup -c "BitTorrent User" -d /var/lib/bittorrent -s /bin/false bittorrent
@@ -366,7 +369,11 @@ fi
 /srv/tftp/linbo-version
 /usr/share/linbo
 /usr/share/doc/packages/oss-linbo/examples
+%dir /usr/share/oss
+%dir /usr/share/oss/plugins
+%dir /usr/share/oss/plugins/add_user
 %defattr(0755,root,root)
+/usr/share/oss/plugins/add_user/add_linbopxe.pl
 /usr/sbin/linbo-ssh
 /usr/sbin/linbo-scp
 /usr/sbin/linbo-remote

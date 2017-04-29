@@ -10,10 +10,20 @@
 # workstations file (oss)
 # raum;rechner;gruppe;mac;;;;;;;linbo=1;
 
+
 RC=0
 
 
 ### functions begin ###
+
+# get value from index in emulated associative array (bash3)
+# (set value: declare "array_$index=$value")
+#
+arrayGet() { 
+    local array=$1 index=$2
+    local i="${array}_$index"
+    printf '%s' "${!i}"
+}
 
 # check for unique entry: check_unique <item1 item2 ...>
 check_unique() {
@@ -246,7 +256,6 @@ if ls $LINBODIR/*.new &> /dev/null; then
  done
 fi
 
-
 # case repair for workstation data
 # all to lower case, macs to upper case
 sed -e 's/\(^[A-Za-z0-9].*\)/\L\1/
@@ -322,42 +331,89 @@ else
  exit "$RC"
 fi # sync host accounts
 
+# sync host groups
+echo "Processing host groups..."
+RC=
+for line in $(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" "description" \
+        |grep ^description: |awk '{ print $2 }'); do
+  do_pxe "$line" || RC="1"
+  declare "hosttype_$line=$(get_systemtype $line)"
+done;
+
+if [ -n "$RC" ]; then
+ echo "Errors in host group processing!"
+ echo
+ rm -f $locker
+ exit "$RC"
+else
+ echo "Done!"
+ echo
+fi
+
 echo "Creating/modifying PXE/DHCP entries..."
 tmpdhcp="/tmp/modify_dhcpstatements.$$"
 rm -f $tmpdhcp
-groups_processed=""
-sort -b -d -t';' -k5 $WIMPORTDATA | grep ^[a-z0-9] | while read line; do
+oss_ldapsearch "(&(objectClass=SchoolWorkstation))" cn dhcpHWAddress dhcpStatements configurationValue | while read line; do
 
  # get data from line
- room="$(echo "$line" | awk -F\; '{ print $1 }')"
- hostname="$(echo "$line" | awk -F\; '{ print $2 }')"
- hostgroup="$(echo "$line" | awk -F\; '{ print $3 }')"
- hostgroup="$(echo "$hostgroup" | awk -F\, '{ print $1 }')"
- get_ip $hostname
- ip="$RET"
- mac="$(echo "$line" | awk -F\; '{ print $4 }')"
- pxe="$(echo "$line" | awk -F\; '{ print $11 }')"
- 
- # create dhcpd entries for hosts in ldap
- case "$pxe" in
-  1|2|3|22)
-   # determine systemtype for efi netboot
-   systemtype="$(get_systemtype "$hostgroup")"
-   # process linbo pxe configs
-   do_pxe "$hostgroup" || RC="1"
-   if [ -n "$RC" ]; then
-     cat >>$tmpdhcp <<EOF
+ key="$(echo "$line" | awk '{ print $1 }' | sed 's/:$//' )"
+ value1="$(echo "$line" | awk '{ print $2 }' )"
+ value2="$(echo "$line" | awk '{ print $3 }' )"
+ case "$key" in
+  dn) 
+   if [ -n "$hostname" -a -n "$ip" -a -n "$mac" ]; then
+     # create dhcpd entries for hosts in ldap
+     case "$pxe" in
+       1|2|3|22)
+         # determine systemtype for efi netboot
+         systemtype="$(arrayGet hosttype "$hostgroup")"
+         if [ -n "$systemtype" -a -n "$hostgroup" ]; then
+           cat >>$tmpdhcp <<EOF
 name $hostname
 group $hostgroup
 ipaddress $ip
 systemtype $systemtype
 EOF
+         else
+           echo " --error: $hostname has systemtype $systemtype and hostgroup $hostgroup"
+         fi
+         echo -en " * PXE" ;;
+       *) echo -en " * IP" ;;
+     esac
+     echo -e "-Host\t$hostname."
    fi
-   echo -en " * PXE" ;;
-  *) echo -en " * IP" ;;
+   hostname=
+   hostgroup=
+   systemtype=
+   ip=
+   mac=
+   pxe=
+   ;;
+  cn) 
+   hostname="$value1"
+   ;;
+  dhcpHWAddress) 
+   mac="$value2"
+   ;;
+  dhcpStatements) 
+   [ "$value1" = "fixed-address" ] && ip="$value2"
+   ;;
+  configurationValue)
+   key="$(echo "$value1" | awk -F\= '{ print $1 }' )"
+   case "$key" in
+    LINBOPXE)
+     pxe="$(echo "$value1" | awk -F\= '{ print $2 }' )"
+     ;;
+    HW)
+     hostgroup="$(echo "$value1" | awk -F\= '{ print $2 }' )"
+     ;;
+    *) continue
+     ;;
+   esac
+   ;;
+  *) continue
+   ;;
  esac
- echo -e "-Host\t$hostname."
-
 done
 echo "Done!"
 echo
