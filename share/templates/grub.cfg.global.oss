@@ -51,7 +51,7 @@ menuentry 'LINBO' --class linux {
 
  if [ -n "$bootflag" ]; then
   echo -n "Loading $linbo_kernel ..."
-  linux $linbo_kernel @@kopts@@ $bootflag
+  linux $linbo_kernel @@kopts@@ $bootflag quiet splash
   echo
   echo -n "Loading $linbo_initrd ..."
   initrd $linbo_initrd

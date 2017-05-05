@@ -58,7 +58,7 @@ menuentry '@@osname@@ (Sync+Start)' --class @@ostype@@_syncstart {
   echo LINBO $bootflag for group @@group@@
   echo
   echo -n "Loading $linbo_kernel ..."
-  linux $linbo_kernel @@kopts@@ linbocmd=sync:@@osnr@@,start:@@osnr@@ $bootflag
+  linux $linbo_kernel quiet splash @@kopts@@ linbocmd=sync:@@osnr@@,start:@@osnr@@ $bootflag
   echo
   echo -n "Loading $linbo_initrd ..."
   initrd $linbo_initrd
@@ -83,7 +83,7 @@ menuentry '@@osname@@ (Neu+Start)' --class @@ostype@@_newstart {
   echo LINBO $bootflag for group @@group@@
   echo
   echo -n "Loading $linbo_kernel ..."
-  linux $linbo_kernel @@kopts@@ linbocmd=format:@@partnr@@,sync:@@osnr@@,start:@@osnr@@ $bootflag
+  linux $linbo_kernel quiet splash @@kopts@@ linbocmd=format:@@partnr@@,sync:@@osnr@@,start:@@osnr@@ $bootflag
   echo
   echo -n "Loading $linbo_initrd ..."
   initrd $linbo_initrd
