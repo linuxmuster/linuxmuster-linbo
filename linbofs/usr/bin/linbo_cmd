@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20170328
+# 20170512
 # GPL v3
 #
 
@@ -2856,9 +2856,9 @@ update(){
 
  # get group specific and local grub configs from server
  echo "Aktualisiere GRUB-Konfiguration."
- for i in boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
+ for i in boot/grub/ipxe.lkrn "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
   # collect md5 before download
-  if [ "$i" = "boot/grub/$group.cfg" ]; then
+  if [ "$i" = "boot/grub/$group.cfg" -o "$i" = "boot/grub/hostcfg/$myname.cfg" ]; then
    md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
   elif [ "$i" = "boot/grub/spool/$myname.$group.grub.cfg" ]; then
    md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
@@ -2867,6 +2867,8 @@ update(){
   fi
   download "$server" "$i" || RC=1
   if [ "$RC" = "1" ]; then
+   # continue if download was hostcfg
+   echo "$i" | grep -q hostcfg && continue
    echo "Download-Fehler bei $i!" >&2
    rm -f "$i"
    return 1
@@ -2881,8 +2883,16 @@ update(){
  done
 
  # move downloads in place
- mv "$group.cfg" "$grubdir/custom.cfg" || RC=1
- mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
+ if [ -e "$myname.cfg" ]; then
+   mv "$myname.cfg" "$grubdir/custom.cfg" || RC=1
+   rm -f "$group.cfg"
+ fi
+ if [ -e "$group.cfg" ]; then
+   mv "$group.cfg" "$grubdir/custom.cfg" || RC=1
+ fi
+ if [ -e "$myname.$group.grub.cfg" ]; then
+   mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
+ fi
  if [ "$RC" = "1" ]; then
   echo "Fehler beim Schreiben der GRUB-Konfigurationsdateien!" >&2
   return 1

@@ -1,5 +1,6 @@
 /var/linbo/examples
 /var/linbo/boot/grub/themes/linbo
+/var/linbo/boot/grub/hostcfg
 /var/linbo/boot/grub/i386-pc
 /var/linbo/boot/grub/i386-efi
 /var/linbo/boot/grub/spool

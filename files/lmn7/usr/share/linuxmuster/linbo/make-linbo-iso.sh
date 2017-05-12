@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20160916
+# 20170512
 # GPL V3
 #
 
@@ -36,7 +36,7 @@ ISOHDPFX="$ISOLINUXSRC/isohdpfx.bin"
 SYSLINUXSRC="/usr/lib/syslinux/modules/bios"
 SYSLINUXMODS="config ifcpu64 ldlinux libcom32 libutil vesamenu"
 
-EFIIMGSIZE="90M"
+EFIIMGSIZE="128M"
 EFIMOUNT="/var/tmp/efi.$$"
 mkdir -p "$EFIMOUNT"
 

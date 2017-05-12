@@ -1,3 +1,14 @@
+linuxmuster-linbo (2.3.24-0) babo62; urgency=low
+
+  * added minimal grub pxe boot image for i386-pc (core.min).
+  * removed biosdisk module from grub boot images.
+  * added failsafe linbo pxe and local boot mode if no group specific cfg exists
+    on the server.
+  * implemented host specific grub configs.
+  * make-linbo-iso.sh: increased EFIIMGSIZE to 128M.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 May 2017 12:02:26 +0000
+
 linuxmuster-linbo (2.3.23-0) babo62; urgency=low
 
   * 64bit kernel: added dell xps touchscreen drivers.
