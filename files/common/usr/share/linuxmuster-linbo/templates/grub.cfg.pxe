@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20170512
+# 20170513
 #
 
 set timeout=0
@@ -131,10 +131,13 @@ menuentry 'Default' {
  if [ "$grub_platform" = "efi" ]; then
   if [ -n "$net_efinet0_extensionspath" ]; then
    set group="$net_efinet0_extensionspath"
+   set net_pxe_hostname="$net_efinet0_hostname"
   elif [ -n "$net_efinet1_extensionspath" ]; then
    set group="$net_efinet1_extensionspath"
+   set net_pxe_hostname="$net_efinet1_hostname"
   elif [ -n "$net_efinet2_extensionspath" ]; then
    set group="$net_efinet2_extensionspath"
+   set net_pxe_hostname="$net_efinet2_hostname"
   fi
  else
   set group="$net_pxe_extensionspath"
