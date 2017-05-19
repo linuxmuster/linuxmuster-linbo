@@ -2,7 +2,7 @@
 #
 # creates directory structure for grub network boot
 # thomas@linuxmuster.net
-# 20160916
+# 20170512
 # GPL V3
 #
 
@@ -17,7 +17,8 @@ GRUB_ISO_MODULES="iso9660 usb"
 # arch specific netboot modules
 GRUB_EFI32_MODULES="$GRUB_COMMON_MODULES efi_gop efi_uga efinet tftp"
 GRUB_EFI64_MODULES="$GRUB_COMMON_MODULES efi_gop efi_uga efinet linuxefi tftp"
-GRUB_PC_MODULES="$GRUB_COMMON_MODULES biosdisk ntldr pxe"
+#GRUB_PC_MODULES="$GRUB_COMMON_MODULES biosdisk ntldr pxe"
+GRUB_PC_MODULES="$GRUB_COMMON_MODULES ntldr pxe"
 
 # arch specific cd/usb boot modules (grub-pc not needed, boots with syslinux)
 GRUB_EFI32_ISO_MODULES="$GRUB_ISO_MODULES $GRUB_EFI32_MODULES"
@@ -40,6 +41,8 @@ mv "$CORE_EFI32.efi" "$CORE_EFI32.iso"
 mv "$CORE_EFI64.efi" "$CORE_EFI64.iso"
 
 # make netboot images
+grub-mknetdir -d src/bin32/usr/lib/grub/i386-pc --net-directory="$NETDIR" --subdir="$SUBDIR"
+mv "$NETDIR$SUBDIR/i386-pc/core.0" "$NETDIR$SUBDIR/i386-pc/core.min"
 grub-mknetdir --modules="$GRUB_PC_MODULES" -d src/bin32/usr/lib/grub/i386-pc --net-directory="$NETDIR" --subdir="$SUBDIR"
 grub-mknetdir --modules="$GRUB_EFI32_MODULES" -d src/bin32/usr/lib/grub/i386-efi --net-directory="$NETDIR" --subdir="$SUBDIR"
 grub-mknetdir --modules="$GRUB_EFI64_MODULES" -d /usr/lib/grub/x86_64-efi --net-directory="$NETDIR" --subdir="$SUBDIR"

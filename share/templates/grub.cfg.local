@@ -1,7 +1,7 @@
 #
 # default grub.cfg, local boot version (placed in linbo cache)
 # thomas@linuxmuster.net
-# 20160804
+# 20170512
 #
 
 set default=0
@@ -108,13 +108,13 @@ menuentry 'OS localboot' {
     boot
    fi
 
-  # if no reboot is set load group specific custom.cfg if present  
+  # if no reboot is set load group specific custom.cfg if present
   elif [ -s /boot/grub/custom.cfg ] ; then
    configfile /boot/grub/custom.cfg
   fi
 }
 
-# boot linbo local from cache as fallback
+# boot linbo local from cache in failsafe mode
 menuentry 'LINBO' {
  # 32bit pae, non pae or 64bit kernel
  if cpuid -l; then
@@ -130,8 +130,10 @@ menuentry 'LINBO' {
 
  set root="${linboroot}"
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
+  set gfxpayload=640x480x16
+  echo "LINBO localboot in failsafe mode"
   echo -n "Loading $linbo_kernel .."
-  linux $linbo_kernel splash quiet localboot
+  linux $linbo_kernel quiet localboot
   echo
   echo -n "Loading $linbo_initrd .."
   initrd $linbo_initrd

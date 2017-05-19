@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20160804
+# 20170513
 #
 
 set timeout=0
@@ -45,7 +45,7 @@ menuentry 'Default' {
 
   # look for it on cache partition
   if search --set root --file /start.conf; then
-  
+
    # save local root in variable
    set localroot="${root}"
 
@@ -131,22 +131,28 @@ menuentry 'Default' {
  if [ "$grub_platform" = "efi" ]; then
   if [ -n "$net_efinet0_extensionspath" ]; then
    set group="$net_efinet0_extensionspath"
+   set net_pxe_hostname="$net_efinet0_hostname"
   elif [ -n "$net_efinet1_extensionspath" ]; then
    set group="$net_efinet1_extensionspath"
+   set net_pxe_hostname="$net_efinet1_hostname"
   elif [ -n "$net_efinet2_extensionspath" ]; then
    set group="$net_efinet2_extensionspath"
+   set net_pxe_hostname="$net_efinet2_hostname"
   fi
  else
   set group="$net_pxe_extensionspath"
  fi
- set grubcfg="$prefix/${group}.cfg"
+ set groupcfg="$prefix/${group}.cfg"
+ set hostcfg="$prefix/hostcfg/${net_pxe_hostname}.cfg"
 
- # load group specific config from server if exists
- if [ -s "$grubcfg" ]; then
-  configfile $grubcfg
+ # try host specific config from server and boot it if exists
+ configfile $hostcfg
+
+ # try group specific config from server and boot it if exists
+ configfile $groupcfg
 
  # try local boot in the other case
- elif [ -n "$localroot" ]; then
+ if [ -n "$localroot" ]; then
   set root="${localroot}"
   # load local custom.cfg if present
   set customcfg=$prefix/custom.cfg
@@ -155,8 +161,9 @@ menuentry 'Default' {
   fi
  fi
 
- # finally try netboot linbo directly
+ # finally try netboot linbo directly in failsafe mode
  set root="${netroot}"
+ set gfxpayload=640x480x16
 
  # 32bit pae, non pae or 64bit kernel
  if cpuid -l; then
@@ -169,10 +176,11 @@ menuentry 'Default' {
   set linbo_kernel=/linbo-np
   set linbo_initrd=/linbofs-np.lz
  fi
+ echo "LINBO netboot in failsafe mode"
  echo -n "Loading $linbo_kernel .."
- linux $linbo_kernel splash quiet netboot
+ linux $linbo_kernel quiet netboot
  echo
  echo -n "Loading $linbo_initrd .."
  initrd $linbo_initrd
-
+ boot
 }

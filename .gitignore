@@ -1,5 +1,6 @@
 build
 build-*
+build.log
 linbofs/etc/linbo-version
 src
 src64

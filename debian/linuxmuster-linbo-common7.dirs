@@ -1,6 +1,7 @@
 /etc/linbo
 /srv/linbo/examples
 /srv/linbo/boot/grub/themes/linbo
+/srv/linbo/boot/grub/hostcfg
 /srv/linbo/boot/grub/i386-pc
 /srv/linbo/boot/grub/i386-efi
 /srv/linbo/boot/grub/spool

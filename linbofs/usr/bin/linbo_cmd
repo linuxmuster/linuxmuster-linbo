@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20170328
+# 20170513
 # GPL v3
 #
 
@@ -2784,161 +2784,181 @@ syncr(){
 # update server cachedev force
 # updates grub and linbo stuff
 update(){
- # do not execute in localmode
- localmode && return 0
+  # do not execute in localmode
+  localmode && return 0
 
- echo -n "update " ;  printargs "$@"
- local doneflag="/tmp/.update.done"
- local force="$3"
+  echo -n "update " ;  printargs "$@"
+  local doneflag="/tmp/.update.done"
+  local force="$3"
 
- if [ -e "$doneflag" -a -z "$force" ]; then
-  echo "LINBO-Update wurde schon ausgefuehrt!"
-  return 0
- else
-  rm -f "$doneflag"
- fi
-
- local rebootflag="/tmp/.linbo.reboot"
- local reboot
- local RC=0
- local group="$(hostgroup)"
- local server="$1"
- local cachedev="$2"
- local disk="${cachedev%%[1-9]*}"
- local grubdir="/cache/boot/grub"
- mountcache "$cachedev" || return 1
- mkdir -p "$grubdir"
-
- cd /cache
- local suffix="$(get_64)"
- # detect non pae cpu
- if [ -z "$suffix" ]; then
-  grep ^flags /proc/cpuinfo | head -1 | grep -wq pae || suffix="-np"
- fi
- local kernel="linbo${suffix}"
- local kernelfs="linbofs${suffix}.lz"
- local md5_before
- local md5_after
- local md5_current
- local i
- local myname="$(clientname)"
-
- # local restore of start.conf in cache (necessary if cache partition was formatted before)
- [ -s start.conf ] || cp /start.conf .
-
- # check for linbo/linbofs updates on server
- # download newer linbo/linbofs if applicable and check download
- echo "Pruefe auf LINBO-Aktualisierungen."
- for i in "$kernel" "$kernelfs"; do
-  md5_before="" ; md5_after="" ; md5_current=""
-  [ -s "$i" ] && md5_before="$(md5sum "$i" | awk '{ print $1 }')"
-  rm -f "${i}.md5"
-  download "$server" "${i}.md5" && md5_after="$(cat "$i".md5 2> /dev/null)"
-  if [ -z "$md5_after" ]; then
-   echo "Download-Fehler bei ${i}.md5!" >&2
-   rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
-   return 1
-  fi
-  if [ -z "$md5_before" -o "$md5_before" != "$md5_after" ]; then
-   download "$server" "$i" && md5_current="$(md5sum "$i" | awk '{ print $1 }')"
-   if [ "$md5_after" = "$md5_current" ]; then
-    echo "$i wurde erfolgreich aktualisiert."
-    reboot="yes"
-   else
-    echo "Download-Fehler bei $i!" >&2
-    rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
-    return 1
-   fi
+  if [ -e "$doneflag" -a -z "$force" ]; then
+    echo "LINBO-Update wurde schon ausgefuehrt!"
+    return 0
   else
-   echo "$i ist aktuell."
+    rm -f "$doneflag"
   fi
- done
 
- # get group specific and local grub configs from server
- echo "Aktualisiere GRUB-Konfiguration."
- for i in boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
-  # collect md5 before download
-  if [ "$i" = "boot/grub/$group.cfg" ]; then
-   md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
-  elif [ "$i" = "boot/grub/spool/$myname.$group.grub.cfg" ]; then
-   md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
-  else
-   md5_before="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
+  local rebootflag="/tmp/.linbo.reboot"
+  local reboot
+  local RC=0
+  local group="$(hostgroup)"
+  local server="$1"
+  local cachedev="$2"
+  local disk="${cachedev%%[1-9]*}"
+  local grubdir="/cache/boot/grub"
+  mountcache "$cachedev" || return 1
+  mkdir -p "$grubdir"
+
+  cd /cache
+  local suffix="$(get_64)"
+  # detect non pae cpu
+  if [ -z "$suffix" ]; then
+    grep ^flags /proc/cpuinfo | head -1 | grep -wq pae || suffix="-np"
   fi
-  download "$server" "$i" || RC=1
+  local kernel="linbo${suffix}"
+  local kernelfs="linbofs${suffix}.lz"
+  local md5_before
+  local md5_after
+  local md5_current
+  local i
+  local myname="$(clientname)"
+
+  # local restore of start.conf in cache (necessary if cache partition was formatted before)
+  [ -s start.conf ] || cp /start.conf .
+
+  # check for linbo/linbofs updates on server
+  # download newer linbo/linbofs if applicable and check download
+  echo "Pruefe auf LINBO-Aktualisierungen."
+  for i in "$kernel" "$kernelfs"; do
+    md5_before="" ; md5_after="" ; md5_current=""
+    [ -s "$i" ] && md5_before="$(md5sum "$i" | awk '{ print $1 }')"
+    rm -f "${i}.md5"
+    download "$server" "${i}.md5" && md5_after="$(cat "$i".md5 2> /dev/null)"
+    if [ -z "$md5_after" ]; then
+      echo "Download-Fehler bei ${i}.md5!" >&2
+      rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+      return 1
+    fi
+    if [ -z "$md5_before" -o "$md5_before" != "$md5_after" ]; then
+      download "$server" "$i" && md5_current="$(md5sum "$i" | awk '{ print $1 }')"
+      if [ "$md5_after" = "$md5_current" ]; then
+        echo "$i wurde erfolgreich aktualisiert."
+        reboot="yes"
+      else
+        echo "Download-Fehler bei $i!" >&2
+        rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+        return 1
+      fi
+    else
+      echo "$i ist aktuell."
+    fi
+  done
+
+  # get group specific and local grub configs from server
+  echo "Aktualisiere GRUB-Konfiguration."
+  for i in boot/grub/ipxe.lkrn "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
+    # collect md5 sums before download
+    if [ "$i" = "boot/grub/hostcfg/$myname.cfg" ]; then
+      md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
+      hostcfg="yes"
+    elif [ "$i" = "boot/grub/$group.cfg" -a -n "$hostcfg" ]; then
+      # if download of hostcfg was successful skip download of groupcfg
+      continue
+    elif [ "$i" = "boot/grub/$group.cfg" -a -z "$hostcfg" ]; then
+      md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
+    elif [ "$i" = "boot/grub/spool/$myname.$group.grub.cfg" ]; then
+      md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
+    else
+      md5_before="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
+    fi
+    download "$server" "$i" || RC=1
+    if [ "$RC" = "1" ]; then
+      # reset hostcfg if download failed
+      if echo "$i" | grep -q hostcfg; then
+        hostcfg=""
+        rm -f "$i"
+        continue
+      fi
+      echo "Download-Fehler bei $i!" >&2
+      rm -f "$i"
+      return 1
+    fi
+    # collect md5 after download
+    md5_after="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
+    # if md5 differ, reboot
+    if [ "$md5_before" != "$md5_after" ]; then
+      echo "$(basename "$i") wurde aktualisiert."
+      reboot="yes"
+    fi
+  done
+
+  # move downloads in place
+  if [ -e "$myname.cfg" ]; then
+    mv "$myname.cfg" "$grubdir/custom.cfg" || RC=1
+    rm -f "$group.cfg"
+  fi
+  if [ -e "$group.cfg" ]; then
+    mv "$group.cfg" "$grubdir/custom.cfg" || RC=1
+  fi
+  if [ -e "$myname.$group.grub.cfg" ]; then
+    mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
+  fi
   if [ "$RC" = "1" ]; then
-   echo "Download-Fehler bei $i!" >&2
-   rm -f "$i"
-   return 1
-  fi
-  # collect md5 after download
-  md5_after="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
-  # if md5 differ, reboot
-  if [ "$md5_before" != "$md5_after" ]; then
-   echo "$(basename "$i") wurde aktualisiert."
-   reboot="yes"
-  fi
- done
-
- # move downloads in place
- mv "$group.cfg" "$grubdir/custom.cfg" || RC=1
- mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
- if [ "$RC" = "1" ]; then
-  echo "Fehler beim Schreiben der GRUB-Konfigurationsdateien!" >&2
-  return 1
- fi
-
- # keep grub themes also updated
- echo -n "Aktualisiere GRUB-Themes ... "
- themesdir="/boot/grub/themes"
- mkdir -p "/cache$themesdir"
- rsync -a --delete "${server}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
- if [ "$RC" = "1" ]; then
-  echo "Fehler!" >&2
-  return 1
- else
-  echo "OK!"
- fi
-
- # fetch also current linuxmuster-win scripts
- echo -n "Aktualisiere linuxmuster-win ... "
- [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
- rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
- if [ "$RC" = "1" ]; then
-  echo "Fehler!" >&2
-  return 1
- else
-  echo "OK!"
- fi
-
- # finally update/install grub stuff
- if mk_boot; then
-
-  # remove for old legacy grub stuff
-  if [ -e "$grubdir/stage1" -o -e "$grubdir/menu.lst" ]; then
-   echo "Entferne GRUB legacy, Reboot wird notwendig."
-   rm -f "$grubdir"/*stage* "$grubdir"/menu.lst gpxe.krn
-   if [ -e /cache/update.log ]; then
-    cat /cache/update.log >> /tmp/linbo.log
-    sendlog
-   fi
-   ( umount -a ; /sbin/reboot -f )
+    echo "Fehler beim Schreiben der GRUB-Konfigurationsdateien!" >&2
+    return 1
   fi
 
- else
-  RC="1"
- fi
+  # keep grub themes also updated
+  echo -n "Aktualisiere GRUB-Themes ... "
+  themesdir="/boot/grub/themes"
+  mkdir -p "/cache$themesdir"
+  rsync -a --delete "${server}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
+  if [ "$RC" = "1" ]; then
+    echo "Fehler!" >&2
+    return 1
+  else
+    echo "OK!"
+  fi
 
- if [ "$RC" = "0" ]; then
-  echo "LINBO/GRUB update fertig."
-  touch "$doneflag"
-  [ -n "$reboot" ] && touch "$rebootflag"
- else
-  echo "Fehler!" >&2
- fi
+  # fetch also current linuxmuster-win scripts
+  echo -n "Aktualisiere linuxmuster-win ... "
+  [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
+  rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
+  if [ "$RC" = "1" ]; then
+    echo "Fehler!" >&2
+    return 1
+  else
+    echo "OK!"
+  fi
 
- sendlog
- return "$RC"
+  # finally update/install grub stuff
+  if mk_boot; then
+
+    # remove for old legacy grub stuff
+    if [ -e "$grubdir/stage1" -o -e "$grubdir/menu.lst" ]; then
+      echo "Entferne GRUB legacy, Reboot wird notwendig."
+      rm -f "$grubdir"/*stage* "$grubdir"/menu.lst gpxe.krn
+      if [ -e /cache/update.log ]; then
+        cat /cache/update.log >> /tmp/linbo.log
+        sendlog
+      fi
+      ( umount -a ; /sbin/reboot -f )
+    fi
+
+  else
+    RC="1"
+  fi
+
+  if [ "$RC" = "0" ]; then
+    echo "LINBO/GRUB update fertig."
+    touch "$doneflag"
+    [ -n "$reboot" ] && touch "$rebootflag"
+  else
+    echo "Fehler!" >&2
+  fi
+
+  sendlog
+  return "$RC"
 }
 
 # initcache server cachedev downloadtype images...
