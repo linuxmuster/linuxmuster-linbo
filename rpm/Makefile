@@ -16,7 +16,7 @@ GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd \
  fat gettext gfxmenu gfxterm http ntfs linux loadenv minicmd net part_gpt \
  part_msdos png progress reiserfs search terminal test
 GRUB_ISO_MODULES=iso9660 usb
-GRUB_PC_MODULES=biosdisk ntldr pxe
+GRUB_PC_MODULES=ntldr pxe
 GRUB_EFI_MODULES=efi_gop efi_uga efinet tftp
 GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
 ifeq ("$(BR2_DL_DIR)","")
@@ -57,6 +57,8 @@ $(BUILDDIR)/grub-efi-x86_64/grub-mknetdir: $(BUILDDIR)/grub-efi-x86_64/configure
 	cd $(BUILDDIR)/grub-efi-x86_64; ./configure $(GRUBCFG) --with-platform=efi --target=x86_64; make
 
 build-grub: $(BUILDDIR)/grub-pc-i386/grub-mknetdir $(BUILDDIR)/grub-efi-i386/grub-mknetdir $(BUILDDIR)/grub-efi-x86_64/grub-mknetdir
+	$(GRUB_MKNETDIR) -d $(BUILDDIR)/grub-pc-i386/grub-core
+	mv $(BUILDDIR)/boot/grub/i386-pc/core.0 $(BUILDDIR)/boot/grub/i386-pc/core.min
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_PC_MODULES)" -d $(BUILDDIR)/grub-pc-i386/grub-core
 	# make core.iso
 	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES) $(GRUB_ISO_MODULES)" -d $(BUILDDIR)/grub-efi-i386/grub-core

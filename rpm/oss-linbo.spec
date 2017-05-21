@@ -177,6 +177,7 @@ cp -r build/boot/grub/* %{buildroot}/srv/tftp/boot/grub/
 mkdir -p %{buildroot}/usr/share/linbo
 cp -r share/* %{buildroot}/usr/share/linbo/
 find %{buildroot}/usr/share/linbo/templates -name '*.lmn?' -exec rm -f {} \;
+find %{buildroot}/usr/share/linbo/templates -name 'lmn[67]*' -exec rm -f {} \;
 for f in `find %{buildroot}/usr/share/linbo/templates -name '*.oss'`; do
   nf=${f%.oss}
   mv $f $nf
@@ -217,7 +218,7 @@ popd
 mkdir -p %{buildroot}/etc/logrotate.d
 install rpm/logrotate %{buildroot}/etc/logrotate.d/linbo
 mkdir -p %{buildroot}/srv/tftp/{linbocmd,torrentadds,winact,tmp,backup}
-mkdir -p %{buildroot}/srv/tftp/boot/grub/spool
+mkdir -p %{buildroot}/srv/tftp/boot/grub/{spool,hostcfg}
 # rsyncd conf
 install share/templates/rsyncd.conf %{buildroot}/etc/rsyncd.conf.in
 install share/templates/rsyncd.secrets.oss %{buildroot}/etc/rsyncd.secrets.in
@@ -333,6 +334,7 @@ fi
 %dir /srv/tftp/winact
 %dir /srv/tftp/boot/grub
 %dir /srv/tftp/boot/grub/spool
+%dir /srv/tftp/boot/grub/hostcfg
 %dir /srv/tftp/tmp
 %dir /srv/tftp/backup
 %attr(0755,bittorrent,root) /var/lib/bittorrent
