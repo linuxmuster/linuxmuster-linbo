@@ -1,0 +1,34 @@
+diff -up ./buildroot/package/busybox/busybox.config.orig ./buildroot/package/busybox/busybox.config
+--- ./buildroot/package/busybox/busybox.config.orig	2017-06-06 18:19:49.000000000 +0200
++++ ./buildroot/package/busybox/busybox.config	2017-06-06 18:26:36.245811321 +0200
+@@ -876,7 +876,7 @@ CONFIG_NETSTAT=y
+ CONFIG_NSLOOKUP=y
+ # CONFIG_NTPD is not set
+ # CONFIG_FEATURE_NTPD_SERVER is not set
+-# CONFIG_FEATURE_NTPD_CONF is not set
++CONFIG_FEATURE_NTPD_CONF=y
+ CONFIG_PING=y
+ # CONFIG_PING6 is not set
+ CONFIG_FEATURE_FANCY_PING=y
+@@ -1067,9 +1067,9 @@ CONFIG_ASH_CMDCMD=y
+ CONFIG_FEATURE_SH_IS_ASH=y
+ # CONFIG_FEATURE_SH_IS_HUSH is not set
+ # CONFIG_FEATURE_SH_IS_NONE is not set
+-# CONFIG_FEATURE_BASH_IS_ASH is not set
++CONFIG_FEATURE_BASH_IS_ASH=y
+ # CONFIG_FEATURE_BASH_IS_HUSH is not set
+-CONFIG_FEATURE_BASH_IS_NONE=y
++#CONFIG_FEATURE_BASH_IS_NONE is not set
+ CONFIG_SH_MATH_SUPPORT=y
+ # CONFIG_SH_MATH_SUPPORT_64 is not set
+ CONFIG_FEATURE_SH_EXTRA_QUIET=y
+diff -up ./buildroot/package/libxkbcommon/libxkbcommon.mk.orig ./buildroot/package/libxkbcommon/libxkbcommon.mk
+--- ./buildroot/package/libxkbcommon/libxkbcommon.mk.orig	2017-06-06 18:19:49.000000000 +0200
++++ ./buildroot/package/libxkbcommon/libxkbcommon.mk	2017-06-06 18:28:29.883623439 +0200
+@@ -22,4 +22,6 @@ else
+ LIBXKBCOMMON_CONF_OPTS += --disable-x11
+ endif
+ 
++LIBXKBCOMMON_CONF_OPTS += --with-default-layout=de --with-default-variant=nodeadkeys
++
+ $(eval $(autotools-package))
