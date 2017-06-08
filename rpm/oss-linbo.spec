@@ -3,7 +3,7 @@
 # Copyright (c) 2016 Frank Schütte <fschuett@gymhim.de> Hildesheim, Germany.  All rights reserved.
 #
 # gcc 4.8 is needed, replace links gcc, g++, cpp
-# don't clean buil dir
+# don't clean build dir
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
 Version:	3.0.0
