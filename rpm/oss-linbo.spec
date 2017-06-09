@@ -170,7 +170,7 @@ done
 pushd %{buildroot}/srv/tftp/boot/grub/
 ln -sf ../../icons/linbo_wallpaper_1024x768.png linbo_wallpaper.png
 popd
-install buildroot-external/board/rootfs_overlay/etc/linbo-version %{buildroot}/srv/tftp
+install linbofs/etc/linbo-version %{buildroot}/srv/tftp
 mkdir -p %{buildroot}/srv/tftp/boot/grub
 install %{S:121} %{buildroot}/srv/tftp/boot/grub/
 install %{S:122} %{buildroot}/srv/tftp/boot/grub/
