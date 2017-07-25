@@ -1,3 +1,20 @@
+linuxmuster-linbo (2.3.25-0) babo62; urgency=low
+
+  * added gcc-multilib and g++-multilib to build deps.
+  * minor improvements in mkgrubnetdir.sh.
+  * added script mkgrubhostimg.sh for host specific pxe boot image creation.
+  * added pxe boot menu option to linbo.iso.
+  * added output several control options to make-linbo-iso.sh.
+  * added ipxe also as efi boot fallback option to local grub.cfg.
+  * minor grub cfg improvements.
+  * fixed boot loop introduced with 2.3.24.
+  * fix: added biosdisk module to grub's i386-pc netboot image again.
+  * linbo_cmd, set_efibootorder():
+    - improved efi network device recognition.
+    - fixed efi operating system boot under kvm virtualization.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 29 May 2017 13:23:50 +0000
+
 linuxmuster-linbo (2.3.24-0) babo62; urgency=low
 
   * added minimal grub pxe boot image for i386-pc (core.min).

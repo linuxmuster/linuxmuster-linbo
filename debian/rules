@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20170331
+# 20170521
 # GPL v3
 #
 
@@ -685,6 +685,9 @@ install: build
 	cp -r files/common/etc/* debian/linuxmuster-linbo/etc/
 	cp -r files/common/usr/* debian/linuxmuster-linbo/usr/
 	cp -r files/lmn6/usr/* debian/linuxmuster-linbo/usr/
+	# grub tools
+	cp /usr/bin/grub-mkstandalone debian/linuxmuster-linbo/usr/share/linuxmuster-linbo
+	cp /usr/bin/grub-mkimage debian/linuxmuster-linbo/usr/share/linuxmuster-linbo
 
 	## linuxmuster-linbo7
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
