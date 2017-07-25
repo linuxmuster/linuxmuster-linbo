@@ -1,3 +1,14 @@
+linuxmuster-linbo (2.3.25-1) babo62; urgency=low
+
+  * packages consolidation:
+    - improved file distribution between packages.
+    - moved all common files to common packages.
+    - use build host grub packages for i386 modules rather than downloaded ones.
+    - linuxmuster-linbo7: create grub's netdirs on target host during postinst.
+    - moved update-linbofs to linuxmuster-linbo7's postinst. 
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 29 May 2017 17:27:35 +0000
+
 linuxmuster-linbo (2.3.25-0) babo62; urgency=low
 
   * added gcc-multilib and g++-multilib to build deps.
@@ -13,7 +24,7 @@ linuxmuster-linbo (2.3.25-0) babo62; urgency=low
     - improved efi network device recognition.
     - fixed efi operating system boot under kvm virtualization.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 29 May 2017 13:23:50 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 29 May 2017 10:41:12 +0000
 
 linuxmuster-linbo (2.3.24-0) babo62; urgency=low
 

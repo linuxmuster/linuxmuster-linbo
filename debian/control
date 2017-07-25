@@ -2,7 +2,25 @@ Source: linuxmuster-linbo
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: acl, bc, bison, build-essential, bvi, cloop-utils, coreutils, ctorrent, debhelper, dosfstools, dpkg-dev, dropbear-bin, e2fsprogs, efibootmgr, ethtool, fakeroot, flex, g++, gcc, gcc-multilib, g++-multilib, gdisk, gettext, grep, grub-ipxe, grub-efi-amd64-bin, grub-pc-bin, gzip, hdparm, libacl1-dev, libattr1-dev, libaudio-dev, libcgmanager0, libcups2-dev, libdevmapper-dev, libfontconfig1-dev, libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev, libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev, libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6, libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev, libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, linux-libc-dev, nasm, ncurses-base, netpbm, parted, patchutils, perl, reiserfsprogs, rsync, systemd, sysvinit-utils, tar, udev, udpcast, unzip, util-linux, uuid-runtime, wget, xserver-xorg-input-vmmouse, zlib1g-dev, xz-utils, uuid-dev, binutils-multiarch, lib32stdc++-4.8-dev, lib32z1-dev, lib32readline6-dev, lib32ncurses5-dev, libattr1:i386, libblkid1:i386, libselinux1:i386, e2fslibs:i386, libcomerr2:i386, libmount1:i386, libacl1:i386, libpopt0:i386, libkmod2:i386, libdbus-1-3:i386, libnih1:i386, libnih-dbus1:i386, libcgmanager0:i386, libudev1:i386, libdevmapper1.02.1:i386, liblzma5:i386, linux-libc-dev:i386
+Build-Depends: acl, bc, bison, build-essential, bvi, cloop-utils, coreutils,
+ ctorrent, debhelper, dosfstools, dpkg-dev, dropbear-bin, e2fsprogs, efibootmgr,
+ ethtool, fakeroot, flex, g++, gcc, gcc-multilib, g++-multilib, gdisk, gettext,
+ grep, grub-common, grub-ipxe, grub-efi-ia32-bin, grub-efi-amd64-bin,
+ grub-pc-bin, gzip, hdparm, libacl1-dev, libattr1-dev, libaudio-dev,
+ libcgmanager0, libcups2-dev, libdevmapper-dev, libfontconfig1-dev,
+ libfreetype6-dev, libfuse-dev, libgl1-mesa-dev, libglu1-mesa-dev, libice-dev,
+ libiodbc2-dev, libjpeg-dev, libmng-dev, libmysqlclient-dev, libncurses5-dev,
+ libpng12-dev, libpopt-dev, libpq-dev, libsm-dev, libsqlite3-dev, libstdc++6,
+ libx11-dev, libxcursor-dev, libxext-dev, libxft-dev, libxi-dev, libxinerama-dev,
+ libxmu-dev, libxrandr-dev, libxrender-dev, libxt-dev, linux-libc-dev, nasm,
+ ncurses-base, netpbm, parted, patchutils, perl, reiserfsprogs, rsync, systemd,
+ sysvinit-utils, tar, udev, udpcast, unzip, util-linux, uuid-runtime, wget,
+ xserver-xorg-input-vmmouse, zlib1g-dev, xz-utils, uuid-dev, binutils-multiarch,
+ lib32stdc++-4.8-dev, lib32z1-dev, lib32readline6-dev, lib32ncurses5-dev,
+ libattr1:i386, libblkid1:i386, libselinux1:i386, e2fslibs:i386, libcomerr2:i386,
+ libmount1:i386, libacl1:i386, libpopt0:i386, libkmod2:i386, libdbus-1-3:i386,
+ libnih1:i386, libnih-dbus1:i386, libcgmanager0:i386, libudev1:i386,
+ libdevmapper1.02.1:i386, liblzma5:i386, linux-libc-dev:i386
 
 Package: linuxmuster-linbo
 Architecture: all
@@ -15,22 +33,22 @@ Description: linuxmuster-linbo scripts
 
 Package: linuxmuster-linbo-common
 Architecture: all
-Replaces: linuxmuster-linbo (<< 2.3.13)
-Breaks: linuxmuster-linbo (<< 2.3.13)
+Replaces: linuxmuster-linbo (<< 2.3.25-0)
+Breaks: linuxmuster-linbo (<< 2.3.25-0)
 Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
 Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
 
 Package: linuxmuster-linbo-common7
 Architecture: all
-Replaces: linuxmuster-linbo-common
-Breaks: linuxmuster-linbo-common
+Replaces: linuxmuster-linbo-common, linuxmuster-linbo7 (<< 2.3.25-0)
+Breaks: linuxmuster-linbo-common, linuxmuster-linbo7 (<< 2.3.25-0)
 Depends: dropbear, rsync (>= 3), bittorrent, isolinux (>= 6.03), syslinux-common (>= 6.03), syslinux-utils (>= 6.03), ssh, sed, screen, xorriso (>= 1.4.2), dosfstools, udpcast, xz-utils, zip, mbr, wakeonlan
 Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configuration
 
 Package: linuxmuster-linbo7
 Architecture: all
 Conflicts: linuxmuster-linbo, atftpd
-Depends: linuxmuster-base7, python3, linuxmuster-linbo-common7 (>= 2.3.13), tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
+Depends: linuxmuster-base7, python3, linuxmuster-linbo-common7 (>= 2.3.13), grub-common, grub-ipxe, grub-efi-ia32-bin, grub-efi-amd64-bin, tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo scripts
  This package contains the scripts for the Linux-based Network Boot

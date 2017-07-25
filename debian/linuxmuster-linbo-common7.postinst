@@ -3,7 +3,7 @@
 # postinst script for linuxmuster-linbo7
 # thomas@linuxmuster.net
 # GPL v3
-# 20170331
+# 20170529
 #
 
 set -e
@@ -28,11 +28,6 @@ set -e
 case "$1" in
 
  configure)
-
-  # read constants & setup values
-  source /usr/share/linuxmuster/defaults.sh
-  [ -e "$SETUPINI" ] || exit 0
-  update-linbofs
 
  ;;
 
