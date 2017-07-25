@@ -1,0 +1,203 @@
+#
+# grub.cfg template for host specific grub image
+# thomas@linuxmuster.net
+# 20170522
+#
+
+#set timeout=0
+
+set gfxmode=auto
+set gfxpayload=keep
+
+insmod normal
+@@normal@@
+if [ "$grub_platform" = "pc" ]; then
+ insmod all_video
+ insmod png
+ insmod gfxterm
+ insmod gfxmenu
+ insmod minicmd
+ insmod progress
+ insmod configfile
+ insmod linux
+ insmod read
+ insmod search
+ insmod net
+ insmod sleep
+ insmod gzio
+ insmod part_gpt
+ insmod part_msdos
+ insmod fat
+ insmod ntfs
+ insmod ext2
+ insmod reiserfs
+ insmod pxe
+ insmod tftp
+fi
+
+terminal_output gfxterm
+
+set color_normal=white/black
+set color_highlight=yellow/black
+set menu_color_normal=white/black
+set menu_color_highlight=yellow/black
+set prefix=/boot/grub
+
+set net_default_server=@@serverip@@
+set net_default_interface=@@iface@@
+net_add_addr eno0 @@iface@@ @@hostip@@
+net_bootp
+set pxe_default_server=$net_default_server
+set net_default_ip=@@hostip@@
+set net_default_mac=@@mac@@
+set net_@@iface@@_domain=@@domainname@@
+set group=@@group@@
+set net_@@iface@@_extensionspath=$group
+set net_@@iface@@_ip=$net_default_ip
+set net_@@iface@@_hostname=@@hostname@@
+set net_@@iface@@_mac=$net_default_mac
+set net_@@iface@@_next_server=$net_default_server
+
+set groupcfg="$prefix/${group}.cfg"
+set hostcfg="$prefix/hostcfg/@@hostname@@.cfg"
+
+echo 'Network status: '
+net_ls_cards
+net_ls_addr
+echo
+
+sleep 5
+
+set color_normal=white/black
+set color_highlight=yellow/black
+set menu_color_normal=white/black
+set menu_color_highlight=yellow/black
+set netroot="(tftp,$net_default_server)"
+
+# remote enviroment file for host
+set remote_grubenv=${netroot}${prefix}/spool/@@hostname@@.reboot
+
+# get local linbo partition if exist
+if search --set root --file /start.conf; then
+ echo "Linbo partition found on $root."
+ echo
+ set localroot="$root"
+ # load local environment
+ if [ -s /boot/grub/grubenv ]; then
+  echo -n Loading local grub environment ...
+  load_env
+  echo
+ fi
+else
+ # network boot
+ set root="$netroot"
+ # load remote environment if present
+ if [ -s "$remote_grubenv" ]; then
+  echo -n Loading remote grub environment ...
+  load_env -f "$remote_grubenv"
+  echo
+ fi
+fi
+
+# load background image locally
+if [ -n "$localroot" -a -e "$prefix/linbo_wallpaper.png" ]; then
+ set bg_image="$prefix/linbo_wallpaper.png"
+ background_image $bg_image
+fi
+
+# if reboot is set try to load the os directly
+if [ -n "${reboot_grub}" ]; then
+
+ echo Booting operating system ...
+ echo
+
+ set tmproot="${reboot_grub}"
+ if [ -n "$localroot" ]; then
+  set reboot_grub=""
+  save_env reboot_grub
+ fi
+ set root="${tmproot}"
+ set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
+
+ if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
+  linux $reboot_kernel $reboot_append
+  initrd $reboot_initrd
+  boot
+ elif [ -e /vmlinuz -a -e /initrd.img ]; then
+  linux /vmlinuz $reboot_append
+  initrd /initrd.img
+  boot
+ elif [ -e /vmlinuz -a -e /initrd ]; then
+  linux /vmlinuz $reboot_append
+  initrd /initrd
+  boot
+ elif [ -s /boot/grub/grub.cfg ] ; then
+  configfile /boot/grub/grub.cfg
+ elif [ "$grub_platform" = "pc" ]; then
+  if [ -s /bootmgr ] ; then
+   ntldr /bootmgr
+   boot
+  elif [ -s /ntldr ] ; then
+   ntldr /ntldr
+   boot
+  elif [ -s /grldr ] ; then
+   ntldr /grldr
+   boot
+  else
+   chainloader +1
+   boot
+  fi
+ elif [ -e "$win_efiloader" ]; then
+  chainloader $win_efiloader
+  boot
+ fi
+fi
+# reboot
+
+# next try host or group specific netboot
+set root="${netroot}"
+
+# load background image from server if not done locally
+if [ -z "$bg_image" ]; then
+ set bg_image="$prefix/linbo_wallpaper.png"
+ background_image $bg_image
+fi
+
+# try host specific config from server and boot it if exists
+configfile $hostcfg
+
+# try group specific config from server and boot it if exists
+configfile $groupcfg
+
+ # try local boot in the other case
+if [ -n "$localroot" ]; then
+ set root="${localroot}"
+ # load local custom.cfg if present
+ set customcfg=$prefix/custom.cfg
+ if [ -s "$customcfg" ]; then
+  configfile $customcfg
+ fi
+fi
+
+# finally try netboot linbo directly in failsafe mode
+set root="${netroot}"
+set gfxpayload=640x480x16
+
+# 32bit pae, non pae or 64bit kernel
+if cpuid -l; then
+ set linbo_kernel=/linbo64
+ set linbo_initrd=/linbofs64.lz
+elif cpuid -p; then
+ set linbo_kernel=/linbo
+ set linbo_initrd=/linbofs.lz
+else
+ set linbo_kernel=/linbo-np
+ set linbo_initrd=/linbofs-np.lz
+fi
+echo "LINBO netboot in failsafe mode"
+echo -n "Loading $linbo_kernel .."
+linux $linbo_kernel quiet netboot
+echo
+echo -n "Loading $linbo_initrd .."
+initrd $linbo_initrd
+boot

@@ -3,7 +3,7 @@
 # postinst script for linuxmuster-linbo7
 # thomas@linuxmuster.net
 # GPL v3
-# 20161023
+# 20170529
 #
 
 set -e
@@ -26,7 +26,7 @@ set -e
 #db_version 2.0
 
 # read constants & setup values
-source /usr/share/linuxmuster/defaults.sh
+. /usr/share/linuxmuster/defaults.sh
 
 case "$1" in
 
@@ -97,6 +97,14 @@ case "$1" in
   tftpd_restart=yes
  fi
  [ -n "$tftpd_restart" ] && service tftpd-hpa restart
+
+ # create grub netboot directory
+ "$LINBOSHAREDIR/mkgrubnetdir.sh"
+
+ # read constants & setup values
+ [ -e "$SETUPINI" ] || exit 0
+ update-linbofs
+
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
@@ -118,4 +126,3 @@ esac
 #db_stop
 
 exit 0
-
