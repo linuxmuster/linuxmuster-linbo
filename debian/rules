@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20170529
+# 20170725
 # GPL v3
 #
 
@@ -667,16 +667,16 @@ install: build
 	install -m 644 files/common/usr/share/linuxmuster-linbo/templates/grub.cfg.pxe debian/linuxmuster-linbo-common/var/linbo/boot/grub/grub.cfg
 
 	# linuxmuster-linbo-common7
-	# var -> srv
 	cp -a debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
+	# var -> srv
 	mkdir -p debian/linuxmuster-linbo-common7/srv
 	rm -rf debian/linuxmuster-linbo-common7/srv/linbo
 	mv debian/linuxmuster-linbo-common7/var/linbo debian/linuxmuster-linbo-common7/srv
 	rm -rf debian/linuxmuster-linbo-common7/var
 	# linuxmuster-linbo -> linuxmuster/linbo
-	mkdir -p debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	mv debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	rm -rf debian/linuxmuster-linbo7/usr/share/linuxmuster-linbo
+	mkdir -p debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
+	mv debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
+	rm -rf debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo
 
 	# create grub netboot for lmn6
 	debian/mkgrubnetdir.sh
