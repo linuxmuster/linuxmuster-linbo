@@ -3,11 +3,11 @@
 # Copyright (c) 2016 Frank Schütte <fschuett@gymhim.de> Hildesheim, Germany.  All rights reserved.
 #
 # gcc 4.8 is needed, replace links gcc, g++, cpp
-# don't clean buil dir
+# don't clean build dir
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
 Version:	3.0.0
-Release:	4
+Release:	5
 License:	GPLv3
 Vendor:		openSUSE Linux
 Distribution:	SLE11
@@ -17,85 +17,86 @@ Source:		%{name}-%{version}.tar.gz
 Source121:	ipxe.efi
 Source122:	ipxe.lkrn
 # source archives, because build cannot download them created by list_sources.sh
-Source1:	acl-2.2.52.src.tar.gz
-Source2:	attr-2.4.47.src.tar.gz
-Source3:	autoconf-2.69.tar.xz
-Source4:	automake-1.15.tar.xz
-Source5:	bc-1.06.95.tar.bz2
-Source6:	binutils-2.27.tar.bz2
-Source7:	bison-3.0.4.tar.xz
-Source8:	busybox-1.26.2.tar.bz2
-Source9:	bvi-1.4.0.src.tar.gz
-Source10:	chntpw-source-140201.zip
-Source11:	cloop_3.14.1.2.tar.xz
-Source12:	ctorrent-dnh3.3.2.tar.gz
-Source13:	dosfstools-4.0.tar.xz
-Source14:	dropbear-2016.74.tar.bz2
-Source15:	e2fsprogs-1.43.3.tar.xz
-Source16:	efibootmgr-14.tar.gz
-Source17:	efivar-30.tar.gz
-Source18:	ethtool-4.8.tar.xz
-Source19:	eudev-3.2.1.tar.gz
-Source20:	expat-2.2.0.tar.bz2
-Source21:	fakeroot_1.20.2.orig.tar.bz2
-Source22:	flex-2.5.37.tar.gz
-Source23:	freetype-2.7.1.tar.bz2
-Source24:	fuse-2.9.7.tar.gz
-Source25:	gawk-4.1.4.tar.xz
-Source26:	gcc-5.4.0.tar.bz2
-Source27:	gettext-0.19.8.1.tar.xz
-Source28:	glibc-2.24.tar.xz
-Source29:	gmp-6.1.2.tar.xz
-Source30:	gperf-3.0.4.tar.gz
-Source31:	gptfdisk-1.0.0.tar.gz
-Source32:	grub-2.02.tar.gz
-Source33:	inputproto-2.3.2.tar.bz2
-Source34:	intltool-0.51.0.tar.gz
-Source35:	kbproto-1.0.7.tar.bz2
-Source36:	kmod-23.tar.xz
-Source37:	libevdev-1.5.6.tar.xz
-Source38:	libinput-1.6.0.tar.xz
-Source39:	libpng-1.6.28.tar.xz
-Source40:	libpthread-stubs-0.3.tar.bz2
-Source41:	libtool-2.4.6.tar.xz
-Source42:	libX11-1.6.4.tar.bz2
-Source43:	libXau-1.0.8.tar.bz2
-Source44:	libxcb-1.12.tar.bz2
-Source45:	libXdmcp-1.1.2.tar.bz2
-Source46:	libxkbcommon-0.7.1.tar.xz
-Source47:	libxkbfile-1.0.9.tar.bz2
-Source48:	libxml2-2.9.4.tar.gz
-Source49:	libxslt-1.1.29.tar.gz
-Source50:	linux-4.9.13.tar.xz
-Source51:	m4-1.4.18.tar.xz
-Source52:	mpc-1.0.3.tar.gz
-Source53:	mpfr-3.1.5.tar.xz
-Source54:	ms-sys-2.4.1.tar.gz
-Source55:	mtdev-1.1.4.tar.bz2
-Source56:	ncurses-5.9.tar.gz
-Source57:	ntfs-3g_ntfsprogs-2016.2.22.tgz
-Source58:	parted-3.1.tar.xz
-Source59:	pcre-8.40.tar.bz2
-Source60:	pkgconf-0.9.12.tar.bz2
-Source61:	popt-1.16.tar.gz
-Source62:	Python-2.7.13.tar.xz
-Source63:	qtbase-opensource-src-5.8.0.tar.xz
-Source64:	reiserfsprogs-3.6.24.tar.xz
-Source65:	rsync-3.1.2.tar.gz
-Source66:	udpcast-20120424.tar.gz
-Source67:	util-linux-2.29.2.tar.xz
-Source68:	util-macros-1.19.1.tar.bz2
-Source69:	xcb-proto-1.12.tar.bz2
-Source70:	xextproto-7.3.0.tar.bz2
-Source71:	xf86bigfontproto-1.2.0.tar.bz2
-Source72:	xkbcomp-1.3.1.tar.bz2
-Source73:	xkeyboard-config-2.20.tar.bz2
-Source74:	XML-Parser-2.44.tar.gz
-Source75:	xproto-7.0.31.tar.bz2
-Source76:	xtrans-1.3.5.tar.bz2
-Source77:	xz-5.2.3.tar.bz2
-Source78:	zlib-1.2.11.tar.xz
-Source79:   0003-CVE-2017-0358.patch
+Source1:	3466fd05c8c6f1052e0426d64eed40f8a88fd78f.patch
+Source2:	acl-2.2.52.src.tar.gz
+Source3:	attr-2.4.47.src.tar.gz
+Source4:	autoconf-2.69.tar.xz
+Source5:	automake-1.15.tar.xz
+Source6:	bc-1.06.95.tar.bz2
+Source7:	binutils-2.27.tar.bz2
+Source8:	bison-3.0.4.tar.xz
+Source9:	busybox-1.26.2.tar.bz2
+Source10:	bvi-1.4.0.src.tar.gz
+Source11:	chntpw-source-140201.zip
+Source12:	cloop_3.14.1.2.tar.xz
+Source13:	ctorrent-dnh3.3.2.tar.gz
+Source14:	dosfstools-4.0.tar.xz
+Source15:	dropbear-2017.75.tar.bz2
+Source16:	e2fsprogs-1.43.4.tar.xz
+Source17:	efibootmgr-14.tar.gz
+Source18:	efivar-30.tar.gz
+Source19:	ethtool-4.10.tar.xz
+Source20:	eudev-3.2.2.tar.gz
+Source21:	expat-2.2.0.tar.bz2
+Source22:	fakeroot_1.20.2.orig.tar.bz2
+Source23:	flex-2.5.37.tar.gz
+Source24:	freetype-2.7.1.tar.bz2
+Source25:	fuse-2.9.7.tar.gz
+Source26:	gawk-4.1.4.tar.xz
+Source27:	gcc-5.4.0.tar.bz2
+Source28:	gettext-0.19.8.1.tar.xz
+Source29:	glibc-2.24.tar.xz
+Source30:	gmp-6.1.2.tar.xz
+Source31:	gperf-3.0.4.tar.gz
+Source32:	gptfdisk-1.0.0.tar.gz
+Source33:	grub-2.02.tar.gz
+Source34:	inputproto-2.3.2.tar.bz2
+Source35:	intltool-0.51.0.tar.gz
+Source36:	kbproto-1.0.7.tar.bz2
+Source37:	kmod-24.tar.xz
+Source38:	libevdev-1.5.6.tar.xz
+Source39:	libinput-1.7.0.tar.xz
+Source40:	libpng-1.6.29.tar.xz
+Source41:	libpthread-stubs-0.4.tar.bz2
+Source42:	libtool-2.4.6.tar.xz
+Source43:	libX11-1.6.5.tar.bz2
+Source44:	libXau-1.0.8.tar.bz2
+Source45:	libxcb-1.12.tar.bz2
+Source46:	libXdmcp-1.1.2.tar.bz2
+Source47:	libxkbcommon-0.7.1.tar.xz
+Source48:	libxkbfile-1.0.9.tar.bz2
+Source49:	libxml2-2.9.4.tar.gz
+Source50:	libxslt-1.1.29.tar.gz
+Source51:	linux-4.11.3.tar.xz
+Source52:	lzip-1.18.tar.gz
+Source53:	m4-1.4.18.tar.xz
+Source54:	mpc-1.0.3.tar.gz
+Source55:	mpfr-3.1.5.tar.xz
+Source56:	ms-sys-2.4.1.tar.gz
+Source57:	mtdev-1.1.4.tar.bz2
+Source58:	ncurses-6.0.tar.gz
+Source59:	ntfs-3g_ntfsprogs-2017.3.23.tgz
+Source60:	parted-3.1.tar.xz
+Source61:	pcre-8.40.tar.bz2
+Source62:	pkgconf-0.9.12.tar.bz2
+Source63:	popt-1.16.tar.gz
+Source64:	Python-2.7.13.tar.xz
+Source65:	qtbase-opensource-src-5.8.0.tar.xz
+Source66:	reiserfsprogs-3.6.24.tar.xz
+Source67:	rsync-3.1.2.tar.gz
+Source68:	udpcast-20120424.tar.gz
+Source69:	util-linux-2.29.2.tar.xz
+Source70:	util-macros-1.19.1.tar.bz2
+Source71:	xcb-proto-1.12.tar.bz2
+Source72:	xextproto-7.3.0.tar.bz2
+Source73:	xf86bigfontproto-1.2.0.tar.bz2
+Source74:	xkbcomp-1.3.1.tar.bz2
+Source75:	xkeyboard-config-2.20.tar.bz2
+Source76:	XML-Parser-2.44.tar.gz
+Source77:	xproto-7.0.31.tar.bz2
+Source78:	xtrans-1.3.5.tar.bz2
+Source79:	xz-5.2.3.tar.bz2
+Source80:	zlib-1.2.11.tar.xz
 
 BuildRequires:	unzip openschool-base
 BuildRequires:	gcc48 gcc48-32bit gcc48-c++ glibc glibc-32bit glibc-devel glibc-devel-32bit
@@ -169,7 +170,7 @@ done
 pushd %{buildroot}/srv/tftp/boot/grub/
 ln -sf ../../icons/linbo_wallpaper_1024x768.png linbo_wallpaper.png
 popd
-install buildroot-external/board/rootfs_overlay/etc/linbo-version %{buildroot}/srv/tftp
+install linbofs/etc/linbo-version %{buildroot}/srv/tftp
 mkdir -p %{buildroot}/srv/tftp/boot/grub
 install %{S:121} %{buildroot}/srv/tftp/boot/grub/
 install %{S:122} %{buildroot}/srv/tftp/boot/grub/

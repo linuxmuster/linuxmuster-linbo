@@ -95,8 +95,8 @@ define check_bin_arch
 			-r $(TARGET_READELF) \
 			-a $(BR2_READELF_ARCH_NAME))
 endef
-
-GLOBAL_INSTRUMENTATION_HOOKS += check_bin_arch
+# switch off check_bin_arch because of grub arch alien files (next release ...EXCLUDE will be honoured)
+# GLOBAL_INSTRUMENTATION_HOOKS += check_bin_arch
 
 # This hook checks that host packages that need libraries that we build
 # have a proper DT_RPATH or DT_RUNPATH tag

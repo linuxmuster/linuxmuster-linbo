@@ -6,7 +6,7 @@
 # GPL v3.0+
 #
 
-DOWNLOADS=$(find . -name '*.gz' -or -name '*.bz2' -or -name '*.tgz' -or -name '*.zip' -or -name '*.xz'|sort)
+DOWNLOADS=$(find . -name '*.gz' -or -name '*.bz2' -or -name '*.tgz' -or -name '*.zip' -or -name '*.xz' -or -name '*.patch' |sort)
 
 let num=1
 
