@@ -36,7 +36,7 @@ echo "Packing LINBO fs from: $LINBODIR/linbofs$ARCH.$1 to: $LINBODIR/linbofs$ARC
 tmpdir=$LINBODIR/linbofs$ARCH.$1
 
 # pack linbofs(64).lz
-(cd $tmpdir; find .) | cpio --quiet -o -H newc | xz -zv > $LINBODIR/linbofs$ARCH.lz ; RC="$?"
+(cd $tmpdir; find .) | (cd $tmpdir; cpio --quiet -o -H newc) | xz -zv > $LINBODIR/linbofs$ARCH.lz ; RC="$?"
 [ "$RC" -ne 0 ] && bailout "failed!"
 
 echo "Ok!"
