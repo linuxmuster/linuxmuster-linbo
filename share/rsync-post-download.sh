@@ -167,7 +167,7 @@ case $EXT in
    for i in linbo64 linbofs64.lz; do
     linbo-scp "$LINBODIR/$i" "${RSYNC_HOST_NAME}:/cache"
    done
-   linbo-ssh "$RSYNC_HOST_NAME" /usr/bin/linbo_cmd update "$serverip" "$CACHE"
+   linbo-ssh "$RSYNC_HOST_NAME" /usr/bin/linbo_cmd update "$SCHOOL_SERVER" "$CACHE"
   fi
  ;;
 

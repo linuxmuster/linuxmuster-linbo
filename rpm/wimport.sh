@@ -223,7 +223,7 @@ do_pxe(){
   if validip "$server"; then
    set_serverip "$group" "$server" || RC="2"
   else # set default server ip
-   set_serverip "$group" "$serverip" || RC="2"
+   set_serverip "$group" "$SCHOOL_SERVER" || RC="2"
   fi
   # set group in start.conf
   set_group "$group" || RC="2"

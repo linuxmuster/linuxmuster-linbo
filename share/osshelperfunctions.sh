@@ -7,6 +7,8 @@
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
+source /etc/sysconfig/schoolserver || exit 1
+
 # lockfile
 lockflag=/tmp/.linbo.lock
 
