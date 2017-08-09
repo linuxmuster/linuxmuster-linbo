@@ -34,12 +34,12 @@ DFILE="/var/lib/bittorrent/bttrack.state"
 PORT="6969"
 
 ## Type:	string
-## Default:	"/srv/ftp"
+## Default:	"/srv/tftp"
 ## ServiceRestart: bittorrent
 #
 # Only allow downloads for .torrent files in this directory
 #
-ALLOWED_DIR=/srv/ftp
+ALLOWED_DIR=/srv/tftp
 
 ## Type:	string
 ## Default:	"bittorrent"

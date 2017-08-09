@@ -80,10 +80,10 @@ d_start() {
 		log_progress_msg "disabled in /etc/sysconfig/bittorrent"
 		return 1
 	else
-		startproc -q \
-		-p "$PIDFILE" \
-		$METAOPTS \
-		$DAEMON $DAEMONOPTS
+		start-stop-daemon --start --quiet --pidfile "$PIDFILE" $METAOPTS \
+			--name bttrack --exec $DAEMON -- $DAEMONOPTS &
+		PID=$!
+		echo $PID >$PIDFILE
 		return 0
 	fi
 }
