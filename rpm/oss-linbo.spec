@@ -105,7 +105,7 @@ BuildRequires:	autoconf >= 2.69 automake >= 1.15 bc bison cpio
 BuildRequires:  openssl-certs
 %endif
 BuildRequires:	flex gettext git freetype2-devel libtool 
-BuildRequires:	ncurses-devel  python rsync texinfo makeinfo unzip wget efont-unicode
+BuildRequires:	ncurses-devel python rsync texinfo unzip wget efont-unicode
 BuildRequires:  cmake
 
 BuildRoot:    %{_tmppath}/%{name}-root
