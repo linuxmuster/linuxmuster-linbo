@@ -334,11 +334,39 @@ fi # sync host accounts
 # sync host groups
 echo "Processing host groups..."
 RC=
-for line in $(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" "description" \
-        |grep ^description: |awk '{ print $2 }'); do
-  do_pxe "$line" || RC="1"
-  declare "hosttype_$line=$(get_systemtype $line)"
-done;
+TMPFILE=$(mktemp /tmp/hwtypesXXXX)
+rm -f $TMPFILE
+oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" description configurationKey >$TMPFILE
+while read line; do
+  key=${line%%:*}
+  case "$key" in
+    description)
+      descr="$(echo "$line" | awk '{ print $2 }' )"
+      ;;
+    configurationKey)
+      hwconf="$(echo "$line" | awk '{ print $2 }' )"
+      ;;
+    dn)
+      if [ -n "$descr" -a -n "$hwconf" ]; then
+        do_pxe "$descr" || RC="1"
+        declare "hosttypearray_$hwconf=$(get_systemtype $descr)"
+        declare "hostgrouparray_$hwconf=$descr"
+        descr=
+        hwconf=
+      fi
+      ;;
+    *)
+      ;;
+  esac
+done <$TMPFILE
+if [ -n "$descr" -a -n "$hwconf" ]; then
+  do_pxe "$descr" || RC="1"
+  declare "hosttypearray_$hwconf=$(get_systemtype $descr)"
+  declare "hostgrouparray_$hwconf=$descr"
+  descr=
+  hwconf=
+fi
+rm -f $TMPFILE
 
 if [ -n "$RC" ]; then
  echo "Errors in host group processing!"
@@ -366,16 +394,17 @@ oss_ldapsearch "(&(objectClass=SchoolWorkstation))" cn dhcpHWAddress dhcpStateme
      case "$pxe" in
        1|2|3|22)
          # determine systemtype for efi netboot
-         systemtype="$(arrayGet hosttype "$hostgroup")"
-         if [ -n "$systemtype" -a -n "$hostgroup" ]; then
+         systemtype="$(arrayGet hosttypearray $hostgroup)"
+         hostgroupdesc="$(arrayGet hostgrouparray $hostgroup)"
+         if [ -n "$systemtype" -a -n "$hostgroupdesc" ]; then
            cat >>$tmpdhcp <<EOF
 name $hostname
-group $hostgroup
+group $hostgroupdesc
 ipaddress $ip
 systemtype $systemtype
 EOF
          else
-           echo " --error: $hostname has systemtype $systemtype and hostgroup $hostgroup"
+           echo " --error: $hostname has systemtype $systemtype and hostgroup $hostgroupdesc"
          fi
          echo -en " * PXE" ;;
        *) echo -en " * IP" ;;
