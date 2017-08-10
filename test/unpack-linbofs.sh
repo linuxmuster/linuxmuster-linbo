@@ -80,8 +80,8 @@ mkdir -p etc/dropbear
 cp /etc/linbo/dropbear_*_host_key etc/dropbear
 mkdir -p etc/ssh
 cp /etc/linbo/ssh_host_{ecd,d,r}sa_key* etc/ssh
-mkdir -p .ssh
-cp /root/.ssh/id_dsa.pub .ssh/authorized_keys
+mkdir -p /root/.ssh
+cat /root/.ssh/id_{ec,}dsa.pub >/root/.ssh/authorized_keys
 mkdir -p var/log
 touch var/log/lastlog
 
