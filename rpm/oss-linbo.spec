@@ -308,8 +308,8 @@ then
    update-linbofs
 fi
 %fillup_only
-%{fillup_and_insserv -yn bittorrent}
-%{fillup_and_insserv -yn linbo-bittorrent}
+%{fillup_and_insserv -yn bittorrent bittorrent}
+%{fillup_and_insserv -yn linbo-bittorrent linbo-bittorrent}
 %{fillup_and_insserv -f -y linbo-multicast}
 %{fillup_and_insserv -f -Y rsyncd}
 
