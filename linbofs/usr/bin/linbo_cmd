@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20170513
+# 20170520
 # GPL v3
 #
 
@@ -895,6 +895,7 @@ set_efibootnext(){
  # get the bootnr
  local bootnextnr="$(print_efi_bootnr "$bootloaderid")"
  if [ -n "$bootnextnr" ]; then
+  echo "Setze EFI BootNext: $bootnextnr."
   efibootmgr --bootnext "$bootnextnr" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
  else
   return 1
@@ -904,22 +905,27 @@ set_efibootnext(){
 # set_efibootorder: set the boot order to local,network
 set_efibootorder(){
  local efiout="/tmp/efiout"
- efibootmgr | grep ^Boot[0-9] > "$efiout"
- local grubnumber="$(print_efi_bootnr " grub" "$efiout")"
- local netnumbers="$(print_efi_bootnr " ipv4 " "$efiout")"
- netnumbers="$netnumbers $(print_efi_bootnr "(IPV4)" "$efiout")"
- netnumbers="$netnumbers $(print_efi_bootnr "efi network" "$efiout")"
- netnumbers="$netnumbers $(print_efi_bootnr " pxev4 " "$efiout")"
+ efibootmgr | grep ^Boot > "$efiout"
+ local i
+ local nr
  local bootorder
- if [ -n "$grubnumber" -o -n "$netnumbers" ]; then
-  for i in $grubnumber $netnumbers; do
+ # fix bootnext in case of KVM virtualization
+ if dmesg | grep -qw KVM; then
+   local bootnextnr="$(grep -i ^bootnext "$efiout" | awk '{ print $2 }')"
+   [ -n "$bootnextnr" ] && bootorder="$bootnextnr"
+ fi
+ # searchstrings for grub (local boot) and efi network devices
+ for i in grub ipv4 "efi network" pxev4; do
+   nr="$(print_efi_bootnr "$i" "$efiout")"
+   [ -z "$nr" ] && continue
    if [ -n "$bootorder" ]; then
-    bootorder="$bootorder,$i"
+    bootorder="$bootorder,$nr"
    else
-    bootorder="$i"
+    bootorder="$nr"
    fi
-  done
-  echo "Setze EFI Bootreihenfolge auf Lokal,Netzwerk: $bootorder."
+ done
+ if [ -n "$bootorder" ]; then
+  echo "Setze EFI Bootreihenfolge: $bootorder."
   efibootmgr --bootorder "$bootorder" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
  fi
 }
@@ -1246,7 +1252,8 @@ mk_boot(){
  # install grub in mbr/efi
  if [ ! -e "$doneflag" -a -n "$localcache" ]; then
   echo -n "Installiere GRUB in MBR/EFI von $grubdisk ... "
-  grub-install "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+  [ -n "$efipart" ] && nonv="--no-nvram"
+  grub-install -s $nonv $grubdisk 2>> /tmp/linbo.log || RC="1"
   if [ "$RC" = "0" ]; then
    touch "$doneflag"
    echo "OK!"

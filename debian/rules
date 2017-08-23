@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20170331
+# 20170725
 # GPL v3
 #
 
@@ -104,12 +104,11 @@ LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
 BIN32_DEBS=acl bc bluez bvi cloop-utils coreutils ctorrent dosfstools dropbear-bin \
-           e2fsprogs efibootmgr ethtool gdisk grub-pc grub-pc-bin grub-common \
-           grub2-common grub-efi-ia32-bin hdparm kmod libc-bin libefivar0 libgpod-common \
-           libmtp-runtime libnetpbm10 libparted2 libpci3 libpng12-0 mount netpbm \
-           ncurses-bin parted pcmciautils reiserfsprogs rsync systemd sysvinit-utils \
-           udev udpcast util-linux uuid-dev uuid-runtime xserver-xorg-input-vmmouse \
-           zlib1g zlib1g-dev
+           e2fsprogs efibootmgr ethtool gdisk grub-common grub2-common hdparm kmod \
+					 libc-bin libefivar0 libgpod-common libmtp-runtime libnetpbm10 libparted2 \
+					 libpci3 libpng12-0 mount netpbm ncurses-bin parted pcmciautils \
+					 reiserfsprogs rsync systemd sysvinit-utils udev udpcast util-linux \
+					 uuid-dev uuid-runtime xserver-xorg-input-vmmouse zlib1g zlib1g-dev
 
 # linbofs files for initramfs
 LINBOINITRAMFS=$(CURDIR)/cache/linbo_initramfs.conf
@@ -602,8 +601,8 @@ install: build
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# grub2 boot images" >> $(CURDIR)/kernel/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-efi/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-efi/|" >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd /usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel/initramfs.conf ; \
+	( cd /usr/lib/grub/i386-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-efi/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-efi/|" >>$(CURDIR)/kernel/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	( cd ../../src/bin32 && find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p ../../src/bin32/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel/initramfs.conf ; \
@@ -622,7 +621,7 @@ install: build
 	cat $(CURDIR)/conf/initramfs.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# grub2 boot images" >> $(CURDIR)/kernel/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel-np/initramfs.conf ; \
+	( cd /usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel-np/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel-np/initramfs.conf ; \
 	( cd ../../src/bin32 && find ./lib/udev -type d -printf "dir %p %m 0 0\n" && find ./lib/udev -type f -printf "file %p ../../src/bin32/%p %m 0 0\n" ) | sed -e 's| \./| /|g' >>$(CURDIR)/kernel-np/initramfs.conf ; \
@@ -641,7 +640,7 @@ install: build
 	cat $(CURDIR)/conf/initramfs64.conf > ../initramfs.conf ; \
 	echo >> ../initramfs.conf ; \
 	echo "# grub2 boot images" >> $(CURDIR)/kernel64/initramfs.conf ; \
-	( cd ../../src/bin32/usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
+	( cd /usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|../../src/bin32/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
 	( cd /usr/lib/grub/x86_64-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/x86_64-efi/|' | sed -e "s|\./|/usr/lib/grub/x86_64-efi/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
 	echo "# udev" >> ../initramfs.conf ; \
 	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
@@ -659,6 +658,7 @@ install: build
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo.md5
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo-np.md5
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo64.md5
+
 	## linuxmuster-linbo-common
 	echo "# /etc/linbo/linbo.conf" >debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	echo "# main conf file" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
@@ -667,13 +667,12 @@ install: build
 	echo "HELPERFUNCTIONS=/usr/share/linuxmuster/linbo/helperfunctions.sh" >>debian/linuxmuster-linbo-common/etc/linbo/linbo.conf
 	# /var/linbo
 	cp -r linbo/* debian/linuxmuster-linbo-common/var/linbo
+	cp -r share/templates/* debian/linuxmuster-linbo-common/usr/share/linuxmuster-linbo/templates
+	install -m 644 etc/ssh_config debian/linuxmuster-linbo-common/etc/linuxmuster/linbo/ssh_config
+	install -m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo-common/var/linbo/linuxmuster-win
-	# grub netboot
-	debian/mkgrubnetdir.sh
 	install -m 644 share/templates/grub.cfg.pxe debian/linuxmuster-linbo-common/var/linbo/boot/grub/grub.cfg
-	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.lkrn
-	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.efi
 
 	# linuxmuster-linbo-common7
 	cp -r debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
@@ -682,19 +681,30 @@ install: build
 	echo "FLAVOUR=lmn7" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	echo "ENVDEFAULTS=/usr/share/linuxmuster/defaults.sh" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
 	echo "HELPERFUNCTIONS=/usr/share/linuxmuster/linbo/helperfunctions.sh" >>debian/linuxmuster-linbo-common7/etc/linbo/linbo.conf
+	# var -> srv
 	mkdir -p debian/linuxmuster-linbo-common7/srv
 	rm -rf debian/linuxmuster-linbo-common7/srv/linbo
 	mv debian/linuxmuster-linbo-common7/var/linbo debian/linuxmuster-linbo-common7/srv
 	rm -rf debian/linuxmuster-linbo-common7/var
+	# linuxmuster-linbo -> linuxmuster/linbo
+	mkdir -p debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
+	mv debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
+	rm -rf debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo
+
+	# create grub netboot for lmn6
+	debian/mkgrubnetdir.sh
+	install -m 644 /boot/ipxe.lkrn debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.lkrn
+	install -m 644 /boot/ipxe.efi debian/linuxmuster-linbo-common/var/linbo/boot/grub/ipxe.efi
 
 	## linuxmuster-linbo
 	install -m 755 debian/linbo-bittorrent.init debian/linuxmuster-linbo/etc/init.d/linbo-bittorrent
 	install -m 755 debian/linbo-multicast.init debian/linuxmuster-linbo/etc/init.d/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo/etc/default/linbo-bittorrent
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo/etc/default/linbo-multicast
-	install -m 644 etc/ssh_config.lmn6 debian/linuxmuster-linbo/etc/linuxmuster/linbo/ssh_config
-	install -m 644 etc/start.conf.default debian/linuxmuster-linbo/etc/linuxmuster/linbo/start.conf.default
 	cp -r share/* debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/
+	# grub tools
+	cp /usr/bin/grub-mkstandalone debian/linuxmuster-linbo/usr/share/linuxmuster-linbo
+	cp /usr/bin/grub-mkimage debian/linuxmuster-linbo/usr/share/linuxmuster-linbo
 	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn7' -exec rm -f {} \;
 	find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.oss' -exec rm -f {} \;
 	for f in `find debian/linuxmuster-linbo/usr/share/linuxmuster-linbo/templates -name '*.lmn6'`; do \
@@ -708,8 +718,6 @@ install: build
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
-	install -m 644 etc/ssh_config.lmn7 debian/linuxmuster-linbo7/etc/linuxmuster/linbo/ssh_config
-	install -m 644 etc/start.conf.default debian/linuxmuster-linbo7/etc/linuxmuster/linbo/start.conf.default
 	cp -r share/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
 	find debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/templates -name '*.lmn6' -exec rm -f {} \;
 	find debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/templates -name '*.oss' -exec rm -f {} \;
