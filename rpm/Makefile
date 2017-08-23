@@ -17,7 +17,7 @@ GRUBCOMMONMODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat 
 gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
 part_msdos png progress read reiserfs search sleep terminal test tftp
 # arch specific netboot modules
-GRUBEFIMODS=$(GRUBCOMMONMODS) efi_gop efi_uga efinet linuxefi
+GRUBEFIMODS=$(GRUBCOMMONMODS) efi_gop efi_uga efinet
 GRUBI386MODS=$(GRUBCOMMONMODS) biosdisk gfxterm_background normal ntldr pxe
 GRUBISOMODS=iso9660 usb
 GRUBFONT=unicode
