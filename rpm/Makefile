@@ -13,14 +13,14 @@ GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats 
  --disable-boot-time --disable-grub-mkfont \
  --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
 # grub stuff
-GRUBCOMMONMODS = 'all_video boot chain configfile cpuid echo net ext2 extcmd fat \
+GRUBCOMMONMODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
 gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
-part_msdos png progress read reiserfs search sleep terminal test tftp'
+part_msdos png progress read reiserfs search sleep terminal test tftp
 # arch specific netboot modules
-GRUBEFIMODS = GRUBCOMMONMODS + ' efi_gop efi_uga efinet linuxefi'
-GRUBI386MODS = GRUBCOMMONMODS + ' biosdisk gfxterm_background normal ntldr pxe'
-GRUBISOMODS = 'iso9660 usb'
-GRUBFONT = 'unicode'
+GRUBEFIMODS=$(GRUBCOMMONMODS) efi_gop efi_uga efinet linuxefi
+GRUBI386MODS=$(GRUBCOMMONMODS) biosdisk gfxterm_background normal ntldr pxe
+GRUBISOMODS=iso9660 usb
+GRUBFONT=unicode
 GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
 ifeq ("$(BR2_DL_DIR)","")
 	BR2_DL_DIR=$(BUILDROOT)/dl
