@@ -6,7 +6,7 @@
 # don't clean build dir
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
-Version:	2.3.24
+Version:	2.3.26
 Release:	1
 License:	GPLv3
 Vendor:		openSUSE Linux
@@ -159,7 +159,7 @@ EOF
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.linbo %{buildroot}/var/adm/fillup-templates/sysconfig.linbo
 mkdir -p %{buildroot}/etc/linbo
-install etc/ssh_config.oss %{buildroot}/etc/linbo/ssh_config
+install etc/ssh_config %{buildroot}/etc/linbo/ssh_config
 install etc/start.conf.default %{buildroot}/etc/linbo/start.conf.default.in
 install rpm/workstations.in %{buildroot}/etc/linbo/workstations.in
 mkdir -p %{buildroot}/srv/tftp

@@ -12,12 +12,15 @@ GRUBNAME=grub-2.02
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
  --disable-boot-time --disable-grub-mkfont \
  --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
-GRUB_COMMON_MODULES=all_video chain configfile cpuid echo net ext2 extcmd \
- fat gettext gfxmenu gfxterm http ntfs linux loadenv minicmd net part_gpt \
- part_msdos png progress reiserfs search terminal test
-GRUB_ISO_MODULES=iso9660 usb
-GRUB_PC_MODULES=ntldr pxe
-GRUB_EFI_MODULES=efi_gop efi_uga efinet tftp
+# grub stuff
+GRUBCOMMONMODS = 'all_video boot chain configfile cpuid echo net ext2 extcmd fat \
+gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
+part_msdos png progress read reiserfs search sleep terminal test tftp'
+# arch specific netboot modules
+GRUBEFIMODS = GRUBCOMMONMODS + ' efi_gop efi_uga efinet linuxefi'
+GRUBI386MODS = GRUBCOMMONMODS + ' biosdisk gfxterm_background normal ntldr pxe'
+GRUBISOMODS = 'iso9660 usb'
+GRUBFONT = 'unicode'
 GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
 ifeq ("$(BR2_DL_DIR)","")
 	BR2_DL_DIR=$(BUILDROOT)/dl
@@ -57,16 +60,17 @@ $(BUILDDIR)/grub-efi-x86_64/grub-mknetdir: $(BUILDDIR)/grub-efi-x86_64/configure
 	cd $(BUILDDIR)/grub-efi-x86_64; ./configure $(GRUBCFG) --with-platform=efi --target=x86_64; make
 
 build-grub: $(BUILDDIR)/grub-pc-i386/grub-mknetdir $(BUILDDIR)/grub-efi-i386/grub-mknetdir $(BUILDDIR)/grub-efi-x86_64/grub-mknetdir
-	$(GRUB_MKNETDIR) -d $(BUILDDIR)/grub-pc-i386/grub-core
+	# minimal netboot image
+	$(GRUB_MKNETDIR) --fonts=$(GRUBFONT) -d $(BUILDDIR)/grub-pc-i386/grub-core
 	mv $(BUILDDIR)/boot/grub/i386-pc/core.0 $(BUILDDIR)/boot/grub/i386-pc/core.min
-	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_PC_MODULES)" -d $(BUILDDIR)/grub-pc-i386/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUBI386MODS)" -d $(BUILDDIR)/grub-pc-i386/grub-core
 	# make core.iso
-	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES) $(GRUB_ISO_MODULES)" -d $(BUILDDIR)/grub-efi-i386/grub-core
-	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES) $(GRUB_ISO_MODULES)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUBEFIMODS) $(GRUBISOMODS)" -d $(BUILDDIR)/grub-efi-i386/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUBEFIMODS) $(GRUBISOMODS)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
 	mv $(BUILDDIR)/boot/grub/i386-efi/core.efi $(BUILDDIR)/boot/grub/i386-efi/core.iso
 	mv $(BUILDDIR)/boot/grub/x86_64-efi/core.efi $(BUILDDIR)/boot/grub/x86_64-efi/core.iso
 	# make core.efi
-	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES)" -d $(BUILDDIR)/grub-efi-i386/grub-core
-	$(GRUB_MKNETDIR) --modules="$(GRUB_COMMON_MODULES) $(GRUB_EFI_MODULES)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUBEFIMODS)" -d $(BUILDDIR)/grub-efi-i386/grub-core
+	$(GRUB_MKNETDIR) --modules="$(GRUBEFIMODS)" -d $(BUILDDIR)/grub-efi-x86_64/grub-core
 
 build: build-linbo build-grub
