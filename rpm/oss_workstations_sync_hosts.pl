@@ -78,24 +78,24 @@ foreach my $host (keys %$hosts) {
     }
     next if defined $oss_base->get_host($data->{'name'});
     $import_needed = 1;
-    my ($owner) = $host =~ /^(?:cpq|lap)(.+)$/;
+    my ($owner) = $data->{'name'} =~ /^(?:cpq|lap)(.+)$/;
     if( $owner ){
-	$data->{'alternate'} = $host;
 	$data->{'user'}=$owner if $owner ne $data->{'user'};
-	print IMPORT $data->{'room'} . ";" . $data->{'alternate'} . ";" . $data->{'hwaddress'} . ";" . $hwconf
+	print IMPORT $data->{'room'} . ";" . $data->{'name'} . ";" . $data->{'hwaddress'} . ";" . $hwconf
 		  . ";" . $owner."\n";
     } else {
-	print IMPORT $data->{'room'} . ";;" . $data->{'hwaddress'} . ";" . $hwconf . ";\n";    
+	print IMPORT $data->{'room'} . ";" . $data->{'name'} . ";" . $data->{'hwaddress'} . ";" . $hwconf . ";\n";    
     }
-    print "  * Import new host " . $data->{'name'} . "/" . $data->{'alternate'} . " to ldap\n";
+    print "  * Import new host " . $data->{'name'} . "/" . $data->{'hwconf'} . "/" . $hwconf . " to ldap\n";
 }
 
 if($import_needed){
     # start the actual import
-    system("oss_import_hosts.pl --addws --addma $importfile >$importfile.log");
+    system("oss_import_hosts.pl --addws $importfile >$importfile.log");
 } else {
     print "  * No new hosts to import.\n";
 }
+
 system("rm -f $importfile");
 system("rm -f $importfile.log");
 

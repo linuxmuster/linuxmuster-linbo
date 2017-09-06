@@ -28,7 +28,7 @@ while(<STDIN>)
   {
      $role = lc($value);
   }
-  elsif $key eq 'uid' )
+  elsif ( $key eq 'uid' )
   {
     $uid = lc($value);
   }
@@ -38,46 +38,40 @@ if ( $role ne 'workstations' || $uid eq '' )
 {
   exit;
 }
-#read linbo environment
-my $bashcode=<<'__bash__';
-. /etc/linbo/linbo.sh;
-. $ENVDEFAULTS;
-perl -MData::Dumper -e 'print Dumper \%ENV';
-__bash__
 
-my $linbo;
-eval qx{bash -c "$bashcode"};
-if( not defined $linbo->{WIMPORTDATA} || $linbo->{WIMPORTDATA} eq '' )
-{
-    exit;
-}
+#read linbo environment
+my $wimportdata = '/etc/linbo/workstations';
+
 #read linbo setting from WIMPORTDATA
-open my $wimport,$linbo->{WIMPORTDATA}
-while( my $line=<$wimport> )
+open WIMPORT,$wimportdata;
+while( my $line=<WIMPORT> )
 {
-    $line =~ /^$uid;/ or next;
-    my $part = split(';', $line);
+    chomp;
+    my @part = split(';', $line);
+    $part[1] =~ $uid or next;
     $part[10] or next;
     $linbopxe = $part[10];
-    break;
+    last;
 }
-close $wimport;
+close WIMPORT;
 
 #update configurationValue in DHCP entry
 my $oss = oss_base->new();
-my $dn = oss_base->get_workstation($uid);
+$dn = $oss->get_workstation($uid);
 if( $dn eq '' )
 {
   exit;
 }
 
-if( ! $linbopxe && $oss->check_config_value($dn,'LINBOPXE',$linbopxe) )
+if( $linbopxe == 1 )
 {
-  $oss->delete_config_value($dn,'LINBOPXE');
+  print "Add LINBOPXE for $uid\n";
+  $oss->add_config_value($dn,'LINBOPXE','1');
 }
-elsif( $linbopxe )
+else
 {
-  $oss->add_config_value($dn,'LINBOPXE',$linbopxe);
+  print "Delete LINBOPXE for $uid\n";
+  $oss->delete_config_value($dn,'LINBOPXE','1');
 }
 
 $oss->destroy();
