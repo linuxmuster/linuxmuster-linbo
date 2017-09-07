@@ -63,6 +63,9 @@ service nscd restart| tee -a $TMPLOG
 # restart dhcp service
 service dhcpd restart| tee -a $TMPLOG
 
+# restart named service
+service named restart| tee -a $TMPLOG
+
 # running user scripts
 echo | tee -a $TMPLOG
 echo "### Running user scripts - Begin ###" | tee -a $TMPLOG
