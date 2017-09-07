@@ -320,7 +320,6 @@ echo
 # sync host accounts
 echo "Creating new workstations accounts..."
 oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG
-
 if [ "$RC" = "0" ]; then
  echo "Done!"
  echo
@@ -381,8 +380,8 @@ fi
 echo "Creating/modifying PXE/DHCP entries..."
 tmpdhcp="/tmp/modify_dhcpstatements.$$"
 rm -f $tmpdhcp
-oss_ldapsearch "(&(objectClass=SchoolWorkstation))" cn dhcpHWAddress dhcpStatements configurationValue | while read line; do
 
+while read line; do
  # get data from line
  key="$(echo "$line" | awk '{ print $1 }' | sed 's/:$//' )"
  value1="$(echo "$line" | awk '{ print $2 }' )"
@@ -404,7 +403,7 @@ ipaddress $ip
 systemtype $systemtype
 EOF
          else
-           echo " --error: $hostname has systemtype $systemtype and hostgroup $hostgroupdesc"
+           echo " --error: $hostname in group $hostgroup is missing one of systemtype/hostgroup ($systemtype/$hostgroupdesc)"
          fi
          echo -en " * PXE" ;;
        *) echo -en " * IP" ;;
@@ -436,14 +435,46 @@ EOF
     HW)
      hostgroup="$(echo "$value1" | awk -F\= '{ print $2 }' )"
      ;;
-    *) continue
+    *)
+     continue
      ;;
    esac
    ;;
-  *) continue
+  *)
+   continue
    ;;
  esac
-done
+done < <(oss_ldapsearch "objectClass=SchoolWorkstation" cn dhcpHWAddress dhcpStatements configurationValue |grep -v '^$')
+# process remaining entry
+if [ -n "$hostname" -a -n "$ip" -a -n "$mac" ]; then
+# create dhcpd entries for hosts in ldap
+ case "$pxe" in
+   1|2|3|22)
+     # determine systemtype for efi netboot
+     systemtype="$(arrayGet hosttypearray $hostgroup)"
+     hostgroupdesc="$(arrayGet hostgrouparray $hostgroup)"
+     if [ -n "$systemtype" -a -n "$hostgroupdesc" ]; then
+       cat >>$tmpdhcp <<EOF
+name $hostname
+group $hostgroupdesc
+ipaddress $ip
+systemtype $systemtype
+EOF
+     else
+       echo " --error: $hostname has systemtype $systemtype and hostgroup $hostgroupdesc"
+     fi
+     echo -en " * PXE" ;;
+   *) echo -en " * IP" ;;
+ esac
+ echo -e "-Host\t$hostname."
+fi
+hostname=
+hostgroup=
+systemtype=
+ip=
+mac=
+pxe=
+
 echo "Done!"
 echo
 

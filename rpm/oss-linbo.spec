@@ -161,7 +161,6 @@ install rpm/sysconfig.linbo %{buildroot}/var/adm/fillup-templates/sysconfig.linb
 mkdir -p %{buildroot}/etc/linbo
 install etc/ssh_config %{buildroot}/etc/linbo/ssh_config
 install etc/start.conf.default %{buildroot}/etc/linbo/start.conf.default.in
-install rpm/workstations.in %{buildroot}/etc/linbo/workstations.in
 mkdir -p %{buildroot}/srv/tftp
 for d in boot examples icons linuxmuster-win; do
   mkdir -p %{buildroot}/srv/tftp/${d}
@@ -278,11 +277,6 @@ then
    fi
    cp $FILE.in $FILE
    sed -i "s@Server = .*@Server = $SCHOOL_SERVER@g" $FILE
-   FILE=/etc/linbo/workstations
-   if [ ! -e $FILE ]
-   then
-     cp $FILE.in $FILE
-   fi
    [ -e /srv/tftp/start.conf ] || ln -sf $FILE /srv/tftp/start.conf
    
    # create dropbear ssh keys
@@ -324,7 +318,6 @@ fi
 %config /etc/linbo/linbo.conf
 %attr(644,root,root) %config /etc/linbo/ssh_config
 %attr(644,root,root) %config /etc/linbo/start.conf.default.in
-%attr(644,root,root) %config /etc/linbo/workstations.in
 %config /etc/logrotate.d/linbo
 %attr(-,nobody,root) %dir /var/log/linbo
 %dir /var/cache/linbo

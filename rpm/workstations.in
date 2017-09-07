@@ -1,9 +1,0 @@
-#
-# thomas@linuxmuster.net
-# 30.10.2014
-#
-# Example:
-#r100;r100-pc01;group1;00:11:22:33:44:55;10.16.100.1;;;1;1;1;1
-#
-# For Details see workstations.5
-#
