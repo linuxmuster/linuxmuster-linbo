@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.27-0) babo62; urgency=low
+
+  * fixed 64bit msoffice reactivation (issue #72).
+  * restore activation tokens also if no keys are provided (issue #75).
+  * don't delete custom files in C:\linuxmuster-win on windows partition anymore (issue #74).
+  * added experimental msoffice 2016 reactivation support (issue #73).
+  * added experimental windows 10 reactivation support (issue #71).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 08 Sep 2017 10:53:46 +0000
+
 linuxmuster-linbo (2.3.26-0) babo62; urgency=low
 
   * debian/rules: fixed file distribution in linuxmuster-linbo-common7 pkg.

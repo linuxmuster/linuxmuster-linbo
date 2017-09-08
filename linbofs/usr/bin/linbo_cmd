@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20170520
+# 20170908
 # GPL v3
 #
 
@@ -1335,7 +1335,9 @@ update_win(){
  local RC="0"
  mkdir -p /mnt/linuxmuster-win
  # copy scripts to os rootdir
- rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+ #rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+ # don't delete custom scripts on os partition
+ rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -2059,38 +2061,47 @@ restore_winact(){
   rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
   [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
   # create windows key batchfile
+  local cache_batchfile="/cache/$image.winact.cmd"
+  # remove old batchfile
+  rm -f "$cache_batchfile"
+  # create new one if keys are provided
   if [ -n "$winkey" ]; then
-   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "/cache/$image.winact.cmd"
+   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
   fi
   # add office key handling to batchfile if office token is in archive
   if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
    if [ -n "$officekey" ]; then
-    # get office installation dir
-    local office_dir="$(ls -d /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]\ \(x86\)/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]1[45] 2> /dev/null)"
-    if [ -n "$office_dir" ]; then
+    # get path to ospp.vbs
+    local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
+    if [ -n "$ospp" ]; then
      # compute windows path to office installation dir
-     local office_win_dir="$(echo "$office_dir" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
+     local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
      # write office activations commands to batchfile
-     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /inpkey:$officekey" >> "/cache/$image.winact.cmd"
-     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /act" >> "/cache/$image.winact.cmd"
+     echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
+     echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
     fi
    fi
   fi
   rm -f "$keyfile"
  fi
- # no data available
- if [ -s "/cache/$image.winact.cmd" ]; then
-  dos2unix "/cache/$image.winact.cmd"
- else
-  echo "Ueberspringe Reaktivierung, keine Produktkeys gefunden."
-  return
+ # copy reactivation batchfile to windows partition
+ if [ -s "$cache_batchfile" ]; then
+  local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
+  if [ -n "$winkey" -a -n "$officekey" ]; then
+    local keymsg="Windows- und Office-Keys"
+  elif [ -n "$winkey" ]; then
+    local keymsg="Windows-Key"
+  else
+    local keymsg="Office-Key"
+  fi
+  echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
+  dos2unix "$cache_batchfile"
+  cp "$cache_batchfile" "$win_batchfile"
+else # no keys, no batchfile
+  echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
  fi
  echo "Stelle Windows-Aktivierungstokens wieder her."
  tar xf "/cache/$archive" -C / || return 1
- # copy batchfile
- local batchfile="/mnt/linuxmuster-win/winact.cmd"
- echo "Schreibe Aktivierungs-Batchdatei nach $batchfile."
- cp "/cache/$image.winact.cmd" "$batchfile"
 }
 
 

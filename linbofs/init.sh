@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20161207
+# 20170908
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -348,16 +348,20 @@ save_winact(){
  rm -f /mnt/linuxmuster-win/*activation_status
  # get activation token files
  if [ -n "$win_activated" ]; then
-  local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
-  local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
+   local windir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss])"
+   # find all windows tokens and key files in windir (version independent)
+   local win_tokens="$(find "$windir" -iname tokens.dat)"
+   [ "$win_tokens" = "" ] || win_tokens="$win_tokens $(find "$windir" -iname pkeyconfig.xrm-ms)"
+  #local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+  #local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
  fi
- [ -n "$office_activated" ] && local office_tokensdat="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+ [ -n "$office_activated" ] && local office_tokens="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
  # test if files exist
- if [ -n "$win_activated" -a -z "$win_tokensdat" ]; then
-  echo "Windows-Aktivierungsdatei nicht vorhanden."
+ if [ -n "$win_activated" -a -z "$win_tokens" ]; then
+  echo "Keine Windows-Aktivierungsdateien vorhanden."
   win_activated=""
  fi
- if [ -n "$office_activated" -a -z "$office_tokensdat" ]; then
+ if [ -n "$office_activated" -a -z "$office_tokens" ]; then
   echo "Office-Aktivierungsdatei nicht vorhanden."
   office_activated=""
  fi
@@ -383,9 +387,8 @@ save_winact(){
  local tmparchive="/cache/tokens.tar.gz"
  # generate tar command
  local tarcmd="tar czf $tmparchive"
- [ -n "$win_tokensdat" ] && tarcmd="$tarcmd $win_tokensdat"
- [ -n "$win_pkeyconfig" ] && tarcmd="$tarcmd $win_pkeyconfig"
- [ -n "$office_tokensdat" ] && tarcmd="$tarcmd $office_tokensdat"
+ [ -n "$win_tokens" ] && tarcmd="$tarcmd $win_tokens"
+ [ -n "$office_tokens" ] && tarcmd="$tarcmd $office_tokens"
  # create temporary archive
  if ! $tarcmd &> /dev/null; then
   echo "Sorry. Fehler beim Erstellen von $tmparchive."
@@ -420,7 +423,7 @@ save_winact(){
   return 1
  else
   echo "OK."
- fi  
+ fi
  # do not in offline mode
  [ -e /tmp/linbo-network.done ] && return
  # trigger upload
@@ -430,7 +433,7 @@ save_winact(){
 
 # save windows activation tokens
 do_housekeeping(){
- local device="" 
+ local device=""
  local cachedev="$(printcache)"
  [ -b "$cachedev" ] || return 1
  if ! mount "$cachedev" /cache; then
@@ -623,7 +626,7 @@ network(){
  # set autostart if given on cmdline
  isinteger "$autostart" && set_autostart
  # disable buttons if nobuttons is given on cmdline
- [ -n "$nobuttons" ] && disable_buttons 
+ [ -n "$nobuttons" ] && disable_buttons
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  # start ssh server
@@ -660,12 +663,12 @@ hwsetup(){
  modprobe thermal >/dev/null 2>&1 || true
 
  export TERM_TYPE=pts
- 
+
  dmesg >> /tmp/linbo.log
  echo "## Hardware-Setup - Ende ##" >> /tmp/linbo.log
 
  sleep 2
- echo > /tmp/linbo-cache.done 
+ echo > /tmp/linbo-cache.done
 }
 
 # Main
@@ -781,7 +784,7 @@ if [ -n "$linbocmd" ]; then
   else
    msg="linbo_wrapper $cmd"
   fi
-  
+
   ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
 
   # read and print output
