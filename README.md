@@ -13,3 +13,5 @@ Build instructions:
 
 * Build package:
   ./buildpackage.sh
+
+More information see [wiki](https://github.com/linuxmuster/linuxmuster-linbo/wiki)
