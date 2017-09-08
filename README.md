@@ -4,14 +4,14 @@ Build instructions:
 
 * Install 64bit Ubuntu 16.04.
 
-* Add 32bit Architecture:
-  sudo dpkg --add-architecture i386
-  sudo apt update
+* Add 32bit Architecture:  
+  `sudo dpkg --add-architecture i386`  
+  `sudo apt update`
 
-* Install build depends (uses sudo):
-  ./get-depends.sh
+* Install build depends (uses sudo):  
+  `./get-depends.sh`
 
-* Build package:
-  ./buildpackage.sh
+* Build package:  
+  `./buildpackage.sh`
 
-More information see [wiki](https://github.com/linuxmuster/linuxmuster-linbo/wiki)
+For more information take a look at the  [wiki](https://github.com/linuxmuster/linuxmuster-linbo/wiki)
