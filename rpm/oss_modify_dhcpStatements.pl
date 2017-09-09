@@ -124,7 +124,7 @@ foreach my $HOST (@hosts)
     set_dhcpStatements($oss_base,$dn,$group,get_bootfilename($HOST->{systemtype}));
     if( $DEBUG )
     {
-        open(OUT,">/tmp/ldap_modify.dhcpStatements");
+        open(OUT,">>/tmp/ldap_modify.dhcpStatements");
         print OUT Dumper($HOST);
         close OUT;
     }

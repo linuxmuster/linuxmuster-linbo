@@ -262,16 +262,6 @@ sed -e 's/\(^[A-Za-z0-9].*\)/\L\1/
         s/\([a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}[:][a-fA-F0-9]\{2\}\)/\U\1/g' -i "$WIMPORTDATA"
 
 
-# check workstation data
-echo "Checking workstation data ..."
-echo -n " - checking rooms..."
-# rooms
-rooms="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $1 }' | sort -u)"
-for i in $rooms; do
- check_string "$i" || exitmsg "$i is no valid room name!"
-done
-echo "done."
-
 echo -n " - checking hostgroups..."
 # hostgroups
 hostgroups="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$3"#" }' | sort -u)"
@@ -282,44 +272,13 @@ for i in $hostgroups; do
 done
 echo "done."
 
-echo -n " - checking hostnames..."
-# hostnames, one host can have two entries with different macs (wired and wlan)
-hostnames="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$2"#" }')"
-echo "$hostnames" | grep -q "##" && exitmsg "Empty hostname found! Check your data!"
-hostnames="${hostnames//#/}"
-for i in $hostnames; do
- validhostname "$i" || exitmsg "$i is no valid hostname!"
-done
-check_unique "$hostnames" | while read line; do
- i="$(echo $line | awk '{ print $2 }')"
- # check ips for hostname
- get_ip "$i"
- [ -n "$(check_unique "$RET")" ] && exitmsg "Ips for host $i are not unique: $RET!"
- # check macs for hostname
- get_mac "$i"
- [ -n "$(check_unique "$RET")" ] && exitmsg "Macs for host $i are not unique: $RET!"
-done
-echo "done."
-
-echo -n " - checking macs..."
-# macs
-macs="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print "#"$4"#" }')"
-echo "$macs" | grep -q "##" && exitmsg "Empty mac address found! Check your data!"
-macs="${macs//#/}"
-for i in $macs; do
- validmac "$i" || exitmsg "$i is no valid mac address!"
-done
-RET="$(check_unique "$macs")"
-[ -n "$RET" ] && exitmsg "Not unique mac(s) detected: $RET!"
-echo "done."
-
 # tests are done
 echo " Ok!"
 echo
 
 # sync host accounts
 echo "Creating new workstations accounts..."
-oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG
+oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG; RC="$?"
 if [ "$RC" = "0" ]; then
  echo "Done!"
  echo

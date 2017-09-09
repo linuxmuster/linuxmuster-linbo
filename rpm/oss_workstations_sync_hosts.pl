@@ -56,6 +56,15 @@ if( defined $ENV{SUDO_USER} )
    }
 }
 $oss_base = oss_base->new($connect);
+
+my $DEBUG               = 0;
+if( $oss_base->get_school_config('SCHOOL_DEBUG') eq 'yes' )
+{
+    $DEBUG = 1;
+    use Data::Dumper;
+}
+
+
 # get HW configurations
 my $confs = $oss_base->get_HW_configurations(0);
 my $hwconfs = {};
@@ -80,7 +89,6 @@ foreach my $host (keys %$hosts) {
     $import_needed = 1;
     my ($owner) = $data->{'name'} =~ /^(?:cpq|lap)(.+)$/;
     if( $owner ){
-	$data->{'user'}=$owner if $owner ne $data->{'user'};
 	print IMPORT $data->{'room'} . ";" . $data->{'name'} . ";" . $data->{'hwaddress'} . ";" . $hwconf
 		  . ";" . $owner."\n";
     } else {
@@ -89,14 +97,49 @@ foreach my $host (keys %$hosts) {
     print "  * Import new host " . $data->{'name'} . "/" . $data->{'hwconf'} . "/" . $hwconf . " to ldap\n";
 }
 
-if($import_needed){
+my $exitcode = 0;
+if( $import_needed ){
     # start the actual import
     system("oss_import_hosts.pl --addws $importfile >$importfile.log");
+    $exitcode=$?>>8;
+    open LOG,"<$importfile.log";
+    my $in_msg = 0;
+    my $buffer;
+    my @messages = ();
+    while(<LOG>){
+	if( /^\$/ ){
+	    $in_msg = 1;
+	    $buffer = $_;
+	} elsif( /^\s/ and $in_msg ){
+	    $buffer .= $_;
+	} elsif( $in_msg ){
+	    my $VAR1;
+	    eval $buffer;
+	    push @messages, $VAR1;
+	    $in_msg = 0;
+	} else {
+	    next;
+	}
+    }
+    if( $in_msg ){
+	my $VAR1;
+	eval $buffer;
+	push @messages, $VAR1;
+	$in_msg = 0;
+    }
+    for my $msg (@messages){
+	print "  ".$msg->{TYPE}."(".$msg->{CODE}."): ".$msg->{NOTRANSLATE_MESSAGE1}." ".$msg->{MESSAGE}."\n";
+	$exitcode = 1 if ! $exitcode;
+    }
 } else {
     print "  * No new hosts to import.\n";
 }
 
-system("rm -f $importfile");
-system("rm -f $importfile.log");
+if( ! $exitcode ){
+    system("rm -f $importfile");
+    system("rm -f $importfile.log");
+}
 
 $oss_base->destroy();
+
+exit $exitcode;
