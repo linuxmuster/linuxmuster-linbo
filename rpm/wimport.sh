@@ -278,16 +278,22 @@ echo
 
 # sync host accounts
 echo "Creating new workstations accounts..."
-oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG; RC="$?"
-if [ "$RC" = "0" ]; then
+if [ -s $WIMPORTDATA ]; then
+ oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG; RC="$?"
+ if [ "$RC" = "0" ]; then
+  echo "Done!"
+  echo
+ else
+  echo "oss_workstations_sync_hosts.pl exits with error!"
+  echo
+  rm -f $locker
+  exit "$RC"
+ fi # sync host accounts
+else
+ echo " * no file $WIMPORTDATA"
  echo "Done!"
  echo
-else
- echo "oss_workstations_sync_hosts.pl exits with error!"
- echo
- rm -f $locker
- exit "$RC"
-fi # sync host accounts
+fi
 
 # sync host groups
 echo "Processing host groups..."

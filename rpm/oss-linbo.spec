@@ -230,8 +230,9 @@ mkdir -p %{buildroot}/var/lib/bittorrent
 mkdir -p %{buildroot}/var/log/bittorrent
 
 mkdir -p %{buildroot}/etc/linbo/import-workstations.d
+mkdir -p %{buildroot}/usr/share/oss/tools
+install rpm/import_workstations %{buildroot}/usr/share/oss/tools/import_workstations
 mkdir -p %{buildroot}/usr/sbin
-install rpm/import_workstations %{buildroot}/usr/sbin/import_workstations
 install rpm/oss_modify_dhcpStatements.pl %{buildroot}/usr/sbin/oss_modify_dhcpStatements.pl
 install rpm/oss_workstations_sync_hosts.pl %{buildroot}/usr/sbin/oss_workstations_sync_hosts.pl
 
@@ -299,6 +300,8 @@ then
      ssh-keygen -N "" -q -t ecdsa -f "$rootkey"
      echo "Done!"
    fi
+   # force recreate tools index on next access
+   rm -f /usr/share/oss/tools/scripts_list.xml
    update-linbofs
 fi
 %fillup_only
@@ -310,6 +313,8 @@ fi
 %postun
 %restart_on_update bittorrent linbo-bittorrent linbo-multicast rsyncd
 %insserv_cleanup
+# force recreate tools index on next access
+rm -f /usr/share/oss/tools/scripts_list.xml
 
 %files
 %defattr(-,root,root)
@@ -368,13 +373,14 @@ fi
 %dir /usr/share/oss
 %dir /usr/share/oss/plugins
 %dir /usr/share/oss/plugins/add_user
+%dir /usr/share/oss/tools
 %defattr(0755,root,root)
 /usr/share/oss/plugins/add_user/add_linbopxe.pl
+/usr/share/oss/tools/import_workstations
 /usr/sbin/linbo-ssh
 /usr/sbin/linbo-scp
 /usr/sbin/linbo-remote
 /usr/sbin/update-linbofs
-/usr/sbin/import_workstations
 /usr/sbin/oss_modify_dhcpStatements.pl
 /usr/sbin/oss_workstations_sync_hosts.pl
 

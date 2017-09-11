@@ -9,6 +9,35 @@
 # 17.03.2017
 # GPL v3
 #
+if [ "$1" = "--help" -o  "$1" = "-h" ]
+then
+	echo 'Usage: /usr/share/oss/tools/import_workstations [OPTION]'
+	echo 'With this script we import all registered linbo hosts to OSS.'
+	echo
+	echo 'Options :'
+	echo 'Mandatory parameters :'
+	echo "		No need for mandatory parameters. (There's no need for parameters for running this script.)"
+	echo 'Optional parameters :'
+	echo '		-h,   --help         Display this help.'
+	echo '		-d,   --description  Display the descriptiont.'
+        exit
+fi
+
+if [ "$1" = "--description" -o  "$1" = "-d" ]
+then
+	echo 'NAME:'
+	echo '	import_workstations'
+	echo 'DESCRIPTION:'
+	echo '	With this script we import all registered linbo hosts to OSS.'
+	echo 'PARAMETERS:'
+	echo '	MANDATORY:'
+	echo "		                    : No need for mandatory parameters. (There's no need for parameters for running this script.)"
+	echo '	OPTIONAL:'
+	echo '		-h,   --help        : Display this help.(type=boolean)'
+	echo '		-d,   --description : Display the descriptiont.(type=boolean)'
+	exit
+fi
+
 
 # check for import_workstations lockfile
 locker=/tmp/.import_workstations.lock
@@ -42,14 +71,6 @@ if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
 fi
 
 RC=0
-
-# backing up workstation data file
-echo -n "Backing up $WIMPORTDATA ... " | tee -a $TMPLOG
-if backup_file $WIMPORTDATA &> /dev/null; then
- echo "Ok!" | tee -a $TMPLOG
-else
- echo "failed!" | tee -a $TMPLOG
-fi
 
 # source import script
 echo | tee -a $TMPLOG

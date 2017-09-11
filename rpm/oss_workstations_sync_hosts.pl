@@ -128,6 +128,8 @@ if( $import_needed ){
 	$in_msg = 0;
     }
     for my $msg (@messages){
+	next if ! defined $msg->{TYPE};
+	next if $msg->{TYPE} eq 'SUCCESS';
 	print "  ".$msg->{TYPE}."(".$msg->{CODE}."): ".$msg->{NOTRANSLATE_MESSAGE1}." ".$msg->{MESSAGE}."\n";
 	$exitcode = 1 if ! $exitcode;
     }
