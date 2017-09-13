@@ -25,7 +25,7 @@ create()
 
 echo 'create 1:�/dev/sda4� 2:�opensuse-cpqmini.cloop� 3:�opensuse-cpqmini.cloop� 4:�/dev/sda1� 5:�/dev/sda1� 6:�/boot/vmlinuz� 7:�/boot/initrd� '
 echo 'Mounte Cachepartition /dev/sda4 ...'
-echo 'Erzeuge Image 'opensuse-cpqmini.cloop' von Partition '/dev/sda1'...'
+echo "Erzeuge Image 'opensuse-cpqmini.cloop' von Partition '/dev/sda1'..."
 echo '## Mon Apr 11 08:52:51 UTC 2016 : Starte Erstellung von opensuse-cpqmini.cloop.'
 echo 'Bereite Partition /dev/sda1 (Gr��e=15728640K) f�r Komprimierung vor...'
 echo 'Entferne tmp/kde-schueler.'

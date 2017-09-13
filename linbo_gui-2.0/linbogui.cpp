@@ -510,14 +510,17 @@ void LinboGUI::doUploadDialog(int nr)
 void LinboGUI::doCreate(int nr, const QString& imageName, const QString& description, bool isnew, bool upload, Aktion aktion)
 {
     QString baseImage = imageName.left(imageName.lastIndexOf(".")) + Command::BASEIMGEXT;
-    QString title = QString("Image erstellen");
+    QString title = QString("Image erstellen ");
     if( upload ){
-        title += "(und hochladen)";
+        title += "(und hochladen) ";
     }
-    QString cTitlePattern = QString("^Erzeuge Image '([\\-\\.\\w]+)'");
+    QString cTitlePattern = QString("^Erzeuge Image\\s+([\\-\\.\\w]+)\\s+");
     FilterRegex *fc = new FilterRegex(this, Command::mapValPattern[Command::create_cloop],
             Command::mapMaxPattern[Command::create_cloop], cTitlePattern);
-    doCommand(command->mkcreatecommand(nr, imageName, baseImage), true, title, aktion, &details, fc);
+    bool done = doCommand(command->mkcreatecommand(nr, imageName, baseImage), true, title, aktion, &details, fc);
+    if( !done ){
+        return;
+    }
     if(isnew){
         os_item os = conf->elements[nr];
         image_item new_image;
@@ -534,7 +537,10 @@ void LinboGUI::doCreate(int nr, const QString& imageName, const QString& descrip
         QString uTitlePattern = QString("^Lade ([\\-\\.\\w]+) zu");
         FilterRegex *fu = new FilterRegex(this, Command::mapValPattern[Command::upload_cloop],
                 Command::mapMaxPattern[Command::upload_cloop], uTitlePattern);
-        doCommand(command->mkuploadcommand(imageName), true, QString("Image hochladen"), aktion, &details, fu);
+        done = doCommand(command->mkuploadcommand(imageName), true, QString("Image hochladen"), aktion, &details, fu);
+        if(! done){
+            return;
+        }
     }
     if(aktion == Aktion::Reboot)
         system("busybox reboot");
