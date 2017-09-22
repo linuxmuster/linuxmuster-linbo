@@ -1,8 +1,9 @@
 linuxmuster-linbo (2.3.28-0) babo62; urgency=low
 
-  * reworked kernel framebuffer configuration.
+  * reworked 64bit kernel framebuffer configuration.
+  * updated kernel to 4.9.50.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Jul 2017 16:26:56 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 21 Sep 2017 08:16:44 +0000
 
 linuxmuster-linbo (2.3.27-0) babo62; urgency=low
 
