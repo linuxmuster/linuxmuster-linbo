@@ -449,7 +449,7 @@ format(){
   case "$fstype" in
    swap) cmd="mkswap -L $label $partition" ;;
    reiserfs) cmd="mkreiserfs -l $label -f -f  $partition" ;;
-   ext2|ext3|ext4) cmd="mkfs.$fstype -L $label $partition" ;;
+   ext2|ext3|ext4) cmd="mkfs.$fstype -L $label -F -F $partition" ;;
    [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -L $label -Q $partition" ;;
    *[Ff][Aa][Tt]*) cmd="mkdosfs -n $label -F 32 $partition" ;;
    *) return 1 ;;
@@ -458,7 +458,7 @@ format(){
   case "$fstype" in
    swap) cmd="mkswap $partition" ;;
    reiserfs) cmd="mkreiserfs -f -f  $partition" ;;
-   ext2|ext3|ext4) cmd="mkfs.$fstype $partition" ;;
+   ext2|ext3|ext4) cmd="mkfs.$fstype -F -F $partition" ;;
    [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $partition" ;;
    *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $partition" ;;
    *) return 1 ;;
