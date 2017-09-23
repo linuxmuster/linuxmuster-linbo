@@ -1,18 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-while getopts p:l:r:a: OPT ; do
+while getopts p:l:r:a:x: OPT ; do
 	case "${OPT}" in
 	p) package="${OPTARG}";;
 	l) pkg_list="${OPTARG}";;
 	r) readelf="${OPTARG}";;
 	a) arch_name="${OPTARG}";;
+	x) exclusions="${OPTARG}";;
 	:) error "option '%s' expects a mandatory argument\n" "${OPTARG}";;
 	\?) error "unknown option '%s'\n" "${OPTARG}";;
 	esac
 done
 
 if test -z "${package}" -o -z "${pkg_list}" -o -z "${readelf}" -o -z "${arch_name}" ; then
-	echo "Usage: $0 -p <pkg> -l <pkg-file-list> -r <readelf> -a <arch name>"
+	echo "Usage: $0 -p <pkg> -l <pkg-file-list> -r <readelf> -a <arch name> -x ' <exclusions> '"
 	exit 1
 fi
 
@@ -35,6 +36,11 @@ while read f; do
 	if [[ "${f}" =~ ^/usr/share/.* ]]; then
 		continue
 	fi
+
+	# Skip files that have been excluded explicitly
+	case "${exclusions}" in
+	 *\ ${f}\ *) continue;;
+	esac
 
 	# Get architecture using readelf. We pipe through 'head -1' so
 	# that when the file is a static library (.a), we only take

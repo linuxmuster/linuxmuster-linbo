@@ -263,7 +263,7 @@ information is (assuming the package name is +libfoo+) :
   the file using this URL. Otherwise, Buildroot will assume the file
   to be downloaded is located at +LIBFOO_SITE+. Buildroot will not do
   anything with those additional files, except download them: it will
-  be up to the package recipe to use them from +$(BR2_DL_DIR)+.
+  be up to the package recipe to use them from +$(DL_DIR)+.
 
 * +LIBFOO_SITE_METHOD+ determines the method used to fetch or copy the
   package source code. In many cases, Buildroot guesses the method
@@ -315,7 +315,10 @@ information is (assuming the package name is +libfoo+) :
   ** +local+ for a local source code directory. One should use this
      when +LIBFOO_SITE+ specifies a local directory path containing
      the package source code. Buildroot copies the contents of the
-     source directory into the package's build directory.
+     source directory into the package's build directory. Note that
+     for +local+ packages, no patches are applied. If you need to
+     still patch the source code, use +LIBFOO_POST_RSYNC_HOOKS+, see
+     xref:hooks-rsync[].
 
 * +LIBFOO_GIT_SUBMODULES+ can be set to +YES+ to create an archive
   with the git submodules in the repository.  This is only available
@@ -450,6 +453,23 @@ information is (assuming the package name is +libfoo+) :
   FLAT binary format is only 4k bytes. If the application consumes more stack,
   append the required number here.
 
+* +LIBFOO_CHECK_BIN_ARCH_EXCLUSIONS+ defines a list of files that should be
+  excluded from the target architecture check. Since some packages accidentally
+  installs files that are built for the host into the target directory,
+  Buildroot adds a check that all files in the target directory are really
+  built for the target architecture. However, in rare cases, a package will
+  validly install files for a different (sub)architecture. For example, some
+  libraries have code to dynamically detect the available instructions.
+  Buildroot will then complain with an error like:
++
+---------------------
+ERROR: architecture for "/usr/lib/libfoo.so" is "Sparc v8+", should be "Sparc"
+---------------------
++
+If this is really correct, it is possible to override the check by setting
++LIBFOO_CHECK_BIN_ARCH_EXCLUSIONS+ to a space-separated list of files
+(relative to the target directory) that should not be checked.
+
 The recommended way to define these variables is to use the following
 syntax:
 
@@ -536,6 +556,9 @@ In the action definitions, you can use the following variables:
 
 * +$(@D)+, which contains the directory in which the package source
   code has been uncompressed.
+
+* +$(DL_DIR)+ contains the path to the directory where all the downloads made
+  by Buildroot are stored.
 
 * +$(TARGET_CC)+, +$(TARGET_LD)+, etc. to get the target
   cross-compilation utilities
