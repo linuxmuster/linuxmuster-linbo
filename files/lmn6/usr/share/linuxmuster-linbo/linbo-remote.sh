@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 29.10.2014
+# 20171009
 # GPL V3
 #
 
@@ -11,7 +11,7 @@
 . /usr/share/linuxmuster/config/dist.conf || exit 1
 . $HELPERFUNCTIONS || exit 1
 
-KNOWNCMDS="partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
+KNOWNCMDS="label partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
 DLTYPES="multicast rsync torrent"
 SSH="/usr/sbin/linbo-ssh -o BatchMode=yes -o StrictHostKeyChecking=no"
 SCP=/usr/sbin/linbo-scp
@@ -58,6 +58,8 @@ usage(){
  echo "Supported commands for -c or -p options are:"
  echo
  echo "partition                : Writes the partition table."
+ echo "label                    : Labels all partitions defined in start.conf."
+ echo "                           Note: Partitions have to be formatted."
  echo "format                   : Writes the partition table and formats all"
  echo "                           partitions."
  echo "format:<#>               : Writes the partition table and formats only"
@@ -269,14 +271,14 @@ while [ -n "$CMDS" ]; do
     strip_cmds ":$dltype"
     command[$c]="$cmd:$dltype"
    fi
-  ;;  
+  ;;
 
   create_cloop|create_rsync)
    extract_nr
    [ "${CMDS:0:1}" = ":" ] && extract_comment
   ;;
 
-  partition|reboot|halt) ;;
+  label|partition|reboot|halt) ;;
 
   *)
    echo "Unknown command: $cmd."
@@ -403,7 +405,7 @@ send_cmds(){
 
   # look for not fetched onboot file and delete it
   [ -e "$(onbootcmdfile "$i")" ] && rm -f "$(onbootcmdfile "$i")"
-   
+
   # test if client is online
   if ! is_online "$i"; then
    echo "Not online, host skipped."
@@ -452,7 +454,7 @@ test_onboot(){
 
  # wait for clients to come up
  do_wait wol
- 
+
  # verifying if clients have done their onboot tasks
  echo
  echo "Verifying onboot tasks:"
@@ -473,7 +475,7 @@ test_online(){
 
  # wait for clients to come up
  do_wait wol
- 
+
  # testing if clients are online
  echo
  echo "Testing if clients have booted:"
@@ -491,10 +493,10 @@ test_online(){
 # send commands live (-c)
 [ -n "$DIRECT" ] && send_cmds
 
-# test onboot tasks (-p) 
+# test onboot tasks (-p)
 [ -n "$ONBOOT" -a -n "$WAIT" -a "$WAIT" != "0" ] && test_onboot
 
-# test online (-w only) 
+# test online (-w only)
 [ -z "$ONBOOT" -a -z "$DIRECT" -a -n "$WAIT" -a "$WAIT" != "0" ] && test_online
 
 
