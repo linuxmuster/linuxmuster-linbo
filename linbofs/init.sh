@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20171017
+# 20171019
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -187,8 +187,14 @@ copyfromcache(){
   # iterate through partitions
   local device=""
   ls -l /dev/disk/by-uuid/ | grep ^l | awk -F\/ '{ print $3 }' | sort -u | while read device; do
-    [ -b "/dev/$device" ] || continue
-    trycopyfromcache "/dev/$device" "$1" && return 0
+   [ -b "/dev/$device" ] || continue
+   if trycopyfromcache "/dev/$device" "$1"; then
+    if [ "$1" = "start.conf" ]; then
+     # start.conf correction due to partition labels
+     grep -qi ^label /start.conf && linbo_cmd update_devices
+    fi
+    return 0
+   fi
   done
   return 1
 }
@@ -257,6 +263,8 @@ copyextra(){
  if [ -s "/extra$extraconf" ]; then
   cp "/extra$extraconf" /start.conf ; RC="$?"
   umount /extra || umount -l /extra
+  # start.conf correction due to partition labels
+  grep -qi ^label /start.conf && linbo_cmd update_devices
  else
   RC=1
  fi
@@ -469,6 +477,8 @@ do_linbo_update(){
  local cachedev="$(printcache)"
  #local customcfg="/cache/boot/grub/custom.cfg"
  local rebootflag="/tmp/.linbo.reboot"
+ # start.conf correction due to partition labels
+ grep -qi ^label /start.conf && linbo_cmd update_devices
  # start linbo update
  linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
  # test if linbofs or custom.cfg were updated on local boot
@@ -597,8 +607,6 @@ network(){
   if [ -s /start.conf ]; then
    echo "Netwerkverbindung zu $server erfolgreich hergestellt."
    echo > /tmp/network.ok
-   # start.conf correction due to partition labels
-   grep -qi ^label /start.conf && linbo_cmd update_devices
    # linbo update & grub installation
    do_linbo_update "$server"
    # also look for other needed files
