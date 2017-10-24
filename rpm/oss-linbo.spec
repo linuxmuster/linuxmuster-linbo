@@ -159,8 +159,6 @@ ISOLINUXSRC="\$SYSLINUXSRC"
 EOF
 
 # install files and directories
-mkdir -p %{buildroot}/var/adm/fillup-templates
-install rpm/sysconfig.linbo %{buildroot}/var/adm/fillup-templates/sysconfig.linbo
 mkdir -p %{buildroot}/etc/linbo
 install etc/ssh_config %{buildroot}/etc/linbo/ssh_config
 install etc/start.conf.default %{buildroot}/etc/linbo/start.conf.default.in
@@ -188,6 +186,7 @@ done
 install rpm/dist.conf %{buildroot}/usr/share/linbo/dist.conf
 mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
+install rpm/sysconfig.linbo-multicast %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-multicast
 install rpm/sysconfig.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
 mkdir -p %{buildroot}/etc/init.d
 install rpm/linbo-bittorrent.init %{buildroot}/etc/init.d/linbo-bittorrent
@@ -345,7 +344,7 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 /etc/init.d/bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-bittorrent
-%attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo
+%attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-multicast
 /etc/init.d/linbo-bittorrent
 /etc/init.d/linbo-multicast
 %attr(0640,root,root) /etc/rsyncd.conf.in

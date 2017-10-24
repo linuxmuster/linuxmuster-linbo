@@ -21,13 +21,12 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Multicast session for"
 # defaults
-LINBODIR=/srv/tftp
 START_MULTICAST=no
 PORTBASE=9000
 MINCLIENTS=16
 MINSECONDS=60
 MAXSECONDS=90
-MULTICASTLIST=$LINBODIR/multicast.list
+MULTICASTLIST=/srv/tftp/multicast.list
 INTERFACE=eth0
 SERVERIP=10.0.0.2
 
@@ -35,7 +34,7 @@ SERVERIP=10.0.0.2
 source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
-source /etc/sysconfig/linbo || exit 1
+source /etc/sysconfig/linbo-multicast || exit 1
 [ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
 DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
 

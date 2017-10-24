@@ -5,16 +5,10 @@
 # $Id: default 1084 2011-06-07 10:28:53Z tschmitt $
 
 ## Type:	string
-## Default:	/srv/tftp
-# where the linbo stuff is located
-#
-LINBODIR=/srv/tftp
-
-## Type:	string
-## Default:	/srv/tftp
+## Default:	/srv/tftp/multicast.list
 # path to the list of files to be multicasted
 #
-MULTICASTLIST=$LINBODIR/multicast.list
+MULTICASTLIST=/srv/tftp/multicast.list
 
 ## Type:	yesno
 ## Default:	yes
