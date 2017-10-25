@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20161207
+# 20171019
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -113,6 +113,7 @@ init_setup(){
    ;;
 
    *=*)
+   echo "Werte $i aus ..."
     eval "$i"
    ;;
 
@@ -142,40 +143,60 @@ init_setup(){
  for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
   [ -f "$i" ] && echo "ondemand" > "$i" 2>/dev/null
  done
-}
 
-# trycopyfromdevice device filenames
-trycopyfromdevice(){
- local RC=1
- local device="$1"
- local i=""
- local files="$2"
- if ! cat /proc/mounts | grep -q "$device /cache"; then
-  mount -r "$device" /cache &>/dev/null || return 1
+ # load modules given with loadmodules=module1,module2
+ if [ -n "$loadmodules" ]; then
+  loadmodules="$(echo "$loadmodules" | sed -e 's|,| |g')"
+  for i in $loadmodules; do
+    echo "Lade Modul $i ..."
+    modprobe "$i"
+  done
  fi
- for i in $files; do
-  if [ -e /cache/"$i" ] && [ -s /cache/linbo -o -s /cache/linbo64 ]; then
-   RC=0
-   cp -af /cache/"$i" . >/dev/null 2>&1
-  fi
- done
- umount /cache || umount -l /cache
- return "$RC"
 }
 
-# copyfromcache file - copies a file from cache to current dir
+# trycopyfromcache device filenames
+trycopyfromcache(){
+  local cachedev="$1"
+  local i=""
+  local files="$2"
+  local RC=1
+  if ! grep -q "$cachedev /cache" /proc/mounts; then
+    linbo_cmd mount "$cachedev" /cache -r || return "$RC"
+  fi
+  if [ -e /cache/linbo -o -e /cache/linbo-np -o -e /cache/linbo64 ]; then
+    RC=0
+    for i in $files; do
+      if [ -e /cache/"$i" ]; then
+        echo "* Kopiere $i ..."
+        cp -af /cache/"$i" .
+      fi
+    done
+  fi
+  umount /cache || umount -l /cache
+  return "$RC"
+}
+
+# copyfromcache files - copies files from cache to current dir
 copyfromcache(){
- local cachdev="$(printcache)"
- if [ -b "$cachedev" ]; then
-  trycopyfromdevice "$cachedev" "$1" && return 0
- fi
- local major="" minor="" blocks="" device="" relax=""
- grep -v ^major /proc/partitions | while read -r major minor blocks device relax; do
-  if [ -b "/dev/$device" ]; then
-   trycopyfromdevice "/dev/$device" "$1" && return 0
+  # if there are no partitions return
+  [ -e /dev/disk/by-uuid ] || return 1
+  local cachedev="$(printcache)"
+  if [ -b "$cachedev" ]; then
+    trycopyfromcache "$cachedev" "$1" && return 0
   fi
- done
- return 1
+  # iterate through partitions
+  local device=""
+  ls -l /dev/disk/by-uuid/ | grep ^l | awk -F\/ '{ print $3 }' | sort -u | while read device; do
+   [ -b "/dev/$device" ] || continue
+   if trycopyfromcache "/dev/$device" "$1"; then
+    if [ "$1" = "start.conf" ]; then
+     # start.conf correction due to partition labels
+     grep -qi ^label /start.conf && linbo_cmd update_devices
+    fi
+    return 0
+   fi
+  done
+  return 1
 }
 
 # modify cache entry in start.conf
@@ -193,15 +214,11 @@ Cache = $cache" -i "$1"
 printcache(){
  if [ -n "$cache" -a -b "$cache" ]; then
   echo "$cache"
-  return 0
+  return
  fi
- [ -s /start.conf ] || return 1
- local cachedev="$(grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
- if [ -n "$cachedev" -a -b "$cachedev" ]; then
-  echo "$cachedev"
-  return 0
- fi
- return 1
+ [ -s /start.conf ] || return
+ local cachedev="$(grep -iw ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
+ [ -n "$cachedev" ] && echo "$cachedev"
 }
 
 # copytocache file - copies start.conf to local cache
@@ -210,8 +227,8 @@ copytocache(){
  [ -b "$cachedev" ] || return 1
  case "$cachedev" in
   /dev/*) # local cache
-   if ! cat /proc/mounts | grep -q "$cachedev /cache"; then
-    mount "$cachedev" /cache || return 1
+   if ! grep -q "$cachedev /cache" /proc/mounts; then
+    linbo_cmd mount "$cachedev" /cache || return 1
    fi
    if [ -s /start.conf ]; then
     echo "Speichere start.conf auf Cache."
@@ -241,11 +258,13 @@ copyextra(){
  [ -b "$confpart" ] || return 1
  [ -z "$extraconf" ] && return 1
  mkdir -p /extra
- mount "$confpart" /extra || return 1
+ linbo_cmd mount "$confpart" /extra || return 1
  local RC=1
  if [ -s "/extra$extraconf" ]; then
   cp "/extra$extraconf" /start.conf ; RC="$?"
   umount /extra || umount -l /extra
+  # start.conf correction due to partition labels
+  grep -qi ^label /start.conf && linbo_cmd update_devices
  else
   RC=1
  fi
@@ -348,16 +367,20 @@ save_winact(){
  rm -f /mnt/linuxmuster-win/*activation_status
  # get activation token files
  if [ -n "$win_activated" ]; then
-  local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
-  local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
+   local windir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss])"
+   # find all windows tokens and key files in windir (version independent)
+   local win_tokens="$(find "$windir" -iname tokens.dat)"
+   [ "$win_tokens" = "" ] || win_tokens="$win_tokens $(find "$windir" -iname pkeyconfig.xrm-ms)"
+  #local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+  #local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
  fi
- [ -n "$office_activated" ] && local office_tokensdat="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
+ [ -n "$office_activated" ] && local office_tokens="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
  # test if files exist
- if [ -n "$win_activated" -a -z "$win_tokensdat" ]; then
-  echo "Windows-Aktivierungsdatei nicht vorhanden."
+ if [ -n "$win_activated" -a -z "$win_tokens" ]; then
+  echo "Keine Windows-Aktivierungsdateien vorhanden."
   win_activated=""
  fi
- if [ -n "$office_activated" -a -z "$office_tokensdat" ]; then
+ if [ -n "$office_activated" -a -z "$office_tokens" ]; then
   echo "Office-Aktivierungsdatei nicht vorhanden."
   office_activated=""
  fi
@@ -383,9 +406,8 @@ save_winact(){
  local tmparchive="/cache/tokens.tar.gz"
  # generate tar command
  local tarcmd="tar czf $tmparchive"
- [ -n "$win_tokensdat" ] && tarcmd="$tarcmd $win_tokensdat"
- [ -n "$win_pkeyconfig" ] && tarcmd="$tarcmd $win_pkeyconfig"
- [ -n "$office_tokensdat" ] && tarcmd="$tarcmd $office_tokensdat"
+ [ -n "$win_tokens" ] && tarcmd="$tarcmd $win_tokens"
+ [ -n "$office_tokens" ] && tarcmd="$tarcmd $office_tokens"
  # create temporary archive
  if ! $tarcmd &> /dev/null; then
   echo "Sorry. Fehler beim Erstellen von $tmparchive."
@@ -420,7 +442,7 @@ save_winact(){
   return 1
  else
   echo "OK."
- fi  
+ fi
  # do not in offline mode
  [ -e /tmp/linbo-network.done ] && return
  # trigger upload
@@ -430,31 +452,34 @@ save_winact(){
 
 # save windows activation tokens
 do_housekeeping(){
- local device="" 
+ local device=""
  local cachedev="$(printcache)"
- [ -b "$cachedev" ] || return 1
- if ! mount "$cachedev" /cache; then
+ [ -z "$cachedev" ] && return 1
+ if ! linbo_cmd mount "$cachedev" /cache; then
   echo "Housekeeping: Kann Cachepartition $cachedev nicht mounten."
   return 1
  fi
- grep -i ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
+ [ -s /start.conf ] || return 1
+ grep -iw ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
   [ -b "$device" ] || continue
-  if mount "$device" /mnt 2> /dev/null; then
+  if linbo_cmd mount "$device" /mnt 2> /dev/null; then
    # save windows activation files
    ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
    umount /mnt
   fi
  done
- mount | grep -v grep | grep -q /cache && umount /cache
+ grep -q "$cachedev /cache" /proc/mounts && umount /cache
 }
 
 # update linbo and install it locally
 do_linbo_update(){
  local server="$1"
  local cachedev="$(printcache)"
- local customcfg="/cache/boot/grub/custom.cfg"
+ #local customcfg="/cache/boot/grub/custom.cfg"
  local rebootflag="/tmp/.linbo.reboot"
- # save current custom.cfg
+ # start.conf correction due to partition labels
+ grep -qi ^label /start.conf && linbo_cmd update_devices
+ # start linbo update
  linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
  # test if linbofs or custom.cfg were updated on local boot
  if [ -n "$localboot" -a -e "$rebootflag" ]; then
@@ -483,7 +508,9 @@ set_autostart() {
   sed -e 's|^[Aa][Uu][Tt][Oo][Ss][Tt][Aa][Rr][Tt].*|Autostart = no|g' -i /start.conf
   return
  fi
- # count [OS] entries
+ # count [OS] entries in start.conf if there are any
+ [ -s /start.conf ] || return
+ grep -qi ^"\[OS\]" /start.conf || return
  local counts="$(grep -ci ^"\[OS\]" /start.conf)"
  # autostart OS at start.conf position given by autostart parameter
  local c=0
@@ -567,51 +594,53 @@ network(){
  [ -n "$server" ] || server="`get_server`"
  echo "IP: $ipaddr * Hostname: $hostname * Server: $server"
  # Move away old start.conf and look for updates
- mv start.conf start.conf.dist
+ mv /start.conf /start.conf.dist
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
   echo "Lade Konfigurationsdateien von $server ..."
   for i in "start.conf-$ipaddr" "start.conf"; do
-   rsync -L "$server::linbo/$i" "start.conf" &> /dev/null && break
+   rsync -L "$server::linbo/$i" "/start.conf" &> /dev/null && break
   done
-  # set flag for working network connection
-  if [ -s start.conf ]; then
+  # set flag for working network connection and do additional stuff which needs
+  # connection to linbo server
+  if [ -s /start.conf ]; then
    echo "Netwerkverbindung zu $server erfolgreich hergestellt."
    echo > /tmp/network.ok
-  fi
-  # linbo update
-  do_linbo_update "$server"
-  # also look for other needed files
-  for i in "torrent-client.conf" "multicast.list"; do
-   rsync -L "$server::linbo/$i" "/$i" &> /dev/null
-  done
-  # get optional onboot linbo-remote commands
-  rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
-  if [ -s "/linbocmd" ]; then
-   for i in noauto nobuttons; do
-    grep -q "$i" /linbocmd && eval "$i"=yes
-    sed -e "s|$i||" -i /linbocmd
+   # linbo update & grub installation
+   do_linbo_update "$server"
+   # also look for other needed files
+   for i in "torrent-client.conf" "multicast.list"; do
+    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
    done
-   # strip leading and trailing spaces and escapes
-   linbocmd="$(awk '{$1=$1}1' /linbocmd)"
-   sed -e 's|\\||g' -i /linbocmd
+   # get optional onboot linbo-remote commands
+   rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
+   if [ -s "/linbocmd" ]; then
+    for i in noauto nobuttons; do
+     grep -q "$i" /linbocmd && eval "$i"=yes
+     sed -e "s|$i||" -i /linbocmd
+    done
+    # strip leading and trailing spaces and escapes
+    linbocmd="$(awk '{$1=$1}1' /linbocmd)"
+    sed -e 's|\\||g' -i /linbocmd
+   fi
+   # and (optional) the GUI icons
+   for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
+    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
+   done
+   # save downloaded stuff to cache
+   copytocache
   fi
-  # and (optional) the GUI icons
-  for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
-   rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
-  done
-  # save downloaded stuff to cache
-  copytocache
  fi
  # copy start.conf optionally given on cmdline
  copyextra && local extra=yes
- # if start.conf could not be downloaded
- if [ ! -s start.conf ]; then
+ # if start.conf could not be downloaded or does not contain [os] section
+ if [ ! -s /start.conf ] || ([ -s /start.conf ] && ! grep -qi ^'\[os\]' /start.conf); then
   # No new version / no network available, look for cached copies of start.conf and icons folder.
+  echo "Versuche start.conf und Icons aus dem Cache zu kopieren."
   copyfromcache "start.conf icons"
   # Still nothing new, revert to old version.
-  [ ! -s start.conf ] && mv -f start.conf.dist start.conf
+  [ ! -s /start.conf ] && mv -f /start.conf.dist /start.conf
  fi
  # modify cache in start.conf if cache was given and no extra start.conf was defined
  [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
@@ -620,10 +649,10 @@ network(){
   autostart=0
   disable_auto
  fi
- # set autostart if given on cmdline
+ # start.conf: set autostart if given on cmdline
  isinteger "$autostart" && set_autostart
- # disable buttons if nobuttons is given on cmdline
- [ -n "$nobuttons" ] && disable_buttons 
+ # start.conf: disable buttons if nobuttons is given on cmdline
+ [ -n "$nobuttons" ] && disable_buttons
  # sets flag if no default route
  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
  # start ssh server
@@ -660,12 +689,12 @@ hwsetup(){
  modprobe thermal >/dev/null 2>&1 || true
 
  export TERM_TYPE=pts
- 
+
  dmesg >> /tmp/linbo.log
  echo "## Hardware-Setup - Ende ##" >> /tmp/linbo.log
 
  sleep 2
- echo > /tmp/linbo-cache.done 
+ echo > /tmp/linbo-cache.done
 }
 
 # Main
@@ -781,7 +810,7 @@ if [ -n "$linbocmd" ]; then
   else
    msg="linbo_wrapper $cmd"
   fi
-  
+
   ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
 
   # read and print output

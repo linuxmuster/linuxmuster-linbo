@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 04.02.2016
+# 20171009
 # GPL V3
 #
 
@@ -256,6 +256,8 @@ help(){
  echo "Verfügbare Befehle sind:"
  echo
  echo "partition                : Schreibe die Partitionstabelle."
+ echo "label                    : Versieht alle Partitionen mit Label, die in der"
+ echo "                           start.conf-Datei definiert und formatiert sind."
  echo "format                   : Schreibt die Partitionstabelle und formatiert"
  echo "                           alle Partitionen."
  echo "format:<#>               : Schreibt die Partitionstabelle und formatiert"
@@ -322,7 +324,7 @@ while [ "$#" -gt "0" ]; do
       format_partition
      fi
     fi
-   fi 
+   fi
   ;;
 
   initcache)
@@ -478,6 +480,8 @@ while [ "$#" -gt "0" ]; do
     exit 1
    fi
   ;;
+
+  label) linbo_cmd label ;;
 
   reboot) /sbin/reboot ;;
 

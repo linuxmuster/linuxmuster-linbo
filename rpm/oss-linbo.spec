@@ -6,7 +6,7 @@
 # don't clean build dir
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
-Version:	2.3.26
+Version:	2.3.29
 Release:	1
 License:	GPLv3
 Vendor:		openSUSE Linux

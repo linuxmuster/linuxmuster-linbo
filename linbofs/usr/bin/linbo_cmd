@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20170520
+# 20171012
 # GPL v3
 #
 
@@ -316,7 +316,8 @@ get_disk_from_partition(){
 # extract disk device names from start.conf partition definitions
 # get_disks
 get_disks(){
-  local parts="$(grep -i ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' )"
+  [ -s /start.conf ] || return
+  local parts="$(grep -iw ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' )"
   local disks=
   for p in $parts; do
    if [ -z "$disks" ]; then
@@ -372,12 +373,103 @@ fstype_startconf(){
  return 1
 }
 
+# get partitionlabel from start.conf
+# partlabel_startconf partitition
+partlabel_startconf(){
+  [ -s /start.conf ] || return
+  local part="$1"
+  local line=""
+  local dev=""
+  local label=""
+  grep -i ^[dl][ea][vb] /start.conf | awk -F\= '{ print $1 " " $2 }' | awk '{ print $1 " " $2 }' | while read line; do
+    echo "$line" | grep -qi ^dev && dev="$(echo "$line" | awk '{ print $2 }')"
+    echo "$line" | grep -qi ^label && label="$(echo "$line" | awk '{ print $2 }')"
+    if [ -n "$dev" -a -n "$label" ]; then
+      if [ "$dev" = "$part" ]; then
+        echo "$label"
+        return
+      fi
+      dev="" ; label=""
+    fi
+  done
+}
+
+# print_partlabel partition
+print_partlabel(){
+  [ -e /dev/disk/by-label ] || return
+  local label="$(partlabel_startconf "$1")"
+  [ -z "$label" ] && return
+  ls -l /dev/disk/by-label/ | grep -qw "$label" && echo "$label"
+}
+
+# prints device name according to partition label
+# print_realdev label
+print_realdev(){
+  [ -e /dev/disk/by-label ] || return
+  local label="$1"
+  [ -z "$label" ] && return
+  local devname="$(ls -l /dev/disk/by-label/ | grep -w "$label" | awk -F\/ '{ print $3 }')"
+  [ -n "$devname" ] && echo "/dev/$devname"
+}
+
+# label_allpartitions
+label_allpartitions(){
+  echo "Partitionslabel schreiben:" | tee -a /tmp/linbo.log
+  if [ ! -e /dev/disk/by-uuid ]; then
+    echo "Keine Partitionen gefunden!" | tee -a /tmp/linbo.log
+    sendlog
+    return 1
+  fi
+  local dev=""
+  local line=""
+  local label=""
+  local RC=0
+  ls -l /dev/disk/by-uuid/ | grep ^l | awk -F\/ '{ print $3 }' | sort -u | while read line; do
+    dev="/dev/$line"
+    label="$(partlabel_startconf "$dev")"
+    if [ -n "$label" ]; then
+      msg="Partition $dev --> Label $label ... "
+      if mk_label "$dev" "$(fstype_startconf "$dev")" "$label" 2>&1 | tee -a /tmp/linbo.log; then
+        echo "$msg OK!" | tee -a /tmp/linbo.log
+      else
+        echo "$msg FEHLER! Gemountet?" | tee -a /tmp/linbo.log
+        RC=1
+      fi
+    fi
+  done
+  [ -e /dev/disk/by-label ] || echo "Keine Partitions-Label gefunden!" | tee -a /tmp/linbo.log
+  sendlog
+  return "$RC"
+}
+
+# update partition devices in start.conf according to labels
+update_devices(){
+  local line
+  local dev
+  local devnew
+  local label
+  grep -i ^dev /start.conf | sort -u | while read line; do
+    dev=""; devnew=""; label=""
+    dev="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+    label="$(print_partlabel "$dev")"
+    [ -z "$label" ] && continue
+    devnew="$(print_realdev "$label")"
+    [ -z "$devnew" ] && continue
+    [ "$dev" = "$devnew" ] && continue
+    echo "Korrigiere $dev --> $devnew"
+    sed -i "s|$dev |$devnew |g
+            s|$dev\t|$devnew\t|g
+            s|$dev$|$devnew|g" /start.conf
+  done
+}
+
 # mountpart partition destdir [options]
 mountpart(){
  local RC=0
  local type=""
  local i=0
  local wmsg=0
+ local label="$(print_partlabel "$1")"
  # "noatime" is required for later remount, otherwise kernel will default to "relatime",
  # which busybox mount does not know
  local OPTS="noatime"
@@ -404,30 +496,36 @@ mountpart(){
    [ "$wmsg" = "1" ] && echo "...Ok! :-)"
   fi
  fi
- # wait for partition
- for i in 1 2 3 4 5; do
-  type="$(fstype $1)"
-  RC="$?"
-  [ "$RC" = "0" ] && break
-  [ "$i" = "5" ] && break
-  echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
-  sleep 2
- done
- [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+ # wait for partition, if not labeled
+ if [ -z "$label" ]; then
+  for i in 1 2 3 4 5; do
+   RC="$?"
+   [ "$RC" = "0" ] && break
+   [ "$i" = "5" ] && break
+   echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
+   sleep 2
+  done
+  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+  local mountdev="$1"
+ else
+  # mount per label
+  local mountdev="LABEL=$label"
+ fi
+ type="$(fstype $1)"
  case "$type" in
   *ntfs*)
    OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
-   ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
+   #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
   *fat*)
-   mount -o "$OPTS" "$1" "$2" ; RC="$?"
+   #mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
   *)
    OPTS="$OPTS,acl,user_xattr"
-   mount -o "$OPTS" "$1" "$2" ; RC="$?"
+   #mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
  esac
- [ "$RC" = "0" ]
+ mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
  return "$RC"
 }
 
@@ -435,6 +533,22 @@ mountpart(){
 remote_cache(){
  case "$1" in *:*|*//*|*\\*|*\\\\*) return 0 ;; esac
  return 1
+}
+
+# mklabel partition fstype label
+mk_label(){
+  local partition="$1"
+  local fstype="$2"
+  local label="$3"
+  local RC=0
+  case "$fstype" in
+    swap) mkswap -L "$label" "$partition" || RC=1 ;;
+    ext2|ext3|ext4) e2label "$partition" "$label" || RC=1 ;;
+    [Nn][Tt][Ff][Ss]*) ntfslabel -f "$partition" "$label" || RC=1 ;;
+    *[Ff][Aa][Tt]*) fatlabel "$partition" "$label" || RC=1 ;;
+    *) return 1 ;;
+  esac
+  return $RC
 }
 
 # format partition fstype label
@@ -457,7 +571,7 @@ format(){
  else
   case "$fstype" in
    swap) cmd="mkswap $partition" ;;
-   reiserfs) cmd="mkreiserfs -f -f  $partition" ;;
+   reiserfs) cmd="mkreiserfs -f -f $partition" ;;
    ext2|ext3|ext4) cmd="mkfs.$fstype -F -F $partition" ;;
    [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $partition" ;;
    *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $partition" ;;
@@ -546,29 +660,14 @@ mountcache(){
    fi
    ;;
   /dev/*) # local cache
-   # Check if cache partition exists
-   if [ -b "$1" ]; then
-    echo "Mounte Cache-Partition $1 ..."
-    mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
-    if [ "$RC" != "0" ]; then
-     # Cache partition has not been formatted yet?
-     local cachefs="$(fstype_startconf "$1")"
-     if [ -n "$cachefs" ]; then
-      echo "Formatiere Cache-Partition..."
-      format "$1" "$cachefs" 2>> /tmp/linbo.log
-     fi
-     # Retry.
-     mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
-    fi
-   else
-    echo "Cache-Partition existiert nicht."
-   fi
+   echo "Mounte Cache-Partition $1 ..."
+   mountpart "$1" /cache $2 2>> /tmp/linbo.log ; RC="$?"
    ;;
-   *) # Yet unknown
+  *) # Yet unknown
    echo "Unbekannte Quelle fuer LINBO-Cache: $1" >&2
    ;;
-  esac
- [ "$RC" = "0" ] || echo "Kann $1 nicht als /cache einbinden." >&2
+ esac
+ [ "$RC" = "0" ] || echo "Mounten von $1 nach /cache fehlgeschlagen!" >&2
  return "$RC"
 }
 
@@ -752,6 +851,7 @@ mk_parted(){
 # When "$NOFORMAT" is set, format is skipped, otherwise all
 # partitions with known fstypes are formatted.
 partition(){
+ [ -s /start.conf ] || return 1
  killalltorrents
  #echo -n "partition " ;  printargs "$@"
  # umount /cache if mounted
@@ -813,6 +913,7 @@ partition(){
 print_efipart(){
  # test for efi system
  [ -d /sys/firmware/efi ] || return 1
+ [ -s /start.conf ] || return 1
  local dev
  local id
  local label
@@ -1227,8 +1328,9 @@ mk_boot(){
  local efipart="$(print_efipart)"
  local partition="$1"
  remote_cache "$(cachedev)" || local localcache="yes"
- # get disk for grub install, use always the first disk
- local grubdisk="$(get_disks | head -1)"
+ # get disk for grub install, use always the first disk from start.conf
+ #local grubdisk="$(get_disks | head -1)"
+ local grubdisk="$(get_disk_from_partition $(grep -iw ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | grep ^/dev | sort -u | head -1))"
  if [ ! -b "$grubdisk" ]; then
   echo "$grubdisk ist kein Blockdevice!"
   return 1
@@ -1335,7 +1437,9 @@ update_win(){
  local RC="0"
  mkdir -p /mnt/linuxmuster-win
  # copy scripts to os rootdir
- rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+ #rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+ # don't delete custom scripts on os partition
+ rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
@@ -2059,38 +2163,47 @@ restore_winact(){
   rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
   [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
   # create windows key batchfile
+  local cache_batchfile="/cache/$image.winact.cmd"
+  # remove old batchfile
+  rm -f "$cache_batchfile"
+  # create new one if keys are provided
   if [ -n "$winkey" ]; then
-   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "/cache/$image.winact.cmd"
+   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
   fi
   # add office key handling to batchfile if office token is in archive
   if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
    if [ -n "$officekey" ]; then
-    # get office installation dir
-    local office_dir="$(ls -d /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]\ \(x86\)/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]1[45] 2> /dev/null)"
-    if [ -n "$office_dir" ]; then
+    # get path to ospp.vbs
+    local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
+    if [ -n "$ospp" ]; then
      # compute windows path to office installation dir
-     local office_win_dir="$(echo "$office_dir" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
+     local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
      # write office activations commands to batchfile
-     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /inpkey:$officekey" >> "/cache/$image.winact.cmd"
-     echo "cscript.exe \"$office_win_dir\\ospp.vbs\" /act" >> "/cache/$image.winact.cmd"
+     echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
+     echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
     fi
    fi
   fi
   rm -f "$keyfile"
  fi
- # no data available
- if [ -s "/cache/$image.winact.cmd" ]; then
-  dos2unix "/cache/$image.winact.cmd"
- else
-  echo "Ueberspringe Reaktivierung, keine Produktkeys gefunden."
-  return
+ # copy reactivation batchfile to windows partition
+ if [ -s "$cache_batchfile" ]; then
+  local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
+  if [ -n "$winkey" -a -n "$officekey" ]; then
+    local keymsg="Windows- und Office-Keys"
+  elif [ -n "$winkey" ]; then
+    local keymsg="Windows-Key"
+  else
+    local keymsg="Office-Key"
+  fi
+  echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
+  dos2unix "$cache_batchfile"
+  cp "$cache_batchfile" "$win_batchfile"
+else # no keys, no batchfile
+  echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
  fi
  echo "Stelle Windows-Aktivierungstokens wieder her."
  tar xf "/cache/$archive" -C / || return 1
- # copy batchfile
- local batchfile="/mnt/linuxmuster-win/winact.cmd"
- echo "Schreibe Aktivierungs-Batchdatei nach $batchfile."
- cp "/cache/$image.winact.cmd" "$batchfile"
 }
 
 
@@ -2810,8 +2923,10 @@ update(){
   local RC=0
   local group="$(hostgroup)"
   local server="$1"
-  local cachedev="$2"
-  local disk="${cachedev%%[1-9]*}"
+  local cachelabel="$(print_partlabel "$2")"
+  local cachedev="$(print_realdev "$cachelabel")"
+  [ -z "$cachedev" ] && cachedev="$2"
+  #local disk="${cachedev%%[1-9]*}"
   local grubdir="/cache/boot/grub"
   mountcache "$cachedev" || return 1
   mkdir -p "$grubdir"
@@ -3151,7 +3266,7 @@ ip(){
 clientname(){
  local clientname="$(hostname)"
  if localmode; then
-  local cachedev="$(grep ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  local cachedev="$(grep -iw ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
   if [ -b "$cachedev" ]; then
    if mountcache $cachedev -r &> /dev/null; then
     if [ -s /cache/hostname ]; then
@@ -3253,12 +3368,15 @@ case "$cmd" in
  authenticate) authenticate "$@" ;;
  create) create "$@" ;;
  start) start "$@" ;;
+ label) label_allpartitions ;;
+ update_devices) update_devices ;;
  partition_noformat) export NOFORMAT=1; partition "$@" ;;
  partition) partition "$@" ;;
  preregister) preregister "$@";;
  initcache) initcache "$@" ;;
  initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
  mountcache) mountcache "$@" ;;
+ mount) mountpart "$@" ;;
  fstype) fstype "$@" ;;
  readfile) readfile "$@" ;;
  ready) ready "$@" ;;
