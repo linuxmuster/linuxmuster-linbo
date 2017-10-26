@@ -77,7 +77,7 @@ METAOPTS="$OPTS"
 #
 d_start() {
 	if [ $START_BTTRACK -ne 1 ]; then
-		log_progress_msg "disabled in /etc/sysconfig/bittorrent"
+		log_warning_msg "disabled in /etc/sysconfig/bittorrent"
 		return 1
 	else
 		start-stop-daemon --start --quiet --pidfile "$PIDFILE" $METAOPTS \

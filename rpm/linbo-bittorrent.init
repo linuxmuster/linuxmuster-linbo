@@ -19,7 +19,10 @@
 #set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DESC="BitTorrent service for"
+DESC="BitTorrent service"
+NAME=linbo-bittorrent
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/linbo-bittorent
 
 # read cmdline
 action="$1"
@@ -56,6 +59,8 @@ DAEMON=$LINBOSHAREDIR/linbo-torrenthelper.sh
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
 
 # read defaults
 source /etc/sysconfig/linbo-bittorrent || exit 1
@@ -126,9 +131,11 @@ start(){
 
  # restart tracker
  /etc/init.d/bittorrent stop
+ sleep 1
  killall bttrack.bittorrent &> /dev/null
+ sleep 1
  /etc/init.d/bittorrent start
-
+ sleep 1
  # start torrents
  for i in $images; do
   tfile="$i.torrent"
@@ -138,7 +145,7 @@ start(){
   [ -e "$tfile" ] || continue
 
   # start daemon stuff
-  echo -n "Starting $DESC" "$i"
+  echo -n "  - Starting $DESC for" "$i"
 
   if screen -list | grep -q "$tname"; then
    echo
@@ -178,6 +185,7 @@ start(){
    echo " OK."
   fi
  done
+ return 0
 }
 
 stop(){
@@ -186,7 +194,7 @@ stop(){
  local pid=""
  for i in $images; do
   if screen -list | grep -q "$(basename $i.torrent)"; then
-    echo -n "Stopping $DESC" "$i"
+    echo -n "  - Stopping $DESC for" "$i"
     pid="$(screen -list | grep "$(basename $i.torrent)" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"
     if [ "$RC" = "0" ]; then
@@ -202,9 +210,9 @@ stop(){
    echo -n "Sending all remaining linbo-bittorrent processes the TERM signal."
    kill $pids ; RC="$?"
    if [ "$RC" = "0" ]; then 
-     echo " OK." 
+     return 0
    else 
-     echo " failed($RC)!" 
+     return 1
    fi
   fi
  fi
@@ -226,18 +234,34 @@ status(){
     d=""
     [ $c -lt 100 ] && d=" "
     [ $c -lt 10 ] && d="  "
-    echo -e "$d$c\t$pid\t$screen\t$status"
+    echo -e "  - $d$c\t$pid\t$screen\t$status"
    done
 }
 
 case "$action" in
- start) start ;;
- stop) stop ;;
- restart)
-	 stop
-  #sleep 2
-	 start ;;
- status) status ;;
+ start) 
+    echo "Starting $DESC" "$NAME"
+    start 
+    rc_status -v
+    ;;
+  stop)
+  	echo "Stopping $DESC" "$NAME"
+	stop
+	rc_status -v
+	;;
+  restart|force-reload)
+  	echo "Restarting $DESC" "$NAME"
+	stop
+	sleep 1
+	start
+	rc_status -v
+	;;
+  status)
+	echo -n "Checking $DESC" "$NAME"
+	status
+	checkproc $DAEMON
+	rc_status -v
+	;;
  *)
 	 echo "Usage: $0 {status} | {start|stop|restart} [<imagefile>|all] [force]" >&2
 	 exit 1 ;;
