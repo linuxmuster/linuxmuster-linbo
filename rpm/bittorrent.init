@@ -23,10 +23,11 @@ DAEMON=/usr/bin/$NAME
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/bittorrent
 
+. /lib/lsb/init-functions
+
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
 
-. /lib/lsb/init-functions
 
 PORT=6969
 DFILE=/var/lib/bittorrent/bttrack.state
@@ -97,24 +98,24 @@ d_stop() {
 
 case "$1" in
   start)
-  	echo -n "Starting $DESC" "$NAME"
+  	echo -n "Starting $DESC $NAME "
 	d_start
 	rc_status -v
 	;;
   stop)
-  	echo -n "Stopping $DESC" "$NAME"
+  	echo -n "Stopping $DESC $NAME "
 	d_stop
 	rc_status -v
 	;;
   restart|force-reload)
-  	echo -n "Restarting $DESC" "$NAME"
+  	echo -n "Restarting $DESC $NAME "
 	d_stop
 	sleep 1
 	d_start
 	rc_status -v
 	;;
   status)
-	echo -n "Checking $DESC" "$NAME"
+	echo -n "Checking $DESC $NAME "
 	checkproc $DAEMON
 	rc_status -v
 	;;
