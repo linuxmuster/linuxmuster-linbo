@@ -189,8 +189,11 @@ mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.linbo-multicast %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-multicast
 install rpm/sysconfig.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
 mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/usr/sbin
 install rpm/linbo-bittorrent.init %{buildroot}/etc/init.d/linbo-bittorrent
+ln -sf ../../etc/init.d/linbo-bittorrent %{buildroot}/usr/sbin/rclinbo-bittorrent
 install rpm/linbo-multicast.init %{buildroot}/etc/init.d/linbo-multicast
+ln -sf ../../etc/init.d/linbo-multicast %{buildroot}/usr/sbin/rclinbo-multicast
 install share/templates/grub.cfg.pxe %{buildroot}/srv/tftp/boot/grub/grub.cfg
 install build/build-i386/images/bzImage %{buildroot}/srv/tftp/linbo
 install build/build-i386/images/bzImage.md5 %{buildroot}/srv/tftp/linbo.md5
@@ -226,6 +229,7 @@ install share/templates/rsyncd.conf %{buildroot}/etc/rsyncd.conf.in
 install share/templates/rsyncd.secrets.oss %{buildroot}/etc/rsyncd.secrets.in
 # bittorrent
 install rpm/bittorrent.init %{buildroot}/etc/init.d/bittorrent
+ln -sf ../../etc/init.d/bittorrent %{buildroot}/usr/sbin/rcbittorrent
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.bittorrent
 mkdir -p %{buildroot}/var/lib/bittorrent
@@ -342,11 +346,14 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 %attr(0755,bittorrent,root) /var/lib/bittorrent
 %attr(0755,bittorrent,root) /var/log/bittorrent
 /etc/init.d/bittorrent
+/usr/sbin/rcbittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-multicast
 /etc/init.d/linbo-bittorrent
+/usr/sbin/rclinbo-bittorrent
 /etc/init.d/linbo-multicast
+/usr/sbin/rclinbo-multicast
 %attr(0640,root,root) /etc/rsyncd.conf.in
 %attr(0600,root,root) /etc/rsyncd.secrets.in
 /srv/tftp/boot/grub/ipxe.lkrn
