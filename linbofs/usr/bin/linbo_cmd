@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20171012
+# 20171110
 # GPL v3
 #
 
@@ -315,7 +315,7 @@ get_disk_from_partition(){
 # fschuett
 # extract disk device names from start.conf partition definitions
 # get_disks
-get_disks(){
+get_disks_startconf(){
   [ -s /start.conf ] || return
   local parts="$(grep -iw ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' )"
   local disks=
@@ -331,6 +331,22 @@ get_disks(){
   return 0
 }
 
+
+# tschmitt
+# get disks from kernel
+get_disks(){
+  local i
+  local disks
+  for i in $(ls -l /dev/disk/by-path | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
+    if [ -z "$disks" ]; then
+      disks="/dev/$i"
+    else
+      disks="$disks /dev/$i"
+    fi
+  done
+  echo "$disks"
+  return 0
+}
 
 # tschmitt
 # fetch fstype from start.conf
@@ -374,7 +390,7 @@ fstype_startconf(){
 }
 
 # get partitionlabel from start.conf
-# partlabel_startconf partitition
+# partlabel_startconf partition
 partlabel_startconf(){
   [ -s /start.conf ] || return
   local part="$1"
@@ -894,7 +910,7 @@ partition(){
  done
 
  # get all disks from start.conf
- local disks="$(get_disks)"
+ local disks="$(get_disks_startconf)"
  local disk
  local diskname
  # sort table by disks and partitions
@@ -1078,6 +1094,7 @@ write_devicemap() {
  local disk
  local n=0
  rm -f "$devicemap"
+ # iterate through all disks found by kernel
  for disk in $(get_disks); do
   echo "(hd${n}) $disk" >> "$devicemap"
   n=$(( $n + 1 ))
@@ -1229,9 +1246,11 @@ mk_grubboot(){
  local RC="0"
  # reboot partition is the partition where the os is installed
  local REBOOT="$(print_grubpart $partition)"
+ local LABEL="$(print_partlabel $partition)"
  # save reboot informations in grubenv
  echo "Schreibe Reboot-Informationen nach $grubenv."
  grub-editenv "$grubenv" set reboot_grub="$REBOOT" || RC="1"
+ grub-editenv "$grubenv" set reboot_label="$LABEL" || RC="1"
  if [ "$KERNEL" != "[Aa][Uu][Tt][Oo]" ]; then
   [ "${KERNEL:0:1}" = "/" ] || KERNEL="/$KERNEL"
   grub-editenv "$grubenv" set reboot_kernel="$KERNEL" || RC="1"
@@ -1458,6 +1477,7 @@ start(){
  local KERNEL="${3#/}"
  local i
  local partition="$2"
+ local label="$(print_partlabel "$partition")"
  local cachedev="$6"
  local startflag="/tmp/.start"
  touch "$startflag"
@@ -1466,7 +1486,12 @@ start(){
    echo "Kernel $KERNEL auf Partition $partition gefunden."
    INITRD="${4#/}"
    APPEND="$5"
-   [ -n "$partition" ] && APPEND="root=$partition $APPEND"
+   # add root to append string
+   if [ -n "$label" ]; then
+     APPEND="root=LABEL=$label $APPEND"
+   else
+     APPEND="root=$partition $APPEND"
+   fi
   else
    echo "Kernel $KERNEL auf Partition $partition nicht vorhanden. Setze auf \"auto\"."
    KERNEL="auto"

@@ -1,3 +1,14 @@
+linuxmuster-linbo (2.3.31-0) babo62; urgency=low
+
+  * improved various components according to support of filesystem labels (see issue #78):
+    - creation of grub's device.map.
+    - teach grub to use filesystem labels to find reboot partition.
+    - improved creation of host specific grub boot image.
+    - improved grub configuration templates.
+    - use filesystem labels if available in kernel append string for booting linux systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 10 Nov 2017 11:12:16 +0000
+
 linuxmuster-linbo (2.3.30-0) babo62; urgency=low
 
   * cache device fix during init.

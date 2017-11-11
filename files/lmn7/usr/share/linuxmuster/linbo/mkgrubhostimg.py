@@ -5,7 +5,7 @@
 #
 # linuxmuster-mkgrubimg.py
 # thomas@linuxmuster.net
-# 20170726
+# 20171107
 #
 
 import configparser
@@ -75,8 +75,14 @@ if hostname == None:
 img = constants.LINBOGRUBDIR + '/hostcfg/' + hostname + '.img'
 imgrel = img.replace(constants.LINBOGRUBDIR, 'boot/grub')
 
+# path to host specific cfg
+hostcfg = img.replace('.img', '.cfg')
+
 # get other host parameters from hostrow
 field1, field2, group, mac, ip, field6, field7, field8, field9, field10, field11 = hostrow
+
+# path to group specific cfg
+groupcfg = constants.LINBOGRUBDIR + '/' + group + '.cfg'
 
 # get systemtype specific parameters
 startconf = constants.LINBODIR + '/start.conf.' + group
@@ -114,6 +120,10 @@ serverip = getStartconfOption(startconf, 'LINBO', 'SERVER')
 # necessary variables
 cfgtemplate = constants.LINBOTPLDIR + '/host.cfg.pxe'
 cfgout = '/var/tmp/' + hostname + '.cfg'
+if os.path.isfile(hostcfg):
+    appendcfg = hostcfg
+else:
+    appendcfg = groupcfg
 # read template
 rc, content = readTextfile(cfgtemplate)
 # replace placeholders
@@ -127,6 +137,9 @@ content = content.replace('@@group@@', group)
 content = content.replace('@@hostname@@', hostname)
 # write file
 rc = writeTextfile(cfgout, content, 'w')
+# append host/group specific cfg
+rc, content = readTextfile(appendcfg)
+rc = writeTextfile(cfgout, content, 'a')
 
 # create image file
 if systemtype == 'bios' or systemtype == 'bios64':

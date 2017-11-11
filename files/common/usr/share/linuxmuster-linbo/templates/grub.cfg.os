@@ -1,25 +1,33 @@
 # group specific grub.cfg template for linbo net boot, should work with linux and windows operating systems
 # thomas@linuxmuster.net
-# 20160804
+# 20171107
 #
 
 # start "@@osname@@" directly
 menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
 
- set root="@@osroot@@"
+ set oslabel="@@oslabel@@"
+ if [ -n "$oslabel" ]; then
+  search --label "$oslabel" --set osroot
+ fi
+ if [ -n "$osroot" ]; then
+  set root="$osroot"
+ else
+  set root="@@osroot@@"
+ fi
  set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
- 
+
  if [ -e /vmlinuz -a -e /initrd.img ]; then
-  linux /vmlinuz root=@@partition@@ @@append@@
+  linux /vmlinuz @@append@@
   initrd /initrd.img
  elif [ -e /vmlinuz -a -e /initrd ]; then
-  linux /vmlinuz root=@@partition@@ @@append@@
+  linux /vmlinuz @@append@@
   initrd /initrd
  elif [ -e /@@kernel@@ -a -e /@@initrd@@ ]; then
-  linux /@@kernel@@ root=@@partition@@ @@append@@
+  linux /@@kernel@@ @@append@@
   initrd /@@initrd@@
  elif [ -e /@@kernel@@ ]; then
-  linux /@@kernel@@ root=@@partition@@ @@append@@
+  linux /@@kernel@@ @@append@@
  elif [ -s /boot/grub/grub.cfg ] ; then
   configfile /boot/grub/grub.cfg
  elif [ "$grub_platform" = "pc" ]; then
@@ -41,8 +49,6 @@ menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
 
 # boot LINBO, sync and then start "@@osname@@"
 menuentry '@@osname@@ (Sync+Start)' --class @@ostype@@_syncstart {
-
- set root="@@cacheroot@@"
 
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
@@ -67,8 +73,6 @@ menuentry '@@osname@@ (Sync+Start)' --class @@ostype@@_syncstart {
 # boot LINBO, format os partition, sync and then start "@@osname@@"
 menuentry '@@osname@@ (Neu+Start)' --class @@ostype@@_newstart {
 
- set root="@@cacheroot@@"
-
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
  elif [ -n "$pxe_default_server" ]; then
@@ -88,4 +92,3 @@ menuentry '@@osname@@ (Neu+Start)' --class @@ostype@@_newstart {
  fi
 
 }
-

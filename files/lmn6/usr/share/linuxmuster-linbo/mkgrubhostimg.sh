@@ -4,7 +4,7 @@
 # stored in /var/linbo/boot/grub/hostcfg/<hostname>.img
 #
 # thomas@linuxmuster.net
-# 20170522
+# 20171107
 # GPL V3
 #
 
@@ -146,6 +146,7 @@ EFI64="x86_64-efi"
 SUBDIR="/boot/grub"
 GRUBDIR="$LINBODIR$SUBDIR"
 IMGDIR="$GRUBDIR/hostcfg"
+HOSTCFG="$IMGDIR/$HOSTNAME.cfg"
 I386_DIR="$GRUBDIR/${I386/-pxe/}"
 EFI32_DIR="$GRUBDIR/$EFI32"
 EFI64_DIR="$GRUBDIR/$EFI64"
@@ -169,6 +170,7 @@ get_mac "$HOSTNAME"
 MAC="$RET"
 # group
 GROUP="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $3 }' | grep -i ^"$HOSTNAME " | tail -1 | awk '{ print $2 }' | tr A-Z a-z)"
+GROUPCFG="$GRUBDIR/$GROUP.cfg"
 # systemtype
 SYSTEMTYPE="$(grep -i ^systemtype "$LINBODIR/start.conf.$GROUP" | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z)"
 
@@ -195,6 +197,13 @@ sed -e "/^#/d
         s|@@domainname@@|$domainname|g
         s|@@group@@|$GROUP|g
         s|@@hostname@@|$HOSTNAME|g" "$TEMPLATE" > "$CFG" || RC=1
+# append host/group specific cfg
+if [ -e "$HOSTCFG" ]; then
+  APPENDCFG="$HOSTCFG"
+else
+  APPENDCFG="$GROUPCFG"
+fi
+cat "$APPENDCFG" >> "$CFG" || RC=1
 
 # create image
 if [ "$RC" = "0" ]; then

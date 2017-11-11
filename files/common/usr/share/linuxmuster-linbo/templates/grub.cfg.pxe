@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20170520
+# 20171106
 #
 
 set timeout=0
@@ -65,15 +65,22 @@ menuentry 'Default' {
  fi
 
  # if reboot is set try to load the os on the given partition
- if [ -n "${reboot_grub}" ]; then
+ if [ -n "${reboot_label}" ]; then
+  search --label "$reboot_label" --set tmproot
+ fi
+ if [ -n "${reboot_grub}" -a -z "${tmproot}" ]; then
+  set tmproot="${reboot_grub}"
+ fi
 
+ if [ -n "${tmproot}" ]; then
   echo Booting operating system ...
   echo
 
-  set tmproot="${reboot_grub}"
   if [ "$localboot" ]; then
    set reboot_grub=""
+   set reboot_label=""
    save_env reboot_grub
+   save_env reboot_label
   fi
   set root="${tmproot}"
   set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
