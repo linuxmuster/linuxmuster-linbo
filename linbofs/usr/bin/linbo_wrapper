@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20171009
+# 20180207
 # GPL V3
 #
 
@@ -189,19 +189,57 @@ get_partitions() {
  partitions="$(cat /tmp/partitions)"
 } # get_partitions
 
+# get partitionlabel from start.conf
+# partlabel_startconf partition
+partlabel_startconf(){
+  [ -s /start.conf ] || return
+  local part="$1"
+  local line=""
+  local dev=""
+  local label=""
+  grep -i ^[dl][ea][vb] /start.conf | awk -F\= '{ print $1 " " $2 }' | awk '{ print $1 " " $2 }' | while read line; do
+    echo "$line" | grep -qi ^dev && dev="$(echo "$line" | awk '{ print $2 }')"
+    echo "$line" | grep -qi ^label && label="$(echo "$line" | awk '{ print $2 }')"
+    if [ -n "$dev" -a -n "$label" ]; then
+      if [ "$dev" = "$part" ]; then
+        echo "$label"
+        return
+      fi
+      dev="" ; label=""
+    fi
+  done
+}
+
+# print_partlabel partition
+print_partlabel(){
+  [ -e /dev/disk/by-label ] || return
+  local label="$(partlabel_startconf "$1")"
+  [ -z "$label" ] && return
+  ls -l /dev/disk/by-label/ | grep -qw "$label" && echo "$label"
+}
+
 # format a specific partition
 format_partition(){
  local pos=$((((1))+$(($partnr-1))*((5))))
  local dev="$(echo $partitions | cut -d" " -f$pos)"
+ local label="$(print_partlabel "$dev")"
  pos=$(($partnr*5))
  local fstype="$(echo $partitions | cut -d" " -f$pos)"
  local fcmd=""
+ if [ -n "$label" ]; then
+  case "$fstype" in
+   swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
+   reiserfs) label="-l $label" ;;
+   *[Ff][Aa][Tt]*) label="-n $label" ;;
+   *) ;;
+  esac
+ fi
  case "$fstype" in
-  [Ss][Ww][Aa][Pp]) fcmd="mkswap $dev" ;;
-  [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs -f -f  $dev" ;;
-  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $dev" ;;
-  [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs -Q $dev" ;;
-  [Vv][Ff][Aa][Tt]) fcmd="mkdosfs -F 32 $dev" ;;
+  [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
+  [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
+  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $label $dev" ;;
+  [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
+  *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $dev" ;;
   *) echo "Unbekanntes Dateisystem: $fstype!"
      return 1 ;;
  esac

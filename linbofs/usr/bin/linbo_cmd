@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20171110
+# 20180207
 # GPL v3
 #
 
@@ -67,6 +67,12 @@ local testfile="/cache/.write_test"
  local RC="$?"
  [ -f "$testfile" ] && rm -f "$testfile" 2>/dev/null
  return "$RC"
+}
+
+# check for forcegrub option
+forcegrub(){
+  case "$(cat /proc/cmdline)" in *\ forcegrub*) return 0;; esac
+  return 1
 }
 
 # Check for "nonetwork" boot option or availability of linbo server
@@ -573,34 +579,31 @@ format(){
  local partition="$1"
  local fstype="$2"
  local label="$3"
- local cmd
+ local fcmd
  local RC
  if [ -n "$label" ]; then
   case "$fstype" in
-   swap) cmd="mkswap -L $label $partition" ;;
-   reiserfs) cmd="mkreiserfs -l $label -f -f  $partition" ;;
-   ext2|ext3|ext4) cmd="mkfs.$fstype -L $label $partition" ;;
-   [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -L $label -Q $partition" ;;
-   *[Ff][Aa][Tt]*) cmd="mkdosfs -n $label -F 32 $partition" ;;
-   *) return 1 ;;
-  esac
- else
-  case "$fstype" in
-   swap) cmd="mkswap $partition" ;;
-   reiserfs) cmd="mkreiserfs -f -f $partition" ;;
-   ext2|ext3|ext4) cmd="mkfs.$fstype $partition" ;;
-   [Nn][Tt][Ff][Ss]*) cmd="mkfs.ntfs -Q $partition" ;;
-   *[Ff][Aa][Tt]*) cmd="mkdosfs -F 32 $partition" ;;
-   *) return 1 ;;
+   swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
+   reiserfs) label="-l $label" ;;
+   *[Ff][Aa][Tt]*) label="-n $label" ;;
+   *) ;;
   esac
  fi
+ case "$fstype" in
+  [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
+  [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
+  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $label $dev" ;;
+  [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
+  *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $dev" ;;
+  *) return 1 ;;
+ esac
  echo -n "Formatiere $partition mit $fstype ..."
  [ -d "$partition" ] || sleep 5
- $cmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
+ $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
  if [ "$RC" != "0" ]; then
   echo -n " Partition ist noch nicht bereit - versuche nochmal ..."
   sleep 2
-  $cmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
+  $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
  fi
  if [ "$RC" = "0" ]; then
   echo " OK!"
@@ -1009,6 +1012,7 @@ create_efiboot(){
 # args: bootloaderid
 set_efibootnext(){
  local bootloaderid="$1"
+ forcegrub && bootloaderid="grub"
  # get the bootnr
  local bootnextnr="$(print_efi_bootnr "$bootloaderid")"
  if [ -n "$bootnextnr" ]; then
@@ -1022,7 +1026,7 @@ set_efibootnext(){
 # set_efibootorder: set the boot order to local,network
 set_efibootorder(){
  local efiout="/tmp/efiout"
- efibootmgr | grep ^Boot > "$efiout"
+ efibootmgr | grep ^Boot | grep -vi ipv6 > "$efiout"
  local i
  local nr
  local bootorder
@@ -1032,7 +1036,7 @@ set_efibootorder(){
    [ -n "$bootnextnr" ] && bootorder="$bootnextnr"
  fi
  # searchstrings for grub (local boot) and efi network devices
- for i in grub ipv4 "efi network" pxev4; do
+ for i in grub ipv4 pxev4 "efi network" "usb nic" "onboard nic"; do
    nr="$(print_efi_bootnr "$i" "$efiout")"
    [ -z "$nr" ] && continue
    if [ -n "$bootorder" ]; then
@@ -1229,6 +1233,8 @@ mk_efiboot(){
   [ "$RC" = "0" ] && rm -f "$doneflag"
  fi
  [ "$RC" = "1" ] && echo "Fehler beim Schreiben der EFI-Boot-Konfiguration."
+ # force grub reboot id kerneloption is set
+ forcegrub && RC="1"
  return "$RC"
 }
 
@@ -1994,6 +2000,7 @@ restore(){
  local disk="${2%%[1-9]*}"
  local force="$3"
  local fstype="$(fstype_startconf "$2")"
+ local label="$(print_partlabel "$2")"
  echo -n "Entpacke: $1 -> $2 "
  case "$1" in
   *.[Cc][Ll][Oo]*)
@@ -2002,7 +2009,7 @@ restore(){
    fi
    if [ "$force" = "force" ]; then
     echo "[Komplette Partition]..."
-    format "$2" "$fstype" 2>> /tmp/linbo.log || return 1
+    format "$2" "$fstype" "$label" 2>> /tmp/linbo.log || return 1
    else
     echo "[Datei-Sync]..."
    fi
@@ -3115,6 +3122,7 @@ initcache(){
  echo -n "initcache " ;  printargs "$@"
  local server="$1"
  local cachedev="$2"
+ local label="$(print_partlabel "$2")"
  local download_type="$3"
  local i
  local u
@@ -3129,7 +3137,7 @@ initcache(){
   local cachefs="$(fstype_startconf "$cachedev")"
   if [ -n "$cachefs" ]; then
    echo "Formatiere Cache-Partition $cachedev..."
-   format "$cachedev" "$cachefs" 2>> /tmp/linbo.log
+   format "$cachedev" "$cachefs" "$label" 2>> /tmp/linbo.log
   fi
  fi
  mountcache "$cachedev" || return "$?"
