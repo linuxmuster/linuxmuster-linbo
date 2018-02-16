@@ -6,21 +6,12 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 10.02.2013
+# 20180216
 # GPL v3
 #
 
-# read in paedml specific environment
-[ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
-
-LOGFILE=rsync-pre-upload.log
-if [ -n "$LINBODIR" ]; then
- LOGFILE="$LINBODIR/log/$LOGFILE"
-else
- LOGFILE="/var/log/$LOGFILE"
-fi
-
 # Debug
+LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-upload.log"
 exec >>$LOGFILE 2>&1
 #echo "$0 $*, Variables:" ; set
 

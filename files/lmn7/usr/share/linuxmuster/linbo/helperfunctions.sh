@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20170213
+# 20180216
 #
 
 # converting string to lower chars
@@ -41,6 +41,16 @@ validhostname() {
  else
   return 1
  fi
+}
+
+# check valid domain name
+validdomain() {
+ [ -z "$1" ] && return 1
+  if (expr match "$1" '\([A-Za-z0-9\-]\+\(\.[A-Za-z0-9\-]\+\)\+$\)') &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 # extract hostname from file $WIMPORTDATA

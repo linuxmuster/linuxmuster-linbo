@@ -2,16 +2,15 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20160916
+# 20180216
 #
 
 # read in paedml specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
-LOGFILE="$LINBOLOGDIR/rsync-post-download.log"
-
 # Debug
+LOGFILE="$LINBOLOGDIR/rsync-post-download.log"
 exec >>$LOGFILE 2>&1
 #echo "$0 $*, Variables:" ; set
 
@@ -28,6 +27,9 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 # read file created by pre-upload script
 FILE="$(<$PIDFILE)"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
+
+# get FQDN
+validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "FILE: $FILE"
@@ -90,7 +92,7 @@ case $EXT in
     productkey="$(grep ^productkey "$origini" | awk -F\" '{ print $2 }')"
     # copy header from original ini to new ini
     sed -n '/^\[info\]/,/^\[localboot_product_states\]/p' "$origini" | sed -n '/^\[localboot_product_states\]/!p' > "$newini"
-    # take opsi product states from image ini 
+    # take opsi product states from image ini
     sed -n '/^\[localboot_product_states\]/,$p' "$imageini" >> "$newini"
     # patch license keys
     [ -n "$licensekey" ] && sed -e "s|^poolid-or-licensekey.*|poolid-or-licensekey = \[\"$licensekey\"\]|" -i "$newini"
@@ -131,7 +133,7 @@ case $EXT in
    linbo-ssh "$RSYNC_HOST_NAME" /bin/rm /cache/linbofs64.gz /cache/linbo64*.info
   fi
  ;;
- 
+
  # handle server based grub reboot in case of remote cache
  *.reboot)
   # get reboot parameters from filename

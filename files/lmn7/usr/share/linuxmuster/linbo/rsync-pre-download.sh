@@ -2,16 +2,15 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20170218
+# 20180216
 #
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
-LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
-
 # Debug
+LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-download.log"
 exec >>$LOGFILE 2>&1
 #echo "$0 $*, Variables:" ; set
 
@@ -22,7 +21,11 @@ EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
+# hostname
 compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
+
+# get FQDN
+validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
 # recognize upload of windows activation tokens
 stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
