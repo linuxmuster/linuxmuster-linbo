@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.34-0) babo62; urgency=low
+
+  * efi bootorder fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 16 Feb 2018 15:28:45 +0000
+
 linuxmuster-linbo (2.3.33-0) babo62; urgency=low
 
   * linbo_cmd, format(): partition variable fix.
