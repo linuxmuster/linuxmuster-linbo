@@ -98,6 +98,7 @@ Source78:       xproto-7.0.31.tar.bz2
 Source79:       xtrans-1.3.5.tar.bz2
 Source80:       xz-5.2.3.tar.bz2
 Source81:       zlib-1.2.11.tar.xz
+Source82:       linux-firmware-a3a26af24e29c818ef9b5661856018e21a5c49fb.tar.gz
 
 BuildRequires:	unzip openschool-base
 BuildRequires:	gcc48 gcc48-32bit gcc48-c++ glibc glibc-32bit glibc-devel glibc-devel-32bit
