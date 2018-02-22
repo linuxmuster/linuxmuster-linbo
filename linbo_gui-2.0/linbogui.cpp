@@ -444,19 +444,25 @@ void LinboGUI::on_setup_clicked()
 {
     doCommand( command->mkpartitioncommand(), true, QString("Einrichten - Partitionieren"), Aktion::None, &details);
     switch(conf->config.get_downloadtype()){
-    case Torrent:
-    {
-        FilterRegex *fc = new FilterRegex(this, Command::mapMaxPattern[Command::initcache],
-                Command::mapValPattern[Command::initcache]);
-        doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details,fc);
-        break;
-    }
-    default:
-        doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details);
-        break;
+        case Torrent:
+        {
+            QString icTitlePattern = QString("^Erzeuge Image\\s+([\\-\\.\\w]+)\\s+");
+            FilterRegex *fc = new FilterRegex(this, Command::mapMaxPattern[Command::initcache],
+                    Command::mapValPattern[Command::initcache], icTitlePattern);
+            doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details,fc);
+            break;
+        }
+        default:
+        {
+            QString icTitlePattern = QString("^Erzeuge Image\\s+([\\-\\.\\w]+)\\s+");
+            FilterRegex *fc = new FilterRegex(this, Command::mapMaxPattern[Command::initcache],
+                    Command::mapValPattern[Command::initcache], icTitlePattern);
+            doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details);
+            break;
+        }
     }
     for(unsigned int osnr = 0;osnr < conf->elements.size(); osnr++){
-        doCommand( command->mksynccommand(osnr), true, QString("Einrichten - Synchronisieren OS Nr."+osnr), Aktion::None, &details);
+        doCommand( command->mksynccommand(osnr), true, QString("Einrichten - Synchronisieren OS Nr."+(osnr+1)), Aktion::None, &details);
     }
     doCommand( command->mkstartcommand(0), true, QString("Einrichten - Start OS Nr.1"), Aktion::None, &details);
 }

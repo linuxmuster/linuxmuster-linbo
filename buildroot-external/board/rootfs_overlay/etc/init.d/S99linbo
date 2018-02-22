@@ -2,6 +2,10 @@
 
 if [ "$1" = "start" ]; then
 
+if [ -e /etc/linbofs.conf ]; then
+  . /etc/linbofs.conf
+fi
+
 # Ignore signals
 trap "" 1 2 11 15
 
@@ -209,6 +213,55 @@ get_ipaddr(){
  return 1
 }
 
+# return device names of network interfaces
+# lan first, wlan afterwards
+get_net_devices(){
+	local macs=""
+	local devs=""
+	local dirs="`find /sys/devices -type d -name net`"
+	for d in $dirs; do
+		dev="`ls $d`"
+		[ "$dev" = "lo" ] && continue;
+		devs="$devs $dev"
+	done
+	devs="`echo $devs | xargs -n1 | sort -u | xargs`"
+    [ -n "$devs" ] && { echo "$devs"; return 0; }
+    return 1
+}
+
+# return mac addresses of network interfaces
+# lan macs first, wlan macs afterwards
+get_macs(){
+	local macs=""
+	local devs=""
+	devs="`get_net_devices`"
+	dirs=
+	for dev in $devs; do
+		dirs="$dirs $(find /sys/devices -type d -path "*/net/$dev")"
+	done
+	for d in $dirs; do
+		if [ "$IGNORE_REMOVABLE_NET" = "yes" ]; then
+			if isremovable "$d"; then
+				continue;
+			fi 
+		fi
+		macs="$macs `cat $d/address`"
+	done
+	macs="`echo $macs | tr a-z A-Z | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'`"
+	[ -n "$macs" ] && { echo "$macs"; return 0; }
+	return 1
+}
+
+# test, if given net device is removable
+# return 0 - removable, 1 - not removable
+isremovable(){
+	local dev="$1"
+	local removable
+	[ -n "$1" ] || return 1
+	udevadm info --path=${dev%/sys} --attribute-walk|grep -q 'ATTRS{removable}=="removable"' || return 1 
+	return 0
+}
+	
 # Utilities
 # get_hostname ip
 get_hostname(){
@@ -425,13 +478,20 @@ network(){
   [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
   ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
  else
-  # iterate over ethernet interfaces
+  # iterate over network interfaces (lan, wlan)
   echo "Frage IP-Adresse per DHCP an ..."
   # dhcp retries
   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
   local RC="0"
-  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
+  for dev in `get_net_devices`; do
    echo "Interface $dev ... "
+   if [ "$IGNORE_REMOVABLE_NET" = "yes" ]; then
+     if isremovable $dev; then
+   	  mac="`get_macs`"
+   	  mac="${mac%% *}"
+      ip link set dev "$dev" address "$mac"
+     fi
+   fi
    ifconfig "$dev" up &> /dev/null
    # activate wol
    ethtool -s "$dev" wol g &> /dev/null

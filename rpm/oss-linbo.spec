@@ -17,89 +17,87 @@ Source:		%{name}-%{version}.tar.gz
 Source121:	ipxe.efi
 Source122:	ipxe.lkrn
 # source archives, because build cannot download them created by list_sources.sh
-Source1:        3466fd05c8c6f1052e0426d64eed40f8a88fd78f.patch
-Source2:        acl-2.2.52.src.tar.gz
-Source3:        attr-2.4.47.src.tar.gz
-Source4:        autoconf-2.69.tar.xz
-Source5:        automake-1.15.tar.xz
-Source6:        bc-1.06.95.tar.bz2
-Source7:        binutils-2.28.1.tar.xz
-Source8:        bison-3.0.4.tar.xz
-Source9:        busybox-1.27.1.tar.bz2
-Source10:       bvi-1.4.0.src.tar.gz
-Source11:       chntpw-source-140201.zip
-Source12:       cloop_3.14.1.2.tar.xz
-Source13:       ctorrent-dnh3.3.2.tar.gz
-Source14:       cups-filters-1.14.0.tar.xz
-Source15:       dosfstools-4.1.tar.xz
-Source16:       dropbear-2017.75.tar.bz2
-Source17:       e2fsprogs-1.43.4.tar.xz
-Source18:       efibootmgr-14.tar.gz
-Source19:       efivar-30.tar.gz
-Source20:       ethtool-4.10.tar.xz
-Source21:       eudev-3.2.2.tar.gz
-Source22:       expat-2.2.2.tar.bz2
-Source23:       fakeroot_1.20.2.orig.tar.bz2
-Source24:       flex-2.5.37.tar.gz
-Source25:       flex-2.6.4.tar.gz
-Source26:       freetype-2.8.tar.bz2
-Source27:       fuse-2.9.7.tar.gz
-Source28:       gawk-4.1.4.tar.xz
-Source29:       gcc-6.4.0.tar.xz
-Source30:       gettext-0.19.8.1.tar.xz
-Source31:       glibc-2.25.tar.xz
-Source32:       gmp-6.1.2.tar.xz
-Source33:       gperf-3.0.4.tar.gz
-Source34:       gptfdisk-1.0.1.tar.gz
-Source35:       grub-2.02.tar.gz
-Source36:       inputproto-2.3.2.tar.bz2
-Source37:       intltool-0.51.0.tar.gz
-Source38:       kbproto-1.0.7.tar.bz2
-Source39:       kmod-24.tar.xz
-Source40:       libevdev-1.5.7.tar.xz
-Source41:       libinput-1.7.2.tar.xz
-Source42:       libpng-1.6.31.tar.xz
-Source43:       libpthread-stubs-0.4.tar.bz2
-Source44:       libtool-2.4.6.tar.xz
-Source45:       libX11-1.6.5.tar.bz2
-Source46:       libXau-1.0.8.tar.bz2
-Source47:       libxcb-1.12.tar.bz2
-Source48:       libXdmcp-1.1.2.tar.bz2
-Source49:       libxkbcommon-0.7.1.tar.xz
-Source50:       libxkbfile-1.0.9.tar.bz2
-Source51:       libxml2-2.9.4.tar.gz
-Source52:       libxslt-1.1.29.tar.gz
-Source53:       linux-4.12.10.tar.xz
-Source54:       lzip-1.18.tar.gz
-Source55:       m4-1.4.18.tar.xz
-Source56:       mpc-1.0.3.tar.gz
-Source57:       mpfr-3.1.5.tar.xz
-Source58:       ms-sys-2.4.1.tar.gz
-Source59:       mtdev-1.1.4.tar.bz2
-Source60:       ncurses-6.0.tar.gz
-Source61:       ntfs-3g_ntfsprogs-2017.3.23.tgz
-Source62:       parted-3.2.tar.xz
-Source63:       patchelf-0.9.tar.bz2
-Source64:       pcre2-10.23.tar.bz2
-Source65:       pkgconf-0.9.12.tar.bz2
-Source66:       popt-1.16.tar.gz
-Source67:       Python-2.7.13.tar.xz
-Source68:       qtbase-opensource-src-5.9.1.tar.xz
-Source69:       reiserfsprogs-3.6.24.tar.xz
-Source70:       rsync-3.1.2.tar.gz
-Source71:       udpcast-20120424.tar.gz
-Source72:       util-linux-2.30.1.tar.xz
-Source73:       util-macros-1.19.1.tar.bz2
-Source74:       xcb-proto-1.12.tar.bz2
-Source75:       xextproto-7.3.0.tar.bz2
-Source76:       xf86bigfontproto-1.2.0.tar.bz2
-Source77:       xkbcomp-1.4.0.tar.bz2
-Source78:       xkeyboard-config-2.21.tar.bz2
-Source79:       XML-Parser-2.44.tar.gz
-Source80:       xproto-7.0.31.tar.bz2
-Source81:       xtrans-1.3.5.tar.bz2
-Source82:       xz-5.2.3.tar.bz2
-Source83:       zlib-1.2.11.tar.xz
+Source1:        acl-2.2.52.src.tar.gz
+Source2:        attr-2.4.47.src.tar.gz
+Source3:        autoconf-2.69.tar.xz
+Source4:        automake-1.15.tar.xz
+Source5:        bc-1.06.95.tar.bz2
+Source6:        binutils-2.28.1.tar.xz
+Source7:        bison-3.0.4.tar.xz
+Source8:        busybox-1.27.1.tar.bz2
+Source9:        bvi-1.4.0.src.tar.gz
+Source10:       chntpw-source-140201.zip
+Source11:       cloop_3.14.1.2.tar.xz
+Source12:       ctorrent-dnh3.3.2.tar.gz
+Source13:       dosfstools-4.1.tar.xz
+Source14:       dropbear-2017.75.tar.bz2
+Source15:       e2fsprogs-1.43.4.tar.xz
+Source16:       efibootmgr-14.tar.gz
+Source17:       efivar-30.tar.gz
+Source18:       ethtool-4.10.tar.xz
+Source19:       eudev-3.2.2.tar.gz
+Source20:       expat-2.2.2.tar.bz2
+Source21:       fakeroot_1.20.2.orig.tar.bz2
+Source22:       flex-2.6.4.tar.gz
+Source23:       freetype-2.8.tar.bz2
+Source24:       fuse-2.9.7.tar.gz
+Source25:       gawk-4.1.4.tar.xz
+Source26:       gcc-6.4.0.tar.xz
+Source27:       gettext-0.19.8.1.tar.xz
+Source28:       glibc-2.25.tar.xz
+Source29:       gmp-6.1.2.tar.xz
+Source30:       gperf-3.0.4.tar.gz
+Source31:       gptfdisk-1.0.1.tar.gz
+Source32:       grub-2.02.tar.gz
+Source33:       inputproto-2.3.2.tar.bz2
+Source34:       intltool-0.51.0.tar.gz
+Source35:       kbproto-1.0.7.tar.bz2
+Source36:       kmod-24.tar.xz
+Source37:       libevdev-1.5.7.tar.xz
+Source38:       libinput-1.7.2.tar.xz
+Source39:       libpng-1.6.31.tar.xz
+Source40:       libpthread-stubs-0.4.tar.bz2
+Source41:       libtool-2.4.6.tar.xz
+Source42:       libX11-1.6.5.tar.bz2
+Source43:       libXau-1.0.8.tar.bz2
+Source44:       libxcb-1.12.tar.bz2
+Source45:       libXdmcp-1.1.2.tar.bz2
+Source46:       libxkbcommon-0.7.1.tar.xz
+Source47:       libxkbfile-1.0.9.tar.bz2
+Source48:       libxml2-2.9.4.tar.gz
+Source49:       libxslt-1.1.29.tar.gz
+Source50:       linux-4.12.10.tar.xz
+Source51:       lzip-1.18.tar.gz
+Source52:       m4-1.4.18.tar.xz
+Source53:       mpc-1.0.3.tar.gz
+Source54:       mpfr-3.1.5.tar.xz
+Source55:       ms-sys-2.4.1.tar.gz
+Source56:       mtdev-1.1.4.tar.bz2
+Source57:       ncurses-6.0.tar.gz
+Source58:       ntfs-3g_ntfsprogs-2017.3.23.tgz
+Source59:       oss-linbo-2.3.29.tar.gz
+Source60:       parted-3.2.tar.xz
+Source61:       patchelf-0.9.tar.bz2
+Source62:       pcre2-10.23.tar.bz2
+Source63:       pkgconf-0.9.12.tar.bz2
+Source64:       popt-1.16.tar.gz
+Source65:       Python-2.7.13.tar.xz
+Source66:       qtbase-opensource-src-5.9.1.tar.xz
+Source67:       reiserfsprogs-3.6.24.tar.xz
+Source68:       rsync-3.1.2.tar.gz
+Source69:       udpcast-20120424.tar.gz
+Source70:       util-linux-2.30.1.tar.xz
+Source71:       util-macros-1.19.1.tar.bz2
+Source72:       xcb-proto-1.12.tar.bz2
+Source73:       xextproto-7.3.0.tar.bz2
+Source74:       xf86bigfontproto-1.2.0.tar.bz2
+Source75:       xkbcomp-1.4.0.tar.bz2
+Source76:       xkeyboard-config-2.21.tar.bz2
+Source77:       XML-Parser-2.44.tar.gz
+Source78:       xproto-7.0.31.tar.bz2
+Source79:       xtrans-1.3.5.tar.bz2
+Source80:       xz-5.2.3.tar.bz2
+Source81:       zlib-1.2.11.tar.xz
 
 BuildRequires:	unzip openschool-base
 BuildRequires:	gcc48 gcc48-32bit gcc48-c++ glibc glibc-32bit glibc-devel glibc-devel-32bit
@@ -155,6 +153,15 @@ FLAVOUR=oss
 ENVDEFAULTS=/usr/share/linbo/dist.conf
 SYSLINUXSRC="/usr/share/syslinux"
 ISOLINUXSRC="\$SYSLINUXSRC"
+
+EOF
+# install linbofs conf
+cat >%{buildroot}/etc/linbo/linbofs.conf <<EOF
+# /etc/linbo/linbofs.conf
+# linbofs conf file
+# comment and do update_linbofs to register removable net devices
+IGNORE_REMOVABLE_NET=yes
+USE_LINBOHOST=yes
 
 EOF
 
@@ -329,6 +336,7 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 %config /etc/linbo/linbo.conf
 %attr(644,root,root) %config /etc/linbo/ssh_config
 %attr(644,root,root) %config /etc/linbo/start.conf.default.in
+%attr(644,root,root) %config /etc/linbo/linbofs.conf
 %config /etc/logrotate.d/linbo
 %attr(-,nobody,root) %dir /var/log/linbo
 %dir /var/cache/linbo

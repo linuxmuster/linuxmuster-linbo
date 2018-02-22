@@ -10,7 +10,7 @@ mkdir -p "${TARGET_DIR}"/usr/share/udhcpc/default.script.d
 
 # copy templates to target
 cp -v "${BASE_DIR}"/../../share/templates/grub.cfg.local.oss "${TARGET_DIR}"/usr/share/grub/grub.cfg
-cp -v "${BASE_DIR}"/../../rpm/linbo_cmd.oss "${TARGET_DIR}"/usr/bin/linbo_cmd
+cp -v "${BASE_DIR}"/../../rpm/linbo_cmd.oss.sh "${TARGET_DIR}"/usr/bin/linbo_cmd
 # copy linbofs files to target
 LINBOFS_DIR="${BASE_DIR}"/../../linbofs
 cp -v "${LINBOFS_DIR}"/etc/linbo-version "${TARGET_DIR}"/etc/

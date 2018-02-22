@@ -38,6 +38,7 @@ public:
 
     static std::map<QString, CmdValue> s_mapCommand;
 
+    static std::map<CmdValue, QString> mapTitlePattern;
     static std::map<CmdValue, QString> mapMaxPattern;
     static std::map<CmdValue, QString> mapValPattern;
 

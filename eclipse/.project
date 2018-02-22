@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Eclipse</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.dltk.core.scriptbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.dltk.sh.core.nature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>init.d</name>
+			<type>2</type>
+			<location>/run/media/fschuett/USB_VMS_FS/data/oss-linbo/buildroot-external/board/rootfs_overlay/etc/init.d</location>
+		</link>
+		<link>
+			<name>rpm</name>
+			<type>2</type>
+			<location>/run/media/fschuett/USB_VMS_FS/data/oss-linbo/rpm</location>
+		</link>
+		<link>
+			<name>share</name>
+			<type>2</type>
+			<location>/run/media/fschuett/USB_VMS_FS/data/oss-linbo/share</location>
+		</link>
+	</linkedResources>
+</projectDescription>
