@@ -160,8 +160,7 @@ cat >%{buildroot}/etc/linbo/linbofs.conf <<EOF
 # /etc/linbo/linbofs.conf
 # linbofs conf file
 # comment and do update_linbofs to register removable net devices
-IGNORE_REMOVABLE_NET=yes
-USE_LINBOHOST=yes
+#IGNORE_REMOVABLE_NET=yes
 
 EOF
 
