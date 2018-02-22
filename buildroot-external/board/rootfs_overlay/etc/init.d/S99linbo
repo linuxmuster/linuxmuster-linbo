@@ -486,7 +486,8 @@ network(){
   for dev in `get_net_devices`; do
    echo "Interface $dev ... "
    if [ "$IGNORE_REMOVABLE_NET" = "yes" ]; then
-     if isremovable $dev; then
+     devpath="$(find /sys/devices -type d -path "*/net/$dev")"
+     if isremovable $devpath; then
    	  mac="`get_macs`"
    	  mac="${mac%% *}"
       ip link set dev "$dev" address "$mac"
