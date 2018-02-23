@@ -75,7 +75,9 @@ update_linbofs() {
  # provide dropbear ssh host key
  mkdir -p etc/dropbear
  mkdir -p etc/ssh
- if [ -e "$SYSCONFDIR/linbo/linbofs.conf" ]; then
+ if [ "$FLAVOUR" = "oss" ]; then
+   cp "$SYSCONFDIR/sysconfig/linbofs" etc/linbofs.conf
+ elif [ -e "$SYSCONFDIR/linbo/linbofs.conf" ]; then
    cp "$SYSCONFDIR/linbo/linbofs.conf" etc
  fi
  if [ "$FLAVOUR" = "lmn7" ]; then

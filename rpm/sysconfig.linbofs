@@ -1,0 +1,12 @@
+## Path:	Linbo/linbofs
+## Description:	Configuration for Linbo client
+
+## Type:	yesno
+## Default:	no
+#
+# Configuration for Linbo client management.
+# Set to yes to ignore removable network adapters
+# in client registration and management and to
+# use first non removable network device instead.
+# Do "update_linbofs" after changes in this file.
+IGNORE_REMOVABLE_NET=no

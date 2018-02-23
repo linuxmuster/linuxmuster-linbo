@@ -156,14 +156,6 @@ SYSLINUXSRC="/usr/share/syslinux"
 ISOLINUXSRC="\$SYSLINUXSRC"
 
 EOF
-# install linbofs conf
-cat >%{buildroot}/etc/linbo/linbofs.conf <<EOF
-# /etc/linbo/linbofs.conf
-# linbofs conf file
-# comment and do update_linbofs to register removable net devices
-#IGNORE_REMOVABLE_NET=yes
-
-EOF
 
 # install files and directories
 mkdir -p %{buildroot}/etc/linbo
@@ -195,6 +187,7 @@ mkdir -p %{buildroot}/var/cache/linbo
 mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.linbo-multicast %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-multicast
 install rpm/sysconfig.linbo-bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.linbo-bittorrent
+install rpm/sysconfig.linbofs %{buildroot}/var/adm/fillup-templates/sysconfig.linbofs
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/usr/sbin
 install rpm/linbo-bittorrent.init %{buildroot}/etc/init.d/linbo-bittorrent
@@ -318,6 +311,7 @@ then
    update-linbofs
 fi
 %fillup_only
+%{fillup_only -n linbofs}
 %{fillup_and_insserv -yn bittorrent bittorrent}
 %{fillup_and_insserv -yn linbo-bittorrent linbo-bittorrent}
 %{fillup_and_insserv -f -y linbo-multicast}
@@ -336,7 +330,6 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 %config /etc/linbo/linbo.conf
 %attr(644,root,root) %config /etc/linbo/ssh_config
 %attr(644,root,root) %config /etc/linbo/start.conf.default.in
-%attr(644,root,root) %config /etc/linbo/linbofs.conf
 %config /etc/logrotate.d/linbo
 %attr(-,nobody,root) %dir /var/log/linbo
 %dir /var/cache/linbo
@@ -358,6 +351,7 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-bittorrent
 %attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbo-multicast
+%attr(0644,root,root) /var/adm/fillup-templates/sysconfig.linbofs
 /etc/init.d/linbo-bittorrent
 /usr/sbin/rclinbo-bittorrent
 /etc/init.d/linbo-multicast
