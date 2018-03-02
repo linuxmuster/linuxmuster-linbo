@@ -446,10 +446,12 @@ do_housekeeping(){
 # update linbo and install it locally
 do_linbo_update(){
  local server="$1"
- local cachedev="$(printcache)"
- local customcfg="/cache/boot/grub/custom.cfg"
+ #local customcfg="/cache/boot/grub/custom.cfg"
  local rebootflag="/tmp/.linbo.reboot"
- # save current custom.cfg
+ # start.conf correction due to partition labels
+ grep -qi ^label /start.conf && linbo_cmd update_devices
+ local cachedev="$(printcache)"
+ # start linbo update
  linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
  # test if linbofs or custom.cfg were updated on local boot
  if [ -n "$localboot" -a -e "$rebootflag" ]; then
