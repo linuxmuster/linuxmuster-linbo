@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20170218
+# 20180216
 #
 
 # read in linuxmuster specific environment
@@ -12,7 +12,11 @@ source $HELPERFUNCTIONS || exit 1
 [ "$FLAVOUR" = "lmn6" ] && source "$LINBOSHAREDIR/lmn6helperfunctions.sh"
 [ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
 [ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
-LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
+if [ "$FLAVOUR" = "oss" ]; then
+  LOGFILE="$LINBOLOGDIR/rsync-pre-download.log"
+else
+  LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-download.log"
+fi
 
 # Debug
 exec >>$LOGFILE 2>&1
@@ -26,6 +30,10 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
 compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
+# hostname
+
+# get FQDN
+validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
 # recognize upload of windows activation tokens
 stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"

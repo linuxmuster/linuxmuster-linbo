@@ -8,6 +8,16 @@
 source /etc/linbo/linbo.conf
 source $LINBOSHAREDIR/${FLAVOUR}helperfunctions.sh
 
+# check valid domain name
+validdomain() {
+ [ -z "$1" ] && return 1
+  if (expr match "$1" '\([A-Za-z0-9\-]\+\(\.[A-Za-z0-9\-]\+\)\+$\)') &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # check torrent against image
 check_torrent() {
  local image="$1"

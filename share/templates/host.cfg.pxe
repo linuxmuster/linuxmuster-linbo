@@ -1,10 +1,8 @@
 #
 # grub.cfg template for host specific grub image
 # thomas@linuxmuster.net
-# 20170522
+# 20171107
 #
-
-#set timeout=0
 
 set gfxmode=auto
 set gfxpayload=keep
@@ -77,7 +75,7 @@ set netroot="(tftp,$net_default_server)"
 # remote enviroment file for host
 set remote_grubenv=${netroot}${prefix}/spool/@@hostname@@.reboot
 
-# get local linbo partition if exist
+# get local linbo cache partition if exist
 if search --set root --file /start.conf; then
  echo "Linbo partition found on $root."
  echo
@@ -105,16 +103,24 @@ if [ -n "$localroot" -a -e "$prefix/linbo_wallpaper.png" ]; then
  background_image $bg_image
 fi
 
-# if reboot is set try to load the os directly
-if [ -n "${reboot_grub}" ]; then
+# if reboot is set try to load the os on the given partition
+if [ -n "${reboot_label}" ]; then
+ search --label "$reboot_label" --set tmproot
+fi
+if [ -n "${reboot_grub}" -a -z "${tmproot}" ]; then
+ set tmproot="${reboot_grub}"
+fi
+
+if [ -n "${tmproot}" ]; then
 
  echo Booting operating system ...
  echo
 
- set tmproot="${reboot_grub}"
- if [ -n "$localroot" ]; then
+ if [ "$localboot" ]; then
   set reboot_grub=""
+  set reboot_label=""
   save_env reboot_grub
+  save_env reboot_label
  fi
  set root="${tmproot}"
  set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
@@ -154,50 +160,4 @@ if [ -n "${reboot_grub}" ]; then
 fi
 # reboot
 
-# next try host or group specific netboot
-set root="${netroot}"
-
-# load background image from server if not done locally
-if [ -z "$bg_image" ]; then
- set bg_image="$prefix/linbo_wallpaper.png"
- background_image $bg_image
-fi
-
-# try host specific config from server and boot it if exists
-configfile $hostcfg
-
-# try group specific config from server and boot it if exists
-configfile $groupcfg
-
- # try local boot in the other case
-if [ -n "$localroot" ]; then
- set root="${localroot}"
- # load local custom.cfg if present
- set customcfg=$prefix/custom.cfg
- if [ -s "$customcfg" ]; then
-  configfile $customcfg
- fi
-fi
-
-# finally try netboot linbo directly in failsafe mode
-set root="${netroot}"
-set gfxpayload=640x480x16
-
-# 32bit pae, non pae or 64bit kernel
-if cpuid -l; then
- set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64.lz
-elif cpuid -p; then
- set linbo_kernel=/linbo
- set linbo_initrd=/linbofs.lz
-else
- set linbo_kernel=/linbo-np
- set linbo_initrd=/linbofs-np.lz
-fi
-echo "LINBO netboot in failsafe mode"
-echo -n "Loading $linbo_kernel .."
-linux $linbo_kernel quiet netboot
-echo
-echo -n "Loading $linbo_initrd .."
-initrd $linbo_initrd
-boot
+# from here host/group specific cfg is appended

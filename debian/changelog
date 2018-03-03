@@ -1,3 +1,46 @@
+linuxmuster-linbo (2.3.35-0) babo62; urgency=low
+
+  * lmn7:
+    - minor fixes in rsync scripts.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 16 Feb 2018 18:35:33 +0000
+
+linuxmuster-linbo (2.3.34-0) babo62; urgency=low
+
+  * efi bootorder fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 16 Feb 2018 15:28:45 +0000
+
+linuxmuster-linbo (2.3.33-0) babo62; urgency=low
+
+  * linbo_cmd, format(): partition variable fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 15 Feb 2018 14:21:47 +0000
+
+linuxmuster-linbo (2.3.32-0) babo62; urgency=low
+
+  * another filesystem label fix.
+  * added forcegrub kernel option to force grub reboot on efi systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Feb 2018 16:42:02 +0000
+
+linuxmuster-linbo (2.3.31-0) babo62; urgency=low
+
+  * improved various components according to support of filesystem labels (see issue #78):
+    - creation of grub's device.map.
+    - teach grub to use filesystem labels to find reboot partition.
+    - improved creation of host specific grub boot image.
+    - improved grub configuration templates.
+    - use filesystem labels if available in kernel append string for booting linux systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 10 Nov 2017 11:12:16 +0000
+
+linuxmuster-linbo (2.3.30-0) babo62; urgency=low
+
+  * cache device fix during init.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 29 Oct 2017 10:24:16 +0000
+
 linuxmuster-linbo (2.3.29-0) babo62; urgency=low
 
   * mount partitions using labels if labels were assigned before (see issue #78).

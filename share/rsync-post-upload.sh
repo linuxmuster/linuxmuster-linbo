@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20170218
+# 20180216
 #
 
 # read in linuxmuster specific environment
@@ -32,6 +32,9 @@ rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
 compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
+
+# get FQDN
+validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "FILE: $FILE"

@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20160916
+# 20180216
 #
 
 # read in paedml specific environment
@@ -30,6 +30,9 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 # read file created by pre-upload script
 FILE="$(<$PIDFILE)"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
+
+# get FQDN
+validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
 pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
 

@@ -2,7 +2,7 @@
 # lmn7 helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20170213
+# 20180216
 #
 
 # converting string to lower chars

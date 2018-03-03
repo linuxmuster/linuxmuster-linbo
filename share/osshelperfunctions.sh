@@ -80,7 +80,6 @@ validhostname() {
  fi
 }
 
-
 ###############
 # linbo stuff #
 ###############

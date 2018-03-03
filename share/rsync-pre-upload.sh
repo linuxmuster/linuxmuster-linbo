@@ -6,7 +6,7 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 10.02.2013
+# 20180216
 # GPL v3
 #
 
@@ -15,7 +15,11 @@ source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
 [ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
 [ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
-LOGFILE="$LINBOLOGDIR/rsync-pre-upload.log"
+if [ "$FLAVOUR" = "lmn7" ]; then
+  LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-upload.log"
+else
+  LOGFILE="$LINBOLOGDIR/rsync-pre-upload.log"
+fi
 
 # Debug
 exec >>$LOGFILE 2>&1
