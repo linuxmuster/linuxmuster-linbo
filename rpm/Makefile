@@ -21,7 +21,7 @@ GRUBEFIMODS=$(GRUBCOMMONMODS) efi_gop efi_uga efinet
 GRUBI386MODS=$(GRUBCOMMONMODS) biosdisk gfxterm_background normal ntldr pxe
 GRUBISOMODS=iso9660 usb
 GRUBFONT=unicode
-GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --net-directory=$(BUILDDIR) --subdir=/boot/grub
+GRUB_MKNETDIR=$(BUILDDIR)/grub-pc-i386/grub-mknetdir --fonts=$(GRUBFONT) --net-directory=$(BUILDDIR) --subdir=/boot/grub
 ifeq ("$(BR2_DL_DIR)","")
 	BR2_DL_DIR=$(BUILDROOT)/dl
 endif
@@ -61,7 +61,7 @@ $(BUILDDIR)/grub-efi-x86_64/grub-mknetdir: $(BUILDDIR)/grub-efi-x86_64/configure
 
 build-grub: $(BUILDDIR)/grub-pc-i386/grub-mknetdir $(BUILDDIR)/grub-efi-i386/grub-mknetdir $(BUILDDIR)/grub-efi-x86_64/grub-mknetdir
 	# minimal netboot image
-	$(GRUB_MKNETDIR) --fonts=$(GRUBFONT) -d $(BUILDDIR)/grub-pc-i386/grub-core
+	$(GRUB_MKNETDIR) -d $(BUILDDIR)/grub-pc-i386/grub-core
 	mv $(BUILDDIR)/boot/grub/i386-pc/core.0 $(BUILDDIR)/boot/grub/i386-pc/core.min
 	$(GRUB_MKNETDIR) --modules="$(GRUBI386MODS)" -d $(BUILDDIR)/grub-pc-i386/grub-core
 	# make core.iso
