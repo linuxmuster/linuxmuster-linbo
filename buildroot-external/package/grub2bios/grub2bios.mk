@@ -10,6 +10,13 @@ GRUB2BIOS_SITE = ftp://ftp.gnu.org/gnu/grub
 GRUB2BIOS_LICENSE = GPLv3
 GRUB2BIOS_LICENSE_FILES = COPYING
 
+GRUB2BIOS_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
+	gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
+	part_msdos png progress read reiserfs search sleep terminal test tftp \
+	biosdisk gfxterm_background normal ntldr pxe
+
+GRUB2BIOS_FONT = unicode
+
 GRUB2BIOS_CONF_ENV = \
 	$(HOST_CONFIGURE_OPTS) \
 	CPP="$(HOSTCC) -E" \
@@ -27,16 +34,44 @@ GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-liblzma --disable-libzfs --with-platform=pc --target=i386
 GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
 
-define GRUB2BIOS_CLEANUP
-	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/*.image
-	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/*.module
-	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/kernel.exec
-	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/gdb_grub
-	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/gmodule.pl
-	rm -fv $(TARGET_DIR)/etc/bash_completion.d/grub
-	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
+GRUB2BIOS_INSTALL_TARGET_OPTS = DESTDIR=$(HOST_DIR) install
+
+#GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_CLEANUP
+# Grub2 image creation
+#define GRUB2BIOS_IMAGE_INSTALLATION
+#	mkdir -p $(dir $(GRUB2_IMAGE))
+#	$(HOST_DIR)/bin/grub-mkimage \
+#		-d $(HOST_DIR)/lib/grub/$(GRUB2_TUPLE) \
+#		-O $(GRUB2_TUPLE) \
+#		-o $(GRUB2_IMAGE) \
+#		-p "$(GRUB2_PREFIX)" \
+#		$(if $(GRUB2_BUILTIN_CONFIG),-c $(GRUB2_BUILTIN_CONFIG)) \
+#		$(GRUB2_BUILTIN_MODULES)
+#	mkdir -p $(dir $(GRUB2_CFG))
+#	$(INSTALL) -D -m 0644 boot/grub2/grub.cfg $(GRUB2_CFG)
+#	$(GRUB2_IMAGE_INSTALL_ELTORITO)
+#endef
+
+# Grub2 netdir creation
+ifeq ($(BR2_x86_64),y)
+define GRUB2BIOS_NETDIR_INSTALLATION
+	mkdir -p $(BASE_DIR)/boot/grub
+	$(HOST_DIR)/bin/grub-mknetdir \
+		--fonts="$(GRUB2BIOS_FONT)" \
+		--net-directory=$(BASE_DIR) \
+		--subdir=/boot/grub \
+		-d $(HOST_DIR)/lib/grub/i386-pc
+	mv $(BASE_DIR)/boot/grub/core.0 $(BASE_DIR)/boot/grub/core.min
+	$(HOST_DIR)/bin/grub-mknetdir \
+		--fonts="$(GRUB2BIOS_FONT)" \
+		--net-directory=$(BASE_DIR) \
+		--subdir=/boot/grub \
+		--modules="$(GRUB2BIOS_MODS)" \
+		-d $(HOST_DIR)/lib/grub/i386-pc
 endef
-GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_CLEANUP
+#GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_IMAGE_INSTALLATION GRUB2BIOS_NETDIR_INSTALLATION
+GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_NETDIR_INSTALLATION
+endif
 
 ifeq ($(BR2_i386),y)
 GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \

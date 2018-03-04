@@ -172,7 +172,7 @@ install linbofs/etc/linbo-version %{buildroot}/srv/tftp
 mkdir -p %{buildroot}/srv/tftp/boot/grub
 install %{S:121} %{buildroot}/srv/tftp/boot/grub/
 install %{S:122} %{buildroot}/srv/tftp/boot/grub/
-cp -r build/boot/grub/* %{buildroot}/srv/tftp/boot/grub/
+cp -r build/build-x86_64/boot/grub/* %{buildroot}/srv/tftp/boot/grub/
 mkdir -p %{buildroot}/usr/share/linbo
 cp -r share/* %{buildroot}/usr/share/linbo/
 find %{buildroot}/usr/share/linbo -name '*.lmn?' -exec rm -f {} \;
