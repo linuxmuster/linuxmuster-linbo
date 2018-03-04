@@ -48,7 +48,7 @@ define GRUB2EFI32_NETDIR_INSTALLATION
 		--subdir=/boot/grub \
 		--modules="$(GRUB2EFI32_MODS) $(GRUB2EFI32_ISOMODS)" \
 		-d $(HOST_DIR)/lib/grub/i386-efi
-	mv $(BASE_DIR)/boot/grub/core.efi $(BASE_DIR)/boot/grub/core.iso
+	mv $(BASE_DIR)/boot/grub/i386-efi/core.efi $(BASE_DIR)/boot/grub/i386-efi/core.iso
 	$(HOST_DIR)/bin/grub-mknetdir \
 		--fonts="$(GRUB2EFI32_FONT)" \
 		--net-directory=$(BASE_DIR) \

@@ -61,7 +61,7 @@ define GRUB2BIOS_NETDIR_INSTALLATION
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
 		-d $(HOST_DIR)/lib/grub/i386-pc
-	mv $(BASE_DIR)/boot/grub/core.0 $(BASE_DIR)/boot/grub/core.min
+	mv $(BASE_DIR)/boot/grub/i386-pc/core.0 $(BASE_DIR)/boot/grub/i386-pc/core.min
 	$(HOST_DIR)/bin/grub-mknetdir \
 		--fonts="$(GRUB2BIOS_FONT)" \
 		--net-directory=$(BASE_DIR) \
@@ -72,6 +72,14 @@ endef
 #GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_IMAGE_INSTALLATION GRUB2BIOS_NETDIR_INSTALLATION
 GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_NETDIR_INSTALLATION
 endif
+
+# Grub2 binaries installation
+define GRUB2BIOS_BIN_INSTALLATION
+	$(INSTALL) -D -m 0755 $(HOST_DIR)/bin/grub-editenv $(TARGET_DIR)/bin/grub-editenv
+	$(INSTALL) -D -m 0755 $(HOST_DIR)/sbin/grub-install $(TARGET_DIR)/sbin/grub-install
+endef
+
+GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_BIN_INSTALLATION
 
 ifeq ($(BR2_i386),y)
 GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
