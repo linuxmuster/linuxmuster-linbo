@@ -11,7 +11,16 @@ GRUB2EFI32_LICENSE = GPLv3
 GRUB2EFI32_LICENSE_FILES = COPYING
 
 GRUB2EFI32_CONF_ENV = \
-	CPP="$(TARGET_CC) -E"
+	$(HOST_CONFIGURE_OPTS) \
+	CPP="$(HOSTCC) -E" \
+	TARGET_CC="$(TARGET_CC)" \
+	TARGET_CFLAGS="$(TARGET_CFLAGS) -fno-stack-protector" \
+	TARGET_CPPFLAGS="$(TARGET_CPPFLAGS)" \
+	TARGET_LDFLAGS="$(TARGET_LDFLAGS)" \
+	NM="$(TARGET_NM)" \
+	OBJCOPY="$(TARGET_OBJCOPY)" \
+	STRIP="$(TARGET_CROSS)strip"
+
 GRUB2EFI32_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
 	--disable-grub-mount --enable-device-mapper \
@@ -28,6 +37,32 @@ define GRUB2EFI32_CLEANUP
 	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
 endef
 GRUB2EFI32_POST_INSTALL_TARGET_HOOKS += GRUB2EFI32_CLEANUP
+
+ifeq ($(BR2_i386),y)
+GRUB2EFI32_CHECK_BIN_ARCH_EXCLUSIONS = \
+/usr/bin/grub-editenv \
+/usr/bin/grub-file \
+/usr/bin/grub-fstest \
+/usr/bin/grub-glue-efi \
+/usr/bin/grub-menulst2cfg \
+/usr/bin/grub-mkfont \
+/usr/bin/grub-mkimage \
+/usr/bin/grub-mklayout \
+/usr/bin/grub-mknetdir \
+/usr/bin/grub-mkpasswd-pbkdf2 \
+/usr/bin/grub-mkrelpath \
+/usr/bin/grub-mkrescue \
+/usr/bin/grub-mkstandalone \
+/usr/bin/grub-render-label \
+/usr/bin/grub-script-check \
+/usr/bin/grub-syslinux2cfg \
+/usr/sbin/grub-bios-setup \
+/usr/sbin/grub-install \
+/usr/sbin/grub-macbless \
+/usr/sbin/grub-ofpathname \
+/usr/sbin/grub-probe \
+/usr/sbin/grub-sparc64-setup
+endif
 
 ifeq ($(BR2_x86_64),y)
 GRUB2EFI32_CHECK_BIN_ARCH_EXCLUSIONS = \
