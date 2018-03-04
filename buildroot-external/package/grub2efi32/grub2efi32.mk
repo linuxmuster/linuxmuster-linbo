@@ -53,6 +53,7 @@ define GRUB2EFI32_NETDIR_INSTALLATION
 		--fonts="$(GRUB2EFI32_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
+		--modules="$(GRUB2EFI32_MODS)" \
 		-d $(HOST_DIR)/lib/grub/i386-efi
 endef
 GRUB2EFI32_POST_INSTALL_TARGET_HOOKS += GRUB2EFI32_NETDIR_INSTALLATION
