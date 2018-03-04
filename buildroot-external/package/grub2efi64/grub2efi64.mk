@@ -11,7 +11,16 @@ GRUB2EFI64_LICENSE = GPLv3
 GRUB2EFI64_LICENSE_FILES = COPYING
 
 GRUB2EFI64_CONF_ENV = \
-	CPP="$(TARGET_CC) -E"
+	$(HOST_CONFIGURE_OPTS) \
+	CPP="$(HOSTCC) -E" \
+	TARGET_CC="$(TARGET_CC)" \
+	TARGET_CFLAGS="$(TARGET_CFLAGS) -fno-stack-protector" \
+	TARGET_CPPFLAGS="$(TARGET_CPPFLAGS)" \
+	TARGET_LDFLAGS="$(TARGET_LDFLAGS)" \
+	NM="$(TARGET_NM)" \
+	OBJCOPY="$(TARGET_OBJCOPY)" \
+	STRIP="$(TARGET_CROSS)strip"
+
 GRUB2EFI64_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
 	--disable-grub-mount --enable-device-mapper \
