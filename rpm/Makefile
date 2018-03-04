@@ -10,7 +10,7 @@ LINBO_RELEASE=$(shell cat rpm/oss-linbo.spec | grep '^Release:' | awk '{ print $
 
 GRUBNAME=grub-2.02
 GRUBCFG=--disable-nls --disable-efiemu --disable-mm-debug --disable-cache-stats \
- --disable-boot-time --disable-grub-mkfont \
+ --disable-boot-time --enable-grub-mkfont \
  --disable-grub-mount --disable-device-mapper --disable-liblzma --disable-libzfs
 # grub stuff
 GRUBCOMMONMODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
