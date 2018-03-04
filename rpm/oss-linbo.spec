@@ -75,7 +75,6 @@ Source55:       ms-sys-2.4.1.tar.gz
 Source56:       mtdev-1.1.4.tar.bz2
 Source57:       ncurses-6.0.tar.gz
 Source58:       ntfs-3g_ntfsprogs-2017.3.23.tgz
-Source59:       oss-linbo-2.3.29.tar.gz
 Source60:       parted-3.2.tar.xz
 Source61:       patchelf-0.9.tar.bz2
 Source62:       pcre2-10.23.tar.bz2
