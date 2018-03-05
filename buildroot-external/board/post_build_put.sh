@@ -10,14 +10,15 @@ mkdir -p "${TARGET_DIR}"/usr/share/udhcpc/default.script.d
 
 # copy templates to target
 cp -v "${BASE_DIR}"/../../share/templates/grub.cfg.local.oss "${TARGET_DIR}"/usr/share/grub/grub.cfg
-cp -v "${BASE_DIR}"/../../rpm/linbo_cmd.oss.sh "${TARGET_DIR}"/usr/bin/linbo_cmd
 # copy linbofs files to target
 LINBOFS_DIR="${BASE_DIR}"/../../linbofs
 cp -v "${LINBOFS_DIR}"/etc/linbo-version "${TARGET_DIR}"/etc/
 cp -v "${LINBOFS_DIR}"/etc/newdev-patch.bvi "${TARGET_DIR}"/etc/newdev-patch.bvi
 cp -v "${LINBOFS_DIR}"/bin/patch_registry "${TARGET_DIR}"/usr/bin/
 cp -v "${LINBOFS_DIR}"/usr/share/udhcpc/default.script "${TARGET_DIR}"/usr/share/udhcpc/default.script.d/linbo.sh
+cp -v "${LINBOFS_DIR}"/usr/bin/linbo_cmd "${TARGET_DIR}"/usr/bin/linbo_cmd
 cp -v "${LINBOFS_DIR}"/usr/bin/linbo_wrapper "${TARGET_DIR}"/usr/bin/linbo_wrapper
+sed 's@#!/bin/sh@#!/usr/bin/ash@' -i "${TARGET_DIR}"/usr/bin/linbo_cmd
 sed 's@#!/bin/sh@#!/usr/bin/ash@' -i "${TARGET_DIR}"/usr/bin/linbo_wrapper
 # copy linbo files to target
 LINBO_DIR="${BASE_DIR}"/../../linbo
