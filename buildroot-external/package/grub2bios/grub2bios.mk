@@ -10,85 +10,24 @@ GRUB2BIOS_SITE = ftp://ftp.gnu.org/gnu/grub
 GRUB2BIOS_LICENSE = GPLv3
 GRUB2BIOS_LICENSE_FILES = COPYING
 
-HOST_GRUB2BIOS_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
-	gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
-	part_msdos png progress read reiserfs search sleep terminal test tftp \
-	biosdisk gfxterm_background normal ntldr pxe
-
-HOST_GRUB2BIOS_FONT = unicode
-
-HOST_GRUB2BIOS_CONF_ENV = \
-	$(HOST_CONFIGURE_OPTS) \
-	CPP="$(HOSTCC) -E" \
-	TARGET_CC="$(TARGET_CC)" \
-	TARGET_CFLAGS="$(TARGET_CFLAGS) -fno-stack-protector" \
-	TARGET_CPPFLAGS="$(TARGET_CPPFLAGS)" \
-	TARGET_LDFLAGS="$(TARGET_LDFLAGS)" \
-	NM="$(TARGET_NM)" \
-	OBJCOPY="$(TARGET_OBJCOPY)" \
-	STRIP="$(TARGET_CROSS)strip"
-
-HOST_GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
-	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
+GRUB2BIOS_CONF_ENV = \
+	CPP="$(TARGET_CC) -E"
+GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
+	--disable-cache-stats --disable-boot-time --disable-grub-mkfont \
 	--disable-grub-mount --enable-device-mapper \
 	--disable-liblzma --disable-libzfs --with-platform=pc --target=i386
-HOST_GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
+GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
 
-HOST_GRUB2BIOS_INSTALL_TARGET_OPTS = DESTDIR=$(HOST_DIR) install
-
-# Grub2 netdir creation
-ifeq ($(BR2_x86_64),y)
-define HOST_GRUB2BIOS_NETDIR_INSTALLATION
-	mkdir -p $(BASE_DIR)/boot/grub
-	$(HOST_DIR)/bin/grub-mknetdir \
-		--fonts="$(HOST_GRUB2BIOS_FONT)" \
-		--net-directory=$(BASE_DIR) \
-		--subdir=/boot/grub \
-		-d $(HOST_DIR)/lib/grub/i386-pc
-	mv $(BASE_DIR)/boot/grub/i386-pc/core.0 $(BASE_DIR)/boot/grub/i386-pc/core.min
-	$(HOST_DIR)/bin/grub-mknetdir \
-		--fonts="$(HOST_GRUB2BIOS_FONT)" \
-		--net-directory=$(BASE_DIR) \
-		--subdir=/boot/grub \
-		--modules="$(HOST_GRUB2BIOS_MODS)" \
-		-d $(HOST_DIR)/lib/grub/i386-pc
+define GRUB2BIOS_CLEANUP
+	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/*.image
+	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/*.module
+	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/kernel.exec
+	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/gdb_grub
+	rm -fv $(TARGET_DIR)/usr/lib/grub/i386-pc/gmodule.pl
+	rm -fv $(TARGET_DIR)/etc/bash_completion.d/grub
+	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
 endef
-HOST_GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += HOST_GRUB2BIOS_NETDIR_INSTALLATION
-endif
-
-# Grub2 binaries installation
-define GRUB2BIOS_BIN_INSTALLATION
-	$(INSTALL) -D -m 0755 $(HOST_DIR)/bin/grub-editenv $(TARGET_DIR)/bin/grub-editenv
-	$(INSTALL) -D -m 0755 $(HOST_DIR)/sbin/grub-install $(TARGET_DIR)/sbin/grub-install
-endef
-
-GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_BIN_INSTALLATION
-
-ifeq ($(BR2_i386),y)
-HOST_GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
-/usr/bin/grub-editenv \
-/usr/bin/grub-file \
-/usr/bin/grub-fstest \
-/usr/bin/grub-glue-efi \
-/usr/bin/grub-menulst2cfg \
-/usr/bin/grub-mkfont \
-/usr/bin/grub-mkimage \
-/usr/bin/grub-mklayout \
-/usr/bin/grub-mknetdir \
-/usr/bin/grub-mkpasswd-pbkdf2 \
-/usr/bin/grub-mkrelpath \
-/usr/bin/grub-mkrescue \
-/usr/bin/grub-mkstandalone \
-/usr/bin/grub-render-label \
-/usr/bin/grub-script-check \
-/usr/bin/grub-syslinux2cfg \
-/usr/sbin/grub-bios-setup \
-/usr/sbin/grub-install \
-/usr/sbin/grub-macbless \
-/usr/sbin/grub-ofpathname \
-/usr/sbin/grub-probe \
-/usr/sbin/grub-sparc64-setup
-endif
+GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_CLEANUP
 
 ifeq ($(BR2_x86_64),y)
 GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
@@ -359,6 +298,76 @@ GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
 /usr/lib/grub/i386-pc/search_label.mod \
 /usr/lib/grub/i386-pc/part_gpt.mod \
 /usr/lib/grub/i386-pc/nilfs2.mod
+endif
+
+HOST_GRUB2BIOS_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
+	gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
+	part_msdos png progress read reiserfs search sleep terminal test tftp \
+	biosdisk gfxterm_background normal ntldr pxe
+
+HOST_GRUB2BIOS_FONT = unicode
+
+HOST_GRUB2BIOS_CONF_ENV = \
+	$(HOST_CONFIGURE_OPTS) \
+	CPP="$(HOSTCC) -E" \
+	TARGET_CC="$(TARGET_CC)" \
+	TARGET_CFLAGS="$(TARGET_CFLAGS) -fno-stack-protector" \
+	TARGET_CPPFLAGS="$(TARGET_CPPFLAGS)" \
+	TARGET_LDFLAGS="$(TARGET_LDFLAGS)" \
+	NM="$(TARGET_NM)" \
+	OBJCOPY="$(TARGET_OBJCOPY)" \
+	STRIP="$(TARGET_CROSS)strip"
+
+HOST_GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
+	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
+	--disable-grub-mount --enable-device-mapper \
+	--disable-liblzma --disable-libzfs --with-platform=pc --target=i386
+HOST_GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
+
+# Grub2 netdir creation
+ifeq ($(BR2_x86_64),y)
+define HOST_GRUB2BIOS_NETDIR_INSTALLATION
+	mkdir -p $(BASE_DIR)/boot/grub
+	$(HOST_DIR)/bin/grub-mknetdir \
+		--fonts="$(HOST_GRUB2BIOS_FONT)" \
+		--net-directory=$(BASE_DIR) \
+		--subdir=/boot/grub \
+		-d $(HOST_DIR)/lib/grub/i386-pc
+	mv $(BASE_DIR)/boot/grub/i386-pc/core.0 $(BASE_DIR)/boot/grub/i386-pc/core.min
+	$(HOST_DIR)/bin/grub-mknetdir \
+		--fonts="$(HOST_GRUB2BIOS_FONT)" \
+		--net-directory=$(BASE_DIR) \
+		--subdir=/boot/grub \
+		--modules="$(HOST_GRUB2BIOS_MODS)" \
+		-d $(HOST_DIR)/lib/grub/i386-pc
+endef
+HOST_GRUB2BIOS_POST_INSTALL_HOOKS += HOST_GRUB2BIOS_NETDIR_INSTALLATION
+endif
+
+ifeq ($(BR2_i386),y)
+HOST_GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
+/usr/bin/grub-editenv \
+/usr/bin/grub-file \
+/usr/bin/grub-fstest \
+/usr/bin/grub-glue-efi \
+/usr/bin/grub-menulst2cfg \
+/usr/bin/grub-mkfont \
+/usr/bin/grub-mkimage \
+/usr/bin/grub-mklayout \
+/usr/bin/grub-mknetdir \
+/usr/bin/grub-mkpasswd-pbkdf2 \
+/usr/bin/grub-mkrelpath \
+/usr/bin/grub-mkrescue \
+/usr/bin/grub-mkstandalone \
+/usr/bin/grub-render-label \
+/usr/bin/grub-script-check \
+/usr/bin/grub-syslinux2cfg \
+/usr/sbin/grub-bios-setup \
+/usr/sbin/grub-install \
+/usr/sbin/grub-macbless \
+/usr/sbin/grub-ofpathname \
+/usr/sbin/grub-probe \
+/usr/sbin/grub-sparc64-setup
 endif
 
 $(eval $(autotools-package))
