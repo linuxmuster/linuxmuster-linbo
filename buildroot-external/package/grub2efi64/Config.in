@@ -4,3 +4,10 @@ config BR2_PACKAGE_GRUB2EFI64
       This package contains GRUB2 for 64-bit EFI targets.
 
         https://www.gnu.org/software/grub/
+
+config BR2_PACKAGE_HOST_GRUB2EFI64
+    bool "host-grub2efi64"
+    help
+      This package contains GRUB2 for 64-bit EFI build hosts.
+
+        https://www.gnu.org/software/grub/
