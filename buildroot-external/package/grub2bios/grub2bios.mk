@@ -30,7 +30,9 @@ endef
 GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_CLEANUP
 
 ifeq ($(BR2_x86_64),y)
-GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = $(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/lib/grub/i386-pc/*.mod))
+GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
+	$(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/lib/grub/i386-pc/*.mod)) \
+	$(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/lib/grub/i386-pc/*.img))
 endif
 
 HOST_GRUB2BIOS_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
@@ -79,28 +81,8 @@ endif
 
 ifeq ($(BR2_i386),y)
 HOST_GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
-/usr/bin/grub-editenv \
-/usr/bin/grub-file \
-/usr/bin/grub-fstest \
-/usr/bin/grub-glue-efi \
-/usr/bin/grub-menulst2cfg \
-/usr/bin/grub-mkfont \
-/usr/bin/grub-mkimage \
-/usr/bin/grub-mklayout \
-/usr/bin/grub-mknetdir \
-/usr/bin/grub-mkpasswd-pbkdf2 \
-/usr/bin/grub-mkrelpath \
-/usr/bin/grub-mkrescue \
-/usr/bin/grub-mkstandalone \
-/usr/bin/grub-render-label \
-/usr/bin/grub-script-check \
-/usr/bin/grub-syslinux2cfg \
-/usr/sbin/grub-bios-setup \
-/usr/sbin/grub-install \
-/usr/sbin/grub-macbless \
-/usr/sbin/grub-ofpathname \
-/usr/sbin/grub-probe \
-/usr/sbin/grub-sparc64-setup
+	$(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/bin/grub-*)) \
+	$(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/sbin/grub-*))
 endif
 
 $(eval $(autotools-package))
