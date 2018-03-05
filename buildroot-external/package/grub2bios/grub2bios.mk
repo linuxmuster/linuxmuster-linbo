@@ -79,11 +79,5 @@ endef
 HOST_GRUB2BIOS_POST_INSTALL_HOOKS += HOST_GRUB2BIOS_NETDIR_INSTALLATION
 endif
 
-ifeq ($(BR2_i386),y)
-HOST_GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
-	$(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/bin/grub-*)) \
-	$(patsubst $(TARGET_DIR)%,%,$(wildcard $(TARGET_DIR)/usr/sbin/grub-*))
-endif
-
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
