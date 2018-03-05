@@ -10,14 +10,14 @@ GRUB2BIOS_SITE = ftp://ftp.gnu.org/gnu/grub
 GRUB2BIOS_LICENSE = GPLv3
 GRUB2BIOS_LICENSE_FILES = COPYING
 
-GRUB2BIOS_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
+HOST_GRUB2BIOS_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
 	gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
 	part_msdos png progress read reiserfs search sleep terminal test tftp \
 	biosdisk gfxterm_background normal ntldr pxe
 
-GRUB2BIOS_FONT = unicode
+HOST_GRUB2BIOS_FONT = unicode
 
-GRUB2BIOS_CONF_ENV = \
+HOST_GRUB2BIOS_CONF_ENV = \
 	$(HOST_CONFIGURE_OPTS) \
 	CPP="$(HOSTCC) -E" \
 	TARGET_CC="$(TARGET_CC)" \
@@ -28,49 +28,32 @@ GRUB2BIOS_CONF_ENV = \
 	OBJCOPY="$(TARGET_OBJCOPY)" \
 	STRIP="$(TARGET_CROSS)strip"
 
-GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
+HOST_GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
 	--disable-grub-mount --enable-device-mapper \
 	--disable-liblzma --disable-libzfs --with-platform=pc --target=i386
-GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
+HOST_GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
 
-GRUB2BIOS_INSTALL_TARGET_OPTS = DESTDIR=$(HOST_DIR) install
-
-#GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_CLEANUP
-# Grub2 image creation
-#define GRUB2BIOS_IMAGE_INSTALLATION
-#	mkdir -p $(dir $(GRUB2_IMAGE))
-#	$(HOST_DIR)/bin/grub-mkimage \
-#		-d $(HOST_DIR)/lib/grub/$(GRUB2_TUPLE) \
-#		-O $(GRUB2_TUPLE) \
-#		-o $(GRUB2_IMAGE) \
-#		-p "$(GRUB2_PREFIX)" \
-#		$(if $(GRUB2_BUILTIN_CONFIG),-c $(GRUB2_BUILTIN_CONFIG)) \
-#		$(GRUB2_BUILTIN_MODULES)
-#	mkdir -p $(dir $(GRUB2_CFG))
-#	$(INSTALL) -D -m 0644 boot/grub2/grub.cfg $(GRUB2_CFG)
-#	$(GRUB2_IMAGE_INSTALL_ELTORITO)
-#endef
+HOST_GRUB2BIOS_INSTALL_TARGET_OPTS = DESTDIR=$(HOST_DIR) install
 
 # Grub2 netdir creation
 ifeq ($(BR2_x86_64),y)
-define GRUB2BIOS_NETDIR_INSTALLATION
+define HOST_GRUB2BIOS_NETDIR_INSTALLATION
 	mkdir -p $(BASE_DIR)/boot/grub
 	$(HOST_DIR)/bin/grub-mknetdir \
-		--fonts="$(GRUB2BIOS_FONT)" \
+		--fonts="$(HOST_GRUB2BIOS_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
 		-d $(HOST_DIR)/lib/grub/i386-pc
 	mv $(BASE_DIR)/boot/grub/i386-pc/core.0 $(BASE_DIR)/boot/grub/i386-pc/core.min
 	$(HOST_DIR)/bin/grub-mknetdir \
-		--fonts="$(GRUB2BIOS_FONT)" \
+		--fonts="$(HOST_GRUB2BIOS_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
-		--modules="$(GRUB2BIOS_MODS)" \
+		--modules="$(HOST_GRUB2BIOS_MODS)" \
 		-d $(HOST_DIR)/lib/grub/i386-pc
 endef
-#GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_IMAGE_INSTALLATION GRUB2BIOS_NETDIR_INSTALLATION
-GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_NETDIR_INSTALLATION
+HOST_GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += HOST_GRUB2BIOS_NETDIR_INSTALLATION
 endif
 
 # Grub2 binaries installation
@@ -82,7 +65,7 @@ endef
 GRUB2BIOS_POST_INSTALL_TARGET_HOOKS += GRUB2BIOS_BIN_INSTALLATION
 
 ifeq ($(BR2_i386),y)
-GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
+HOST_GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
 /usr/bin/grub-editenv \
 /usr/bin/grub-file \
 /usr/bin/grub-fstest \
@@ -379,3 +362,4 @@ GRUB2BIOS_CHECK_BIN_ARCH_EXCLUSIONS = \
 endif
 
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))
