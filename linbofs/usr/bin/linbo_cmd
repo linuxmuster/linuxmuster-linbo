@@ -3011,7 +3011,7 @@ update(){
 
   # get group specific and local grub configs from server
   echo "Aktualisiere GRUB-Konfiguration."
-  for i in boot/grub/ipxe.lkrn "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
+  for i in boot/grub/ipxe.lkrn "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
     # collect md5 sums before download
     if [ "$i" = "boot/grub/hostcfg/$myname.cfg" ]; then
       md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
