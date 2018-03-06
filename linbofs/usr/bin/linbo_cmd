@@ -343,7 +343,7 @@ get_disks_startconf(){
 get_disks(){
   local i
   local disks
-  for i in $(ls -l /dev/disk/by-path | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
+  for i in $(ls -l /dev/disk/by-id | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
     if [ -z "$disks" ]; then
       disks="/dev/$i"
     else
