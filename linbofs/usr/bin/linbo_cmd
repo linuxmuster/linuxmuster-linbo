@@ -3026,6 +3026,7 @@ update(){
     else
       md5_before="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
     fi
+    RC=0
     download "$server" "$i" || RC=1
     if [ "$RC" = "1" ]; then
       # reset hostcfg if download failed
