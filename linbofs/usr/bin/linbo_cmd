@@ -346,6 +346,8 @@ get_disks(){
   for i in $(ls -l /dev/disk/by-id | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
     if [ -z "$disks" ]; then
       disks="/dev/$i"
+    elif echo "$disks"|grep -qw "/dev/$i"; then
+      continue;
     else
       disks="$disks /dev/$i"
     fi
