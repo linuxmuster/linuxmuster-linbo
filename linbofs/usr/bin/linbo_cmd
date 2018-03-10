@@ -526,10 +526,10 @@ mountpart(){
    RC="$?"
    [ "$RC" = "0" ] && break
    [ "$i" = "5" ] && break
-   echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
+   echo "Partition $1 ist noch nicht verfügbar, versuche erneut..."
    sleep 2
   done
-  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
   local mountdev="$1"
  else
   # mount per label
@@ -2259,7 +2259,6 @@ syncl(){
  local rootdev="$5"
  local disk="$(get_disk_from_partition "$rootdev")"
  local group="$(hostgroup)"
-
  local bootdir
 
  # don't sync in that case
@@ -2920,7 +2919,7 @@ upload(){
 syncr(){
  echo -n "syncr " ; printargs "$@"
  if remote_cache "$2"; then
-  echo "Cache $2 ist nicht lokal, ueberspringe Aktualisierung der Images."
+  echo "Cache $2 ist nicht lokal, überspringe Aktualisierung der Images."
  else
   mountcache "$2" || return "$?"
   cd /cache
@@ -2948,7 +2947,7 @@ update(){
   local force="$3"
 
   if [ -e "$doneflag" -a -z "$force" ]; then
-    echo "LINBO-Update wurde schon ausgefuehrt!"
+    echo "LINBO-Update wurde schon ausgeführt!"
     return 0
   else
     rm -f "$doneflag"
