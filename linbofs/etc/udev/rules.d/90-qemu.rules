@@ -1,2 +1,2 @@
 KERNEL=="vda", SYMLINK+="mmcblk0"
-KERNEL=="vda?", SYMLINK+="mmcblk0p%n",
+KERNEL=="vda?", SYMLINK+="mmcblk0p%n"
