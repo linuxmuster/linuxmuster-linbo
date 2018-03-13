@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.36-0) babo62; urgency=low
+
+  * linbofs: udev rules fixes.
+  * linbo_cmd:
+    - interruptible return code fix (#83).
+    - postscript download fix (#81).
+    - update grub return code fix (#82)
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 10 Mar 2018 10:19:40 +0000
+
 linuxmuster-linbo (2.3.35-0) babo62; urgency=low
 
   * lmn7:
