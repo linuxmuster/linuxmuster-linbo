@@ -81,6 +81,13 @@ HOST_GRUB2BIOS_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-liblzma --disable-libzfs --with-platform=pc --target=i386
 HOST_GRUB2BIOS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
 
+# Grub2 install unicode font
+define HOST_GRUB2BIOS_FONT_INSTALLATION
+	mkdir -p $(HOST_DIR)/usr/share/grub
+	cp $(BASE_DIR)/../../linbofs/usr/share/grub/$(HOST_GRUB2BIOS_FONT).pf2 $(HOST_DIR)/usr/share/grub/
+endef
+HOST_GRUB2BIOS_POST_INSTALL_HOOKS += HOST_GRUB2BIOS_FONT_INSTALLATION
+
 # Grub2 netdir creation
 ifeq ($(BR2_x86_64),y)
 define HOST_GRUB2BIOS_NETDIR_INSTALLATION
