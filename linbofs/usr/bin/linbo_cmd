@@ -461,6 +461,7 @@ label_allpartitions(){
       fi
     fi
   done
+  [ -x /bin/udevadm ] && /bin/udevadm trigger
   [ -e /dev/disk/by-label ] || echo "Keine Partitions-Label gefunden!" | tee -a /tmp/linbo.log
   sendlog
   return "$RC"
@@ -568,6 +569,7 @@ mk_label(){
   case "$fstype" in
     swap) mkswap -L "$label" "$partition" || RC=1 ;;
     ext2|ext3|ext4) e2label "$partition" "$label" || RC=1 ;;
+    reiserfs) reiserfstune -l "$label" "$partition" || RC=1 ;;
     [Nn][Tt][Ff][Ss]*) ntfslabel -f "$partition" "$label" || RC=1 ;;
     *[Ff][Aa][Tt]*) fatlabel "$partition" "$label" || RC=1 ;;
     *) return 1 ;;
@@ -609,6 +611,7 @@ format(){
  fi
  if [ "$RC" = "0" ]; then
   echo " OK!"
+  [ -n "$label" -a -x /bin/udevadm ] && /bin/udevadm trigger
   # install linbo and grub in cache
   local cachedev="$(cachedev)"
   if [ "$cachedev" = "$partition" ]; then
