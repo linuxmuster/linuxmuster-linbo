@@ -95,7 +95,7 @@ linbo_kopts(){
  echo "$kopts"
 }
 
-get_hwconf_group(){
+get_group(){
  local host="$1"
  local hwconf="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(cn=$1))" configurationValue | grep '^configurationValue: HW=' | sed 's/configurationValue: HW=//')"
  local group="$(oss_ldapsearch "(&(objectclass=SchoolConfiguration)(configurationKey=$hwconf))" description | grep '^description: ' | sed 's/description: //')"

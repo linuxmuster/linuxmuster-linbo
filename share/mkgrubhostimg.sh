@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # creates host specific image for grub network boot
-# stored in /var/linbo/boot/grub/hostcfg/<hostname>.img
+# stored in $LINBODIR/boot/grub/hostcfg/<hostname>.img
 #
 # thomas@linuxmuster.net
 # 20171107
@@ -9,7 +9,8 @@
 #
 
 # read linuxmuster environment
-. /usr/share/linuxmuster/config/dist.conf || exit 1
+. /etc/linbo/linbo.conf
+. $ENVDEFAULTS || exit 1
 . $HELPERFUNCTIONS || exit 1
 
 
@@ -169,7 +170,7 @@ IP="$RET"
 get_mac "$HOSTNAME"
 MAC="$RET"
 # group
-GROUP="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $3 }' | grep -i ^"$HOSTNAME " | tail -1 | awk '{ print $2 }' | tr A-Z a-z)"
+GROUP="$(get_group "$HOSTNAME")"
 GROUPCFG="$GRUBDIR/$GROUP.cfg"
 # systemtype
 SYSTEMTYPE="$(grep -i ^systemtype "$LINBODIR/start.conf.$GROUP" | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z)"

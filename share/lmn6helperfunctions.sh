@@ -5,6 +5,14 @@
 # 22.03.2015
 #
 
+get_group(){
+ local HOSTNAME="$1"
+ local GROUP=
+ [ -n "$HOSTNAME" ] || return 1
+ GROUP="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $3 }' | grep -i ^"$HOSTNAME " | tail -1 | awk '{ print $2 }' | tr A-Z a-z)"
+ echo "$GROUP"
+}
+
 # fschuett
 # fetch SystemType from start.conf
 systemtype(){

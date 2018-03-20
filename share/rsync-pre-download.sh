@@ -154,7 +154,7 @@ case $EXT in
  # create download link start.conf-ip
  start.conf.gruppe)
   if [ "$FLAVOUR" = "oss" ]; then
-    group="$(get_hwconf_group $compname)"
+    group="$(get_group $compname)"
     echo "Gruppe: $group create link to $FILE"
     [[ -n $group ]] && ln -sf "$LINBODIR/start.conf.$group" "$FILE"
   fi
