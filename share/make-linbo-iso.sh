@@ -84,10 +84,10 @@ GRUBCFG="$TPLDIR/grub.cfg.iso"
 LINBOCFG="$TPLDIR/linbo.cfg.iso"
 
 ISOLINUXCFG="$TPLDIR/isolinux"
-ISOLINUXSRC="/usr/lib/ISOLINUX"
+[ -z "$ISOLINUXSRC" ] && ISOLINUXSRC="/usr/lib/ISOLINUX"
 ISOLINUXBIN="$ISOLINUXSRC/isolinux.bin"
 ISOHDPFX="$ISOLINUXSRC/isohdpfx.bin"
-SYSLINUXSRC="/usr/lib/syslinux/modules/bios"
+[ -z "$SYSLINUXSRC" ] && SYSLINUXSRC="/usr/lib/syslinux/modules/bios"
 SYSLINUXMODS="config ifcpu64 ldlinux libcom32 libutil vesamenu"
 
 EFIIMGSIZE="128M"
