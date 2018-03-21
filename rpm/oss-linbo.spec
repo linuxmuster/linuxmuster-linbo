@@ -110,7 +110,7 @@ BuildRequires:	ncurses-devel python rsync texinfo unzip wget efont-unicode
 BuildRequires:  cmake
 
 BuildRoot:    %{_tmppath}/%{name}-root
-Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6 xorriso
+Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6 xorriso >= 1.2.4
 Requires(post):	%insserv_prereq %fillup_prereq dropbear pwgen
 
 PreReq: %insserv_prereq openschool-base
@@ -202,6 +202,8 @@ install build/build-x86_64/images/bzImage %{buildroot}/srv/tftp/linbo64
 install build/build-x86_64/images/bzImage.md5 %{buildroot}/srv/tftp/linbo64.md5
 install build/build-x86_64/images/rootfs.cpio.lz %{buildroot}/srv/tftp/linbofs64.lz
 install build/build-x86_64/images/rootfs.cpio.lz.md5 %{buildroot}/srv/tftp/linbofs64.lz.md5
+install build/build-x86_64/host/bin/grub-mkimage %{buildroot}/usr/share/linbo/grub-mkimage
+install build/build-x86_64/host/bin/grub-mkstandalone %{buildroot}/usr/share/linbo/grub-mkstandalone
 mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
