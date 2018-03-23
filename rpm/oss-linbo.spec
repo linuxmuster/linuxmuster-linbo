@@ -202,8 +202,12 @@ install build/build-x86_64/images/bzImage %{buildroot}/srv/tftp/linbo64
 install build/build-x86_64/images/bzImage.md5 %{buildroot}/srv/tftp/linbo64.md5
 install build/build-x86_64/images/rootfs.cpio.lz %{buildroot}/srv/tftp/linbofs64.lz
 install build/build-x86_64/images/rootfs.cpio.lz.md5 %{buildroot}/srv/tftp/linbofs64.lz.md5
-install build/build-x86_64/host/bin/grub-mkimage %{buildroot}/usr/share/linbo/grub-mkimage
-install build/build-x86_64/host/bin/grub-mkstandalone %{buildroot}/usr/share/linbo/grub-mkstandalone
+mkdir -p %{buildroot}/usr/bin
+install build/build-x86_64/host/bin/grub-mkimage %{buildroot}/usr/bin/linbo-grub-mkimage
+install build/build-x86_64/host/bin/grub-mkstandalone %{buildroot}/usr/bin/linbo-grub-mkstandalone
+ln -sf %{buildroot}/usr/bin/linbo-grub-mkimage %{buildroot}/usr/share/linbo/grub-mkimage
+ln -sf %{buildroot}/usr/bin/linbo-grub-mkstandalone %{buildroot}/usr/share/linbo/grub-mkstandalone
+
 mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
@@ -396,5 +400,7 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 /usr/sbin/update-linbofs
 /usr/sbin/oss_modify_dhcpStatements.pl
 /usr/sbin/oss_workstations_sync_hosts.pl
+/usr/bin/linbo-grub-mkimage
+/usr/bin/linbo-grub-mkstandalone
 
 %changelog
