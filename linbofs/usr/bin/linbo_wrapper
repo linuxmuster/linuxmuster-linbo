@@ -258,6 +258,12 @@ format_partition(){
    echo "Fehler beim Formatieren von $dev ... Breche ab!"
    return 1
   fi
+  ### fschuett: mkfs.ext? sets part label but not volume label
+  case "$fstype" in
+   [Es][Xx][Tt][234]) e2label "$dev" "${label#-L }" 2>&1 ;;
+   *) ;;
+  esac
+  ###
  fi
 }
 

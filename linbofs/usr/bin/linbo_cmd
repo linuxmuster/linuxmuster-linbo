@@ -604,6 +604,12 @@ format(){
  echo -n "Formatiere $partition mit $fstype ..."
  [ -d "$partition" ] || sleep 5
  $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
+ ### fschuett: mkfs.ext? sets part label but not volume label
+ case "$fstype" in
+  [Es][Xx][Tt][234]) e2label "$partition" "${label#-L }" ;;
+  *) ;;
+ esac
+ ###
  if [ "$RC" != "0" ]; then
   echo -n " Partition ist noch nicht bereit - versuche nochmal ..."
   sleep 2
