@@ -247,6 +247,8 @@ install rpm/wimport.sh %{buildroot}/usr/share/linbo/wimport.sh
 mkdir -p %{buildroot}/usr/share/oss/plugins/add_user
 install rpm/add_linbopxe.pl %{buildroot}/usr/share/oss/plugins/add_user/add_linbopxe.pl
 
+export NO_BRP_CHECK_RPATH=true
+
 %pre
 if ! grep -qw ^bittorrent /etc/passwd; then
     useradd -r -g nogroup -c "BitTorrent User" -d /var/lib/bittorrent -s /bin/false bittorrent
