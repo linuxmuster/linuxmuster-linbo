@@ -205,9 +205,10 @@ install build/build-x86_64/images/rootfs.cpio.lz.md5 %{buildroot}/srv/tftp/linbo
 mkdir -p %{buildroot}/usr/bin
 install build/build-x86_64/host/bin/grub-mkimage %{buildroot}/usr/bin/linbo-grub-mkimage
 install build/build-x86_64/host/bin/grub-mkstandalone %{buildroot}/usr/bin/linbo-grub-mkstandalone
-ln -sf %{buildroot}/usr/bin/linbo-grub-mkimage %{buildroot}/usr/share/linbo/grub-mkimage
-ln -sf %{buildroot}/usr/bin/linbo-grub-mkstandalone %{buildroot}/usr/share/linbo/grub-mkstandalone
-
+pushd %{buildroot}/usr/share/linbo
+ln -sf ../../bin/linbo-grub-mkimage grub-mkimage
+ln -sf ../../bin/linbo-grub-mkstandalone grub-mkstandalone
+popd
 mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
