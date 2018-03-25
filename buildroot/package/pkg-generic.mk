@@ -113,7 +113,8 @@ define check_bin_arch
 		support/scripts/check-bin-arch -p $(3) \
 			-l $(BUILD_DIR)/packages-file-list.txt \
 			-r $(TARGET_READELF) \
-			-a $(BR2_READELF_ARCH_NAME))
+			-a $(BR2_READELF_ARCH_NAME) \
+			-x ' $($(call UPPERCASE,$(3))_CHECK_BIN_ARCH_EXCLUSIONS) ')
 endef
 
 GLOBAL_INSTRUMENTATION_HOOKS += check_bin_arch
