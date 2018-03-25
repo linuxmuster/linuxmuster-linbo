@@ -7,8 +7,8 @@ Lizenz: GNU General Public License Version 2
 Buildroot
 ---------
 
-Verwendet wird gerade `buildroot-2017.05`.
-Der Buildroot-Subtree sollte nicht veraendert werden, alle Aenderungen gehen in den Ordner `buildroot-external`. Bei ein paar Sachen liess sich das aber nicht vermeiden, die Veraenderungen sind in `buildroot-2017.05.patch` aufgefuehrt.
+Verwendet wird gerade `buildroot-2018.02`.
+Der Buildroot-Subtree sollte nicht veraendert werden, alle Aenderungen gehen in den Ordner `buildroot-external`. Bei ein paar Sachen liess sich das aber nicht vermeiden, die Veraenderungen sind in `buildroot-2018.02.patch` aufgefuehrt.
 
 ### Update
 
@@ -16,13 +16,14 @@ Buildroot bringt alle drei Monate eine neue Version raus.
 Falls man mit `git subtree pull` arbeitet, erhält man viele Konflikte, stattdessn lässt
 sich der Subtree so updaten (Branch, an dem gearbeitet wird heisst `buildroot`):
 
-    $ git checkout -b buildroot-2017.05
+    $ git checkout -b buildroot-2018.02
     $ git rm -r buildroot
     $ rm -r buildroot
     $ git commit -a
-    $ git subtree add --prefix buildroot git://git.buildroot.net/buildroot 2017.05
-    $ git checkout buildroot
-    $ git merge -Xtheirs --squash buildroot-2017.05
+    $ git subtree add --prefix buildroot git://git.buildroot.net/buildroot 2018.02
+    $ git checkout <main branch>
+    $ git merge -Xtheirs --squash buildroot-2018.02
+    $ git commit -a
 
 ### Konfiguration anpassen
 
