@@ -453,23 +453,6 @@ information is (assuming the package name is +libfoo+) :
   FLAT binary format is only 4k bytes. If the application consumes more stack,
   append the required number here.
 
-* +LIBFOO_CHECK_BIN_ARCH_EXCLUSIONS+ defines a list of files that should be
-  excluded from the target architecture check. Since some packages accidentally
-  installs files that are built for the host into the target directory,
-  Buildroot adds a check that all files in the target directory are really
-  built for the target architecture. However, in rare cases, a package will
-  validly install files for a different (sub)architecture. For example, some
-  libraries have code to dynamically detect the available instructions.
-  Buildroot will then complain with an error like:
-+
----------------------
-ERROR: architecture for "/usr/lib/libfoo.so" is "Sparc v8+", should be "Sparc"
----------------------
-+
-If this is really correct, it is possible to override the check by setting
-+LIBFOO_CHECK_BIN_ARCH_EXCLUSIONS+ to a space-separated list of files
-(relative to the target directory) that should not be checked.
-
 The recommended way to define these variables is to use the following
 syntax:
 

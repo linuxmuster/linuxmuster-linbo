@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PHP_VERSION = 7.1.7
+PHP_VERSION = 7.2.3
 PHP_SITE = http://www.php.net/distributions
 PHP_SOURCE = php-$(PHP_VERSION).tar.xz
 PHP_INSTALL_STAGING = YES
@@ -231,6 +231,11 @@ endif
 define PHP_DISABLE_PCRE_JIT
 	$(SED) '/^#define SUPPORT_JIT/d' $(@D)/ext/pcre/pcrelib/config.h
 endef
+
+define PHP_DISABLE_VALGRIND
+	$(SED) '/^#define HAVE_VALGRIND/d' $(@D)/main/php_config.h
+endef
+PHP_POST_CONFIGURE_HOOKS += PHP_DISABLE_VALGRIND
 
 ### Use external PCRE if it's available
 ifeq ($(BR2_PACKAGE_PCRE),y)
