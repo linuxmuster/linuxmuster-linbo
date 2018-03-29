@@ -319,6 +319,22 @@ get_disk_from_partition(){
 }
 
 # fschuett
+# extract partition number from partition device name /dev/sd?,/dev/*p?
+# get_partnr_from_partition
+get_partnr_from_partition(){
+ local partition="$1"
+ [ -z "$partition" ] && return 1
+ local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||')"
+ if [ -n "$partnr" ]; then
+   echo "$partnr"
+   return 0
+ else
+   echo "0"
+   return 1
+ fi
+}
+
+# fschuett
 # extract disk device names from start.conf partition definitions
 # get_disks
 get_disks_startconf(){
@@ -965,7 +981,7 @@ print_efipart(){
 print_grubpart(){
  local partition="$1"
  [ -b "$partition" ] || return 1
- local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||')"
+ local partnr="$(get_partnr_from_partition "$partition" )"
  case "$partition" in
    /dev/mmcblk*) local disknr="$(echo "$partition" | sed 's|/dev/mmcblk\([0-9]\)p[1-9]|\1|')" ;;
    /dev/nvme0n*) local disknr="$(echo "$partition" | sed 's|/dev/nvme0n\([0-9]\)p[1-9]|\1|')"
@@ -1004,7 +1020,7 @@ create_efiboot(){
  local label="$1"
  local efipart="$2"
  local efidisk="$(get_disk_from_partition "$efipart")"
- local efipartnr="$(echo "$efipart" | sed "s|$efidisk||")"
+ local efipartnr="$(get_partnr_from_partition "$efipart")"
  local efiloader
  local bits
  case "$label" in
@@ -1606,7 +1622,7 @@ save_efi_bcd(){
 print_guid(){
  local partition="$1"
  local disk="$(get_disk_from_partition "${partition}")"
- local partnr="$(echo "$partition" | sed "s|$disk||")"
+ local partnr="$(get_partnr_from_partition "$partition")"
  echo -e "i\n$partnr\nq\n" | gdisk "$disk" | grep -i "partition unique guid" | awk -F\: '{ print $2 }' | awk '{ print $1 }' 2> /dev/null
 }
 
@@ -1618,7 +1634,7 @@ set_guid(){
  [ -z "$partition" -a -z "$guid" ] && return 1
  echo "Restauriere Partitions-GUID von $partition."
  local disk="$(get_disk_from_partition "${partition}")"
- local partnr="$(echo "$partition" | sed "s|$disk||")"
+ local partnr="$(get_partnr_from_partition "$partition")"
  echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" &> /tmp/image.log || return 1
 }
 
