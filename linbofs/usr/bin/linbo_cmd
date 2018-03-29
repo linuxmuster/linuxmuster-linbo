@@ -322,7 +322,8 @@ get_disk_from_partition(){
 # extract partition number from partition device name /dev/sd?,/dev/*p?
 # get_partnr_from_partition
 get_partnr_from_partition(){
- local partition ="$1"
+ local partition="$1"
+ [ -z "$partition" ] && return 1
  local partnr="$(echo "$partition" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||')"
  if [ -n "$partnr" ]; then
    echo "$partnr"
