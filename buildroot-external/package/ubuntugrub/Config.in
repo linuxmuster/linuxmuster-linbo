@@ -1,0 +1,13 @@
+config BR2_PACKAGE_UBUNTUGRUB
+    bool "ubuntugrub"
+    help
+      This package contains bionic GRUB2 for BIOS, EFI32 and EFI64 targets.
+
+      https://www.gnu.org/software/grub/
+
+config BR2_PACKAGE_HOST_UBUNTUGRUB
+    bool "host-ubuntugrub"
+    help
+      This package contains GRUB2 for BIOS, EFI32 and EFI64 build hosts.
+
+      https://www.gnu.org/software/grub/
