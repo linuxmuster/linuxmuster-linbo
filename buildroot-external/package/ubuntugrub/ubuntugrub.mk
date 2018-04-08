@@ -5,9 +5,10 @@
 ################################################################################
 
 UBUNTUGRUB_VERSION = 2.02
-UBUNTUGRUB_SITE = $(TOPDIR)/../rpm
-UBUNTUGRUB_SOURCE = grub-bin.tar.gz
-UBUNTUGRUB_SITE_METHOD = local
+UBUNTUGRUB_SITE = $(TOPDIR)/../rpm/grub-bin.tar.gz
+UBUNTUGRUB_SITE_METHOD = file
+UBUNTUGRUB_ACTUAL_SOURCE_TARBALL = grub-$(UBUNTUGRUB_VERSION).tar.gz
+UBUNTUGRUB_ACTUAL_SOURCE_SITE = https://ftp.gnu.org/gnu/grub/
 UBUNTUGRUB_LICENSE = GPLv3
 UBUNTUGRUB_LICENSE_FILES = COPYING
 
@@ -30,9 +31,6 @@ else
 endif
 	rm -rf $(TARGET_DIR)/usr/bin32 $(TARGET_DIR)/usr/bin64
 endef
-
-$(eval $(generic-package))
-$(eval $(host-generic-package))
 
 ifeq ($(BR2_x86_64),y)
 UBUNTUGRUB_IMGS = boot boot_hybrid cdboot diskboot kernel lnxboot lzma_decompress pxeboot
