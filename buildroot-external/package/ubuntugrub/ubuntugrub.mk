@@ -7,7 +7,7 @@
 UBUNTUGRUB_VERSION = 2.02
 UBUNTUGRUB_SITE = http://archive.ubuntu.com/ubuntu/pool/main/g/grub2
 UBUNTUGRUB_SOURCE = grub2_$(UBUNTUGRUB_VERSION).orig.tar.xz
-UBUNTUGRUB_PATCH = grub2_$(UBUNTUGRUB_VERSION)-2ubuntu8.debian.tar.xz
+UBUNTUGRUB_EXTRA_DOWNLOADS = grub2_$(UBUNTUGRUB_VERSION)-2ubuntu8.debian.tar.xz
 UBUNTUGRUB_LICENSE = GPLv3
 UBUNTUGRUB_LICENSE_FILES = COPYING
 
@@ -30,9 +30,27 @@ UBUNTUGRUB_CONF_OPTS += CC=gcc-6 LDFLAGS="-no-pie"
 # DEFAULT_HIDDEN_TIMEOUT :=
 # DEFAULT_HIDDEN_TIMEOUT_BOOL := false
 
+# extract debian dir
+define UBUNTUGRUB_EXTRACT_DEBIAN
+    for file in $(UBUNTUGRUB_EXTRA_DOWNLOADS); do \
+	xzcat $(BR2_DL_DIR)/$$file | tar -C $(UBUNTUGRUB_SRCDIR)   -xf - ; \
+    done
+endef
+
+UBUNTUGRUB_POST_EXTRACT_HOOKS += UBUNTUGRUB_EXTRACT_DEBIAN
+
+# apply patches
+define UBUNTUGRUB_APPLY_DEBIAN_PATCHES
+    (cd $(UBUNTUGRUB_SRCDIR) && \
+    QUILT_PATCHES="debian/patches" QUILT_SERIES="debian/patches/series" quilt push -a \
+    )
+endef
+
+UBUNTUGRUB_POST_PATCH_HOOKS += UBUNTUGRUB_APPLY_DEBIAN_PATCHES
+
 # autoreconf
 define UBUNTUGRUB_POST_PATCH
-	(cd $$(UBUNTUGRUB_SRCDIR) && \
+	(cd $(UBUNTUGRUB_SRCDIR) && \
 	rm -rf debian/grub-extras-enabled && \
 	mkdir debian/grub-extras-enabled && \
 	set -e; for extra in 915resolution ntldr-img; do \
@@ -43,10 +61,11 @@ endef
 
 UBUNTUGRUB_POST_PATCH_HOOKS += UBUNTUGRUB_POST_PATCH
 
-UBUNTUGRUB_AUTORECONF=YES
-UBUNTUGRUB_AUTORECONF_ENV="GRUB_CONTRIB=$(@D)/debian/grub-extras-enabled"
+UBUNTUGRUB_AUTORECONF = YES
+UBUNTUGRUB_AUTORECONF_ENV = \
+	"GRUB_CONTRIB=$(UBUNTUGRUB_SRCDIR)/debian/grub-extras-enabled"
 
-UBUNTUGRUB_PACKAGES=grub-pc-i386 grub-efi-i386
+UBUNTUGRUB_PACKAGES = grub-pc-i386 grub-efi-i386
 ifeq ($(BR2_x86_64),y)
 UBUNTUGRUB_PACKAGES += grub-efi-x86_64
 endif
@@ -54,15 +73,15 @@ endif
 # configure
 define UBUNTUGRUB_CONFIGURE_CMDS
 	for package in $(UBUNTUGRUB_PACKAGES); do \
-		mkdir -p $$(UBUNTUGRUB_SRCDIR)/obj/$$(package); \
-	(cd $$(UBUNTUGRUB_SRCDIR)/obj/$$(package) && rm -rf config.cache && \
+		mkdir -p $(UBUNTUGRUB_SRCDIR)/obj/$$package; \
+	(cd $(UBUNTUGRUB_SRCDIR)/obj/$$package && rm -rf config.cache && \
 	$$(TARGET_CONFIGURE_OPTS) \
 	$$(TARGET_CONFIGURE_ARGS) \
-	$$($$(PKG)_CONF_ENV) \
+	$$(UBUNTUGRUB_CONF_ENV) \
 	CONFIG_SITE=/dev/null \
 	../../configure \
-		--with-platform=$(subst grub-%-*,%,$$(package)) \
-		--target=$(subst grub-*-%,%,$$(package)) \
+		--with-platform=$(subst grub-%-*,%,$$package) \
+		--target=$(subst grub-*-%,%,$$package) \
 		--host=$$(GNU_TARGET_NAME) \
 		--build=$$(GNU_HOST_NAME) \
 		--prefix=/usr \
