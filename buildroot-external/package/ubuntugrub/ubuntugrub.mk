@@ -14,13 +14,13 @@ UBUNTUGRUB_LICENSE_FILES = COPYING
 UBUNTUGRUB_CONF_ENV = \
 	CPP="$(TARGET_CC) -E"
 UBUNTUGRUB_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
-	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
-	--disable-grub-mount --enable-device-mapper --disable-emu-usb \
-	--enable-ubuntu-recovery \
+	--disable-cache-stats --disable-boot-time --disable-grub-mkfont \
+	--disable-grub-mount --disable-device-mapper --disable-emu-usb \
 	--disable-liblzma --disable-libzfs
 
 UBUNTUGRUB_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
-UBUNTUGRUB_CONF_OPTS += CC=gcc-6 LDFLAGS="-no-pie"
+# Fix: old gcc don't have this option - enable for gcc-6
+# UBUNTUGRUB_CONF_OPTS += LDFLAGS="-no-pie"
 
 # REAL_PACKAGES = grub-pc(grub-pc-i386) grub-efi-ia32(-i386) grub-efi-amd64(-x86_64)
 # COMMON_PLATFORM := pc
@@ -55,15 +55,14 @@ define UBUNTUGRUB_POST_PATCH
 	mkdir debian/grub-extras-enabled && \
 	set -e; for extra in 915resolution ntldr-img; do \
 		cp -a debian/grub-extras/$$extra debian/grub-extras-enabled/; \
-	done \
+	done && \
+	$(TARGET_CONFIGURE_OPTS) \
+	GRUB_CONTRIB=$(UBUNTUGRUB_SRCDIR)debian/grub-extras-enabled \
+	./autogen.sh \
 	)
 endef
 
 UBUNTUGRUB_POST_PATCH_HOOKS += UBUNTUGRUB_POST_PATCH
-
-UBUNTUGRUB_AUTORECONF = YES
-UBUNTUGRUB_AUTORECONF_ENV = \
-	"GRUB_CONTRIB=$(UBUNTUGRUB_SRCDIR)/debian/grub-extras-enabled"
 
 UBUNTUGRUB_PACKAGES = grub-pc-i386 grub-efi-i386
 ifeq ($(BR2_x86_64),y)
@@ -73,34 +72,27 @@ endif
 # configure
 define UBUNTUGRUB_CONFIGURE_CMDS
 	for package in $(UBUNTUGRUB_PACKAGES); do \
-		mkdir -p $(UBUNTUGRUB_SRCDIR)/obj/$$package; \
-	(cd $(UBUNTUGRUB_SRCDIR)/obj/$$package && rm -rf config.cache && \
-	$$(TARGET_CONFIGURE_OPTS) \
-	$$(TARGET_CONFIGURE_ARGS) \
-	$$(UBUNTUGRUB_CONF_ENV) \
+		mkdir -p $(UBUNTUGRUB_SRCDIR)obj/$$package; \
+	(cd $(UBUNTUGRUB_SRCDIR)obj/$$package && rm -rf config.cache && \
+	$(TARGET_CONFIGURE_OPTS) \
+	$(TARGET_CONFIGURE_ARGS) \
+	$(UBUNTUGRUB_CONF_ENV) \
 	CONFIG_SITE=/dev/null \
 	../../configure \
-		--with-platform=$(subst grub-%-*,%,$$package) \
-		--target=$(subst grub-*-%,%,$$package) \
-		--host=$$(GNU_TARGET_NAME) \
-		--build=$$(GNU_HOST_NAME) \
+		--with-platform=$$(echo $$package|sed 's/^grub-//'|sed 's/-[^-]*$$//') \
+		--target=$$(echo $$package|sed 's/^grub-//'|sed 's/^[^-]*-//') \
+		--host=$(GNU_TARGET_NAME) \
+		--build=$(GNU_HOST_NAME) \
 		--prefix=/usr \
 		--exec-prefix=/usr \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
 		--program-prefix="" \
-		--disable-gtk-doc \
-		--disable-gtk-doc-html \
-		--disable-doc \
-		--disable-docs \
-		--disable-documentation \
-		--with-xmlto=no \
-		--with-fop=no \
-		$$(if $$(UBUNTUGRUB_OVERRIDE_SRCDIR),,--disable-dependency-tracking) \
+		$(if $(UBUNTUGRUB_OVERRIDE_SRCDIR),,--disable-dependency-tracking) \
 		--enable-ipv6 \
-		$$(NLS_OPTS) \
-		$$(SHARED_STATIC_LIBS_OPTS) \
-		$$(QUIET) $$(UBUNTUGRUB_CONF_OPTS) \
+		$(NLS_OPTS) \
+		$(SHARED_STATIC_LIBS_OPTS) \
+		$(QUIET) $(UBUNTUGRUB_CONF_OPTS) \
 	) \
 	done
 endef
@@ -108,24 +100,24 @@ endef
 # build
 define UBUNTUGRUB_BUILD_CMDS
 	for package in $(UBUNTUGRUB_PACKAGES); do \
-		$$(TARGET_MAKE_ENV) $$(UBUNTUGRUB_MAKE_ENV) $$(UBUNTUGRUB_MAKE) \
-		$$(UBUNTUGRUB_MAKE_OPTS) -C $$(UBUNTUGRUB_SRCDIR)/obj/$$(package) \
+		$(TARGET_MAKE_ENV) $(UBUNTUGRUB_MAKE_ENV) $(UBUNTUGRUB_MAKE) \
+		$(UBUNTUGRUB_MAKE_OPTS) -C $(UBUNTUGRUB_SRCDIR)obj/$$package; \
 	done
 endef
 
 # install
 define UBUNTUGRUB_INSTALL_TARGET_CMDS
 	for package in $(UBUNTUGRUB_PACKAGES); do \
-		$$(TARGET_MAKE_ENV) $$(UBUNTUGRUB_MAKE_ENV) $$(UBUNTUGRUB_MAKE) \
-		$$(UBUNTUGRUB_INSTALL_TARGET_OPTS) -C $$(UBUNTUGRUB_SRCDIR)/obj/$$(package) \
+		$(TARGET_MAKE_ENV) $(UBUNTUGRUB_MAKE_ENV) $(UBUNTUGRUB_MAKE) \
+		$(UBUNTUGRUB_INSTALL_TARGET_OPTS) -C $(UBUNTUGRUB_SRCDIR)obj/$$package; \
 	done
 endef
 
 define UBUNTUGRUB_CLEANUP
 	for arch in i386-pc i386-efi x86_64-efi; do \
-		rm -fv $(TARGET_DIR)/usr/lib/grub/$$(arch)/*.image $(TARGET_DIR)/usr/lib/grub/$$(arch)/*.module \
-		$(TARGET_DIR)/usr/lib/grub/$$(arch)/kernel.exec $(TARGET_DIR)/usr/lib/grub/$$(arch)/gdb_grub \
-		$(TARGET_DIR)/usr/lib/grub/$$(arch)/gmodule.pl $(TARGET_DIR)/etc/bash_completion.d/grub; \
+		rm -fv $(TARGET_DIR)/usr/lib/grub/$$arch/*.image $(TARGET_DIR)/usr/lib/grub/$$arch/*.module \
+		$(TARGET_DIR)/usr/lib/grub/$$arch/kernel.exec $(TARGET_DIR)/usr/lib/grub/$$arch/gdb_grub \
+		$(TARGET_DIR)/usr/lib/grub/$$arch/gmodule.pl $(TARGET_DIR)/etc/bash_completion.d/grub; \
 	done
 	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
 endef
@@ -162,10 +154,13 @@ UBUNTUGRUB_CHECK_BIN_ARCH_EXCLUSIONS = \
 	$(patsubst %,/usr/lib/grub/i386-efi/%.img,$(UBUNTUGRUB_IMGS))
 endif
 
+################################################################################
+#
+# host-ubuntugrub
+#
+################################################################################
 
-ifeq ($(BR2_x86_64),y)
 HOST_UBUNTUGRUB_DEPENDENCIES = host-lvm2
-endif
 
 HOST_UBUNTUGRUB_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
 	gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
@@ -174,12 +169,94 @@ HOST_UBUNTUGRUB_MODS = all_video boot chain configfile cpuid echo net ext2 extcm
 
 HOST_UBUNTUGRUB_FONT = unicode
 
-ifeq ($(BR2_x86_64),y)
+HOST_UBUNTUGRUB_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
+	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
+	--disable-grub-mount --enable-device-mapper --disable-emu-usb \
+	--disable-liblzma --disable-libzfs
+
+# extract debian dir
+define HOST_UBUNTUGRUB_EXTRACT_DEBIAN
+    for file in $(HOST_UBUNTUGRUB_EXTRA_DOWNLOADS); do \
+	xzcat $(BR2_DL_DIR)/$$file | tar -C $(HOST_UBUNTUGRUB_SRCDIR)   -xf - ; \
+    done
+endef
+
+HOST_UBUNTUGRUB_POST_EXTRACT_HOOKS += HOST_UBUNTUGRUB_EXTRACT_DEBIAN
+
+# apply patches
+define HOST_UBUNTUGRUB_APPLY_DEBIAN_PATCHES
+    (cd $(HOST_UBUNTUGRUB_SRCDIR) && \
+    QUILT_PATCHES="debian/patches" QUILT_SERIES="debian/patches/series" quilt push -a \
+    )
+endef
+
+HOST_UBUNTUGRUB_POST_PATCH_HOOKS += HOST_UBUNTUGRUB_APPLY_DEBIAN_PATCHES
+
+# autoreconf
+define HOST_UBUNTUGRUB_POST_PATCH
+	(cd $(HOST_UBUNTUGRUB_SRCDIR) && \
+	rm -rf debian/grub-extras-enabled && \
+	mkdir debian/grub-extras-enabled && \
+	set -e; for extra in 915resolution ntldr-img; do \
+		cp -a debian/grub-extras/$$extra debian/grub-extras-enabled/; \
+	done && \
+	$(TARGET_CONFIGURE_OPTS) \
+	GRUB_CONTRIB=$(HOST_UBUNTUGRUB_SRCDIR)debian/grub-extras-enabled \
+	./autogen.sh \
+	)
+endef
+
+HOST_UBUNTUGRUB_POST_PATCH_HOOKS += HOST_UBUNTUGRUB_POST_PATCH
+
+HOST_UBUNTUGRUB_PACKAGES = grub-pc-i386 grub-efi-i386 grub-efi-x86_64
+
+# configure
+define HOST_UBUNTUGRUB_CONFIGURE_CMDS
+	for package in $(HOST_UBUNTUGRUB_PACKAGES); do \
+		mkdir -p $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
+	(cd $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package && rm -rf config.cache && \
+	$(TARGET_CONFIGURE_OPTS) \
+	$(TARGET_CONFIGURE_ARGS) \
+	$(HOST_UBUNTUGRUB_CONF_ENV) \
+	CONFIG_SITE=/dev/null \
+	../../configure \
+		--with-platform=$$(echo $$package|sed 's/^grub-//'|sed 's/-[^-]*$$//') \
+		--target=$$(echo $$package|sed 's/^grub-//'|sed 's/^[^-]*-//') \
+		--host=$(GNU_TARGET_NAME) \
+		--build=$(GNU_HOST_NAME) \
+		--prefix=/usr \
+		--exec-prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--program-prefix="" \
+		$(if $(HOST_UBUNTUGRUB_OVERRIDE_SRCDIR),,--disable-dependency-tracking) \
+		--enable-ipv6 \
+		$(NLS_OPTS) \
+		$(SHARED_STATIC_LIBS_OPTS) \
+		$(QUIET) $(HOST_UBUNTUGRUB_CONF_OPTS) \
+	) \
+	done
+endef
+
+# build
+define HOST_UBUNTUGRUB_BUILD_CMDS
+	for package in $(HOST_UBUNTUGRUB_PACKAGES); do \
+		$(TARGET_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE) \
+		$(HOST_UBUNTUGRUB_MAKE_OPTS) -C $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
+	done
+endef
+
+# install
 define HOST_UBUNTUGRUB_INSTALL_CMDS
+	for package in $(HOST_UBUNTUGRUB_PACKAGES); do \
+		$(TARGET_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE) \
+		$(HOST_UBUNTUGRUB_INSTALL_TARGET_OPTS) -C $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
+	done
+endef
+
+define HOST_UBUNTUGRUB_MKNETDIR
 	mkdir -p $(HOST_DIR)/usr
 	cp -R $(@D)/* $(HOST_DIR)/usr
-	cp $(HOST_DIR)/usr/bin64/* $(HOST_DIR)/usr/bin
-	rm -rf $(HOST_DIR)/usr/bin32 $(HOST_DIR)/usr/bin64
 # Grub2 install unicode font
 	cp $(BASE_DIR)/../../linbofs/usr/share/grub/$(HOST_UBUNTUGRUB_FONT).pf2 $(HOST_DIR)/usr/share/grub/
 # Grub2 BIOS netdir creation
@@ -226,11 +303,8 @@ define HOST_UBUNTUGRUB_INSTALL_CMDS
 		--modules="$(HOST_UBUNTUGRUB_MODS)" \
 		-d $(HOST_DIR)/lib/grub/x86_64-efi
 endef
-else
-define HOST_UBUNTUGRUB_INSTALL_CMDS
-	echo "Nothing to do."
-endef
-endif
+
+HOST_UBUNTUGRUB_POST_INSTALL_HOOKS += HOST_UBUNTUGRUB_MKNETDIR
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
