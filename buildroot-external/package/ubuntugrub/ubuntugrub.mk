@@ -162,21 +162,36 @@ endif
 
 HOST_UBUNTUGRUB_DEPENDENCIES = host-lvm2
 
-HOST_UBUNTUGRUB_MODS = all_video boot chain configfile cpuid echo net ext2 extcmd fat \
-	gettext gfxmenu gfxterm gzio http ntfs linux linux16 loadenv minicmd net part_gpt \
-	part_msdos png progress read reiserfs search sleep terminal test tftp \
-	biosdisk gfxterm_background normal ntldr pxe
+# common modules
+HOST_UBUNTUGRUB_COMMON_MODS=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
+ ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test tftp
+# modules needed for cd/usb boot
+HOST_UBUNTUGRUB_ISO_MODS=iso9660 usb
+
+# arch specific netboot modules
+HOST_UBUNTUGRUB_EFI32_MODS=$(HOST_UBUNTUGRUB_COMMON_MODS) efi_gop efi_uga efinet
+HOST_UBUNTUGRUB_EFI64_MODS=$(HOST_UBUNTUGRUB_COMMON_MODS) efi_gop efi_uga efinet linuxefi
+HOST_UBUNTUGRUB_I386_MODS=$(HOST_UBUNTUGRUB_COMMON_MODS) biosdisk ntldr pxe
 
 HOST_UBUNTUGRUB_FONT = unicode
 
+HOST_UBUNTUGRUB_CONF_ENV = \
+	CPP="$(HOSTCC) -E"
+
+# TODO: --enable-grub-mkfont not working, it's not detected properly by configure
 HOST_UBUNTUGRUB_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
-	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
+	--disable-cache-stats --disable-boot-time --disable-grub-mkfont \
 	--disable-grub-mount --enable-device-mapper --disable-emu-usb \
 	--disable-liblzma --disable-libzfs
 
+HOST_UBUNTUGRUB_CONF_OPTS += CFLAGS="$(HOST_CFLAGS) -Wno-error"
+# Fix: old gcc don't have this option - enable for gcc-6
+# HOST_UBUNTUGRUB_CONF_OPTS += LDFLAGS="-no-pie"
+
+
 # extract debian dir
 define HOST_UBUNTUGRUB_EXTRACT_DEBIAN
-    for file in $(HOST_UBUNTUGRUB_EXTRA_DOWNLOADS); do \
+    for file in $(UBUNTUGRUB_EXTRA_DOWNLOADS); do \
 	xzcat $(BR2_DL_DIR)/$$file | tar -C $(HOST_UBUNTUGRUB_SRCDIR)   -xf - ; \
     done
 endef
@@ -200,7 +215,7 @@ define HOST_UBUNTUGRUB_POST_PATCH
 	set -e; for extra in 915resolution ntldr-img; do \
 		cp -a debian/grub-extras/$$extra debian/grub-extras-enabled/; \
 	done && \
-	$(TARGET_CONFIGURE_OPTS) \
+	$(HOST_CONFIGURE_OPTS) \
 	GRUB_CONTRIB=$(HOST_UBUNTUGRUB_SRCDIR)debian/grub-extras-enabled \
 	./autogen.sh \
 	)
@@ -215,24 +230,20 @@ define HOST_UBUNTUGRUB_CONFIGURE_CMDS
 	for package in $(HOST_UBUNTUGRUB_PACKAGES); do \
 		mkdir -p $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
 	(cd $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package && rm -rf config.cache && \
-	$(TARGET_CONFIGURE_OPTS) \
-	$(TARGET_CONFIGURE_ARGS) \
+	$(HOST_CONFIGURE_OPTS) \
+	CFLAGS="$(HOST_CFLAGS)" \
+	LDFLAGS="$(HOST_LDFLAGS)" \
 	$(HOST_UBUNTUGRUB_CONF_ENV) \
 	CONFIG_SITE=/dev/null \
 	../../configure \
 		--with-platform=$$(echo $$package|sed 's/^grub-//'|sed 's/-[^-]*$$//') \
 		--target=$$(echo $$package|sed 's/^grub-//'|sed 's/^[^-]*-//') \
-		--host=$(GNU_TARGET_NAME) \
-		--build=$(GNU_HOST_NAME) \
-		--prefix=/usr \
-		--exec-prefix=/usr \
-		--sysconfdir=/etc \
-		--localstatedir=/var \
-		--program-prefix="" \
+		--prefix="$(HOST_DIR)" \
+		--sysconfdir="$(HOST_DIR)/etc" \
+		--localstatedir="$(HOST_DIR)/var" \
+		--enable-shared --disable-static \
+		--disable-debug \
 		$(if $(HOST_UBUNTUGRUB_OVERRIDE_SRCDIR),,--disable-dependency-tracking) \
-		--enable-ipv6 \
-		$(NLS_OPTS) \
-		$(SHARED_STATIC_LIBS_OPTS) \
 		$(QUIET) $(HOST_UBUNTUGRUB_CONF_OPTS) \
 	) \
 	done
@@ -241,7 +252,7 @@ endef
 # build
 define HOST_UBUNTUGRUB_BUILD_CMDS
 	for package in $(HOST_UBUNTUGRUB_PACKAGES); do \
-		$(TARGET_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE) \
+		$(HOST_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE) \
 		$(HOST_UBUNTUGRUB_MAKE_OPTS) -C $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
 	done
 endef
@@ -249,14 +260,13 @@ endef
 # install
 define HOST_UBUNTUGRUB_INSTALL_CMDS
 	for package in $(HOST_UBUNTUGRUB_PACKAGES); do \
-		$(TARGET_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE) \
-		$(HOST_UBUNTUGRUB_INSTALL_TARGET_OPTS) -C $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
+		$(HOST_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE_ENV) $(HOST_UBUNTUGRUB_MAKE) \
+		$(HOST_UBUNTUGRUB_INSTALL_OPTS) -C $(HOST_UBUNTUGRUB_SRCDIR)obj/$$package; \
 	done
 endef
 
 define HOST_UBUNTUGRUB_MKNETDIR
-	mkdir -p $(HOST_DIR)/usr
-	cp -R $(@D)/* $(HOST_DIR)/usr
+	mkdir -p $(HOST_DIR)/usr/share/grub
 # Grub2 install unicode font
 	cp $(BASE_DIR)/../../linbofs/usr/share/grub/$(HOST_UBUNTUGRUB_FONT).pf2 $(HOST_DIR)/usr/share/grub/
 # Grub2 BIOS netdir creation
@@ -271,21 +281,21 @@ define HOST_UBUNTUGRUB_MKNETDIR
 		--fonts="$(HOST_UBUNTUGRUB_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
-		--modules="$(HOST_UBUNTUGRUB_MODS)" \
+		--modules="$(HOST_UBUNTUGRUB_I386_MODS)" \
 		-d $(HOST_DIR)/lib/grub/i386-pc
 # Grub2 EFI32 netdir creation
 	$(HOST_DIR)/bin/grub-mknetdir \
 		--fonts="$(HOST_UBUNTUGRUB_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
-		--modules="$(HOST_UBUNTUGRUB_MODS) $(HOST_UBUNTUGRUB_ISOMODS)" \
+		--modules="$(HOST_UBUNTUGRUB_EFI32_MODS) $(HOST_UBUNTUGRUB_ISO_MODS)" \
 		-d $(HOST_DIR)/lib/grub/i386-efi
 	mv $(BASE_DIR)/boot/grub/i386-efi/core.efi $(BASE_DIR)/boot/grub/i386-efi/core.iso
 	$(HOST_DIR)/bin/grub-mknetdir \
 		--fonts="$(HOST_UBUNTUGRUB_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
-		--modules="$(HOST_UBUNTUGRUB_MODS)" \
+		--modules="$(HOST_UBUNTUGRUB_EFI32_MODS)" \
 		-d $(HOST_DIR)/lib/grub/i386-efi
 # Grub2 EFI64 netdir creation
 	mkdir -p $(BASE_DIR)/boot/grub
@@ -293,14 +303,14 @@ define HOST_UBUNTUGRUB_MKNETDIR
 		--fonts="$(HOST_UBUNTUGRUB_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
-		--modules="$(HOST_UBUNTUGRUB_MODS) $(HOST_UBUNTUGRUB_ISOMODS)" \
+		--modules="$(HOST_UBUNTUGRUB_EFI64_MODS) $(HOST_UBUNTUGRUB_ISO_MODS)" \
 		-d $(HOST_DIR)/lib/grub/x86_64-efi
 	mv $(BASE_DIR)/boot/grub/x86_64-efi/core.efi $(BASE_DIR)/boot/grub/x86_64-efi/core.iso
 	$(HOST_DIR)/bin/grub-mknetdir \
 		--fonts="$(HOST_UBUNTUGRUB_FONT)" \
 		--net-directory=$(BASE_DIR) \
 		--subdir=/boot/grub \
-		--modules="$(HOST_UBUNTUGRUB_MODS)" \
+		--modules="$(HOST_UBUNTUGRUB_EFI64_MODS)" \
 		-d $(HOST_DIR)/lib/grub/x86_64-efi
 endef
 
