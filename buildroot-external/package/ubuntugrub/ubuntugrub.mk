@@ -5,11 +5,9 @@
 ################################################################################
 
 UBUNTUGRUB_VERSION = 2.02
-UBUNTUGRUB_SITE = $(TOPDIR)/../rpm
-UBUNTUGRUB_SOURCE = grub-bin.tar.gz
-UBUNTUGRUB_SITE_METHOD = file
-UBUNTUGRUB_ACTUAL_SOURCE_TARBALL = grub-$(UBUNTUGRUB_VERSION).tar.gz
-UBUNTUGRUB_ACTUAL_SOURCE_SITE = https://ftp.gnu.org/gnu/grub
+UBUNTUGRUB_SITE = http://archive.ubuntu.com/ubuntu/pool/main/g/grub2
+UBUNTUGRUB_SOURCE = grub2_$(UBUNTUGRUB_VERSION).orig.tar.xz
+UBUNTUGRUB_PATCH = grub2_$(UBUNTUGRUB_VERSION)-2ubuntu8.debian.tar.xz
 UBUNTUGRUB_LICENSE = GPLv3
 UBUNTUGRUB_LICENSE_FILES = COPYING
 
