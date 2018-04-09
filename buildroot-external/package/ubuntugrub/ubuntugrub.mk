@@ -13,31 +13,106 @@ UBUNTUGRUB_ACTUAL_SOURCE_SITE = https://ftp.gnu.org/gnu/grub
 UBUNTUGRUB_LICENSE = GPLv3
 UBUNTUGRUB_LICENSE_FILES = COPYING
 
-define UBUNTUGRUB_CONFIGURE_CMDS
-	echo "Nothing to do"
+UBUNTUGRUB_CONF_ENV = \
+	CPP="$(TARGET_CC) -E"
+UBUNTUGRUB_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
+	--disable-cache-stats --disable-boot-time --enable-grub-mkfont \
+	--disable-grub-mount --enable-device-mapper --disable-emu-usb \
+	--enable-ubuntu-recovery \
+	--disable-liblzma --disable-libzfs
+
+UBUNTUGRUB_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
+UBUNTUGRUB_CONF_OPTS += CC=gcc-6 LDFLAGS="-no-pie"
+
+# REAL_PACKAGES = grub-pc(grub-pc-i386) grub-efi-ia32(-i386) grub-efi-amd64(-x86_64)
+# COMMON_PLATFORM := pc
+# DEFAULT_CMDLINE := quiet
+# DEFAULT_TIMEOUT := 5
+# FLICKER_FREE_BOOT := no
+# DEFAULT_HIDDEN_TIMEOUT :=
+# DEFAULT_HIDDEN_TIMEOUT_BOOL := false
+
+# autoreconf
+define UBUNTUGRUB_POST_PATCH
+	(cd $$(UBUNTUGRUB_SRCDIR) && \
+	rm -rf debian/grub-extras-enabled && \
+	mkdir debian/grub-extras-enabled && \
+	set -e; for extra in 915resolution ntldr-img; do \
+		cp -a debian/grub-extras/$$extra debian/grub-extras-enabled/; \
+	done \
+	)
 endef
 
-define UBUNTUGRUB_BUILD_CMDS
-	echo "Nothing to do"
-endef
+UBUNTUGRUB_POST_PATCH_HOOKS += UBUNTUGRUB_POST_PATCH
 
+UBUNTUGRUB_AUTORECONF=YES
+UBUNTUGRUB_AUTORECONF_ENV="GRUB_CONTRIB=$(@D)/debian/grub-extras-enabled"
+
+UBUNTUGRUB_PACKAGES=grub-pc-i386 grub-efi-i386
 ifeq ($(BR2_x86_64),y)
-define UBUNTUGRUB_INSTALL_TARGET_CMDS
-    mkdir -p $(TARGET_DIR)/usr
-    cp -R $(@D)/* $(TARGET_DIR)/usr
-    cp $(TARGET_DIR)/usr/bin64/* $(TARGET_DIR)/usr/bin
-    rm -rf $(TARGET_DIR)/usr/bin32 $(TARGET_DIR)/usr/bin64
-endef
-else
-define UBUNTUGRUB_INSTALL_TARGET_CMDS
-    mkdir -p $(TARGET_DIR)/usr
-    cp -R $(@D)/* $(TARGET_DIR)/usr
-    cp $(TARGET_DIR)/usr/bin32/* $(TARGET_DIR)/usr/bin
-    rm -rf $(TARGET_DIR)/usr/lib/x86_64-pc
-    rm -rf $(TARGET_DIR)/usr/lib/x86_64-efi
-    rm -rf $(TARGET_DIR)/usr/bin32 $(TARGET_DIR)/usr/bin64
-endef
+UBUNTUGRUB_PACKAGES += grub-efi-x86_64
 endif
+
+# configure
+define UBUNTUGRUB_CONFIGURE_CMDS
+	for package in $(UBUNTUGRUB_PACKAGES); do \
+		mkdir -p $$(UBUNTUGRUB_SRCDIR)/obj/$$(package); \
+	(cd $$(UBUNTUGRUB_SRCDIR)/obj/$$(package) && rm -rf config.cache && \
+	$$(TARGET_CONFIGURE_OPTS) \
+	$$(TARGET_CONFIGURE_ARGS) \
+	$$($$(PKG)_CONF_ENV) \
+	CONFIG_SITE=/dev/null \
+	../../configure \
+		--with-platform=$(subst grub-%-*,%,$$(package)) \
+		--target=$(subst grub-*-%,%,$$(package)) \
+		--host=$$(GNU_TARGET_NAME) \
+		--build=$$(GNU_HOST_NAME) \
+		--prefix=/usr \
+		--exec-prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--program-prefix="" \
+		--disable-gtk-doc \
+		--disable-gtk-doc-html \
+		--disable-doc \
+		--disable-docs \
+		--disable-documentation \
+		--with-xmlto=no \
+		--with-fop=no \
+		$$(if $$(UBUNTUGRUB_OVERRIDE_SRCDIR),,--disable-dependency-tracking) \
+		--enable-ipv6 \
+		$$(NLS_OPTS) \
+		$$(SHARED_STATIC_LIBS_OPTS) \
+		$$(QUIET) $$(UBUNTUGRUB_CONF_OPTS) \
+	) \
+	done
+endef
+
+# build
+define UBUNTUGRUB_BUILD_CMDS
+	for package in $(UBUNTUGRUB_PACKAGES); do \
+		$$(TARGET_MAKE_ENV) $$(UBUNTUGRUB_MAKE_ENV) $$(UBUNTUGRUB_MAKE) \
+		$$(UBUNTUGRUB_MAKE_OPTS) -C $$(UBUNTUGRUB_SRCDIR)/obj/$$(package) \
+	done
+endef
+
+# install
+define UBUNTUGRUB_INSTALL_TARGET_CMDS
+	for package in $(UBUNTUGRUB_PACKAGES); do \
+		$$(TARGET_MAKE_ENV) $$(UBUNTUGRUB_MAKE_ENV) $$(UBUNTUGRUB_MAKE) \
+		$$(UBUNTUGRUB_INSTALL_TARGET_OPTS) -C $$(UBUNTUGRUB_SRCDIR)/obj/$$(package) \
+	done
+endef
+
+define UBUNTUGRUB_CLEANUP
+	for arch in i386-pc i386-efi x86_64-efi; do \
+		rm -fv $(TARGET_DIR)/usr/lib/grub/$$(arch)/*.image $(TARGET_DIR)/usr/lib/grub/$$(arch)/*.module \
+		$(TARGET_DIR)/usr/lib/grub/$$(arch)/kernel.exec $(TARGET_DIR)/usr/lib/grub/$$(arch)/gdb_grub \
+		$(TARGET_DIR)/usr/lib/grub/$$(arch)/gmodule.pl $(TARGET_DIR)/etc/bash_completion.d/grub; \
+	done
+	rmdir -v $(TARGET_DIR)/etc/bash_completion.d/
+endef
+UBUNTUGRUB_POST_INSTALL_TARGET_HOOKS += UBUNTUGRUB_CLEANUP
 
 ifeq ($(BR2_x86_64),y)
 UBUNTUGRUB_IMGS = boot boot_hybrid cdboot diskboot kernel lnxboot lzma_decompress pxeboot
@@ -69,6 +144,7 @@ UBUNTUGRUB_CHECK_BIN_ARCH_EXCLUSIONS = \
 	$(patsubst %,/usr/lib/grub/i386-efi/%.mod,$(UBUNTUGRUB_MODS)) \
 	$(patsubst %,/usr/lib/grub/i386-efi/%.img,$(UBUNTUGRUB_IMGS))
 endif
+
 
 ifeq ($(BR2_x86_64),y)
 HOST_UBUNTUGRUB_DEPENDENCIES = host-lvm2
@@ -139,5 +215,5 @@ define HOST_UBUNTUGRUB_INSTALL_CMDS
 endef
 endif
 
-$(eval $(generic-package))
-$(eval $(host-generic-package))
+$(eval $(autotools-package))
+$(eval $(host-autotools-package))
