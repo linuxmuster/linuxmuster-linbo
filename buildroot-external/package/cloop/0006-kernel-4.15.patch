@@ -12,7 +12,7 @@ diff -up cloop-3.14.1.2/cloop.c.orig cloop-3.14.1.2/cloop.c
 -   size_read = vfs_read(f, (void __user *)(buf + buf_done), size, &pos);
 -   set_fs(old_fs);
 +   /* kernel_read() because vfs_read is no longer exported by kernel */
-+   size_t size_read = kernel_read(f, (void *)(buf + buf_done), size, &pos);
++   size_read = kernel_read(f, (void *)(buf + buf_done), size, &pos);
  
     if(size_read <= 0)
      {
