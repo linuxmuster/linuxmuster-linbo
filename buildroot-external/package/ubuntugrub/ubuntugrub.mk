@@ -16,7 +16,7 @@ UBUNTUGRUB_CONF_ENV = \
 UBUNTUGRUB_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-cache-stats --disable-boot-time --disable-grub-mkfont \
 	--disable-grub-mount --disable-device-mapper --disable-emu-usb \
-	--disable-liblzma --disable-libzfs
+	--disable-liblzma --disable-libzfs --disable-grub-themes
 
 UBUNTUGRUB_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
 # Fix: old gcc don't have this option - enable for gcc-6
@@ -160,8 +160,6 @@ endif
 #
 ################################################################################
 
-HOST_UBUNTUGRUB_DEPENDENCIES = host-lvm2
-
 # common modules
 HOST_UBUNTUGRUB_COMMON_MODS=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
  ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test tftp
@@ -181,8 +179,8 @@ HOST_UBUNTUGRUB_CONF_ENV = \
 # TODO: --enable-grub-mkfont not working, it's not detected properly by configure
 HOST_UBUNTUGRUB_CONF_OPTS = --disable-nls --disable-efiemu --disable-mm-debug \
 	--disable-cache-stats --disable-boot-time --disable-grub-mkfont \
-	--disable-grub-mount --enable-device-mapper --disable-emu-usb \
-	--disable-liblzma --disable-libzfs
+	--disable-grub-mount --disable-device-mapper --disable-emu-usb \
+	--disable-liblzma --disable-libzfs --disable-grub-themes
 
 HOST_UBUNTUGRUB_CONF_OPTS += CFLAGS="$(HOST_CFLAGS) -Wno-error"
 # Fix: old gcc don't have this option - enable for gcc-6
