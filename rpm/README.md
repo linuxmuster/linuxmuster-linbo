@@ -49,18 +49,6 @@ Um die defconfig vom Kernel zu aktualisieren:
     $ make O=../build/build-i386/ linux-savedefconfig
     $ make O=../build/build-i386/ linux-update-defconfig
 
-Grub
-----
-
-Das Grub-Paket rpm/grub-bin.tar.gz stammt momentan von Ubuntu bionic.
-Zur Aktualisierung benötigt man die Dateien folgender Pakete:
-    grub-ipxe_1.0.0+git-20180124.fbe8c52d-0ubuntu2_all.deb
-    grub-common_2.02-2ubuntu8_amd64.deb
-    grub-common_2.02-2ubuntu8_i386.deb
-    grub-pc-bin_2.02-2ubuntu8_amd64.deb
-    grub-efi-ia32-bin_2.02-2ubuntu8_i386.deb
-    grub-efi-amd64-bin_2.02-2ubuntu8_amd64.deb
-
 Paket bauen
 -----------
 
