@@ -1,0 +1,19 @@
+diff -up cloop-3.14.1.2/cloop.c.orig cloop-3.14.1.2/cloop.c
+--- cloop-3.14.1.2/cloop.c.orig 2018-04-09 22:59:42.000000000 +0200
++++ cloop-3.14.1.2/cloop.c      2018-04-10 20:02:05.000000000 +0200
+@@ -215,12 +215,8 @@ static ssize_t cloop_read_from_file(stru
+  while (buf_done < buf_len)
+   {
+    size_t size = buf_len - buf_done, size_read;
+-   /* kernel_read() only supports 32 bit offsets, so we use vfs_read() instead. */
+-   /* int size_read = kernel_read(f, pos, buf + buf_done, size); */
+-   mm_segment_t old_fs = get_fs();
+-   set_fs(get_ds());
+-   size_read = vfs_read(f, (void __user *)(buf + buf_done), size, &pos);
+-   set_fs(old_fs);
++   /* kernel_read() because vfs_read is no longer exported by kernel */
++   size_t size_read = kernel_read(f, (void *)(buf + buf_done), size, &pos);
+ 
+    if(size_read <= 0)
+     {
+
