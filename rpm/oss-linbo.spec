@@ -113,7 +113,7 @@ BuildRequires:  openssl-certs
 %endif
 BuildRequires:	flex gettext git freetype2-devel libtool 
 BuildRequires:	libopenssl-devel ncurses-devel python python-argparse rsync texinfo unzip wget efont-unicode
-BuildRequires:  cmake
+BuildRequires:  cmake quilt
 
 BuildRoot:    %{_tmppath}/%{name}-root
 Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6 xorriso >= 1.2.4
