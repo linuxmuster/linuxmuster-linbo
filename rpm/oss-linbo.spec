@@ -50,7 +50,8 @@ Source30:       glibc-glibc-2.26-146-gd300041c533a3d837c9f37a099bcc95466860e98.t
 Source31:       gmp-6.1.2.tar.xz
 Source32:       gperf-3.0.4.tar.gz
 Source33:       gptfdisk-1.0.3.tar.gz
-Source34:       grub-2.02.tar.gz
+Source34:       grub2_2.02-2ubuntu8.debian.tar.xz
+Source62:       grub2_2.02.orig.tar.xz
 Source35:       inputproto-2.3.2.tar.bz2
 Source36:       intltool-0.51.0.tar.gz
 Source37:       kbproto-1.0.7.tar.bz2
