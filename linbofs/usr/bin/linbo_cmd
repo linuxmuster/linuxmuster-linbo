@@ -2750,6 +2750,8 @@ download_if_newer(){
  local RC=0
  local DOWNLOAD_ALL=""
  local IMAGE=""
+ local EMPTY="\"\""
+ [ "$2" = "$EMPTY" ] && return 0 # don't try empty filenames
  case "$2" in *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) IMAGE="true" ;; esac
  if [ ! -s "$2" -o ! -s "$2".info ]; then # File not there, download all
   DOWNLOAD_ALL="true"
