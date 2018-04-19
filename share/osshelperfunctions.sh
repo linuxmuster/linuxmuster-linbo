@@ -143,7 +143,7 @@ upload_password_to_ldap(){
    echo "Machine account ldif file: $imagemacct"
    echo "Host: $compname"
    echo "Writing samba machine password hashes to ldap account:"
-   sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDAPMODIFY" -h localhost
+   sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDBMODIFY" -h localhost
   fi
 }
 
