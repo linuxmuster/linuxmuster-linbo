@@ -5,7 +5,7 @@
 #
 
 # read in linuxmuster specific environment
-source /etc/inbo/linbo.conf || exit 1
+source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
 source $HELPERFUNCTIONS || exit 1
 [ "$FLAVOUR" = "lmn6" ] && source "$LINBOSHAREDIR/lmn6helperfunctions.sh"
@@ -107,9 +107,16 @@ case "$FTYPE" in
  *.new)
   # add new host data to workstations file
   ROW="$(cat $FILE)"
-  if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
-   echo "$ROW"
-   echo "is already present in workstations file. Skipped!" >&2
+  if [ -e "$WIMPORTDATA" ]; then
+   if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
+    echo "$ROW"
+    echo "is already present in workstations file. Skipped!" >&2
+   else
+    echo "Adding row to $WIMPORTDATA." >&2
+    echo "$ROW" >> $WIMPORTDATA
+    # save last registered host
+    echo "$ROW" > "$LINBODIR/last_registered"
+   fi
   else
    echo "Adding row to $WIMPORTDATA." >&2
    echo "$ROW" >> $WIMPORTDATA
