@@ -202,8 +202,11 @@ cmd="$1"
 
 # fstype partition
 fstype(){
- local phead="$(dd if="$1" bs=128k count=2 2>/dev/null)"
+ local fs="$(blkid "$1" -s TYPE -o value)"
  local RC="$?"
+ [ "$RC" = "0" -a -n "$fs" ] && echo "$fs" && return "0"
+ local phead="$(dd if="$1" bs=128k count=2 2>/dev/null)"
+ RC="$?"
  [ "$RC" = "0" ] || return "$RC"
  case "$phead" in
   *NTFS*) echo "ntfs" ;;
