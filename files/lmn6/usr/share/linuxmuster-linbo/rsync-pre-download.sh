@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 08.03.2016
+# 20180502
 #
 
 # read in linuxmuster.net specific environment
@@ -95,6 +95,13 @@ case $EXT in
     echo "Opsi key for $RSYNC_HOST_NAME found, providing key file."
     echo "$key" > "$FILE"
     chmod 644 "$FILE"
+    # upload opsiip to client
+    linbo-ssh "$compname" "echo $opsiip > /tmp/opsiip"
+    # get opsi server cert and provide it to client
+    opsipem="opsiconfd.pem"
+    rsync -v "$opsiip:/etc/opsi/$opsipem" "$LINBODIR/$opsipem"
+    chmod 600 "$LINBODIR/$opsipem"
+    linbo-scp -v "$LINBODIR/$opsipem" "$compname:/tmp"
    fi
   fi
  ;;

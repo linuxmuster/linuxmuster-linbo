@@ -1,3 +1,12 @@
+linuxmuster-linbo (2.3.37-0) babo62; urgency=low
+
+  * updated ntfs-3g to 2017.3.23.
+  * updated chntpw download address.
+  * opsi improvements concerning migration from babo to v7.
+  * fixed removement of double windows efi boot entries.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 03 May 2018 16:35:21 +0000
+
 linuxmuster-linbo (2.3.36-0) babo62; urgency=low
 
   * linbofs: udev rules fixes.
