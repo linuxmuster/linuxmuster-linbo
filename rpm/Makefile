@@ -17,11 +17,34 @@ clean:
 
 .PHONY: build-linbo build
 
+config-debug:
+	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
+	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig.debug linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) menuconfig
+	cd $(BUILDROOT); make O=$(BUILD64) savedefconfig
+	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig linbo-x86_64_defconfig.debug
+
+config-nodebug:
+	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
+	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig.nodebug linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) menuconfig
+	cd $(BUILDROOT); make O=$(BUILD64) savedefconfig
+	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig linbo-x86_64_defconfig.nodebug
+
 build-linbo:
 	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
 	cd $(BUILDROOT); make O=$(BUILD32) BR2_EXTERNAL=$(BUILDROOT)-external linbo-i386_defconfig
+	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig.nodebug linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD32)
+	cd $(BUILDROOT); make O=$(BUILD64)
+
+build-debug:
+	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
+	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig.debug linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
 	cd $(BUILDROOT); make O=$(BUILD64)
 
 build: build-linbo
