@@ -269,7 +269,7 @@ fi
 
 %post
 # setup rights
-if [ -d /home/sysadmins/admin ]
+if [ -d /home/sysadmins/administrator ]
 then
    DATE=`date +%Y-%m-%d:%H-%M`
    SCHOOL_SERVER=10.0.0.2
@@ -329,7 +329,12 @@ fi
 %{fillup_and_insserv -yn bittorrent bittorrent}
 %{fillup_and_insserv -yn linbo-bittorrent linbo-bittorrent}
 %{fillup_and_insserv -f -y linbo-multicast}
+%if 0%{?sles_version} == 11
 %{fillup_and_insserv -f -Y rsyncd}
+%else
+systemctl enable rsyncd
+systemctl start rsyncd
+%endif
 
 %postun
 %restart_on_update bittorrent linbo-bittorrent linbo-multicast rsyncd
