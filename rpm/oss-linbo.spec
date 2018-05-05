@@ -106,12 +106,14 @@ Source86:       zd1211-firmware-1.4.tar.bz2
 Source87:       zlib-1.2.11.tar.xz
 
 BuildRequires:	unzip
-Requires:       openschool-base
 BuildRequires:  glibc glibc-32bit glibc-devel glibc-devel-32bit
 BuildRequires:	autoconf >= 2.69 automake >= 1.15 bc bison cpio
 BuildRequires:	gcc48 gcc48-32bit gcc48-c++
 %if 0%{?sles_version} == 11
 BuildRequires:  openssl-certs
+BuildRequires:  openschool-base
+%else
+BuildRequires:  oss-base
 %endif
 BuildRequires:	flex gettext git freetype2-devel libtool 
 BuildRequires:	libopenssl-devel ncurses-devel python python-argparse rsync texinfo unzip wget efont-unicode
