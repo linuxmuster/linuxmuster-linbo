@@ -143,6 +143,11 @@ void FortschrittDialog::processFinished( int exitCode, QProcess::ExitStatus exit
                                 + " was finished");
         logConsole->writeResult(exitCode, exitStatus, exitCode);
     }
+    if(exitStatus == QProcess::NormalExit){
+        this->accept();
+    } else {
+        this->reject();
+    }
     this->close();
 }
 

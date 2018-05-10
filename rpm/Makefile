@@ -5,6 +5,7 @@ BUILDROOT=$(CURDIR)/buildroot
 BUILDDIR=$(CURDIR)/build
 BUILD32=$(BUILDDIR)/build-i386
 BUILD64=$(BUILDDIR)/build-x86_64
+BUILD64DEBUG=$(BUILDDIR)/build-x86_64-debug
 LINBO_VERSION=$(shell cat rpm/oss-linbo.spec | grep '^Version:' | awk '{ print $$2 }')
 LINBO_RELEASE=$(shell cat rpm/oss-linbo.spec | grep '^Release:' | awk '{ print $$2 }')
 
@@ -20,9 +21,9 @@ clean:
 config-debug:
 	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
 	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig.debug linbo-x86_64_defconfig
-	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
-	cd $(BUILDROOT); make O=$(BUILD64) menuconfig
-	cd $(BUILDROOT); make O=$(BUILD64) savedefconfig
+	cd $(BUILDROOT); make O=$(BUILD64DEBUG) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64DEBUG) menuconfig
+	cd $(BUILDROOT); make O=$(BUILD64DEBUG) savedefconfig
 	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig linbo-x86_64_defconfig.debug
 
 config-nodebug:
@@ -44,7 +45,7 @@ build-linbo:
 build-debug:
 	echo "LINBO $(LINBO_VERSION)-$(LINBO_RELEASE)" >linbofs/etc/linbo-version
 	cd $(BUILDROOT)-external/configs; cp linbo-x86_64_defconfig.debug linbo-x86_64_defconfig
-	cd $(BUILDROOT); make O=$(BUILD64) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
-	cd $(BUILDROOT); make O=$(BUILD64)
+	cd $(BUILDROOT); make O=$(BUILD64DEBUG) BR2_EXTERNAL=$(BUILDROOT)-external linbo-x86_64_defconfig
+	cd $(BUILDROOT); make O=$(BUILD64DEBUG)
 
 build: build-linbo
