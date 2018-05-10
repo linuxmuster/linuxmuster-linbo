@@ -104,6 +104,8 @@ Source84:       xtrans-1.3.5.tar.bz2
 Source85:       xz-5.2.3.tar.bz2
 Source86:       zd1211-firmware-1.4.tar.bz2
 Source87:       zlib-1.2.11.tar.xz
+Source88:       gdb-7.11.1.tar.xz
+Source89:       sftpserver-0.2.2.tar.gz
 
 BuildRequires:	unzip
 BuildRequires:  glibc glibc-32bit glibc-devel glibc-devel-32bit
