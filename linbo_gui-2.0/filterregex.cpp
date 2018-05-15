@@ -28,6 +28,9 @@ void FilterRegex::filter(const QByteArray &output)
     for(QString s : sl){
         s.replace(QChar('\''),QChar(' '));
         s.replace(QChar('"'),QChar(' '));
+        if(s.trimmed().isEmpty()){
+            continue;
+        }
         if(&titleMatcher != 0){
             QRegularExpressionMatch title = titleMatcher.match(s);
             if(title.hasMatch()){

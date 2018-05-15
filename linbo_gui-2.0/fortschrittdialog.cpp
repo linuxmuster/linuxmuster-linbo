@@ -50,6 +50,7 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
     } else {
         ui->folgeAktion->setText(aktion.toQString());
     }
+    QStringList args = *command;
     if(active){
         connect( process, &QProcess::readyReadStandardOutput,
                  this, &FortschrittDialog::processReadyReadStandardOutput);
@@ -60,10 +61,8 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
 
         //args need to be passed separate because of empty args
         cmd = command->at(0);
-        QStringList args = *command;
         args.removeFirst();
         const QStringList cargs = args;
-        process->start(cmd, args, QIODevice::ReadWrite );
     }
     if(filter == 0){
         filter = new FilterTime(this, ui->processTime);
@@ -74,6 +73,9 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
     ui->progressBar->setValue(0);
     ui->progressBar->setMaximum(100);
     timerId = startTimer( 1000 );
+    if(active){
+        process->start(cmd, args, QIODevice::ReadWrite );
+    }
 }
 
 FortschrittDialog::~FortschrittDialog()
