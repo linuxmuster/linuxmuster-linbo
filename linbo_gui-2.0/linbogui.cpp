@@ -462,7 +462,9 @@ void LinboGUI::on_setup_clicked()
         }
     }
     for(unsigned int osnr = 0;osnr < conf->elements.size(); osnr++){
-        doCommand( command->mksynccommand(osnr), true, QString("Einrichten - Synchronisieren OS Nr."+(osnr+1)), Aktion::None, &details);
+        QString titel = QString("Einrichten - Synchronisieren OS Nr.");
+        titel.append(QString::number(osnr+1));
+        doCommand( command->mksynccommand(osnr), true, titel, Aktion::None, &details);
     }
     doCommand( command->mkstartcommand(0), true, QString("Einrichten - Start OS Nr.1"), Aktion::None, &details);
 }
