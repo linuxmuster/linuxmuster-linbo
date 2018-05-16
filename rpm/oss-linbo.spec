@@ -273,7 +273,12 @@ fi
 
 %post
 # setup rights
-if [ -d /home/sysadmins/administrator ]
+%if 0%{?sles_version} == 11
+TESTDIR=/home/sysadmins/admin
+%else
+TESTDIR=/home/sysadmins/administrator
+%endif
+if [ -d "$TESTDIR" ]
 then
    DATE=`date +%Y-%m-%d:%H-%M`
    SCHOOL_SERVER=10.0.0.2
