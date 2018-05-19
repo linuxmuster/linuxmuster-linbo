@@ -295,11 +295,13 @@ then
    cp $FILE.in $FILE
    sed -i -e "s|@@linbodir@@|$LINBODIR|g" -e "s|@@linbosharedir@@|$LINBOSHAREDIR|g" $FILE
    FILE=/etc/rsyncd.secrets
+   LINBOPW="$(pwgen -1)"
    if [ ! -e $FILE ]
    then
      cp $FILE.in $FILE
-     LINBOPW="$(pwgen -1)"
      sed "s/^linbo:.*/linbo:$LINBOPW/" -i $FILE
+   elif ! grep -q ^linbo: $FILE; then
+     echo "linbo:$LINBOPW" >>$FILE
    fi
    FILE=/etc/linbo/start.conf.default
    if [ -e $FILE ]; then
