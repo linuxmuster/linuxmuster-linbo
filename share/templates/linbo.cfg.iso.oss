@@ -1,6 +1,6 @@
 # grub.cfg fuer linbo isoboot
 # thomas@linuxmuster.net
-# 20160804
+# 20170518
 #
 
 set default=0
@@ -78,3 +78,14 @@ menuentry "$NAME Debugmodus" --class linux {
 
 }
 
+# linbo part, boot local or net (#3)
+menuentry "PXE Boot" --class linux {
+
+ echo PXE Boot
+ echo
+
+ echo -n "Loading ipxe.efi ..."
+ chainloader /ipxe.efi
+ boot
+
+}

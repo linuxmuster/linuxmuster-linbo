@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 20160804
+# 20171107
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -35,13 +35,29 @@ set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
 
 clear
 
+# find linbo cache partition
+set cachelabel="@@cachelabel@@"
+if [ -n "$cachelabel" ]; then
+  search --label "$cachelabel" --set cacheroot
+fi
+if [ -z "$cacheroot" ]; then
+  search --file /start.conf --set cacheroot
+fi
+if [ -z "$cacheroot" ]; then
+  search --file "$linbo_initrd" --set cacheroot
+fi
+if [ -n "$cacheroot" ]; then
+  set root="$cacheroot"
+else
+  set root="@@cacheroot@@"
+fi
+
 # linbo part, boot local or net (default #0)
 menuentry 'LINBO' --class linux {
 
  echo LINBO $bootflag for group @@group@@
  echo
 
- set root="@@cacheroot@@"
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
   set bootflag=localboot
  elif [ -n "$pxe_default_server" ]; then
@@ -51,7 +67,7 @@ menuentry 'LINBO' --class linux {
 
  if [ -n "$bootflag" ]; then
   echo -n "Loading $linbo_kernel ..."
-  linux $linbo_kernel @@kopts@@ $bootflag quiet splash
+  linux $linbo_kernel @@kopts@@ $bootflag
   echo
   echo -n "Loading $linbo_initrd ..."
   initrd $linbo_initrd
@@ -68,4 +84,3 @@ menuentry 'LINBO' --class linux {
  fi
 
 }
-
