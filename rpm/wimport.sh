@@ -300,7 +300,7 @@ echo "Processing host groups..."
 RC=
 TMPFILE=$(mktemp /tmp/hwtypesXXXX)
 rm -f $TMPFILE
-oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" description configurationKey >$TMPFILE
+ >$TMPFILE
 while read line; do
   key=${line%%:*}
   case "$key" in
