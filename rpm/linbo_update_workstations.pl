@@ -1,4 +1,4 @@
-#!/usr/bin/perl  -w
+#!/usr/bin/perl  -wd
 # Copyright (c) 2018 Frank Schütte <fschuett@gymhim.de> GPLv3
 # update/create workstations file from existing hosts
 #
@@ -74,7 +74,7 @@ for my $line (@comments){
 	print WORKSTATIONS "$line\n";
 }
 
-for my $key (keys %hosts){
+for my $key (sort keys %hosts){
     my %host = %{$hosts{$key}};
     print WORKSTATIONS $host{raum}.";".$host{rechner}.";".$host{gruppe}.";".$host{mac}.";".$host{ip}.";";
     print WORKSTATIONS $host{r1}.";".$host{r2}.";".$host{r3}.";".$host{r4}.";".$host{r5}.";".$host{pxe}.";\n";

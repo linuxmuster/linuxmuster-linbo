@@ -254,15 +254,11 @@ mkdir -p %{buildroot}/var/log/bittorrent
 mkdir -p %{buildroot}/etc/linbo/import-workstations.d
 mkdir -p %{buildroot}/usr/share/oss/tools
 install rpm/import_workstations %{buildroot}/usr/share/oss/tools/import_workstations
-mkdir -p %{buildroot}/usr/sbin
-install rpm/oss_modify_dhcpStatements.pl %{buildroot}/usr/sbin/oss_modify_dhcpStatements.pl
-install rpm/oss_workstations_sync_hosts.pl %{buildroot}/usr/sbin/oss_workstations_sync_hosts.pl
-
 mkdir -p %{buildroot}/usr/share/linbo
+install rpm/linbo_sync_hosts.pl %{buildroot}/usr/share/linbo/linbo_sync_hosts.pl
+install rpm/linbo_update_workstations.pl %{buildroot}/usr/share/linbo/linbo_update_workstations.pl
+install rpm/linbo_write_dhcpd.pl %{buildroot}/usr/share/linbo/linbo_write_dhcpd.pl
 install rpm/wimport.sh %{buildroot}/usr/share/linbo/wimport.sh
-
-mkdir -p %{buildroot}/usr/share/oss/plugins/add_user
-install rpm/add_linbopxe.pl %{buildroot}/usr/share/oss/plugins/add_user/add_linbopxe.pl
 
 export NO_BRP_CHECK_RPATH=true
 
@@ -273,16 +269,11 @@ fi
 
 %post
 # setup rights
-%if 0%{?sles_version} == 11
-TESTDIR=/home/sysadmins/admin
-%else
-TESTDIR=/home/sysadmins/administrator
-%endif
-if [ -d "$TESTDIR" ]
+if [ -e "/etc/sysconfig/schoolserver" ]
 then
    DATE=`date +%Y-%m-%d:%H-%M`
    SCHOOL_SERVER=10.0.0.2
-   [ -e /etc/sysconfig/schoolserver ] && . /etc/sysconfig/schoolserver
+   . /etc/sysconfig/schoolserver
    LINBODIR=/srv/tftp
    LINBOSHAREDIR=/usr/share/linbo
    [ -e /etc/linbo/linbo.conf ] && . /etc/linbo/linbo.conf
@@ -331,8 +322,6 @@ then
      ssh-keygen -N "" -q -t ecdsa -f "$rootkey"
      echo "Done!"
    fi
-   # force recreate tools index on next access
-   rm -f /usr/share/oss/tools/scripts_list.xml
    update-linbofs
 fi
 %fillup_only
@@ -340,18 +329,12 @@ fi
 %{fillup_and_insserv -yn bittorrent bittorrent}
 %{fillup_and_insserv -yn linbo-bittorrent linbo-bittorrent}
 %{fillup_and_insserv -f -y linbo-multicast}
-%if 0%{?sles_version} == 11
-%{fillup_and_insserv -f -Y rsyncd}
-%else
 systemctl enable rsyncd
 systemctl start rsyncd
-%endif
 
 %postun
 %restart_on_update bittorrent linbo-bittorrent linbo-multicast rsyncd
 %insserv_cleanup
-# force recreate tools index on next access
-rm -f /usr/share/oss/tools/scripts_list.xml
 
 %files
 %defattr(-,root,root)
@@ -417,14 +400,11 @@ rm -f /usr/share/oss/tools/scripts_list.xml
 %dir /usr/share/oss/plugins/add_user
 %dir /usr/share/oss/tools
 %defattr(0755,root,root)
-/usr/share/oss/plugins/add_user/add_linbopxe.pl
 /usr/share/oss/tools/import_workstations
 /usr/sbin/linbo-ssh
 /usr/sbin/linbo-scp
 /usr/sbin/linbo-remote
 /usr/sbin/update-linbofs
-/usr/sbin/oss_modify_dhcpStatements.pl
-/usr/sbin/oss_workstations_sync_hosts.pl
 /usr/bin/linbo-grub-mkimage
 /usr/bin/linbo-grub-mkstandalone
 
