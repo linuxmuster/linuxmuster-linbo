@@ -64,13 +64,14 @@ add_opt --show_names "$SHOW_NAMES"
 add_opt --logfile "$DAEMONLOGFILE"
 DAEMONOPTS="$OPTS"
 
-# Add arguments for start-stop-daemon, based on variables set in
+# Add arguments for start_daemon, based on variables set in
 # /etc/sysconfig/$NAME
 OPTS=""
-add_opt -u "$DAEMONUSER"
-add_opt --chroot "$DAEMONCHROOT"
-add_opt --chdir "$DAEMONCHDIR"
+add_opt -c "$DAEMONCHROOT"
+# add_opt --chdir "$DAEMONCHDIR"
+METAROOTOPTS="$OPTS"
 add_opt -n "$DAEMONNICE"
+add_opt -u "$DAEMONUSER"
 METAOPTS="$OPTS"
 
 #
@@ -81,8 +82,8 @@ d_start() {
 		log_warning_msg "disabled in /etc/sysconfig/bittorrent"
 		return 1
 	else
-		start-stop-daemon --start --quiet --pidfile "$PIDFILE" $METAOPTS \
-			--name bttrack --exec $DAEMON -- $DAEMONOPTS &
+		start_daemon -q -p "$PIDFILE" $METAOPTS \
+			$DAEMON -- $DAEMONOPTS &
 		PID=$!
 		echo $PID >$PIDFILE
 		return 0
@@ -93,7 +94,7 @@ d_start() {
 #Function that stops the daemon/service.
 #
 d_stop() {
-	start-stop-daemon --stop --oknodo --quiet --pidfile "$PIDFILE"
+	killproc $METAROOTOPTS -q -p "$PIDFILE" $DAEMON
 }
 
 case "$1" in
@@ -116,7 +117,7 @@ case "$1" in
 	;;
   status)
 	echo -n "Checking $DESC $NAME "
-	checkproc $DAEMON
+	checkproc $METAROOTOPTS -p "$PIDFILE" $DAEMON
 	rc_status -v
 	;;
   *)

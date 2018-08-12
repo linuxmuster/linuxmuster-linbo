@@ -1,4 +1,4 @@
-#!/usr/bin/perl  -wd
+#!/usr/bin/perl  -w
 # Copyright (c) 2018 Frank Schütte <fschuett@gymhim.de> GPLv3
 # update/create workstations file from existing hosts
 #
@@ -18,41 +18,44 @@ while (my $file = readdir(DIR)) {
         $linbo{$gruppe} = '1';
 }
 
-print "Reading /etc/linbo/workstations...\n";
-open(WORKSTATIONS,"</etc/linbo/workstations");
 my %hosts = ();
 my @comments;
-while(<WORKSTATIONS>){
-    chomp;
-    if($_ =~ /^#/){
-        push @comments, $_;
-        next;
-    }
-    my ( $raum, $rechner, $gruppe, $mac, $ip, $r1, $r2, $r3, $r4, $r5, $pxe ) = split /;/;
-    my %temp = (
-            raum => "$raum",
-            rechner => "$rechner",
-            gruppe => "$gruppe",
-            mac => "$mac",
-            ip => "$ip",
-            r1 => "$r1", r2 => "$r2", r3 => "$r3", r4 => "$r4", r5 => "$r5",
-            pxe => "$pxe",
-    );
-    $hosts{$rechner} = %temp;
+if( -e "/etc/linbo/workstations"){
+	print "Reading /etc/linbo/workstations...\n";
+	open(WORKSTATIONS,"</etc/linbo/workstations");
+	while(<WORKSTATIONS>){
+		chomp;
+		if($_ =~ /^#/){
+			push @comments, $_;
+			next;
+		}
+		my ( $raum, $rechner, $gruppe, $mac, $ip, $r1, $r2, $r3, $r4, $r5, $pxe ) = split /;/;
+		my %temp = (
+				raum => "$raum",
+				rechner => "$rechner",
+				gruppe => "$gruppe",
+				mac => "$mac",
+				ip => "$ip",
+				r1 => "$r1", r2 => "$r2", r3 => "$r3", r4 => "$r4", r5 => "$r5",
+				pxe => "$pxe",
+		);
+		$hosts{$mac} = \%temp;
+	}
+	close(WORKSTATIONS);
+} else {
+	print "/etc/linbo/workstations is empty...\n";
 }
-close(WORKSTATIONS);
 
 open(OSS,'echo "SELECT r.name,d.name,hw.name,d.MAC,d.IP FROM Devices d JOIN Rooms r ON d.room_id=r.id JOIN HWConfs hw ON d.hwconf_id=hw.id ORDER BY d.name;" | mysql -N OSS |');
 while(<OSS>){
         chomp;
         my ( $raum, $rechner, $gruppe, $mac, $ip ) = split /\t/;
-        next if not exists $linbo{$gruppe};
-        if(defined $hosts{$rechner}){
-            $hosts{$rechner}{"raum"} = "$raum";
-            $hosts{$rechner}{"rechner"} = "$rechner";
-            $hosts{$rechner}{"gruppe"} = "$gruppe";
-            $hosts{$rechner}{"mac"} = "$mac";
-            $hosts{$rechner}{"ip"} = "$ip";
+        if(defined $hosts{$mac}){
+            $hosts{$mac}{"raum"} = "$raum";
+            $hosts{$mac}{"rechner"} = "$rechner";
+            $hosts{$mac}{"gruppe"} = "$gruppe";
+            $hosts{$mac}{"mac"} = "$mac";
+            $hosts{$mac}{"ip"} = "$ip";
         } else {
             my %temp = (
                 raum => "$raum",
@@ -63,7 +66,7 @@ while(<OSS>){
                 r1 => "", r2 => "", r3 => "", r4 => "", r5 => "",
                 pxe => "1",
             );
-            $hosts{$rechner} = \%temp;
+            $hosts{$mac} = \%temp;
         }
 }
 close(OSS);
@@ -74,10 +77,18 @@ for my $line (@comments){
 	print WORKSTATIONS "$line\n";
 }
 
-for my $key (sort keys %hosts){
-    my %host = %{$hosts{$key}};
-    print WORKSTATIONS $host{raum}.";".$host{rechner}.";".$host{gruppe}.";".$host{mac}.";".$host{ip}.";";
-    print WORKSTATIONS $host{r1}.";".$host{r2}.";".$host{r3}.";".$host{r4}.";".$host{r5}.";".$host{pxe}.";\n";
+my %rooms = ();
+for my $key (keys %hosts){
+	$rooms{$hosts{$key}{"raum"}}{$hosts{$key}{"rechner"}}=\%{$hosts{$key}};
+}
+
+for my $r (sort keys %rooms){
+	for my $h (sort keys %{$rooms{$r}}){
+		my %host = %{$rooms{$r}{$h}};
+		next if(not defined $linbo{$host{gruppe}});
+		print WORKSTATIONS $host{raum}.";".$host{rechner}.";".$host{gruppe}.";".$host{mac}.";".$host{ip}.";";
+		print WORKSTATIONS $host{r1}.";".$host{r2}.";".$host{r3}.";".$host{r4}.";".$host{r5}.";".$host{pxe}.";\n";
+	}
 }
 print "Added hosts to /etc/linbo/workstations.\n";
 close(WORKSTATIONS);

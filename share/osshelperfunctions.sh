@@ -12,6 +12,16 @@ get_group(){
  echo "$GROUP"
 }
 
+# check valid string without special characters
+check_string() {
+ tolower "$1"
+ if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\_\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
+}
+
 # converting string to lower chars
 tolower() {
   unset RET

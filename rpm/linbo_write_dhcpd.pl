@@ -1,4 +1,4 @@
-#!/usr/bin/perl  -wd
+#!/usr/bin/perl  -w
 # Copyright (c) 2018 Frank Schütte <fschuett@gymhim.de> GPLv3
 
 use strict;

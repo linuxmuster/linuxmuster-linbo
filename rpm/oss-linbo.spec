@@ -10,7 +10,6 @@ Version:	2.3.36
 Release:	2
 License:	GPLv3
 Vendor:		openSUSE Linux
-Distribution:	SLE11
 Packager:	fschuett@gymhim.de
 Group:		Productivity/
 Source:		%{name}-%{version}.tar.gz
@@ -111,15 +110,11 @@ BuildRequires:	unzip
 BuildRequires:  glibc glibc-32bit glibc-devel glibc-devel-32bit
 BuildRequires:	autoconf >= 2.69 automake >= 1.15 bc bison cpio
 BuildRequires:	gcc48 gcc48-32bit gcc48-c++
-%if 0%{?sles_version} == 11
-BuildRequires:  openssl-certs
-BuildRequires:  openschool-base
-%else
 BuildRequires:  oss-base
-%endif
 BuildRequires:	flex gettext git freetype2-devel libtool 
 BuildRequires:	libopenssl-devel ncurses-devel python python-argparse rsync texinfo unzip wget efont-unicode
 BuildRequires:  cmake quilt
+BuildRequires:	make >= 4.0
 
 BuildRoot:    %{_tmppath}/%{name}-root
 Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6 xorriso >= 1.2.4
@@ -252,8 +247,8 @@ mkdir -p %{buildroot}/var/lib/bittorrent
 mkdir -p %{buildroot}/var/log/bittorrent
 
 mkdir -p %{buildroot}/etc/linbo/import-workstations.d
-mkdir -p %{buildroot}/usr/share/oss/tools
-install rpm/import_workstations %{buildroot}/usr/share/oss/tools/import_workstations
+mkdir -p %{buildroot}/usr/sbin
+install rpm/import_workstations %{buildroot}/usr/sbin/import_workstations
 mkdir -p %{buildroot}/usr/share/linbo
 install rpm/linbo_sync_hosts.pl %{buildroot}/usr/share/linbo/linbo_sync_hosts.pl
 install rpm/linbo_update_workstations.pl %{buildroot}/usr/share/linbo/linbo_update_workstations.pl
@@ -400,7 +395,7 @@ systemctl start rsyncd
 %dir /usr/share/oss/plugins/add_user
 %dir /usr/share/oss/tools
 %defattr(0755,root,root)
-/usr/share/oss/tools/import_workstations
+/usr/sbin/import_workstations
 /usr/sbin/linbo-ssh
 /usr/sbin/linbo-scp
 /usr/sbin/linbo-remote

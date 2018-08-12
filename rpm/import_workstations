@@ -107,11 +107,5 @@ rm -f $TMPLOG
 # delete locker
 rm -f $locker
 
-if [ $RC -eq 0 ]; then
-    # move processed workstations file
-    DATE=`date +%Y-%m-%d:%H-%M`
-    mv $WIMPORTDATA $WIMPORTDATA.$DATE
-fi
-
 exit $RC
 
