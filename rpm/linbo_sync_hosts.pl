@@ -137,42 +137,48 @@ close(WORKSTATIONS);
 if( scalar(@toadd) ){
 	print scalar(@toadd)." hosts will be added to the system.\n";
 	for my $host (@toadd) {
+		# create device
 		my $room_id = $rooms{$host->{'room'}}{'id'};
 		if(not defined $room_id){
 			close_on_error("Host cannot be added to non existing room: ".Data::Dumper($host)."\n");
+		}
+		my $room_id = $rooms{$host->{'room'}}{'id'};
+		if(not defined $room_id){
+				close_on_error("Host cannot be added to non existing room: ".Data::Dumper($host)."\n");
 		}
 		$result = `/usr/sbin/oss_api.sh GET rooms/$room_id/availableIPAddresses`;
 		$result = eval { decode_json($result) };
 		if ($@)
 		{
-			close_on_error( "decode_json failed, invalid json. error:$@\n" );
+				close_on_error( "decode_json failed, invalid json. error:$@\n" );
 		}
 		if(not scalar(@{$result})){
-			close_on_error("Host room has no free IP adresses: ".Data::Dumper($host)."\n");
+				close_on_error("Host room has no free IP adresses: ".Data::Dumper($host)."\n");
 		}
 		$host->{IP} = shift @{$result};
 		$result = `/usr/sbin/oss_api.sh PUT clonetool/rooms/$room_id/$host->{'MAC'}/$host->{'IP'}/$host->{'name'}`;
 		$result = eval { decode_json($result) };
 		if ($@)
 		{
-			close_on_error( "decode_json failed, invalid json. error:$@\n" );
+				close_on_error( "decode_json failed, invalid json. error:$@\n" );
 		}
 		if ($result->{'code'} ne "OK") {
-			close_on_error( "adding of host failed. error: $result->{'value'}\n".Data::Dumper($host)."\n" );
+				close_on_error( "adding of host failed. error: $result->{'value'}\n".Data::Dumper($host)."\n" );
 		}
 		$result = `/usr/sbin/oss_api.sh GET devices/byIP/$host->{'IP'}`;
 		$result = eval { decode_json($result) };
 		if ($@)
 		{
-			close_on_error( "decode_json failed, invalid json. error:$@\n" );
+				close_on_error( "decode_json failed, invalid json. error:$@\n" );
 		}
+		# update data to include room and hwconf
 		$result->{'hwconfId'} = $host->{'hwconf_id'};
 		$result->{'roomId'} = $room_id;
 		$result->{'inventary'} = '' if not defined $result->{'inventary'};
 		$result->{'serial'} = '' if not defined $result->{'serial'};
 		$result->{'locality'} = '' if not defined $result->{'locality'};
 		$result->{'counter'} = 0 if not defined $result->{'counter'};
-		$tempfile = "/tmp/add_host.$host->{'name'}";
+		$tempfile = "/tmp/modify_host.$host->{'name'}";
 		write_file($tempfile, hash_to_json($result));
 		$result = `/usr/sbin/oss_api_post_file.sh devices/modify $tempfile`;
 		$result = eval { decode_json($result) };

@@ -283,6 +283,9 @@ if [ -s $WIMPORTDATA ]; then
  if [ "$RC" = "0" ]; then
   echo "Done!"
   echo
+  echo "Updating workstations file..."
+  $LINBOSHAREDIR/linbo_update_workstations.pl
+  echo "Done."
  else
   echo "linbo_sync_hosts.pl exits with error!"
   echo
