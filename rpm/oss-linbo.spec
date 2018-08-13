@@ -390,10 +390,6 @@ systemctl start rsyncd
 /srv/tftp/linbo-version
 /usr/share/linbo
 /usr/share/doc/packages/oss-linbo
-%dir /usr/share/oss
-%dir /usr/share/oss/plugins
-%dir /usr/share/oss/plugins/add_user
-%dir /usr/share/oss/tools
 %defattr(0755,root,root)
 /usr/sbin/import_workstations
 /usr/sbin/linbo-ssh
