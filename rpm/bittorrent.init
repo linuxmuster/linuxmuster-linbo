@@ -20,7 +20,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="BitTorrent tracker"
 NAME=bttrack
 DAEMON=/usr/bin/$NAME
-PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/bittorrent
 
 . /lib/lsb/init-functions
@@ -82,10 +81,8 @@ d_start() {
 		log_warning_msg "disabled in /etc/sysconfig/bittorrent"
 		return 1
 	else
-		start_daemon -q -p "$PIDFILE" $METAOPTS \
-			$DAEMON -- $DAEMONOPTS &
-		PID=$!
-		echo $PID >$PIDFILE
+		startproc $METAOPTS \
+			$DAEMON $DAEMONOPTS
 		return 0
 	fi
 }
@@ -94,7 +91,7 @@ d_start() {
 #Function that stops the daemon/service.
 #
 d_stop() {
-	killproc $METAROOTOPTS -q -p "$PIDFILE" $DAEMON
+	killproc $METAROOTOPTS $DAEMON
 }
 
 case "$1" in
@@ -117,7 +114,7 @@ case "$1" in
 	;;
   status)
 	echo -n "Checking $DESC $NAME "
-	checkproc $METAROOTOPTS -p "$PIDFILE" $DAEMON
+	checkproc $METAROOTOPTS $DAEMON
 	rc_status -v
 	;;
   *)
