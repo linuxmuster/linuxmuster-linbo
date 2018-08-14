@@ -2,19 +2,10 @@
 # Copyright (c) 2018 Frank Schütte <fschuett@gymhim.de> GPLv3
 
 use strict;
+use JSON::XS;
 
 my %hosts = ();
 my %systemtype = ();
-
-sub ipsort {
-  my @a = split /\./, $a;
-  my @b = split /\./, $b;
-
-  return $a[0] <=> $b[0]
-      || $a[1] <=> $b[1]
-      || $a[2] <=> $b[2]
-      || $a[3] <=> $b[3];
-}
 
 sub get_bootfilename($)
 {
@@ -53,65 +44,109 @@ while (my $file = readdir(DIR)) {
 }
 
 # read all rooms from OSS
-open(OSS,'echo "SELECT r.name,d.name,hw.name,d.MAC,d.IP FROM Devices d JOIN Rooms r ON d.room_id=r.id JOIN HWConfs hw ON d.hwconf_id=hw.id WHERE d.MAC != \"\" ORDER BY d.IP;" | mysql -N OSS |');
+open(OSS,'echo "SELECT r.name,d.name,d.id, hw.name,d.MAC,d.IP FROM Devices d JOIN Rooms r ON d.room_id=r.id JOIN HWConfs hw ON d.hwconf_id=hw.id WHERE d.MAC != \"\" ORDER BY d.IP;" | mysql -N OSS |');
 while(<OSS>){
         chomp;
-        my ( $raum, $rechner, $gruppe, $mac, $ip ) = split /\t/;
+        my ( $raum, $rechner, $id, $gruppe, $mac, $ip ) = split /\t/;
         my %temp = (
                 raum => "$raum",
                 rechner => "$rechner",
+                id => "$id",
                 gruppe => "$gruppe",
                 mac => "$mac",
                 ip => "$ip",
                 r1 => "", r2 => "", r3 => "", r4 => "", r5 => "",
                 pxe => "1",
         );
-        $hosts{$ip} = \%temp;
+        $hosts{$rechner} = \%temp;
 }
 close(OSS);
 
+my %dhcpStatements = ();
+# read all dhcp statements from OSS
+open(OSS,"echo \"SELECT omc.id, omc.objectId, omc.value FROM OSSMConfig omc JOIN Devices d ON omc.objectId=d.id WHERE omc.objectType='Device' AND omc.keyword='dhcpStatements';\" |mysql -N OSS |");
+while(<OSS>){
+	chomp;
+	my ( $entry_id, $device_id, $value ) = split /\t/;
+	$dhcpStatements{$device_id}{$entry_id} = $value;
+}
+
 # apply workstations file
+my @to_add = ();
+my @to_modify = ();
+my @to_delete = ();
 open(WORKSTATIONS,"</etc/linbo/workstations");
 while(<WORKSTATIONS>){
         chomp;
         next if /^#/;
     my ( $raum, $rechner, $gruppe, $mac, $ip, $r1, $r2, $r3, $r4, $r5, $pxe ) = split /;/;
-        if( not defined $hosts{$ip} ){
+        if( not defined $hosts{$rechner} ){
                 print "Fehler: In Raum $raum ist der Rechner $rechner mit der IP $ip nicht in OSS vorhanden!\n";
                 next;
         }
-        $hosts{$ip}{"option extensions-path"} = $gruppe;
-        $hosts{$ip}{filename} = get_bootfilename($linbo{$gruppe});
+        if( not exists $hosts{$rechner}{'id'} ){
+			print "Fehler: Der Rechner $rechner in Raum $raum hat keine Id in der Devices-Tabelle von OSS!\n";
+			next;
+		}
+		
+		my $found_ep = 0;
+		my $found_fn = 0;
+        for my $entry_id (keys %{$dhcpStatements{$hosts{$rechner}{'id'}}}) {
+			my $value = $dhcpStatements{$hosts{$rechner}{'id'}}{$entry_id};
+			if( $value =~ /^option extensions-path/ ){
+				if( $found_ep ){
+					print "Fehler: In Raum $raum hat der rechner $rechner 'option extensions path' doppelt!\n";
+					push @to_delete, $entry_id;
+				} else {
+					if( $value ne "option extensions-path \"".$gruppe."\"" ){
+						push @to_modify, "$entry_id:option extensions-path \"".$gruppe."\"";
+					}
+					$found_ep = 1;
+				}
+			} elsif( $value =~ /^filename / ){
+				if( $found_fn ){
+					print "Fehler: In Raum $raum hat der Rechner $rechner 'filename ...' doppelt!\n";
+					push @to_delete, $entry_id;
+				} else {
+					if( $value ne "filename \"".get_bootfilename($linbo{$gruppe})."\"" ){
+						push @to_modify, "$entry_id:filename \"".get_bootfilename($linbo{$gruppe})."\"";
+					}
+					$found_fn = 1;
+				}
+			}
+		}
+		if( not $found_ep ){
+			push @to_add, $hosts{$rechner}{'id'}.":option extensions-path \"".$gruppe."\"";
+		}
+		if( not $found_fn ){
+			push @to_add, $hosts{$rechner}{'id'}.":filename \"".get_bootfilename($linbo{$gruppe})."\"";
+		}
 }
 close(WORKSTATIONS);
 
-# stop dhcpd
-system("systemctl stop dhcpd");
-
-# write new config
-system("cat /usr/share/oss/templates/dhcpd.conf >/etc/dhcpd.conf");
-open(DHCPD,">>/etc/dhcpd.conf");
-my $bisher = "";
-foreach my $ip (sort ipsort keys %hosts) {
-        my %host = %{$hosts{$ip}};
-        if($bisher ne "" && $host{raum} ne $bisher){ # Raum beenden
-                print DHCPD "}\n";
-        }
-        if($bisher eq "" || $host{raum} ne $bisher){ # Raum beginnen
-                print DHCPD "group {\n";
-                print DHCPD "  #Room" . $host{raum} ."\n";
-                $bisher = $host{raum};
-        }
-        print DHCPD "    host ".$host{rechner}." {\n";
-        print DHCPD "      hardware ethernet ".$host{mac}.";\n";
-        print DHCPD "      fixed-address ".$host{ip}.";\n";
-        print DHCPD "      option extensions-path \"".$host{"option extensions-path"}."\";\n" if defined $host{"option extensions-path"};
-        print DHCPD "      filename \"".$host{filename}."\";\n" if defined $host{filename};
-        print DHCPD "    }\n";
+# commit changes to OSS database and refreshConfig
+print "Alte Einträge werden gelöscht...\n";
+for my $entry (@to_delete) {
+	print "\tDELETE FROM OSSMConfig WHERE id=$entry;\n";
+	`echo "DELETE FROM OSSMConfig WHERE id=$entry;" |mysql OSS`;
 }
-print DHCPD "}\n"; # letzten Raum beenden
-close(DHCPD);
+print "Neue Einträge werden hinzugefügt...\n";
+for (@to_add) {
+	my ($id, $value) = split /:/;
+	next if(not defined $id or not defined $value);
+	$value =~ s/"/\\"/g;
+	print "\tINSERT INTO OSSMConfig(objectType,objectId,keyword,value,creator_id) VALUES('Device',$id,'dhcpStatements','$value',1);\n";
+	`echo "INSERT INTO OSSMConfig(objectType,objectId,keyword,value,creator_id) VALUES('Device',$id,'dhcpStatements','$value',1);" |mysql OSS`;
+}
+print "Veränderte Einträge werden korrigiert...\n";
+for (@to_modify) {
+	my ($id, $value) = split /:/;
+	next if(not defined $id or not defined $value);
+	$value =~ s/"/\\"/g;
+	print "\tUPDATE OSSMConfig SET value='$value' WHERE id=$id;\n";
+	`echo "UPDATE OSSMConfig SET value='$value' WHERE id=$id;" |mysql OSS`;
+}
 
-# start dhcpd
-system("systemctl start dhcpd");
-
+print "oss_api.sh PUT devices/refreshConfig...";
+`/usr/sbin/oss_api.sh PUT devices/refreshConfig`;
+print "\n";
