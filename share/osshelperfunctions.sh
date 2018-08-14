@@ -268,7 +268,7 @@ create_torrent() {
  local serverip="$2"
  local port="$3"
  echo "Creating $image.torrent ..."
- btmakemetafile "$image" http://${serverip}:${port}/announce ; RC="$?"
+ btmaketorrent http://${serverip}:${port}/announce "$image" ; RC="$?"
  return "$RC"
 }
 
