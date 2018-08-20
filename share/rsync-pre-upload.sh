@@ -13,6 +13,7 @@
 # read in paedml specific environment
 source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
 [ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
 [ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
 if [ "$FLAVOUR" = "lmn7" ]; then
