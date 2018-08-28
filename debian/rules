@@ -61,8 +61,8 @@ CLOOP64_DIR=kernel64/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
 QT_DIR=linbo_gui32/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
 QT_VERS=$(shell echo $(QT_ARCHIVE) | sed -e 's/qt-everywhere-opensource-src-//' | sed -e 's/.tar.gz//')
-QT_URL=http://download.qt-project.org/official_releases/qt/4.8/$(QT_VERS)
-
+#QT_URL=http://download.qt-project.org/official_releases/qt/4.8/$(QT_VERS)
+QT_URL=https://download.qt.io/archive/qt/4.8/$(QT_VERS)
 # qt64
 QT64_DIR=linbo_gui64/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
 
