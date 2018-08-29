@@ -104,7 +104,7 @@ LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
 TOOLCHAIN=$(CURDIR)/toolchain
 BIN32_DIR=$(CURDIR)/src/bin32
 BIN32_DEBS=acl bc bluez bvi cloop-utils coreutils ctorrent dosfstools dropbear-bin \
-           e2fsprogs efibootmgr ethtool gdisk grub-common grub2-common hdparm kmod \
+           e2fsprogs efibootmgr ethtool grub-pc gdisk grub-common grub2-common hdparm kmod \
 					 libc-bin libefivar0 libgpod-common libmtp-runtime libnetpbm10 libparted2 \
 					 libpci3 libpng12-0 mount netpbm ncurses-bin parted pcmciautils \
 					 reiserfsprogs rsync systemd sysvinit-utils udev udpcast util-linux \
@@ -613,6 +613,9 @@ install: build
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbofs.lz
+	echo test
+	pwd
+	read -p "Press [Enter] key to start backup..."
 	# start building x86 non pae linbofs
 	@echo "[1mBuilding non pae LINBOFS...[0m" ; \
 	cd $(KERNELNP_DIR) ; \
