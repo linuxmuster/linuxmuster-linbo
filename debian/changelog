@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.37-2) babo62; urgency=low
+
+  * bump
+
+ -- Andreas Till <andreas.till@netzint.de>  Wed, 29 Aug 2018 14:43:13 +0000
+
 linuxmuster-linbo (2.3.37-1) babo62; urgency=low
 
   * added workaround for nvme devices if /dev/disk/by-path is missing

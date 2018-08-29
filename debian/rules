@@ -613,9 +613,6 @@ install: build
 	( cd $(CURDIR)/$(BB_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel/initramfs.conf ; \
 	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbofs.lz
-	echo test
-	pwd
-	read -p "Press [Enter] key to start backup..."
 	# start building x86 non pae linbofs
 	@echo "[1mBuilding non pae LINBOFS...[0m" ; \
 	cd $(KERNELNP_DIR) ; \
