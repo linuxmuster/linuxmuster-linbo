@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.38-0) babo62; urgency=low
+
+  * kernel upgrade
+
+ -- Andreas Till <andreas.till@netzint.de>  Wed, 29 Aug 2018 16:32:20 +0000
+
 linuxmuster-linbo (2.3.37-2) babo62; urgency=low
 
   * bump
