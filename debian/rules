@@ -43,11 +43,11 @@ KERNEL64_DIR=kernel64/linux-$(KVERS)
 
 # cloop
 ### integreate cloop in LMN
-###CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
-##CLOOP_ARCHIVE=$(shell grep cloop- debian/md5sums.src | awk '{ print $$2 }')
-###CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
-##CLOOP_DIR=kernel/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
-###CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
+CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
+CLOOP_ARCHIVE=$(shell grep cloop- debian/md5sums.src | awk '{ print $$2 }')
+CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
+CLOOP_DIR=kernel/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
+CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
 ###CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
 ##CLOOP_URL=$(LML_URL)
 
