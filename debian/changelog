@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.38-0) babo62; urgency=low
+
+  * lmn7: fixed missing prefix in grub-mkimage command for bios images in mkgrubhostimg.py.
+  * nvm ssd recognition fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 13 Sep 2018 09:00:54 +0200
+
 linuxmuster-linbo (2.3.37-0) babo62; urgency=low
 
   * updated ntfs-3g to 2017.3.23.
