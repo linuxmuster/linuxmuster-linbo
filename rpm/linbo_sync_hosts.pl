@@ -12,8 +12,10 @@ binmode STDIN, ":encoding(UTF-8)";
 binmode STDOUT, ":encoding(UTF-8)";
 binmode STDERR, ":encoding(UTF-8)";
 use utf8;
+use POSIX qw(strftime);
 
 # Global variable
+my $date = strftime "%Y-%m-%d", localtime;
 my $config       = "/etc/sysconfig/schoolserver";
 my $tempfile     = 0;
 my $result       = 0;
@@ -22,13 +24,7 @@ sub close_on_error
 {
     my $a = shift;
     print STDERR $a."\n";
-#    system("rm $PIDFILE");
-#    system("rm $RUNFILE");
-#    open( LOGIMPORTLIST,">>$output");
-#    binmode LOGIMPORTLIST, ':encoding(utf8)';
-#    print LOGIMPORTLIST "$a";
 	print "$a";
-#    close(LOGIMPORTLIST);
     exit 1;
 }
 
@@ -62,6 +58,23 @@ sub write_file($$) {
   local $/ unless wantarray;
   print F $out;
   close F;
+}
+
+sub create_user($) {
+    my $user  = shift;
+    my $uid = $user->{'uid'};
+    my $file = `mktemp /tmp/XXXXXXXX`;
+    write_file("$file", hash_to_json($user));
+    print "/usr/sbin/oss_api_post_file.sh users/add $file\n";
+    my $result = `/usr/sbin/oss_api_post_file.sh users/add $file`;
+    $result = eval { decode_json($result) };
+    sleep(3);
+    if ($@) {
+        close_on_error( "decode_json failed, invalid json. error:$@\n" );
+    }
+    if( $result->{"code"} eq "OK" ) {
+        print $result->{'value'}."\n";
+    }
 }
 
 if( $> )
@@ -190,6 +203,17 @@ if( scalar(@toadd) ){
 		{
 			print "  new hosts $host->{name}\n";
 		}
+		# add workstation user
+		my %user = ();
+		$user{'givenName'}  = $host->{'name'};
+		$user{'surName'}    = 'Workstation-User';
+		$user{'birthDay'}   = $date;
+		$user{'password'}   = $host->{'name'};
+		$user{'uid'}        = $host->{'name'};
+		$user{'role'}       = 'workstations';
+		$user{'fsQuota'}    = '0';
+		$user{'msQuota'}    = '0';
+		create_user(\%user);
 	}
 } else {
 	print "No new hosts to import.\n";

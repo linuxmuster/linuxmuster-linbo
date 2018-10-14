@@ -80,8 +80,11 @@ echo "Writing dhcpd.conf file..." | tee -a $TMPLOG
 $LINBOSHAREDIR/linbo_write_dhcpd.pl | tee -a $TMPLOG
 echo "Done." | tee -a $TMPLOG
 
-# restart named service
-service named restart| tee -a $TMPLOG
+# restart oss-api service
+systemctl restart oss-api|tee -a $TMPLOG
+
+# restart samba service
+systemctl restart samba| tee -a $TMPLOG
 
 # running user scripts
 echo | tee -a $TMPLOG

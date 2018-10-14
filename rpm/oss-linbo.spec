@@ -117,10 +117,10 @@ BuildRequires:  cmake quilt
 BuildRequires:	make >= 4.0
 
 BuildRoot:    %{_tmppath}/%{name}-root
-Requires:	logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6 xorriso >= 1.2.4
+Requires:	oss-base logrotate wakeonlan BitTorrent BitTorrent-curses syslinux6 xorriso >= 1.2.4
 Requires(post):	%insserv_prereq %fillup_prereq dropbear pwgen
 
-PreReq: %insserv_prereq openschool-base
+PreReq: %insserv_prereq oss-base
 
 
 %description
@@ -208,6 +208,10 @@ pushd %{buildroot}/usr/share/linbo
 ln -sf ../../bin/linbo-grub-mkimage grub-mkimage
 ln -sf ../../bin/linbo-grub-mkstandalone grub-mkstandalone
 popd
+mkdir -p %{buildroot}/usr/share/oss/plugins/add_device
+install rpm/linbo-update-ips.pl %{buildroot}/usr/share/oss/plugins/add_device/linbo-update-ips.pl
+mkdir -p %{buildroot}/usr/share/oss/plugins/delete_device
+install rpm/linbo-delete-device.pl %{buildroot}/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
 mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
@@ -390,5 +394,10 @@ systemctl start rsyncd
 /usr/sbin/update-linbofs
 /usr/bin/linbo-grub-mkimage
 /usr/bin/linbo-grub-mkstandalone
+%dir /usr/share/oss
+%dir /usr/share/oss/plugins
+%dir /usr/share/oss/plugins/add_device
+/usr/share/oss/plugins/add_device/linbo-update-ips.pl
+/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
 
 %changelog

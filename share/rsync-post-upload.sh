@@ -31,12 +31,20 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
+
+# fix: reverse lookup not working on oss4.0
+if [ -z "${RSYNC_HOST_NAME}" -o "${RSYNC_HOST_NAME}" = "UNKNOWN" -o "${RSYNC_HOST_NAME}" = "UNDETERMINED" ]; then
+    get_hostname "${RSYNC_HOST_ADDR}"
+    RSYNC_HOST_NAME="$RET"
+fi
+
 compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
 
 # get FQDN
 validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "ADDRESS: $RSYNC_HOST_ADDR"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "BACKUP: $BACKUP"

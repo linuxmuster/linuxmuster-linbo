@@ -31,6 +31,12 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 FILE="$(<$PIDFILE)"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
 
+# fix: reverse lookup not working on oss4.0
+if [ -z "${RSYNC_HOST_NAME}" -o "${RSYNC_HOST_NAME}" = "UNKNOWN" -o "${RSYNC_HOST_NAME}" = "UNDETERMINED" ]; then
+    get_hostname "${RSYNC_HOST_ADDR}"
+    RSYNC_HOST_NAME="$RET"
+fi
+
 # get FQDN
 validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
 
@@ -52,6 +58,7 @@ if [ "$FLAVOUR" = "oss" ]; then
 fi
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "ADDRESS: $RSYNC_HOST_ADDR"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
