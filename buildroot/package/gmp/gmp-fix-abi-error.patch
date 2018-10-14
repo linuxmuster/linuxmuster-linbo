@@ -1,0 +1,12 @@
+diff -up gmp-6.1.2/acinclude.m4.orig gmp-6.1.2/acinclude.m4
+--- gmp-6.1.2/acinclude.m4.orig	2016-12-16 16:45:27.000000000 +0100
++++ gmp-6.1.2/acinclude.m4	2018-10-14 20:03:52.712646102 +0200
+@@ -741,7 +741,7 @@ main ()
+   long i;
+   for (i = 0; i < 88 + 1; i++)
+     a[i] = ~0L;
+-  r = malloc (10000 * sizeof (unsigned long));
++  r = calloc (10000, sizeof (unsigned long));
+   r2 = r;
+   for (i = 0; i < 528; i += 23)
+     {
