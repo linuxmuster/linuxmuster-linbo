@@ -111,12 +111,13 @@ BuildRequires:  glibc glibc-32bit glibc-devel glibc-devel-32bit
 BuildRequires:	autoconf >= 2.69 automake >= 1.15 bc bison cpio
 %if 0%{?sle_version} == 120300 && 0%{?is_opensuse}
 BuildRequires:	gcc48 gcc48-32bit gcc48-c++
+BuildRequires:	python-argparse
 %else
 BuildRequires:	gcc gcc-32bit gcc-c++
 %endif
 BuildRequires:  oss-base
 BuildRequires:	flex gettext git freetype2-devel libtool 
-BuildRequires:	libopenssl-devel ncurses-devel python python-argparse rsync texinfo unzip wget efont-unicode
+BuildRequires:	libopenssl-devel ncurses-devel python rsync texinfo unzip wget efont-unicode
 BuildRequires:  cmake quilt
 BuildRequires:	make >= 4.0
 
