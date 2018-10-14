@@ -109,7 +109,7 @@ Source89:       sftpserver-0.2.2.tar.gz
 BuildRequires:	unzip
 BuildRequires:  glibc glibc-32bit glibc-devel glibc-devel-32bit
 BuildRequires:	autoconf >= 2.69 automake >= 1.15 bc bison cpio
-BuildRequires:	gcc48 gcc48-32bit gcc48-c++
+BuildRequires:	gcc gcc-32bit gcc-c++
 BuildRequires:  oss-base
 BuildRequires:	flex gettext git freetype2-devel libtool 
 BuildRequires:	libopenssl-devel ncurses-devel python python-argparse rsync texinfo unzip wget efont-unicode
@@ -132,14 +132,6 @@ Authors:
 
 %prep
 %setup -D
-ln -sf /usr/bin/gcc-4.8 %{_builddir}/gcc
-ln -sf /usr/bin/gcc-ar-4.8 %{_builddir}/gcc-ar
-ln -sf /usr/bin/gcc-nm-4.8 %{_builddir}/gcc-nm
-ln -sf /usr/bin/gcc-ranlib-4.8 %{_builddir}/gcc-ranlib
-ln -sf /usr/bin/gcc-4.8 %{_builddir}/cc
-ln -sf /usr/bin/g++-4.8 %{_builddir}/g++
-ln -sf /usr/bin/cpp-4.8 %{_builddir}/cpp
-ln -sf /usr/bin/gcov-4.8 %{_builddir}/gcov
 
 %build
 
