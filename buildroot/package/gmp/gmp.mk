@@ -18,6 +18,7 @@ HOST_GMP_DEPENDENCIES = host-m4
 ifeq ($(BR2_m68k_cf)$(BR2_MIPS_CPU_MIPS32R6)$(BR2_MIPS_CPU_MIPS64R6)$(BR2_ARM_CPU_ARMV7M),y)
 GMP_CONF_OPTS += --disable-assembly
 endif
+GMP_MAKE_OPTS = -O1
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
