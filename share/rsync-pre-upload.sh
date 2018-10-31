@@ -13,6 +13,7 @@
 # read in paedml specific environment
 source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
+source $HELPERFUNCTIONS || exit 1
 [ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
 [ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
 if [ "$FLAVOUR" = "lmn7" ]; then
@@ -36,10 +37,17 @@ BASENAME="$(basename $FILE)"
 BACKUP="${FILE}.BAK"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 
+# fix: reverse lookup not working on oss4.0
+if [ -z "${RSYNC_HOST_NAME}" -o "${RSYNC_HOST_NAME}" = "UNKNOWN" -o "${RSYNC_HOST_NAME}" = "UNDETERMINED" ]; then
+    get_hostname "${RSYNC_HOST_ADDR}"
+    RSYNC_HOST_NAME="$RET"
+fi
+
 # Save filename for post-script and exit, if it is a new host data file
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "ADDRESS: $RSYNC_HOST_ADDR"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "BACKUP: $BACKUP"

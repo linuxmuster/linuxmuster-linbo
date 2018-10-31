@@ -1,57 +1,39 @@
-# linuxmuster shell helperfunctions
+#
+# lmn7 helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 19.01.2016
-# GPL v3
+# 20180216
 #
-
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin
-
-source /etc/sysconfig/schoolserver || exit 1
-
-# lockfile
-lockflag=/tmp/.linbo.lock
-
-# date & time
-[ -e /bin/date ] && DATETIME=`date +%y%m%d-%H%M%S`
-
-
-####################
-# common functions #
-####################
-
-# test if variable is an integer
-isinteger () {
-  [ $# -eq 1 ] || return 1
-
-  case $1 in
-  *[!0-9]*|"") return 1;;
-            *) return 0;;
-  esac
-} # isinteger
-
-
-# backup up files gzipped to /var/adm/backup
-backup_file() {
-	[ -z "$1" ] && return 1
-	[ -e "$1" ] || return 1
-	echo "Backing up $1 ..."
-	origfile=${1#\/}
-	backupfile=$BACKUPDIR/$origfile-$DATETIME.gz
-	origpath=`dirname $1`
-	origpath=${origpath#\/}
-	[ -d "$BACKUPDIR/$origpath" ] || mkdir -p $BACKUPDIR/$origpath
-	gzip -c $1 > $backupfile || return 1
-	return 0
+get_group(){
+ local HOSTNAME=
+ local GROUP=
+ get_hostname "$1"
+ HOSTNAME="$RET"
+ [ -n "$HOSTNAME" ] || return 1
+ GROUP="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $3 }' | grep -i ^"$HOSTNAME " | tail -1 | awk '{ print $2 }' | tr A-Z a-z)"
+ echo "$GROUP"
 }
 
-##########################
-# check parameter values #
-##########################
+# check valid string without special characters
+check_string() {
+ tolower "$1"
+ if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\_\-]\+$\)') &> /dev/null; then
+  return 0
+ else
+  return 1
+ fi
+}
+
+# converting string to lower chars
+tolower() {
+  unset RET
+  [ -z "$1" ] && return 1
+  RET=`echo $1 | tr A-Z a-z`
+}
 
 # check valid ip
 validip() {
-  if (expr match "$1"  '\(\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)$\)') &> /dev/null; then
+  if (expr match "$1"  '\(\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)$\)') &> /dev/null; then
     return 0
   else
     return 1
@@ -80,121 +62,103 @@ validhostname() {
  fi
 }
 
-###############
-# linbo stuff #
-###############
-
-# print kernel options from start.conf
-linbo_kopts(){
- local conf="$1"
- [ -z "$conf" ] && return
- local kopts
- if [ -e "$conf" ]; then
-  kopts="$(grep -i ^kerneloptions "$conf" | tail -1 | sed -e 's/#.*$//' -e 's/kerneloptions//I' | awk -F\= '{ print substr($0, index($0,$2)) }' | sed -e 's/ =//' -e 's/^ *//g' -e 's/ *$//g')"
- fi
- echo "$kopts"
-}
-
-get_group(){
- local host="$1"
- local hwconf="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(cn=$1))" configurationValue | grep '^configurationValue: HW=' | sed 's/configurationValue: HW=//')"
- local group="$(oss_ldapsearch "(&(objectclass=SchoolConfiguration)(configurationKey=$hwconf))" description | grep '^description: ' | sed 's/description: //')"
- echo "$group"
-}
-
-# get_compname_from_rsync RSYNC_HOST_NAME
-get_compname_from_rsync(){
-  local rsync_host_name="$1"
-  local compname="$(echo $rsync_host_name | awk -F\. '{ print $1 }')"
-  echo "$compname"
-}
-
-# save_image_macct compname image
-save_image_macct(){
-  local compname="$1"
-  local image="$2"
-  local LDBSEARCH="$(which oss_ldapsearch)"
-  if [ -n "$compname" -a -n "$LDBSEARCH" ]; then
-   #  fetch samba nt password hash from ldap machine account
-   local sambaNTpwhash="$("$LDBSEARCH" "uid=$compname$" sambaNTPassword | grep ^sambaNTPassword: | awk '{ print $2 }')"
-   local basedn="$(cat /etc/sysconfig/ldap | grep '^BIND_DN=' | awk -F\= '{ print $2 }' | sed 's/"//g')"
-   bsedn=${basedn#*,}
-   if [ -n "$sambaNTpwhash" ]; then
-    echo "Writing samba password hash file for image $image."
-    local template="$LINBOTPLDIR/machineacct"
-    local imagemacct="$LINBODIR/$image.macct"
-    sed -e "s|@@basedn@@|$basedn|
-            s|@@sambaNTpwhash@@|$sambaNTpwhash|" "$template" > "$imagemacct"
-    chmod 600 "$imagemacct"
-   else
-    rm -f "$imagemacct"
-   fi
-  fi
-}
-
-# upload_pwd_to_ldap compname imagemacct
-upload_password_to_ldap(){
-  local compname="$1"
-  local imagemacct="$LINBODIR/$2"
-  local LDBSEARCH="$(which oss_ldapsearch)"
-  local LDBMODIFY="$(which oss_ldapmodify)"
-  # upload samba machine password hashes to host's machine account
-  if [ -s "$imagemacct" ]; then
-   echo "Machine account ldif file: $imagemacct"
-   echo "Host: $compname"
-   echo "Writing samba machine password hashes to ldap account:"
-   sed -e "s|@@compname@@|$compname|" "$imagemacct" | "$LDBMODIFY" -h localhost
-  fi
-}
-
-#######################
-# workstation related #
-#######################
-# extract ip address from ldap
-get_ip() {
-  unset RET
-  local pattern="$1"
-  RET=$(oss_ldapsearch "(&(objectClass=dhcpHost)(|(dhcpHWAddress=ethernet\\20$pattern)(cn=$pattern)))" | grep "dhcpStatements: fixed-address " | awk '{ print $3 }')
-  return 0
-}
-
-# extract mac address from ldap
-get_mac() {
-  unset RET
-  local pattern="$1"
-  RET=$(oss_ldapsearch "(&(objectClass=dhcpHost)(|(dhcpStatements=fixed-address\\20$pattern)(cn=$pattern)))" | grep "dhcpHWAddress: ethernet " | awk '{ print $3 }')
-  [ -n "$RET" ] && toupper "$RET"
-  return 0
-}
-
-# extract hostname from ldap
+# extract hostname from file $WIMPORTDATA
 get_hostname() {
   unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
   local pattern="$1"
   if validip "$pattern"; then
-   RET="$(oss_ldapsearch "(&(objectclass=DHCPEntry)(aRecord=$pattern))" relativeDomainName | grep '^relativeDomainName: ' | awk '{ print $2 }')"
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   elif validmac "$pattern"; then
-   RET="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(cn:dn:=Room72))" dhcpHWAddress | awk '(NR%3){ print p " " $0}{p=$0}' | awk '{ print $2 }' | sed -e 's@^cn=@@' -e 's@,.*@@')"
+   RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
-   RET="$(oss_ldapsearch "(&(objectclass=DHCPEntry)(relativeDomainName=$pattern))" relativeDomainName | grep '^relativeDomainName: '| awk '{ print $2 }')"
+   local result=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern"` &> /dev/null
+   local i
+   # iterate over results, get exact match
+   for i in $result; do
+    if [ "xxx${i}xxx" = "xxx${pattern}xxx" ]; then
+     RET="$i"
+     break
+    else
+     RET=""
+    fi
+   done
   fi
   [ -n "$RET" ] && tolower "$RET"
   return 0
 }
 
+# test if string is in string
+stringinstring() {
+  case "$2" in *$1*) return 0;; esac
+  return 1
+}
+
+# test if variable is an integer
+isinteger () {
+  [ $# -eq 1 ] || return 1
+
+  case $1 in
+  *[!0-9]*|"") return 1;;
+            *) return 0;;
+  esac
+} # isinteger
+
+# extract ip address from file $WIMPORTDATA
+get_ip() {
+  unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
+  local pattern="$1"
+  if validmac "$pattern"; then
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+  fi
+  return 0
+}
+
 # get pxe flag: get_pxe ip|host
 get_pxe() {
+ [ -f "$WIMPORTDATA" ] || return 1
  local pattern="$1"
- local hw
  local res
+ local i
  if validip "$pattern"; then
-  pattern=get_hostname "$pattern"
+  res="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | grep \;$pattern\; | awk -F\; '{ print $11 }')"
+ else
+  # assume hostname
+  get_ip "$pattern"
+  # perhaps a host with 2 ips
+  for i in $RET; do
+   if [ -z "$res" ]; then
+    res="$(get_pxe "$i")"
+   else
+    res="$res $(get_pxe "$i")"
+   fi
+  done
  fi
- # assume hostname
- hw=$(oss_ldapsearch "(cn=$pattern)" | grep "configurationValue: HW=" | awk -F\= '{ print $2 }')
- res=$(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(description=$hw)(configurationValue=Imaging=linbo))")
- [ -n "$res" ] && res=1 || res=0
  echo "$res"
+}
+
+# check valid ip
+validip() {
+  if (expr match "$1"  '\(\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)$\)') &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# test valid mac address syntax
+validmac() {
+  [ -z "$1" ] && return 1
+  [ `expr length $1` -ne "17" ] && return 1
+  if (expr match "$1" '\([a-fA-F0-9-][a-fA-F0-9-]\+\(\:[a-fA-F0-9-][a-fA-F0-9-]\+\)\+$\)') &> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 # test if host is opsimanaged: opsimanaged ip|host
@@ -208,48 +172,71 @@ opsimanaged() {
  return 1
 }
 
-#################
-# miscellanious #
-#################
-
-# test if string is in string
-stringinstring() {
-  case "$2" in *$1*) return 0;; esac
-  return 1
+# get_compname_from_rsync RSYNC_HOST_NAME
+get_compname_from_rsync(){
+  local rsync_host_name="$1"
+  local compname="$(echo $rsync_host_name | awk -F\. '{ print $1 }' | tr A-Z a-z)"
+  echo "$compname"
 }
 
-# check valid string without special characters
-check_string() {
- tolower "$1"
- if (expr match "$RET" '\([abcdefghijklmnopqrstuvwxyz0-9\_\-]\+$\)') &> /dev/null; then
-  return 0
- else
-  return 1
- fi
+# save_image_macct compname image
+save_image_macct(){
+  local compname="$1"
+  local image="$2"
+  local LDBSEARCH="$(which ldbsearch)"
+  if [ -n "$compname" -a -n "$LDBSEARCH" -a -n "$basedn" ]; then
+   #  fetch samba nt password hash from ldap machine account
+   url="--url=/var/lib/samba/private/sam.ldb"
+   unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+   if [ -n "$unicodepwd" ]; then
+    echo "Writing samba password hash file for image $image."
+    template="$LINBOTPLDIR/machineacct"
+    imagemacct="$LINBODIR/$image.macct"
+    sed -e "s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
+    chmod 600 "$imagemacct"
+   else
+    rm -f "$imagemacct"
+   fi
+  fi
 }
 
-# converting string to lower chars
-tolower() {
-  unset RET
-  [ -z "$1" ] && return 1
-  RET=`echo $1 | tr A-Z a-z`
-}
-
-# converting string to lower chars
-toupper() {
-  unset RET
-  [ -z "$1" ] && return 1
-  RET=`echo $1 | tr a-z A-Z`
+# upload_pwd_to_ldap compname imagemacct
+upload_password_to_ldap(){
+  local compname="$1"
+  local imagemacct="$LINBODIR/$2"
+  local url="--url=/var/lib/samba/private/sam.ldb"
+  local LDBSEARCH="$(which ldbsearch) $url"
+  local LDBMODIFY="$(which ldbmodify) $url"
+  # upload samba machine password hashes to host's ad machine account
+  if [ -s "$imagemacct" ]; then
+   echo "Machine account ldif file: $imagemacct"
+   echo "Host: $compname"
+   # get dn of host
+   dn="$($LDBSEARCH "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
+   if [ -n "$dn" ]; then
+    echo "DN: $dn"
+    ldif="/var/tmp/${compname}_macct.$$"
+    ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
+    sed -e "s|@@dn@@|$dn|" "$imagemacct" > "$ldif"
+    $LDBMODIFY $ldbopts "$ldif"
+    rm -f "$ldif"
+   else
+    echo "Cannot determine DN of $compname! Aborting!"
+   fi
+  fi
 }
 
 # get active groups
 get_active_groups(){
-  local actgroups="$(oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" description | grep '^description: ' | awk '{ print $2 }'| sort -u)"
+  local actgroups="$(grep ^[-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] $WIMPORTDATA | awk -F\; '{ print $3 }' | sort -u)"
   echo "$actgroups"
 }
 
 # return active images
 active_images() {
+ # check for workstation data
+ [ -z "$WIMPORTDATA" ] && return 1
+ [ -s "$WIMPORTDATA" ] || return 1
  # get active groups
  local actgroups="$(get_active_groups)"
  [ -z "$actgroups" ] && return 0
@@ -288,35 +275,34 @@ create_torrent() {
 # test for pxe
 is_pxe(){
   local IP="$1"
-  local pxe="$(oss_ldapsearch "cn=$IP" dhcpOption | grep '^dhcpOption: extensions-path ' | awk '{ print $3 }')"
-  [ -z "$pxe" ] && pxe="0"
+  local pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
   return "$pxe"
 }
 
 # get IPs from group
 get_ips_from_group(){
   local GROUP="$1"
-  local IP="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(dhcpStatements=HW=$GROUP))" dhcpStatements | grep '^dhcpStatements: fixed-address ' | awk '{ print $3 }')"
+  local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
   echo "$IP"
 }
 
 # get IPs from room
 get_ips_from_room(){
   local ROOM="$1"
-  local IP="$(oss_ldapsearch "(&(objectclass=SchoolWorkstation)(cn:dn:=$ROOM))" dhcpStatements | grep '^dhcpStatements: fixed-address ' | awk '{ print $3 }')"
+  local IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
   echo "$IP"
 }
 
 # get_win_key compname
 get_win_key(){
   local compname="$1"
-  local winkey="$(oss_ldapsearch "(&(objectclass=SchoolWorkstations)(cn=$compname))" | grep "configurationValue: winkey=" | awk -F\= '{ print $2 }')"
+  local winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
   echo "$winkey"
 }
 
 # get_office_key compname
 get_office_key(){
   local compname="$1"
-  local officekey="$(oss_ldapsearch "(&(objectclass=SchoolWorkstations)(cn=$compname))" | grep "configurationValue: officekey=" | awk -F\= '{ print $2 }')"
+  local officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
   echo "$officekey"
 }

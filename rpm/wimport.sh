@@ -279,12 +279,15 @@ echo
 # sync host accounts
 echo "Creating new workstations accounts..."
 if [ -s $WIMPORTDATA ]; then
- oss_workstations_sync_hosts.pl<$WIMPORTDATA 2>> $TMPLOG; RC="$?"
+ $LINBOSHAREDIR/linbo_sync_hosts.pl $WIMPORTDATA 2>> $TMPLOG; RC="$?"
  if [ "$RC" = "0" ]; then
   echo "Done!"
   echo
+  echo "Updating workstations file..."
+  $LINBOSHAREDIR/linbo_update_workstations.pl
+  echo "Done."
  else
-  echo "oss_workstations_sync_hosts.pl exits with error!"
+  echo "linbo_sync_hosts.pl exits with error!"
   echo
   rm -f $locker
   exit "$RC"
@@ -300,7 +303,7 @@ echo "Processing host groups..."
 RC=
 TMPFILE=$(mktemp /tmp/hwtypesXXXX)
 rm -f $TMPFILE
-oss_ldapsearch "(&(objectClass=SchoolConfiguration)(configurationValue=TYPE=HW)(configurationValue=Imaging=linbo))" description configurationKey >$TMPFILE
+ >$TMPFILE
 while read line; do
   key=${line%%:*}
   case "$key" in
@@ -341,118 +344,6 @@ else
  echo "Done!"
  echo
 fi
-
-echo "Creating/modifying PXE/DHCP entries..."
-tmpdhcp="/tmp/modify_dhcpstatements.$$"
-rm -f $tmpdhcp
-
-while read line; do
- # get data from line
- key="$(echo "$line" | awk '{ print $1 }' | sed 's/:$//' )"
- value1="$(echo "$line" | awk '{ print $2 }' )"
- value2="$(echo "$line" | awk '{ print $3 }' )"
- case "$key" in
-  dn) 
-   if [ -n "$hostname" -a -n "$ip" -a -n "$mac" ]; then
-     # create dhcpd entries for hosts in ldap
-     case "$pxe" in
-       1|2|3|22)
-         # determine systemtype for efi netboot
-         systemtype="$(arrayGet hosttypearray $hostgroup)"
-         hostgroupdesc="$(arrayGet hostgrouparray $hostgroup)"
-         if [ -n "$systemtype" -a -n "$hostgroupdesc" ]; then
-           cat >>$tmpdhcp <<EOF
-name $hostname
-group $hostgroupdesc
-ipaddress $ip
-systemtype $systemtype
-EOF
-         else
-           echo " --error: $hostname in group $hostgroup is missing one of systemtype/hostgroup ($systemtype/$hostgroupdesc)"
-         fi
-         echo -en " * PXE" ;;
-       *) echo -en " * IP" ;;
-     esac
-     echo -e "-Host\t$hostname."
-   fi
-   hostname=
-   hostgroup=
-   systemtype=
-   ip=
-   mac=
-   pxe=
-   ;;
-  cn) 
-   hostname="$value1"
-   ;;
-  dhcpHWAddress) 
-   mac="$value2"
-   ;;
-  dhcpStatements) 
-   [ "$value1" = "fixed-address" ] && ip="$value2"
-   ;;
-  configurationValue)
-   key="$(echo "$value1" | awk -F\= '{ print $1 }' )"
-   case "$key" in
-    LINBOPXE)
-     pxe="$(echo "$value1" | awk -F\= '{ print $2 }' )"
-     ;;
-    HW)
-     hostgroup="$(echo "$value1" | awk -F\= '{ print $2 }' )"
-     ;;
-    *)
-     continue
-     ;;
-   esac
-   ;;
-  *)
-   continue
-   ;;
- esac
-done < <(oss_ldapsearch "objectClass=SchoolWorkstation" cn dhcpHWAddress dhcpStatements configurationValue |grep -v '^$')
-# process remaining entry
-if [ -n "$hostname" -a -n "$ip" -a -n "$mac" ]; then
-# create dhcpd entries for hosts in ldap
- case "$pxe" in
-   1|2|3|22)
-     # determine systemtype for efi netboot
-     systemtype="$(arrayGet hosttypearray $hostgroup)"
-     hostgroupdesc="$(arrayGet hostgrouparray $hostgroup)"
-     if [ -n "$systemtype" -a -n "$hostgroupdesc" ]; then
-       cat >>$tmpdhcp <<EOF
-name $hostname
-group $hostgroupdesc
-ipaddress $ip
-systemtype $systemtype
-EOF
-     else
-       echo " --error: $hostname has systemtype $systemtype and hostgroup $hostgroupdesc"
-     fi
-     echo -en " * PXE" ;;
-   *) echo -en " * IP" ;;
- esac
- echo -e "-Host\t$hostname."
-fi
-hostname=
-hostgroup=
-systemtype=
-ip=
-mac=
-pxe=
-
-echo "Done!"
-echo
-
-echo "Writing DHCP statements to LDAP...";
-# write dhcpd entries to ldap
-if [ -e "$tmpdhcp" ]; then
-    oss_modify_dhcpStatements.pl <$tmpdhcp || RC="1"
-else
-    echo "  * No DHCP statements to write to LDAP";
-fi
-echo "Done!"
-echo
-rm -f $tmpdhcp
 
 # exit with return code
 exit $RC

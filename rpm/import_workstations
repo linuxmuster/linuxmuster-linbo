@@ -64,11 +64,9 @@ echo "#####################################################################" | t
 echo "Starting import workstations session at `date`" | tee -a $TMPLOG
 echo | tee -a $TMPLOG
 
-# start nscd if not running
-if ! ps ax | grep nscd | grep -v grep &> /dev/null; then
-	service nscd start | tee -a $TMPLOG
-	echo | tee -a $TMPLOG
-fi
+echo "Updating workstations file..." | tee -a $TMPLOG
+$LINBOSHAREDIR/linbo_update_workstations.pl | tee -a $TMPLOG
+echo "Done." | tee -a $TMPLOG
 
 RC=0
 
@@ -78,14 +76,15 @@ echo | tee -a $TMPLOG
 RC_ML=${PIPESTATUS[0]}
 [ $RC_ML -ne 0 ] && RC=$RC_ML
 
-# restart nscd service
-service nscd restart| tee -a $TMPLOG
+echo "Writing dhcpd.conf file..." | tee -a $TMPLOG
+$LINBOSHAREDIR/linbo_write_dhcpd.pl | tee -a $TMPLOG
+echo "Done." | tee -a $TMPLOG
 
-# restart dhcp service
-service dhcpd restart| tee -a $TMPLOG
+# restart oss-api service
+systemctl restart oss-api|tee -a $TMPLOG
 
-# restart named service
-service named restart| tee -a $TMPLOG
+# restart samba service
+systemctl restart samba| tee -a $TMPLOG
 
 # running user scripts
 echo | tee -a $TMPLOG
@@ -110,12 +109,6 @@ rm -f $TMPLOG
 
 # delete locker
 rm -f $locker
-
-if [ $RC -eq 0 ]; then
-    # move processed workstations file
-    DATE=`date +%Y-%m-%d:%H-%M`
-    mv $WIMPORTDATA $WIMPORTDATA.$DATE
-fi
 
 exit $RC
 

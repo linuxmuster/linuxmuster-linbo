@@ -1,5 +1,5 @@
-dn: uid=@@compname@@$,ou=machines,@@basedn@@
+dn: @@dn@@
 changetype: modify
-replace: sambaNTPassword
-sambaNTPassword: @@sambaNTpwhash@@
+replace: unicodePwd
+unicodePwd:: @@unicodepwd@@
 -

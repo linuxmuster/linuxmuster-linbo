@@ -1,7 +1,7 @@
 #
 # default grub.cfg, local boot version (placed in linbo cache)
 # thomas@linuxmuster.net
-# 20170512
+# 20171106
 #
 
 set default=0
@@ -64,14 +64,22 @@ menuentry 'OS localboot' {
    echo
   fi
 
-  if [ "${reboot_grub}" ] ; then
+  if [ -n "${reboot_label}" ]; then
+   search --label "$reboot_label" --set tmproot
+  fi
+  if [ -n "${reboot_grub}" -a -z "${tmproot}" ]; then
+   set tmproot="${reboot_grub}"
+  fi
+
+  if [ -n "${tmproot}" ]; then
 
    echo Booting operating system ...
    echo
 
-   set tmproot="${reboot_grub}"
    set reboot_grub=""
+   set reboot_label=""
    save_env reboot_grub
+   save_env reboot_label
    set root="${tmproot}"
    set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
 
@@ -83,13 +91,9 @@ menuentry 'OS localboot' {
     linux /vmlinuz $reboot_append
     initrd /initrd.img
     boot
-   elif [ -e /vmlinuz -a -e /initrd ]; then
+    elif [ -e /vmlinuz -a -e /initrd ]; then
     linux /vmlinuz $reboot_append
     initrd /initrd
-    boot
-   elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
-    linux /boot/vmlinuz $reboot_append
-    initrd /boot/initrd
     boot
    elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
@@ -118,7 +122,7 @@ menuentry 'OS localboot' {
   fi
 }
 
-# boot linbo local from cache in fallback mode
+# boot linbo local from cache in failsafe mode
 menuentry 'LINBO' {
  # 32bit or 64bit kernel
  if cpuid -l; then
@@ -139,13 +143,12 @@ menuentry 'LINBO' {
   initrd $linbo_initrd
   boot
  else
+  echo -n "Initiating pxe boot ..."
   if [ "$grub_platform" = "pc" ]; then
-   set ipxe="/ipxe.lkrn"
+   linux16 /ipxe.lkrn dhcp
+  else
+   chainloader /ipxe.efi
   fi
-  if [ -e "$ipxe" ]; then
-   echo -n "Initiating pxe boot ..."
-   linux16 $ipxe dhcp
-   boot
-  fi
+  boot
  fi
 }
