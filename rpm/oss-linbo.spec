@@ -2,12 +2,10 @@
 # Spec file for oss-linbo
 # Copyright (c) 2016 Frank Schütte <fschuett@gymhim.de> Hildesheim, Germany.  All rights reserved.
 #
-# gcc 4.8 is needed, replace links gcc, g++, cpp
 # don't clean build dir
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
 Version:	2.3.38
-Release:	2
 Release:	0
 License:	GPLv3
 Vendor:		openSUSE Linux
