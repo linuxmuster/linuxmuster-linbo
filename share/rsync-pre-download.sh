@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20180216
+# 20180502
 #
 
 # read in linuxmuster specific environment
@@ -95,6 +95,13 @@ case $EXT in
   # get key from workstations and write it to temporary file
   if [ -n "$compname" ]; then
    winkey="$(get_win_key $compname)"
+   # upload opsiip to client
+   linbo-ssh "$compname" "echo $opsiip > /tmp/opsiip"
+   # get opsi server cert and provide it to client
+   opsipem="opsiconfd.pem"
+   rsync -v "$opsiip:/etc/opsi/$opsipem" "$LINBODIR/$opsipem"
+   chmod 600 "$LINBODIR/$opsipem"
+   linbo-scp -v "$LINBODIR/$opsipem" "$compname:/tmp"
    officekey="$(get_office_key $compname)"
    [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
    [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"

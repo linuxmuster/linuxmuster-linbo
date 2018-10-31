@@ -5,7 +5,7 @@
 #
 # linuxmuster-mkgrubimg.py
 # thomas@linuxmuster.net
-# 20171107
+# 20180618
 #
 
 import configparser
@@ -143,7 +143,7 @@ rc = writeTextfile(cfgout, content, 'a')
 
 # create image file
 if systemtype == 'bios' or systemtype == 'bios64':
-    cmd = 'grub-mkimage -d /usr/lib/grub/' + platform + ' -O ' + imgtype + ' -o ' + img + ' -c ' + cfgout + ' ' + modules
+    cmd = 'grub-mkimage -p /boot/grub -d /usr/lib/grub/' + platform + ' -O ' + imgtype + ' -o ' + img + ' -c ' + cfgout + ' ' + modules
 else:
     cmd = 'grub-mkstandalone -d /usr/lib/grub/' + platform + ' -O ' + imgtype + ' -o ' + img + ' --modules="' + modules + '" --install-modules="' + modules + '" /boot/grub/grub.cfg="' + cfgout + '"'
 os.system(cmd)
