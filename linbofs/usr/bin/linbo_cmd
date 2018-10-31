@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20180310
+# 20180913
 # GPL v3
 #
 
@@ -362,7 +362,9 @@ get_disks_startconf(){
 get_disks(){
   local i
   local disks
-  for i in $(ls -l /dev/disk/by-id | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
+  # issue #91
+  # for i in $(ls -l /dev/disk/by-path | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
+  for i in $(ls -l /sys/block | grep '>' | grep -v 'virtual' | awk -F/ '{ print $NF }'); do
     if [ -z "$disks" ]; then
       disks="/dev/$i"
     elif echo "$disks"|grep -qw "/dev/$i"; then
@@ -1094,7 +1096,7 @@ repair_efi(){
  local FOUND
  local bootnr
  # first remove redundant entries, keep entries with lower number
- efibootmgr | grep ^Boot[0-9] | sort > "$efiout" || return 1
+ efibootmgr | grep ^Boot[0-9] | sort -r > "$efiout" || return 1
  # read in the unique boot entries and test for multiple occurances of the same item
  awk -F\* '{ print $2 }' "$efiout" | sort -u | while read item; do
   [ -z "$item" ] && continue
@@ -2132,18 +2134,22 @@ patch_fstab(){
 
 # process opsi stuff if client is installed: do_opsi baseimage image
 do_opsi(){
- # test for opsi's client config
- local conf
- conf="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]*/opsi.org/opsi-client-agent/opsiclientd/opsiclientd.conf 2> /dev/null)"
- [ -s "$conf" ] || return 0
- echo "Starte OPSI-Client-Konfiguration ..."
+ # search for opsi's client config on windows partition
+ local opsidir="$(ls -d /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]*/opsi.org/opsi-client-agent/opsiclientd 2> /dev/null)"
+ [ -d "$opsidir" ] || return 0
+ local opsiconf="$opsidir/opsiclientd.conf"
+ [ -s "$opsiconf" ] || return 0
+ echo "Starte OPSI-Client-Konfiguration:"
  local ip="$(grep ^ip /tmp/dhcp.log | awk -F\' '{ print $2 }')"
  local domainname="$(grep ^domain /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1)"
  local fqdn="$(hostname).$domainname"
+ local depotid="opsi.$domainname"
  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
- local opsiip="${serverip/.1.1/.1.2}"
+ local opsiip
+ local opsiserverpem
+ local opsiclientpem="$opsidir/opsiclientd.pem"
  local image
- local key
+ local clientkey
  local RC="0"
  if [ -n "$2" ]; then
   image="$2"
@@ -2153,28 +2159,58 @@ do_opsi(){
  # request opsikey
  localmode || rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey
  if [ -s /tmp/opsikey ]; then
-  key="$(cat /tmp/opsikey)"
+  echo " * Host-Key heruntergeladen."
+  clientkey="$(cat /tmp/opsikey)"
   # save opsi host key for offline use
   remote_cache "$(cachedev)" || cp /tmp/opsikey /cache
  else
   # load opsi from cache
   [ -s /cache/opsikey ] && key="$(cat /cache/opsikey)"
  fi
- if [ -n "$key" ]; then
-  echo "Opsi-Host-Key heruntergeladen."
-  # patch opsi host key
-  sed -e "s|^host_id.*|host_id = $fqdn|" -e "s|^opsi_host_key.*|opsi_host_key = $key|" -i "$conf" || RC="1"
-  # patch changed opsi ip
-  if ! grep -q "$opsiip" "$conf"; then
-   sed -e "s|10.*.1.2|$opsiip|g" -i "$conf" || RC="1"
+ if [ -n "$clientkey" ]; then
+  # patch opsi host key & id
+  echo " * Host-Key gepatcht."
+  sed -e "s|^host_id.*|host_id = $fqdn|" -e "s|^opsi_host_key.*|opsi_host_key = $clientkey|" -i "$opsiconf" || RC="1"
+  # patch depot id
+  echo " * Depot-ID $depotid gepatcht."
+  sed -i "s|^depot_id.*|depot_id = $depotid|" "$opsiconf" || RC="1"
+  # get opsi ip
+  if [ -s /tmp/opsiip ]; then
+    opsiip="$(cat /tmp/opsiip)"
+    echo " * IP $opsiip vom Server erhalten."
+    # save opsi ip for offline use
+    remote_cache "$(cachedev)" || cp /tmp/opsiip /cache
+  elif [ -s /cache/opsiip ]; then
+    # load opsi ip from cache
+    opsiip="$(cat /cache/opsiip)"
+    echo " * IP $opsiip aus dem Cache geholt."
   fi
+  if [ -n "$opsiip" ]; then
+    echo " * IP $opsiip gepatcht."
+    sed -i "s|^url = https.*|url = https://$opsiip:4447/rpc|" "$opsiconf" || RC="1"
+  fi
+  # get opsi server cert
+  if [ -s "/tmp/opsiconfd.pem" ]; then
+    echo " * Zertifikat heruntergeladen."
+    opsiserverpem="/tmp/opsiconfd.pem"
+    remote_cache "$(cachedev)" || cp "$opsiserverpem" /cache
+  elif [ -s "/cache/opsiconfd.pem" ]; then
+    echo " * Zertifikat aus dem Cache geholt."
+    opsiserverpem="/cache/opsiconfd.pem"
+  fi
+  # provide opsi server cert
+  if [ -n "$opsiserverpem" ]; then
+    echo " * Zertifikat kopiert."
+    cp "$opsiserverpem" "$opsiclientpem" || RC="1"
+  fi
+  # evaluate return code
   if [ "$RC" = "0" ]; then
-   echo "Opsi-Clientkonfiguration aktualisiert."
+   echo " * Erfolgreich beendet."
   else
-   echo "Opsi-Clientkonfiguration konnte nicht aktualisiert werden."
+   echo " * Aktualisierung war nicht möglich!"
   fi
  else
-  echo "Opsi-Host-Key ist nicht verfügbar."
+  echo " * Host-Key nicht verfügbar!"
  fi
  rm -f /tmp/opsikey
  # request opsi host ini update
