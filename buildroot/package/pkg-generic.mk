@@ -1059,3 +1059,4 @@ generic-package = $(call inner-generic-package,$(pkgname),$(call UPPERCASE,$(pkg
 host-generic-package = $(call inner-generic-package,host-$(pkgname),$(call UPPERCASE,host-$(pkgname)),$(call UPPERCASE,$(pkgname)),host)
 
 # :mode=makefile:
+
