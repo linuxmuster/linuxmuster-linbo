@@ -23,4 +23,6 @@ define CLOOP_INSTALL_TARGET_CMDS
 endef
 
 $(eval $(kernel-module))
+# error because HOST_... is defined
+HOST_CLOOP_KCONFIG_VAR =
 $(eval $(autotools-package))
