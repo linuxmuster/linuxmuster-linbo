@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # wrapper for workstation import scripts
 #
@@ -89,11 +89,11 @@ systemctl restart samba| tee -a $TMPLOG
 # running user scripts
 echo | tee -a $TMPLOG
 echo "### Running user scripts - Begin ###" | tee -a $TMPLOG
-if [ -d "$SYSCONFDIR/import_workstations.d" ]; then
+if [ -d "$SYSCONFDIR/import-workstations.d" ]; then
  (
- cd "$SYSCONFDIR/import_workstations.d"
+ cd "$SYSCONFDIR/import-workstations.d"
  for i in `find -mindepth 1 -maxdepth 1|sort`; do
-   $SYSCONFDIR/imort_workstations.d/$i | tee -a $TMPLOG
+   $SYSCONFDIR/import-workstations.d/$i | tee -a $TMPLOG
  done
  )
 fi

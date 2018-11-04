@@ -257,7 +257,7 @@ install rpm/sysconfig.bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig
 mkdir -p %{buildroot}/var/lib/bittorrent
 mkdir -p %{buildroot}/var/log/bittorrent
 
-mkdir -p %{buildroot}/etc/linbo/import-workstations.d
+mkdir -p %{buildroot}/etc/import-workstations.d
 mkdir -p %{buildroot}/usr/sbin
 install rpm/import_workstations %{buildroot}/usr/sbin/import_workstations
 mkdir -p %{buildroot}/usr/share/linbo
@@ -345,7 +345,7 @@ systemctl start rsyncd
 %files
 %defattr(-,root,root)
 %dir /etc/linbo
-%dir /etc/linbo/import-workstations.d
+%dir /etc/import-workstations.d
 %config /etc/linbo/linbo.conf
 %attr(644,root,root) %config /etc/linbo/ssh_config
 %attr(644,root,root) %config /etc/linbo/start.conf.default.in
