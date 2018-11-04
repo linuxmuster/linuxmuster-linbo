@@ -89,8 +89,14 @@ systemctl restart samba| tee -a $TMPLOG
 # running user scripts
 echo | tee -a $TMPLOG
 echo "### Running user scripts - Begin ###" | tee -a $TMPLOG
-#TODO
-#run-parts "$SYSCONFDIR/import_workstations.d" | tee -a $TMPLOG
+if [ -d "$SYSCONFDIR/import_workstations.d" ]; then
+ (
+ cd "$SYSCONFDIR/import_workstations.d"
+ for i in `find -mindepth 1 -maxdepth 1|sort`; do
+   $SYSCONFDIR/imort_workstations.d/$i | tee -a $TMPLOG
+ done
+ )
+fi
 echo "### Running user scripts - End ###" | tee -a $TMPLOG
 
 echo | tee -a $TMPLOG
