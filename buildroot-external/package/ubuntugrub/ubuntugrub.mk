@@ -146,12 +146,7 @@ UBUNTUGRUB_MODS = \
 	true udf ufs1_be ufs1 ufs2 uhci usb_keyboard usb usbms usbserial_common usbserial_ftdi usbserial_pl2303 \
 	usbserial_usbdebug usbtest vbe verify vga vga_text video_bochs video_cirrus video_colors video_fb videoinfo video \
 	videotest_checksum videotest xfs xnu xnu_uuid xnu_uuid_test xzio zfscrypt zfsinfo zfs
-UBUNTUGRUB_CHECK_BIN_ARCH_EXCLUSIONS = \
-	$(patsubst %,/usr/lib/grub/i386-pc/%.mod,$(UBUNTUGRUB_MODS)) \
-	$(patsubst %,/usr/lib/grub/i386-pc/%.img,$(UBUNTUGRUB_IMGS)) \
-	/usr/lib/grub/i386-pc/efiemu32.o \
-	$(patsubst %,/usr/lib/grub/i386-efi/%.mod,$(UBUNTUGRUB_MODS)) \
-	$(patsubst %,/usr/lib/grub/i386-efi/%.img,$(UBUNTUGRUB_IMGS))
+UBUNTUGRUB_BIN_ARCH_EXCLUDE += /usr/lib/grub
 endif
 
 ################################################################################
