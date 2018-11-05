@@ -33,7 +33,7 @@ UBUNTUGRUB_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -Wno-error"
 # extract debian dir
 define UBUNTUGRUB_EXTRACT_DEBIAN
     for file in $(UBUNTUGRUB_EXTRA_DOWNLOADS); do \
-	xzcat $(BR2_DL_DIR)/$$file | tar -C $(UBUNTUGRUB_SRCDIR)   -xf - ; \
+	xzcat $(UBUNTUGRUB_DL_DIR)/$$file | tar -C $(UBUNTUGRUB_SRCDIR)   -xf - ; \
     done
 endef
 
@@ -185,7 +185,7 @@ HOST_UBUNTUGRUB_CONF_OPTS += CFLAGS="$(HOST_CFLAGS) -Wno-error"
 # extract debian dir
 define HOST_UBUNTUGRUB_EXTRACT_DEBIAN
     for file in $(UBUNTUGRUB_EXTRA_DOWNLOADS); do \
-	xzcat $(BR2_DL_DIR)/$$file | tar -C $(HOST_UBUNTUGRUB_SRCDIR)   -xf - ; \
+	xzcat $(UBUNTUGRUB_DL_DIR)/$$file | tar -C $(HOST_UBUNTUGRUB_SRCDIR)   -xf - ; \
     done
 endef
 
