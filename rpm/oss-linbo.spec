@@ -221,6 +221,8 @@ mkdir -p %{buildroot}/usr/share/oss/plugins/add_device
 install rpm/linbo-update-ips.pl %{buildroot}/usr/share/oss/plugins/add_device/linbo-update-ips.pl
 mkdir -p %{buildroot}/usr/share/oss/plugins/delete_device
 install rpm/linbo-delete-device.pl %{buildroot}/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
+mkdir -p %{buildroot}/usr/share/oss/plugins/shares/itool/open
+install rpm/linbo-restore-vlan-links.sh %{buildroot}/usr/share/oss/plugins/shares/itool/open/linbo-restore-vlan-links.sh
 mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
@@ -408,5 +410,9 @@ systemctl start rsyncd
 %dir /usr/share/oss/plugins/add_device
 /usr/share/oss/plugins/add_device/linbo-update-ips.pl
 /usr/share/oss/plugins/delete_device/linbo-delete-device.pl
+%dir /usr/share/oss/plugins/shares
+%dir /usr/share/oss/plugins/shares/itool
+%dir /usr/share/oss/plugins/shares/itool/open
+/usr/share/oss/plugins/shares/itool/open/linbo-restore-vlan-links.sh
 
 %changelog
