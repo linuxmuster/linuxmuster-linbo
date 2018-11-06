@@ -103,7 +103,7 @@ BuildRequires:	unzip
 BuildRequires:  glibc glibc-32bit glibc-devel glibc-devel-32bit
 BuildRequires:	autoconf >= 2.69 automake >= 1.15 bc bison cpio
 %if 0%{?sle_version} == 120300 && 0%{?is_opensuse}
-BuildRequires:	gcc48 gcc48-32bit gcc48-c++
+BuildRequires:	gcc gcc-32bit gcc-c++
 BuildRequires:	python-argparse
 %else
 BuildRequires:	gcc gcc-32bit gcc-c++
@@ -131,25 +131,9 @@ Authors:
 %prep
 %setup -D
 
-%if 0%{?sle_version} == 120300 && 0%{?is_opensuse}
-ln -sf /usr/bin/gcc-4.8 %{_builddir}/gcc
-ln -sf /usr/bin/gcc-ar-4.8 %{_builddir}/gcc-ar
-ln -sf /usr/bin/gcc-nm-4.8 %{_builddir}/gcc-nm
-ln -sf /usr/bin/gcc-ranlib-4.8 %{_builddir}/gcc-ranlib
-ln -sf /usr/bin/gcc-4.8 %{_builddir}/cc
-ln -sf /usr/bin/g++-4.8 %{_builddir}/g++
-ln -sf /usr/bin/cpp-4.8 %{_builddir}/cpp
-ln -sf /usr/bin/gcov-4.8 %{_builddir}/gcov
-%endif
-
 %build
-
-OPATH=$PATH
-export PATH=%{_builddir}:${OPATH%:.}
 export BR2_DL_DIR=%{_sourcedir}
 make -f rpm/Makefile build
-
-export PATH=$OPATH
 
 %install
 # install main conf
