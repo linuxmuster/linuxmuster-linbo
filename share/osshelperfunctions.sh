@@ -161,6 +161,18 @@ validmac() {
   fi
 }
 
+# print kernel options from start.conf
+linbo_kopts(){
+ local conf="$1"
+ [ -z "$conf" ] && return
+ local kopts
+ if [ -e "$conf" ]; then
+  kopts="$(grep -i ^kerneloptions "$conf" | tail -1 | sed -e 's/#.*$//' -e 's/kerneloptions//I' | awk -F\= '{ print substr($0, index($0,$2)) }' | sed -e 's/ =//' -e 's/^ *//g' -e 's/ *$//g')"
+ fi
+ echo "$kopts"
+}
+
+
 # test if host is opsimanaged: opsimanaged ip|host
 opsimanaged() {
  local res="$(get_pxe "$1")"
