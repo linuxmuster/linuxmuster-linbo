@@ -100,4 +100,4 @@ echo "### rsync pre upload end: $(date) ###"
 
 exit $RC
 # post-script will change the name of the backup to a more meaningful one,
-# or rename it back in case of a failed download.
+# or rename it back in case of a failed upload.

@@ -66,7 +66,7 @@ if [ -s "$BACKUP" ]; then
      if [ -e "${FILE}.$i" ];then
       mv -fv "${FILE}.$i" "${ARCHIVE}.$i"
       echo "$(basename ${ARCHIVE}.$i) created."
-      chmod 600 "${ARCHIVE}.$i"
+      [ ! -L "${ARCHIVE}.$i" ] && chmod 600 "${ARCHIVE}.$i"
      fi
     done
    ;;
