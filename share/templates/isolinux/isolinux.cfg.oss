@@ -16,3 +16,6 @@ label sys64
 
 label sys32
   config sys32.cfg
+
+label pxe
+  config pxe.cfg
