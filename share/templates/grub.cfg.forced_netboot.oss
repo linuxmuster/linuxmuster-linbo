@@ -29,11 +29,11 @@ fi
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt
-#set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
+set font=/boot/grub/themes/linbo/unifont-regular-16.pf2
 
 # load theme
 if [ -e "$theme" -a -e "$font" ]; then
-# loadfont "$font"
+ loadfont "$font"
  export theme
 fi
 
