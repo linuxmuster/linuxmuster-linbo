@@ -18,6 +18,9 @@ insmod progress
 
 terminal_output gfxterm
 
+set font=/boot/grub/fonts/unicode.pf2
+loadfont "$font"
+
 set color_normal=white/black
 set color_highlight=yellow/black
 set menu_color_normal=white/black
