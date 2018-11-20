@@ -1,5 +1,6 @@
 #include <qfile.h>
-#include <qdebug.h>
+#include <QDebug>
+#include <QTime>
 #include <qtextstream.h>
 #include <qstringlist.h>
 
@@ -56,11 +57,11 @@ CommandLine::CommandLine(): args(),autostart(-1),use_autostart(false),extraconf(
     // read wrapper commands from downloaded file and remove file
     QFile linbocmdfile("/linbocmd");
     if(!linbocmdfile.open(QIODevice::ReadOnly)){
-        qDebug() << "No file /linbocmd found.\n";
+        qDebug() << "[" << QTime::currentTime().toString() << "]" << "No file /linbocmd found.\n";
         return;
     }
     else {
-        qDebug() << "File /linbocmd found.\n";
+        qDebug() << "[" << QTime::currentTime().toString() << "]" << "File /linbocmd found.\n";
         QTextStream ts(&linbocmdfile);
         if(linbocmds.size() > 0){
             linbocmds.append(Command::LINBOCMDSEP);

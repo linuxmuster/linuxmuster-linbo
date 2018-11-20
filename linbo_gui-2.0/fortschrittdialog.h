@@ -2,11 +2,11 @@
 #define FORTSCHRITTDIALOG_H
 
 #include <QDialog>
-#include <qobject.h>
+#include <QObject>
 #include <QProcess>
 #include <QTextEdit>
 #include <QTime>
-#include <qbytearray.h>
+#include <QByteArray>
 
 #include "linboLogConsole.h"
 #include "aktion.h"
@@ -35,10 +35,10 @@ private:
     Filter *filter;
 
 public:
-    explicit FortschrittDialog(QWidget *parent = 0, bool new_active = true, QStringList* command = 0, linboLogConsole *new_log = 0,
-                               const QString& new_title  = NULL, Aktion aktion = Aktion::None,
-                               bool* newDetails = NULL,
-                               Filter *new_filter = 0);
+    explicit FortschrittDialog(QWidget *parent = nullptr, bool new_active = true, QStringList* command = nullptr, linboLogConsole *new_log = nullptr,
+                               const QString& new_title  = nullptr, Aktion aktion = Aktion::None,
+                               bool* newDetails = nullptr,
+                               Filter *new_filter = nullptr);
     ~FortschrittDialog();
 
     void setShowCancelButton(bool show);

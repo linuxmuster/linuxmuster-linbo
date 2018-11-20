@@ -2,6 +2,7 @@
 
 #include <QMessageBox>
 #include <QDebug>
+#include <QTime>
 #include <qfile.h>
 #include <qtextstream.h>
 #include <qobject.h>
@@ -37,6 +38,7 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
     remoteTimer(new QTimer(this)),
     ui(new Ui::LinboGUI)
 {
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"Configure UI...";
     ui->setupUi(this);
     conf = new Configuration();
     command = new Command(conf);
@@ -67,17 +69,21 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
                                     conf->config.get_consolefontcolorstderr(),
                                     ui->log, logfilepath);
 
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"ShowInfos...";
     showInfos();
 
     connect(batteryTimer, &QTimer::timeout, this, &LinboGUI::showBatteryInfo);
     batteryTimer->start(10000);
 
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"ShowOSs...";
     showOSs();
 
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"ShowImages...";
     showImages();
 
     ui->systeme->setCurrentIndex(0);
 
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"Process Autostart...";
     //process autostart
     autostartnr = -1;
     for(unsigned int osnr=0;osnr < conf->elements.size() && autostartnr < 0;osnr++){
@@ -91,18 +97,21 @@ LinboGUI::LinboGUI(QWidget *parent): QMainWindow(parent),
             }
         }
     }
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"Init Show Remote Commands...";
     //check for running remote commands
     showRemoteCommand();
     connect(remoteTimer, SIGNAL(timeout()), this, SLOT(showRemoteCommand()));
     remoteTimer->start(2000);
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"Process linbocmds...";
     //process linbocmds
-    if(conf->getCommandLine().getLinbocmd() != NULL){
-        qDebug() << "Found linbocmd(s), starting 'doWrapperCommands'";
+    if(conf->getCommandLine().getLinbocmd() != nullptr){
+        qDebug() << "[" << QTime::currentTime().toString() << "]" << "Found linbocmd(s), starting 'doWrapperCommands'";
         QTimer::singleShot(500, this, SLOT(doWrapperCommands()));
     }
     else if(autostartnr > -1){
         QTimer::singleShot(500, this, SLOT(doAutostartDialog()));
     }
+    qDebug() << "[" << QTime::currentTime().toString() << "]" <<"Finished GUI setup!";
 }
 
 LinboGUI::~LinboGUI()
@@ -455,8 +464,8 @@ void LinboGUI::on_setup_clicked()
         default:
         {
             QString icTitlePattern = QString("^Erzeuge Image\\s+([\\-\\.\\w]+)\\s+");
-            FilterRegex *fc = new FilterRegex(this, Command::mapMaxPattern[Command::initcache],
-                    Command::mapValPattern[Command::initcache], icTitlePattern);
+            // TODO:FilterRegex *fc = new FilterRegex(this, Command::mapMaxPattern[Command::initcache],
+            //        Command::mapValPattern[Command::initcache], icTitlePattern);
             doCommand( command->mkcacheinitcommand(false, conf->config.get_downloadtype()), true, QString("Einrichten - Cache aktualisieren"), Aktion::None, &details);
             break;
         }

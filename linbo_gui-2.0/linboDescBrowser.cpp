@@ -2,7 +2,7 @@
 #include <qapplication.h>
 #include <QtGui>
 #include <qtextstream.h>
-#include <QDesktopWidget>
+#include <QWidget>
 
 #include "linboDescBrowser.h"
 #include "ui_linboDescBrowser.h"

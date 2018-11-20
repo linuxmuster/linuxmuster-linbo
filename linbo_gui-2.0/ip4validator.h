@@ -5,7 +5,7 @@
 
 class IP4Validator : public QValidator {
 public:
-    IP4Validator(QObject *parent=0);
+    IP4Validator(QObject *parent=nullptr);
     void fixup(QString &input) const;
     State validate(QString &input, int &pos) const;
 };

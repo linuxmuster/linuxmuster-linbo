@@ -62,7 +62,7 @@ public:
     bool isRoot() const;
     void showImagingTab();
 
-    explicit LinboGUI(QWidget *parent = 0);
+    explicit LinboGUI(QWidget *parent = nullptr);
     ~LinboGUI();
 
     void readFromStdout();
@@ -123,7 +123,7 @@ private:
     void doCreate();
     void doUpload();
     int doCommand(const QStringList& command, bool interruptible = false, const QString& titel = QString(""),
-                   Aktion aktion = Aktion::None, bool* details = NULL, Filter *filter = 0);
+                   Aktion aktion = Aktion::None, bool* details = NULL, Filter *filter = nullptr);
     Ui::LinboGUI *ui;
 };
 

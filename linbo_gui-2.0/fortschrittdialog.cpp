@@ -1,6 +1,6 @@
 #include <qdebug.h>
 #include <unistd.h>
-#include <QDesktopWidget>
+#include <QWidget>
 #include <qdialog.h>
 #include <qprocess.h>
 #include <qbytearray.h>
@@ -29,22 +29,22 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
                                      const QString& new_title, Aktion aktion, bool* newDetails,
                                      Filter *new_filter):
     QDialog(parent), active(new_active), title(new_title), ldetails(false),
-    details(newDetails), process((new_active?new QProcess(this):NULL)),
+    details(newDetails), process((new_active?new QProcess(this):nullptr)),
     logConsole(new_log), timerId(0), filter(new_filter),
     ui(new Ui::FortschrittDialog)
 {
     ui->setupUi(this);
-    if(details == NULL){
+    if(details == nullptr){
         details = &ldetails;
     }
     ui->details->setChecked(*details);
     logDetails = new linboLogConsole();
-    logDetails->setLinboLogConsole(logConsole == NULL ? linboLogConsole::COLORSTDOUT
+    logDetails->setLinboLogConsole(logConsole == nullptr ? linboLogConsole::COLORSTDOUT
                                                       : logConsole->get_colorstdout(),
-                                   logConsole == NULL ? linboLogConsole::COLORSTDERR
+                                   logConsole == nullptr ? linboLogConsole::COLORSTDERR
                                                       : logConsole->get_colorstderr(),
-                                   ui->log, NULL);
-    ui->aktion->setText(title == NULL ? QString("unbekannt") : title );
+                                   ui->log, nullptr);
+    ui->aktion->setText(title == nullptr ? QString("unbekannt") : title );
     if(aktion == Aktion::None) {
         ui->folgeAktion->hide();
     } else {
@@ -64,7 +64,7 @@ FortschrittDialog::FortschrittDialog(QWidget* parent, bool new_active, QStringLi
         args.removeFirst();
         const QStringList cargs = args;
     }
-    if(filter == 0){
+    if(filter == nullptr){
         filter = new FilterTime(this, ui->processTime);
     }
     connect(filter,&Filter::valueChanged,ui->progressBar,&QProgressBar::setValue);
@@ -86,7 +86,7 @@ FortschrittDialog::~FortschrittDialog()
 
 void FortschrittDialog::appendTitle(const QString& new_title)
 {
-    if(new_title != NULL && new_title.compare(QString("")) != 0)
+    if(new_title != nullptr && new_title.compare(QString("")) != 0)
         ui->aktion->setText(title + QString(": ") + new_title);
     else
         ui->aktion->setText(title);
@@ -120,7 +120,7 @@ void FortschrittDialog::processReadyReadStandardOutput()
     QByteArray data = process->readAllStandardOutput();
     filter->filter(data);
     logDetails->writeStdOut(data);
-    if(logConsole != NULL)
+    if(logConsole != nullptr)
         logConsole->writeStdOut(data);
 }
 
@@ -131,7 +131,7 @@ void FortschrittDialog::processReadyReadStandardError()
     }
     QByteArray data = process->readAllStandardError();
     logDetails->writeStdErr(data);
-    if(logConsole != NULL)
+    if(logConsole != nullptr)
         logConsole->writeStdErr(data);
 }
 
@@ -140,7 +140,7 @@ void FortschrittDialog::processFinished( int exitCode, QProcess::ExitStatus exit
         this->killTimer( timerId );
         timerId = 0;
     }
-    if(logConsole != NULL){
+    if(logConsole != nullptr){
         logConsole->writeStdOut(process->program() + " " + process->arguments().join(" ")
                                 + " was finished");
         logConsole->writeResult(exitCode, exitStatus, exitCode);

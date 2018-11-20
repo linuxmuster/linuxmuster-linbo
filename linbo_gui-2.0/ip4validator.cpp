@@ -1,4 +1,5 @@
 #include <QValidator>
+#include <QDebug>
 
 #include "ip4validator.h"
 
@@ -13,6 +14,7 @@ void IP4Validator::fixup(QString &input) const
 }
 
 QValidator::State IP4Validator::validate(QString &input, int &pos) const {
+    qDebug() << "Cursor at pos " << pos;
     if(input.isEmpty()) return Acceptable;
     QStringList slist = input.split(".");
     int s = slist.size();
