@@ -6,7 +6,7 @@
 
 QT5BASE_VERSION = $(QT5_VERSION)
 QT5BASE_SITE = $(QT5_SITE)
-QT5BASE_SOURCE = qtbase-$(QT5_SOURCE_TARBALL_PREFIX)-$(QT5BASE_VERSION).tar.xz
+QT5BASE_SOURCE = qtbase-opensource-src-$(QT5BASE_VERSION).tar.xz
 
 QT5BASE_DEPENDENCIES = host-pkgconf zlib
 QT5BASE_INSTALL_STAGING = YES
@@ -35,19 +35,12 @@ endif
 
 QT5BASE_CONFIGURE_OPTS += $(call qstrip,$(BR2_PACKAGE_QT5BASE_CUSTOM_CONF_OPTS))
 
-ifeq ($(BR2_PACKAGE_LIBDRM),y)
-QT5BASE_CONFIGURE_OPTS += -kms
-QT5BASE_DEPENDENCIES += libdrm
-else
-QT5BASE_CONFIGURE_OPTS += -no-kms
-endif
-
 # Uses libgbm from mesa3d
 ifeq ($(BR2_PACKAGE_MESA3D_OPENGL_EGL),y)
-QT5BASE_CONFIGURE_OPTS += -gbm
+QT5BASE_CONFIGURE_OPTS += -kms -gbm
 QT5BASE_DEPENDENCIES += mesa3d
 else
-QT5BASE_CONFIGURE_OPTS += -no-gbm
+QT5BASE_CONFIGURE_OPTS += -no-kms
 endif
 
 ifeq ($(BR2_ENABLE_DEBUG),y)
@@ -63,7 +56,7 @@ endif
 QT5BASE_CONFIGURE_OPTS += -opensource -confirm-license
 ifeq ($(BR2_PACKAGE_QT5_VERSION_LATEST),y)
 QT5BASE_LICENSE = GPL-2.0+ or LGPL-3.0, GPL-3.0 with exception(tools), GFDL-1.3 (docs)
-QT5BASE_LICENSE_FILES = LICENSE.GPL2 LICENSE.GPL3 LICENSE.GPL3-EXCEPT LICENSE.LGPLv3 LICENSE.FDL
+QT5BASE_LICENSE_FILES = LICENSE.GPL2 LICENSE.GPLv3 LICENSE.GPL3-EXCEPT LICENSE.LGPLv3 LICENSE.FDL
 else
 QT5BASE_LICENSE = GPL-3.0 or LGPL-2.1 with exception or LGPL-3.0, GFDL-1.3 (docs)
 QT5BASE_LICENSE_FILES = LICENSE.GPLv3 LICENSE.LGPLv21 LGPL_EXCEPTION.txt LICENSE.LGPLv3 LICENSE.FDL
@@ -247,14 +240,12 @@ QT5BASE_INSTALL_LIBS_$(BR2_PACKAGE_QT5BASE_PRINTSUPPORT) += Qt5PrintSupport
 
 QT5BASE_INSTALL_LIBS_$(BR2_PACKAGE_QT5BASE_DBUS) += Qt5DBus
 
-ifeq ($(BR2_PACKAGE_QT5_VERSION_LATEST),y)
-ifeq ($(BR2_PACKAGE_IMX_GPU_VIV),y)
+ifeq ($(BR2_PACKAGE_QT5_VERSION_LATEST)$(BR2_PACKAGE_IMX_GPU_VIV),yy)
 # use vivante backend
-QT5BASE_EGLFS_DEVICE = EGLFS_DEVICE_INTEGRATION = eglfs_viv
-else ifeq ($(BR2_PACKAGE_SUNXI_MALI)$(BR2_PACKAGE_SUNXI_MALI_MAINLINE),y)
-# use mali backend
-QT5BASE_EGLFS_DEVICE = EGLFS_DEVICE_INTEGRATION = eglfs_mali
-endif
+define QT5BASE_CONFIGURE_QMAKE_CONFIG
+	echo "EGLFS_DEVICE_INTEGRATION = eglfs_viv" >> \
+		$(@D)/mkspecs/devices/linux-buildroot-g++/qmake.conf
+endef
 endif
 
 ifneq ($(QT5BASE_CONFIG_FILE),)
@@ -272,10 +263,9 @@ endef
 endif
 
 define QT5BASE_CONFIGURE_CMDS
-	mkdir -p $(@D)/mkspecs/devices/linux-buildroot-g++/
-	sed 's/@EGLFS_DEVICE@/$(QT5BASE_EGLFS_DEVICE)/g' \
-		$(QT5BASE_PKGDIR)/qmake.conf.in > \
+	$(INSTALL) -m 0644 -D $(QT5BASE_PKGDIR)/qmake.conf \
 		$(@D)/mkspecs/devices/linux-buildroot-g++/qmake.conf
+	$(QT5BASE_CONFIGURE_QMAKE_CONFIG)
 	$(INSTALL) -m 0644 -D $(QT5BASE_PKGDIR)/qplatformdefs.h \
 		$(@D)/mkspecs/devices/linux-buildroot-g++/qplatformdefs.h
 	$(QT5BASE_CONFIGURE_CONFIG_FILE)
@@ -284,6 +274,8 @@ define QT5BASE_CONFIGURE_CMDS
 	(cd $(@D); \
 		$(TARGET_MAKE_ENV) \
 		PKG_CONFIG="$(PKG_CONFIG_HOST_BINARY)" \
+		PKG_CONFIG_LIBDIR="$(STAGING_DIR)/usr/lib/pkgconfig" \
+		PKG_CONFIG_SYSROOT_DIR="$(STAGING_DIR)" \
 		MAKEFLAGS="$(MAKEFLAGS) -j$(PARALLEL_JOBS)" \
 		./configure \
 		-v \
@@ -297,8 +289,8 @@ define QT5BASE_CONFIGURE_CMDS
 		-nomake tests \
 		-device buildroot \
 		-device-option CROSS_COMPILE="$(TARGET_CROSS)" \
-		-device-option BR_COMPILER_CFLAGS="$(TARGET_CFLAGS)" \
-		-device-option BR_COMPILER_CXXFLAGS="$(TARGET_CXXFLAGS)" \
+		-device-option BR_COMPILER_CFLAGS="$(TARGET_CFLAGS) $(QT5BASE_EXTRA_CFLAGS)" \
+		-device-option BR_COMPILER_CXXFLAGS="$(TARGET_CXXFLAGS) $(QT5BASE_EXTRA_CFLAGS)" \
 		$(QT5BASE_CONFIGURE_OPTS) \
 	)
 endef

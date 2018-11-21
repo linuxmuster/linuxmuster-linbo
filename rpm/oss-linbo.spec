@@ -81,7 +81,7 @@ Source63:       pcre2-10.31.tar.bz2
 Source64:       pkgconf-0.9.12.tar.bz2
 Source65:       popt-1.16.tar.gz
 Source66:       Python-2.7.15.tar.xz
-Source67:       qtbase-everywhere-src-5.11.1.tar.xz
+Source67:       qtbase-opensource-src-5.9.4.tar.xz
 Source68:       reiserfsprogs-3.6.24.tar.xz
 Source69:       rsync-3.1.3.tar.gz
 Source70:       udpcast-20120424.tar.gz
