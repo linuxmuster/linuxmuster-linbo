@@ -16,13 +16,13 @@ Buildroot bringt alle drei Monate eine neue Version raus.
 Falls man mit `git subtree pull` arbeitet, erhält man viele Konflikte, stattdessn lässt
 sich der Subtree so updaten (Branch, an dem gearbeitet wird heisst `buildroot`):
 
-    $ git checkout -b buildroot-2018.02
+    $ git checkout -b buildroot-2018.08.2
     $ git rm -r buildroot
     $ rm -r buildroot
     $ git commit -a
-    $ git subtree add --prefix buildroot git://git.buildroot.net/buildroot 2018.02
+    $ git subtree add --prefix buildroot git://git.buildroot.net/buildroot 2018.08.2
     $ git checkout <main branch>
-    $ git merge -Xtheirs --squash buildroot-2018.02
+    $ git merge -Xtheirs --squash buildroot-2018.08.2
     $ git commit -a
 
 ### Konfiguration anpassen
@@ -52,7 +52,7 @@ Um die defconfig vom Kernel zu aktualisieren:
 Paket bauen
 -----------
 
-Getestet auf SuSE Linux Enterprise SLE-11
+Getestet auf openSUSE Leap 42.3
 
     $ rpmbuild -ba oss-linbo.spec
 
