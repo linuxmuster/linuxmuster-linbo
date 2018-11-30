@@ -203,6 +203,8 @@ ln -sf ../../bin/linbo-grub-mkstandalone grub-mkstandalone
 popd
 mkdir -p %{buildroot}/usr/share/oss/plugins/add_device
 install rpm/linbo-update-ips.pl %{buildroot}/usr/share/oss/plugins/add_device/linbo-update-ips.pl
+mkdir -p %{buildroot}/usr/share/oss/plugins/modify_device
+install rpm/linbo-modify-device.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
 mkdir -p %{buildroot}/usr/share/oss/plugins/delete_device
 install rpm/linbo-delete-device.pl %{buildroot}/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
 mkdir -p %{buildroot}/usr/share/oss/plugins/shares/itool/open
@@ -393,6 +395,9 @@ systemctl start rsyncd
 %dir /usr/share/oss/plugins
 %dir /usr/share/oss/plugins/add_device
 /usr/share/oss/plugins/add_device/linbo-update-ips.pl
+%dir /usr/share/oss/plugins/modify_device
+/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
+%dir /usr/share/oss/plugins/delete_device
 /usr/share/oss/plugins/delete_device/linbo-delete-device.pl
 %dir /usr/share/oss/plugins/shares
 %dir /usr/share/oss/plugins/shares/itool

@@ -1,15 +1,18 @@
 #!/usr/bin/perl -w
-# linbo-update-ips.pl
+# linbo-modify-device.pl
 #
-# Update ip, wlanip in workstations file
-#
+# Remove device from workstations file
+# Frank Schütte <fschuett@gymhim.de> 2018
+
 use strict;
 
 my $workstations = "/etc/linbo/workstations";
-my $temp = `mktemp /tmp/linbo-update-ipsXXXXXXXX`;
+my $temp = `mktemp /tmp/linbo-modify-deviceXXXXXXXX`;
 chomp $temp;
 my %host = ();
+my $MAC = 3;
 my $IP = 4;
+my $WLANMAC = 5;
 my $WLANIP = 6;
 
 while(<STDIN>){
@@ -20,6 +23,8 @@ while(<STDIN>){
     $value =~ s/^\s+|\s+$//g;
     $host{$name} = $value;
 }
+exit 0 if not defined $host{'name'} or $host{'name'} eq '';
+exit 0 if not defined $host{'mac'} or $host{'mac'} eq '';
 
 open(WORKSTATIONS, "<$workstations");
 open(TEMP, ">$temp");
@@ -27,8 +32,10 @@ while(<WORKSTATIONS>){
     chomp;
     if(/^[^;]*;$host{'name'};.*$/){
         my (@line) = split /;/,$_,-1;
-        $line[$IP] = $host{'ip'};
+        $line[$IP] = $host{'ip'} if defined $host{'ip'};
+        $line[$MAC] = $host{'mac'} if defined $host{'mac'};
         $line[$WLANIP] = $host{'wlanIp'} if defined $host{'wlanIp'};
+        $line[$WLANMAC] = $host{'wlanMac'} if defined $host{'wlanMac'};
         $_ = join ';', @line;
     }
     print TEMP "$_\n";
