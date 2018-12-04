@@ -10,6 +10,7 @@ my $workstations = "/etc/linbo/workstations";
 my $temp = `mktemp /tmp/linbo-modify-deviceXXXXXXXX`;
 chomp $temp;
 my %host = ();
+my $HWCONF = 2;
 my $MAC = 3;
 my $IP = 4;
 my $WLANMAC = 5;
@@ -32,6 +33,7 @@ while(<WORKSTATIONS>){
     chomp;
     if(/^[^;]*;$host{'name'};.*$/){
         my (@line) = split /;/,$_,-1;
+        $line[$HWCONF] = $host{'hwconf'} if defined $host{'hwconf'};
         $line[$IP] = $host{'ip'} if defined $host{'ip'};
         $line[$MAC] = $host{'mac'} if defined $host{'mac'};
         $line[$WLANIP] = $host{'wlanIp'} if defined $host{'wlanIp'};
