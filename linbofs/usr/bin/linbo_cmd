@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20180913
+# 20181213
 # GPL v3
 #
 
@@ -343,18 +343,29 @@ get_disks_startconf(){
 get_disks(){
   local i
   local disks
-  # issue #91
-  # for i in $(ls -l /dev/disk/by-path | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
-  for i in $(ls -l /sys/block | grep '>' | grep -v 'virtual' | awk -F/ '{ print $NF }'); do
-    if [ -z "$disks" ]; then
-      disks="/dev/$i"
-    else
-      disks="$disks /dev/$i"
-    fi
-  done
-  echo "$disks"
-  return 0
+  if [ -d /dev/disk/by-path ]; then
+     for i in $(ls -l /dev/disk/by-path | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
+       if [ -z "$disks" ]; then
+        disks="/dev/$i"
+       else
+        disks="$disks /dev/$i"
+       fi
+     done
+  # Fallback if disk by-path does not exist. This is caused by missing udev rules for excample in nvme files
+  else
+     for i in $(ls -l /dev/disk/by-id | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
+       if [ -z "$disks" ]; then
+        disks="/dev/$i"
+       else
+        disks="$disks /dev/$i"
+       fi
+     done
+  fi
+    echo "$disks"
+
+    return 0
 }
+
 
 # tschmitt
 # fetch fstype from start.conf
@@ -599,11 +610,11 @@ format(){
   *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $partition" ;;
   *) return 1 ;;
  esac
- echo -n "Formatiere $partition mit $fstype ..."
+ echo -n "Formatting $partition with $fstype ..."
  [ -d "$partition" ] || sleep 5
  $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
  if [ "$RC" != "0" ]; then
-  echo -n " Partition ist noch nicht bereit - versuche nochmal ..."
+  echo -n " Partition is not yet ready - trying again ..."
   sleep 2
   $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
  fi
@@ -618,11 +629,15 @@ format(){
    update "$(serverip)" "$cachedev"
    mk_boot
    if mountcache "$cachedev"; then
-    echo "Speichere start.conf auf Cache."
+    echo "Saving start.conf in cache."
     cp /start.conf /cache
     # save hostname for offline use
-    echo "Speichere Hostnamen $(hostname) auf Cache."
-    hostname > /cache/hostname
+    if [ -s /tmp/network.ok ]; then
+      source /tmp/network.ok
+      local FQDN="${hostname}.${domain}"
+      echo "Saving hostname $FQDN in cache."
+      echo "$FQDN" > /cache/hostname
+    fi
    fi
   fi
  else
@@ -2334,8 +2349,15 @@ syncl(){
 
  # get hostname
  local HOSTNAME
- if localmode; then
-  [ -s /cache/hostname ] && HOSTNAME="$(cat /cache/hostname)"
+ local FQDN
+ if [ -s /tmp/network.ok ]; then
+   source /tmp/network.ok
+   FQDN="${hostname}.${domain}"
+   HOSTNAME="$hostname"
+ elif [ -s /cache/hostname ]; then
+   FQDN="$(cat /cache/hostname)"
+   HOSTNAME="$(echo "$FQDN" | awk -F \. '{ print $1 }')"
+   [ "$FQDN" = "$HOSTNAME" ] && FQDN=""
  fi
  [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
 
@@ -2515,9 +2537,9 @@ syncl(){
 
  # hostname
  if [ -f /mnt/etc/hostname ]; then
-  if [ -n "$HOSTNAME" ]; then
-   echo "Setze Hostname -> $HOSTNAME."
-   echo "$HOSTNAME" > /mnt/etc/hostname
+   if [ -n "$FQDN" ]; then
+     echo "Setze Hostname -> $FQDN."
+     echo "$FQDN" > /mnt/etc/hostname
   fi
  fi
 
@@ -3335,18 +3357,21 @@ ip(){
 }
 
 clientname(){
- local clientname="$(hostname)"
- if localmode; then
-  local cachedev="$(grep -iw ^Cache /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  if [ -b "$cachedev" ]; then
-   if mountcache $cachedev -r &> /dev/null; then
-    if [ -s /cache/hostname ]; then
-     clientname="$(cat /cache/hostname)"
-    fi
-   fi
+  if [ -s /tmp/network.ok ]; then
+    source /tmp/network.ok
+    echo "$hostname"
+    return
   fi
- fi
- echo "$clientname"
+  local device="$(cachedev)"
+  if [ -b "$device" ]; then
+    if mountcache $device -r &> /dev/null; then
+      if [ -s /cache/hostname ]; then
+        awk -F\. '{ print $1 }' /cache/hostname
+        return
+      fi
+    fi
+  fi
+  hostname
 }
 
 cpu(){

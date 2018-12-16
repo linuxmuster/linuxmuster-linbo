@@ -1,3 +1,13 @@
+linuxmuster-linbo (2.3.39-0) babo62; urgency=low
+
+  * merged https://github.com/PLanB2008/linuxmuster-linbo.
+  * modifications due to ubuntu 18.04 build environment.
+  * linbo_cmd: handling clients fully qualified domainname.
+  * partially translated console messages to english.
+  * update to lts kernel 4.14.88.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 14 Dec 2018 15:58:04 +0100
+
 linuxmuster-linbo (2.3.38-0) babo62; urgency=low
 
   * lmn7: fixed missing prefix in grub-mkimage command for bios images in mkgrubhostimg.py.
