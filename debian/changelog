@@ -1,12 +1,19 @@
+linuxmuster-linbo (2.3.39-1) babo62; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 16 Dec 2018 14:00:54 +0100
+
 linuxmuster-linbo (2.3.39-0) babo62; urgency=low
 
   * merged https://github.com/PLanB2008/linuxmuster-linbo.
+  * improved nvme ssd recognition (#91).
   * modifications due to ubuntu 18.04 build environment.
   * linbo_cmd: handling clients fully qualified domainname.
   * partially translated console messages to english.
-  * update to lts kernel 4.14.88.
+  * update to lts kernel 4.14.88 (#99).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 14 Dec 2018 15:58:04 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 16 Dec 2018 13:58:27 +0100
 
 linuxmuster-linbo (2.3.38-0) babo62; urgency=low
 
