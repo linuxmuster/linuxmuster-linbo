@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20180207
+# 20180220
 # GPL V3
 #
 
@@ -237,7 +237,7 @@ format_partition(){
  case "$fstype" in
   [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
   [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
-  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $label $dev" ;;
+  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype -F $label $dev" ;;
   [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
   *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $dev" ;;
   *) echo "Unbekanntes Dateisystem: $fstype!"

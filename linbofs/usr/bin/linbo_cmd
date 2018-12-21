@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20181213
+# 20181220
 # GPL v3
 #
 
@@ -605,7 +605,7 @@ format(){
  case "$fstype" in
   [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $partition" ;;
   [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $partition" ;;
-  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $label $partition" ;;
+  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype -F $label $partition" ;;
   [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $partition" ;;
   *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $partition" ;;
   *) return 1 ;;
@@ -2537,9 +2537,9 @@ syncl(){
 
  # hostname
  if [ -f /mnt/etc/hostname ]; then
-   if [ -n "$FQDN" ]; then
-     echo "Setze Hostname -> $FQDN."
-     echo "$FQDN" > /mnt/etc/hostname
+   if [ -n "$HOSTNAME" ]; then
+     echo "Setze Hostname -> $HOSTNAME."
+     echo "$HOSTNAME" > /mnt/etc/hostname
   fi
  fi
 

@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.40-0) babo62; urgency=low
+
+  * fixed hostname patch for ubuntu clients, using short name.
+  * force ext4 filesystem creation to avoid security prompt.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 21 Dec 2018 11:53:22 +0100
+
 linuxmuster-linbo (2.3.39-1) babo62; urgency=low
 
   * rebuild.
