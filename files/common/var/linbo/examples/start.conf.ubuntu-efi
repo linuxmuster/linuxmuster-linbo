@@ -2,9 +2,8 @@
 # EFI 64 Partition 1
 # Ubuntu  Partition 2
 # Swap auf Partition 3
-# Cache auf Partition 4 
+# Cache auf Partition 4
 # Daten auf Partition 5
-# Festplatte 160G
 
 [LINBO]                  # globale Konfiguration
 Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhaelt
@@ -23,7 +22,7 @@ SystemType = efi64                  # moeglich ist bios|bios64|efi32|efi64 (Stan
 KernelOptions = quiet splash        # Beispiele:
 #KernelOptions = acpi=noirq irqpoll # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
 #KernelOptions = server=10.16.1.5   # Abweichende Linbo-Server-IP als Kerneloption gesetzt
-                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet 
+                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet
 
 [Partition]              # Partition fuer EFI
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
@@ -52,7 +51,7 @@ Bootable = no            # kein Bootable-Flag
 [Partition]              # Cachepartition
 Dev = /dev/sda4          # Device-Name der Partition (sda4 = vierte Partition auf erster Platte)
 Label = cache            # Partitionslabel cache
-Size = 50G               # Partitionsgroesse 50G
+Size = 30G               # Partitionsgroesse 30G
 Id = 83                  # Partitionstyp 83
 FSType = ext4            # Dateisystem ext4
 Bootable = no            # kein Bootable-Flag

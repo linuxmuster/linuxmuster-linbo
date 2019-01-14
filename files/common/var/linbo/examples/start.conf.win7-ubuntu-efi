@@ -24,7 +24,7 @@ SystemType = efi64                  # moeglich ist bios|bios64|efi32|efi64 (Stan
 KernelOptions = quiet splash        # Beispiele:
 #KernelOptions = acpi=noirq irqpoll # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
 #KernelOptions = server=10.16.1.5   # Abweichende Linbo-Server-IP als Kerneloption gesetzt
-                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet 
+                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet
 
 [Partition]              # Partition fuer EFI
 Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
@@ -45,7 +45,7 @@ Bootable = no            # kein Bootable-Flag
 [Partition]              # Partition fuer Windows
 Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster Platte)
 Label = win7             # Partitionslabel win7
-Size = 50G               # Partitionsgroesse 30G
+Size = 50G               # Partitionsgroesse 50G
 Id = 7                   # Partitionstyp 83
 FSType = ntfs            # Dateisystem ext4
 Bootable = no            # kein Bootable-Flag

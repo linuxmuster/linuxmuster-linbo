@@ -1,6 +1,12 @@
+linuxmuster-linbo (2.3.42-0) babo62; urgency=low
+
+  * updated start.conf examples (#103).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 13 Jan 2019 20:34:56 +0100
+
 linuxmuster-linbo (2.3.41-0) babo62; urgency=low
 
-  * patching reg files with sambadomainname (#104).
+  * lmn7 only: patching reg files with sambadomainname (#104).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 13 Jan 2019 20:34:56 +0100
 
