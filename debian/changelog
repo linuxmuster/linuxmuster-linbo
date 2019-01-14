@@ -6,8 +6,9 @@ linuxmuster-linbo (2.3.42-0) babo62; urgency=low
   * fixed error when one image name is included as part of another (#95).
   * fixed device registration in lmn7 (#94).
   * fixed download of not existing rsync image (#88).
+  * fixed issues with labels - only the udevadm part, not the reiserfs stuff (#85).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 16:40:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 17:31:00 +0100
 
 linuxmuster-linbo (2.3.41-0) babo62; urgency=low
 

@@ -14,6 +14,7 @@
 
 CLOOP_BLOCKSIZE="131072"
 RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
+UDEVADM="$(which udevadm)"
 
 trap bailout 1 2 3 10 12 13 15
 
@@ -472,6 +473,8 @@ label_allpartitions(){
       fi
     fi
   done
+  # issue 85
+  [ -n "$UDEVADM" ] && "$UDEVADM" trigger
   [ -e /dev/disk/by-label ] || echo "Keine Partitions-Label gefunden!" | tee -a /tmp/linbo.log
   sendlog
   return "$RC"
@@ -620,6 +623,8 @@ format(){
  fi
  if [ "$RC" = "0" ]; then
   echo " OK!"
+  # issue 85
+  [ -n "$label" -a -n "$UDEVADM" ] && "$UDEVADM" trigger
   # install linbo and grub in cache
   local cachedev="$(cachedev)"
   if [ "$cachedev" = "$partition" ]; then
