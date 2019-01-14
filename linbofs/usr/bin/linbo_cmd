@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20181220
+# 20190114
 # GPL v3
 #
 
@@ -2775,6 +2775,8 @@ download_all(){
 download_if_newer(){
  # do not execute in localmode
  localmode && return 0
+ # don't try empty filenames
+ [ -z "$2" ] && return 0
  local DLTYPE="$3"
  [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
  [ -z "$DLTYPE" ] && DLTYPE="rsync"

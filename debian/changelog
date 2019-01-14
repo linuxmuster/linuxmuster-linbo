@@ -5,6 +5,7 @@ linuxmuster-linbo (2.3.42-0) babo62; urgency=low
   * updated win10.global.reg files with different linuxmuster.net 6.2 and 7 versions (#90).
   * fixed error when one image name is included as part of another (#95).
   * fixed device registration in lmn7 (#94).
+  * fixed download of not existing rsync image (#88).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 16:40:00 +0100
 
