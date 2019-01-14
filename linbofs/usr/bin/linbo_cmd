@@ -2778,114 +2778,117 @@ download_all(){
 # Download info files, compare timestamps
 # download_if_newer server file downloadtype
 download_if_newer(){
- # do not execute in localmode
- localmode && return 0
- # don't try empty filenames
- [ -z "$2" ] && return 0
- local DLTYPE="$3"
- [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
- [ -z "$DLTYPE" ] && DLTYPE="rsync"
- local RC=0
- local DOWNLOAD_ALL=""
- local IMAGE=""
- case "$2" in *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) IMAGE="true" ;; esac
- if [ ! -s "$2" -o ! -s "$2".info ]; then # File not there, download all
-  DOWNLOAD_ALL="true"
- else
-  mv -f "$2".info "$2".info.old 2>/dev/null
-  download "$1" "$2".info
-  if [ -s "$2".info ]; then
-   local ts1="$(getinfo "$2".info.old timestamp)"
-   local ts2="$(getinfo "$2".info timestamp)"
-   local fs1="$(getinfo "$2".info imagesize)"
-   local fs2="$(get_filesize "$2")"
-   if [ -n "$ts1" -a -n "$ts2" -a "$ts1" -gt "$ts2" ] >/dev/null 2>&1; then
+  # do not execute in localmode
+  localmode && return 0
+  # don't try empty filenames
+  [ -z "$2" ] && return 0
+  local DLTYPE="$3"
+  [ -z "$DLTYPE" ] && DLTYPE="$(downloadtype)"
+  [ -z "$DLTYPE" ] && DLTYPE="rsync"
+  local RC=0
+  local DOWNLOAD_ALL=""
+  local IMAGE=""
+  case "$2" in *.[Cc][Ll][Oo][Oo][Pp]|*.[Rr][Ss][Yy][Nn][Cc]) IMAGE="true" ;; esac
+  if [ ! -s "$2" -o ! -s "$2".info ]; then # File not there, download all
     DOWNLOAD_ALL="true"
-    echo "Server enthaelt eine neuere ($ts2) Version von $2 ($ts1)."
-   elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
-    DOWNLOAD_ALL="true"
-    echo "Dateigroesse von $2 ($fs1) im Cache ($fs2) stimmt nicht."
-   fi
-   rm -f "$2".info.old
   else
-   DOWNLOAD_ALL="true"
-   mv -f "$2".info.old "$2".info
-  fi
- fi
- # check for complete flag
- [ -z "$DOWNLOAD_ALL" -a -n "$IMAGE" -a ! -e "$2.complete" ] && DOWNLOAD_ALL="true"
- # supplemental torrent check
- if [ -n "$IMAGE" ]; then
-  # save local torrent file
-  [ -e "$2.torrent" -a -z "$DOWNLOAD_ALL" ] && mv "$2".torrent "$2".torrent.old
-  # download torrent file from server
-  download_all "$1" "$2".torrent ; RC="$?"
-  if [ "$RC" != "0" ]; then
-   echo "Download von $2.torrent fehlgeschlagen." >&2
-   return "$RC"
-  fi
-  # check for updated torrent file
-  if [ -e "$2.torrent.old" ]; then
-   cmp "$2".torrent "$2".torrent.old || DOWNLOAD_ALL="true"
-   rm "$2".torrent.old
-  fi
-  # update regpatch and postsync script
-  rm -rf "$2".reg "$2".postsync
-  download_all "$1" "$2".reg >/dev/null 2>&1
-  download_all "$1" "$2".postsync >/dev/null 2>&1
- fi
- # start torrent service for others if there is no image to download
- [ "$DLTYPE" = "torrent" -a -n "$IMAGE" -a -z "$DOWNLOAD_ALL" ] && download_torrent "$2"
- # download because newer file exists on server
- if [ -n "$DOWNLOAD_ALL" ]; then
-  if [ -n "$IMAGE" ]; then
-   # remove complete flag
-   rm -f "$2".complete
-   # download images according to downloadtype torrent or multicast
-   case "$DLTYPE" in
-    torrent)
-     # remove old image and torrents before download starts
-     rm -f "$2" "$2".torrent.bf
-     download_torrent "$2" ; RC="$?"
-     [ "$RC" = "0" ] ||  echo "Download von $2 per Torrent fehlgeschlagen!" >&2
-    ;;
-    multicast)
-     if [ -s /multicast.list ]; then
-      local MPORT="$(get_multicast_port "$2")"
-      if [ -n "$MPORT" ]; then
-       download_multicast "$1" "$MPORT" "$2" ; RC="$?"
-      else
-       echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download moeglich." >&2
-       RC=1
+    mv -f "$2".info "$2".info.old 2>/dev/null
+    download "$1" "$2".info
+    if [ -s "$2".info ]; then
+      local ts1="$(getinfo "$2".info.old timestamp)"
+      local ts2="$(getinfo "$2".info timestamp)"
+      local fs1="$(getinfo "$2".info imagesize)"
+      local fs2="$(get_filesize "$2")"
+      if [ -n "$ts1" -a -n "$ts2" -a "$ts1" -gt "$ts2" ] >/dev/null 2>&1; then
+        DOWNLOAD_ALL="true"
+        echo "Server enthaelt eine neuere ($ts2) Version von $2 ($ts1)."
+      elif  [ -n "$fs1" -a -n "$fs2" -a ! "$fs1" -eq "$fs2" ] >/dev/null 2>&1; then
+        DOWNLOAD_ALL="true"
+        echo "Dateigroesse von $2 ($fs1) im Cache ($fs2) stimmt nicht."
       fi
-     else
-      echo "Datei multicast.list nicht gefunden, kein Multicast-Download moeglich." >&2
-      RC=1
-     fi
-     [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
-    ;;
-   esac
-   # download per rsync also as a fallback if other download types failed
-   if [ "$RC" != "0" -o "$DLTYPE" = "rsync" ]; then
-    [ "$RC" = "0" ] || echo "Versuche Download per RSYNC." >&2
-    download_all "$1" "$2" ; RC="$?"
-    [ "$RC" = "0" ] || echo "Download von $2 per RSYNC fehlgeschlagen!" >&2
-   fi
-   # download supplemental files and set complete flag if image download was successful
-   if [ "$RC" = "0" ]; then
-    # reg und postsync were downloaded already above
-#    download_all "$1" "$2".info "$2".desc "$2".reg "$2".postsync >/dev/null 2>&1
-    download_all "$1" "$2".info "$2".desc >/dev/null 2>&1
-    touch "$2".complete
-   fi
-  else # download other files than images
-   download_all "$1" "$2" "$2".info ; RC="$?"
-   [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
+      rm -f "$2".info.old
+    else
+      DOWNLOAD_ALL="true"
+      mv -f "$2".info.old "$2".info
+    fi
+  fi # File not there, download all
+  # check for complete flag
+  [ -z "$DOWNLOAD_ALL" -a -n "$IMAGE" -a ! -e "$2.complete" ] && DOWNLOAD_ALL="true"
+  # supplemental torrent check
+  if [ -n "$IMAGE" ]; then
+    # issue 92, do this only if downloadtype is torrent
+    if [ "$DLTYPE" = "torrent" ]; then
+      # save local torrent file
+      [ -e "$2.torrent" -a -z "$DOWNLOAD_ALL" ] && mv "$2".torrent "$2".torrent.old
+      # download torrent file from server
+      download_all "$1" "$2".torrent ; RC="$?"
+      if [ "$RC" != "0" ]; then
+        echo "Download von $2.torrent fehlgeschlagen." >&2
+        return "$RC"
+      fi
+      # check for updated torrent file
+      if [ -e "$2.torrent.old" ]; then
+        cmp "$2".torrent "$2".torrent.old || DOWNLOAD_ALL="true"
+        rm "$2".torrent.old
+      fi
+    fi # dltype torrent
+    # update regpatch and postsync script
+    rm -rf "$2".reg "$2".postsync
+    download_all "$1" "$2".reg >/dev/null 2>&1
+    download_all "$1" "$2".postsync >/dev/null 2>&1
   fi
- else # download nothing, no newer file on server
-  echo "Keine neuere Version vorhanden, ueberspringe $2."
- fi
- return "$RC"
+  # start torrent service for others if there is no image to download
+  [ "$DLTYPE" = "torrent" -a -n "$IMAGE" -a -z "$DOWNLOAD_ALL" ] && download_torrent "$2"
+  # download because newer file exists on server
+  if [ -n "$DOWNLOAD_ALL" ]; then
+    if [ -n "$IMAGE" ]; then
+      # remove complete flag
+      rm -f "$2".complete
+      # download images according to downloadtype torrent or multicast
+      case "$DLTYPE" in
+        torrent)
+          # remove old image and torrents before download starts
+          rm -f "$2" "$2".torrent.bf
+          download_torrent "$2" ; RC="$?"
+          [ "$RC" = "0" ] ||  echo "Download von $2 per Torrent fehlgeschlagen!" >&2
+          ;;
+        multicast)
+          if [ -s /multicast.list ]; then
+            local MPORT="$(get_multicast_port "$2")"
+            if [ -n "$MPORT" ]; then
+              download_multicast "$1" "$MPORT" "$2" ; RC="$?"
+            else
+              echo "Konnte Multicast-Port nicht bestimmen, kein Multicast-Download moeglich." >&2
+              RC=1
+            fi
+          else
+            echo "Datei multicast.list nicht gefunden, kein Multicast-Download moeglich." >&2
+            RC=1
+          fi
+          [ "$RC" = "0" ] || echo "Download von $2 per multicast fehlgeschlagen!" >&2
+          ;;
+      esac
+      # download per rsync also as a fallback if other download types failed
+      if [ "$RC" != "0" -o "$DLTYPE" = "rsync" ]; then
+        [ "$RC" = "0" ] || echo "Versuche Download per RSYNC." >&2
+        download_all "$1" "$2" ; RC="$?"
+        [ "$RC" = "0" ] || echo "Download von $2 per RSYNC fehlgeschlagen!" >&2
+      fi
+      # download supplemental files and set complete flag if image download was successful
+      if [ "$RC" = "0" ]; then
+        # reg und postsync were downloaded already above
+        #download_all "$1" "$2".info "$2".desc "$2".reg "$2".postsync >/dev/null 2>&1
+        download_all "$1" "$2".info "$2".desc >/dev/null 2>&1
+        touch "$2".complete
+      fi
+    else # download other files than images
+      download_all "$1" "$2" "$2".info ; RC="$?"
+      [ "$RC" = "0" ] || echo "Download von $2 fehlgeschlagen!" >&2
+    fi
+  else # download nothing, no newer file on server
+    echo "Keine neuere Version vorhanden, ueberspringe $2."
+  fi
+  return "$RC"
 }
 
 # Authenticate server user password share
