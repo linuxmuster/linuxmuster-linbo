@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20190113
+# 20190114
 #
 
 # read in linuxmuster specific environment
@@ -104,8 +104,13 @@ case $EXT in
   fi
  ;;
 
- # patch image registry files with sambadomain
- *.reg) sed -i "s|Domain\"=.*|Domain\"=\"$sambadomain\"|g" "$FILE" ;;
+ # patch image registry files with sambadomain if necessary
+ *.reg)
+  search="Domain\"=\"$sambadomain\""
+  if ! grep -q "$search" "$FILE"; then
+    sed -i "s|Domain\"=.*|$search|g" "$FILE"
+  fi
+ ;;
 
  # handle windows product key request
  *.winkey)
