@@ -14,7 +14,7 @@
 
 # thomas@linuxmuster.net
 # GPL v3
-# 20170331
+# 20190114
 
 #set -e
 
@@ -91,7 +91,7 @@ start() {
     #[ "$port" = "$PORTBASE" ] || echo
     log_daemon_msg "Starting $DESC" "$file"
 
-    if screen -list | grep -q "$file.mcast"; then
+    if screen -list | grep -qw "$file.mcast"; then
      echo
      log_failure_msg "Multicast for $file is already running. Skipped!"
      continue
@@ -101,7 +101,7 @@ start() {
 
     screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
     sleep 1
-    if ! screen -list | grep -q "$file.mcast"; then
+    if ! screen -list | grep -qw "$file.mcast"; then
      echo -n " "
      log_failure_msg "failed!"
     else
@@ -119,9 +119,9 @@ stop(){
  local i=""
  local pid=""
  for i in $images; do
-  if screen -list | grep -q "$i.mcast"; then
+  if screen -list | grep -qw "$i.mcast"; then
     log_daemon_msg "Stopping $DESC" "$i"
-    pid="$(screen -list | grep "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    pid="$(screen -list | grep -w "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"
     log_end_msg "$RC"
   fi

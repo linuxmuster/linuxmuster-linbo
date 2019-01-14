@@ -3,8 +3,9 @@ linuxmuster-linbo (2.3.42-0) babo62; urgency=low
   * updated start.conf examples (#103).
   * lmn7 only: improved patching reg files with sambadomainname (#104).
   * updated win10.global.reg files with different linuxmuster.net 6.2 and 7 versions (#90).
+  * fixed error when one image name is included as part of another (#95).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 12:12:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 15:46:00 +0100
 
 linuxmuster-linbo (2.3.41-0) babo62; urgency=low
 
