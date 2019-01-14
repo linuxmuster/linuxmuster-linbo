@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20180216
+# 20190114
 #
 
 # read in linuxmuster specific environment
@@ -114,10 +114,15 @@ case "$FTYPE" in
   # restart torrent service if torrent file was uploaded.
   echo "Torrent file ${FILE##*/} detected. Restarting bittorrent service." >&2
   /etc/init.d/linbo-bittorrent restart >&2
+
  ;;
+
  *.new)
-  # add new host data to workstations file
-  ROW="$(cat $FILE)"
+  # make row lmn7 compatible
+  search=";;;;;1;1"
+  replace=";;;;classroom-studentcomputer;;1;;;;;"
+  ROW="$(sed -e "s|$search|$replace|" $FILE)"
+  # add row with new host data to devices file
   if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
    echo "$ROW"
    echo "is already present in workstations file. Skipped!" >&2
@@ -129,7 +134,9 @@ case "$FTYPE" in
   fi
   rm $FILE
  ;;
+
  *) ;;
+
 esac
 
 echo "RC: $RSYNC_EXIT_STATUS"
