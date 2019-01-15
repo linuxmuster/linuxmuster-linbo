@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.42-1) babo62; urgency=low
+
+  * more init scripts fixes due to different linuxmuster versions.
+  * rules file improvements.
+  * win10.global.reg files improvements (#90).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 21:30:01 +0100
+
 linuxmuster-linbo (2.3.42-0) babo62; urgency=low
 
   * updated start.conf examples (#103).

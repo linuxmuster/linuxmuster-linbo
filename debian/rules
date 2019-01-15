@@ -1,11 +1,11 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20181214
+# 20190114
 # GPL v3
 #
 
-export DH_COMPAT=5
+export DH_COMPAT=9
 
 CURDIR=$(shell pwd)
 
@@ -699,7 +699,8 @@ install: build
 	# moved to common
 	#cp -r files/common/etc/* debian/linuxmuster-linbo/etc/
 	#cp -r files/common/usr/* debian/linuxmuster-linbo/usr/
-	cp -r files/lmn6/usr/* debian/linuxmuster-linbo/usr/
+	#cp -r files/lmn6/usr/* debian/linuxmuster-linbo/usr/
+	cp -r files/lmn6/* debian/linuxmuster-linbo/
 	# grub tools
 	cp /usr/bin/grub-mkstandalone debian/linuxmuster-linbo/usr/share/linuxmuster-linbo
 	cp /usr/bin/grub-mkimage debian/linuxmuster-linbo/usr/share/linuxmuster-linbo
@@ -710,8 +711,9 @@ install: build
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
 	#cp -r files/common/etc/* debian/linuxmuster-linbo7/etc/
 	#cp -r files/common/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo7/usr/share/linuxmuster/linbo/
-	cp -r files/lmn7/usr/* debian/linuxmuster-linbo7/usr/
-	cp -r files/lmn7/etc/* debian/linuxmuster-linbo7/etc/
+	#cp -r files/lmn7/usr/* debian/linuxmuster-linbo7/usr/
+	#cp -r files/lmn7/etc/* debian/linuxmuster-linbo7/etc/
+	cp -a files/lmn7/* debian/linuxmuster-linbo7/
 	chmod 755 debian/linuxmuster-linbo7/etc/init.d/*
 
 # Build architecture-independent files here.

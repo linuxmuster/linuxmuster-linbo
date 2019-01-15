@@ -4,8 +4,8 @@
 # Provides:          linbo-bittorrent
 # Required-Start:    $network $local_fs
 # Required-Stop:     $network $local_fs
-# Should-Start:      
-# Should-Stop:       
+# Should-Start:
+# Should-Stop:
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start a complete bittorrent download
@@ -13,22 +13,21 @@
 ### END INIT INFO
 
 # thomas@linuxmuster.net
-# 20160917
+# 20190114
 # GPL v3
 
 #set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="BitTorrent service for"
-DAEMON=/usr/share/linuxmuster/linbo/linbo-torrenthelper.sh
+
+# lmn7 specific paths
+. /usr/share/linuxmuster/defaults.sh || exit 1
+DAEMON=$LINBOSHAREDIR/linbo-torrenthelper.sh
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
-
-# read necessary functions and constants
-. /usr/share/linuxmuster/defaults.sh || exit 1
-. /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
-. /lib/lsb/init-functions
 
 # read cmdline
 action="$1"
@@ -54,9 +53,8 @@ DISPLAY_INTERVAL=1
 MAX_SLICE_LENGTH=131072
 CLIENT_CONFIG="torrent-client.conf"
 
-# read defaults
-[ -e /etc/default/linbo-bittorrent ] || exit 1
-. /etc/default/linbo-bittorrent
+# get daemon default settings and exit if
+[ -e /etc/default/linbo-bittorrent ] && . /etc/default/linbo-bittorrent
 [ "$START_BITTORRENT" = "1" ] || exit 0
 . /etc/default/bittorrent || exit 1
 [ "$START_BTTRACK" = "1" ] || exit 0
@@ -65,140 +63,150 @@ cd $LINBODIR
 
 # check if single image file is given on cmdline
 if [ -n "$images" -a "$images" != "all" ]; then
- if [ ! -s "$images" ]; then
-  echo "$images does not exist!"
-  exit 1
- fi
- omit_killall="yes"
+  if [ ! -s "$images" ]; then
+    echo "$images does not exist!"
+    exit 1
+  fi
+  omit_killall="yes"
 else
- # get all active images from helperfunctions
- images="$(active_images)"
- # add additional files and dirs placed below $LINBODIR/torrentadds
- tadds="$(ls -1 torrentadds/ | grep -v .torrent | sed 's|^|torrentadds/|')"
- [ -n "$tadds" ] && images="$images $tadds"
- if [ -z "$images" ]; then
-  echo "There exist no images yet!"
-  exit 0
- fi
+  # get all active images from helperfunctions
+  images="$(active_images)"
+  # add additional files and dirs placed below $LINBODIR/torrentadds
+  tadds="$(ls -1 torrentadds/ | grep -v .torrent | sed 's|^|torrentadds/|')"
+  [ -n "$tadds" ] && images="$images $tadds"
+  if [ -z "$images" ]; then
+    echo "There exist no images yet!"
+    exit 0
+  fi
 fi
 
 # write client torrent config
 write_client_config(){
- echo "MINPORT=$MINPORT"
- echo "MAX_INITIATE=$MAX_INITIATE"
- echo "MAX_UPLOAD_RATE=$MAX_UPLOAD_RATE"
- echo "DOWNLOAD_SLICE_SIZE=$DOWNLOAD_SLICE_SIZE"
- echo "TIMEOUT=$TIMEOUT"
+  echo "MINPORT=$MINPORT"
+  echo "MAX_INITIATE=$MAX_INITIATE"
+  echo "MAX_UPLOAD_RATE=$MAX_UPLOAD_RATE"
+  echo "DOWNLOAD_SLICE_SIZE=$DOWNLOAD_SLICE_SIZE"
+  echo "TIMEOUT=$TIMEOUT"
 }
 
 start(){
 
- local RC=0
- local c=0
+  local RC=0
+  local c=0
 
- write_client_config > "$CLIENT_CONFIG"
+  # read server ip
+  serverip="$(grep ^Server "$LINBODIR/start.conf" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
 
- # check and create torrents first
- local i=""
- local tfile=""
- local tname=""
- for i in $images; do
-  tfile="$i.torrent"
-  tname="$(basename $tfile)"
-  # check torrent file and delete it if it does not match with image
-  if [ -e "$tfile" ]; then
-   if ! check_torrent "$i"; then
-    echo "$i and $tfile do not match!"
-    rm -f "$tfile"
-   fi
-  fi
-  # create torrent files if necessary
-  [ ! -e "$tfile" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
- done
+  write_client_config > "$CLIENT_CONFIG"
 
- # restart tracker
- /etc/init.d/bittorrent stop
- killall bttrack.bittorrent &> /dev/null
- /etc/init.d/bittorrent start
+  # check and create torrents first
+  local i=""
+  local tfile=""
+  local tname=""
+  for i in $images; do
+    tfile="$i.torrent"
+    tname="$(basename $tfile)"
+    # check torrent file and delete it if it does not match with image
+    if [ -e "$tfile" ]; then
+      if ! check_torrent "$i"; then
+        echo "$i and $tfile do not match!"
+        rm -f "$tfile"
+      fi
+    fi
+    # create torrent files if necessary
+    [ ! -e "$tfile" -o "$force" = "force" ] && create_torrent "$i" "$serverip" "$PORT"
+  done
 
- # start torrents
- for i in $images; do
-  tfile="$i.torrent"
-  tname="$(basename $tfile)"
+  # restart tracker
+  /etc/init.d/bittorrent stop
+  killall bttrack.bittorrent &> /dev/null
+  /etc/init.d/bittorrent start
 
-  # start torrent daemon for image only if torrent file is present
-  [ -e "$tfile" ] || continue
+  # start torrents
+  for i in $images; do
+    tfile="$i.torrent"
+    tname="$(basename $tfile)"
 
-  # start daemon stuff
-  log_daemon_msg "Starting $DESC" "$i"
+    # start torrent daemon for image only if torrent file is present
+    [ -e "$tfile" ] || continue
 
-  if screen -list | grep -q "$tname"; then
-   echo
-   log_failure_msg "Torrent for $i is already running. Skipped!"
-   continue
-  fi
+    # start daemon stuff
+    echo -n "Starting $DESC $i ... "
 
-  OPTIONS="$tfile \
-           --minport $MINPORT \
-           --max_uploads $MAX_UPLOADS \
-           --max_upload_rate $MAX_UPLOAD_RATE \
-           --rerequest_interval $REREQUEST_INTERVAL \
-           --min_peers $MIN_PEERS \
-           --max_initiate $MAX_INITIATE \
-           --keepalive_interval $KEEPALIVE_INTERVAL \
-           --download_slice_size $DOWNLOAD_SLICE_SIZE \
-           --request_backlog $REQUEST_BACKLOG \
-           --max_message_length $MAX_MESSAGE_LENGTH \
-           --timeout $TIMEOUT \
-           --timeout_check_interval $TIMEOUT_CHECK_INTERVAL \
-           --max_rate_period $MAX_RATE_PERIOD \
-           --upload_rate_fudge $UPLOAD_RATE_FUDGE \
-           --display_interval $DISPLAY_INTERVAL \
-           --max_slice_length $MAX_SLICE_LENGTH \
-           --check_hashes 0 \
-           --saveas $i"
-  screen -dmS "$tname" $DAEMON $OPTIONS
-  sleep 1
-  if ! screen -list | grep -q "$tname"; then
-   echo -n " "
-   log_failure_msg "failed!"
-  else
-   RC=0
-   log_end_msg "$RC"
-  fi
- done
+    if screen -list | grep -qw "$tname"; then
+      echo "already running. Skipped!"
+      continue
+    fi
+
+    OPTIONS="$tfile \
+      --minport $MINPORT \
+      --max_uploads $MAX_UPLOADS \
+      --max_upload_rate $MAX_UPLOAD_RATE \
+      --rerequest_interval $REREQUEST_INTERVAL \
+      --min_peers $MIN_PEERS \
+      --max_initiate $MAX_INITIATE \
+      --keepalive_interval $KEEPALIVE_INTERVAL \
+      --download_slice_size $DOWNLOAD_SLICE_SIZE \
+      --request_backlog $REQUEST_BACKLOG \
+      --max_message_length $MAX_MESSAGE_LENGTH \
+      --timeout $TIMEOUT \
+      --timeout_check_interval $TIMEOUT_CHECK_INTERVAL \
+      --max_rate_period $MAX_RATE_PERIOD \
+      --upload_rate_fudge $UPLOAD_RATE_FUDGE \
+      --display_interval $DISPLAY_INTERVAL \
+      --max_slice_length $MAX_SLICE_LENGTH \
+      --check_hashes 0 \
+      --saveas $i"
+    screen -dmS "$tname" $DAEMON $OPTIONS
+    sleep 1
+    if ! screen -list | grep -qw "$tname"; then
+      RC=1
+      echo "failed!"
+    else
+      RC=0
+      echo "done!"
+    fi
+  done
 }
 
 stop(){
 
- local i=""
- local pid=""
- for i in $images; do
-  if screen -list | grep -q "$(basename $i.torrent)"; then
-    log_daemon_msg "Stopping $DESC" "$i"
-    pid="$(screen -list | grep "$(basename $i.torrent)" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-    kill $pid ; RC="$?"
-    log_end_msg "$RC"
+  local i=""
+  local pid=""
+  for i in $images; do
+    if screen -list | grep -qw "$(basename $i.torrent)"; then
+      echo -n "Stopping $DESC $i ... "
+      pid="$(screen -list | grep "$(basename $i.torrent)" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+      kill $pid ; RC="$?"
+      if [ "$RC" = "0" ]; then
+        echo "done!"
+      else
+        echo "failed!"
+      fi
+    fi
+  done
+  if [ -z "$omit_killall" ]; then
+    local pids="$(screen -list | grep torrent | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    if [ -n "$pids" ]; then
+      echo -n "Sending all remaining linbo-bittorrent processes the TERM signal ... "
+      kill $pids ; RC="$?"
+      if [ "$RC" = "0" ]; then
+        echo "done!"
+      else
+        echo "failed!"
+      fi
+    fi
   fi
- done
- if [ -z "$omit_killall" ]; then
-  local pids="$(screen -list | grep torrent | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-  if [ -n "$pids" ]; then
-   log_daemon_msg "Sending all remaining linbo-bittorrent processes the TERM signal."
-   kill $pids ; RC="$?"
-   log_end_msg "$RC"
-  fi
- fi
 }
 
 status(){
-   local line=""
-   local pid=""
-   local screen=""
-   local status=""
-   local c=0
-   local d=""
-   screen -wipe | grep -w .torrent | while read line; do
+  local line=""
+  local pid=""
+  local screen=""
+  local status=""
+  local c=0
+  local d=""
+  screen -wipe | grep -w .torrent | while read line; do
     let c+=1
     pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     screen="$(echo $line | awk '{ print $1 }')"
@@ -208,21 +216,20 @@ status(){
     [ $c -lt 100 ] && d=" "
     [ $c -lt 10 ] && d="  "
     echo -e "$d$c\t$pid\t$screen\t$status"
-   done
+  done
 }
 
 case "$action" in
- start) start ;;
- stop) stop ;;
- restart)
-	 stop
-  #sleep 2
-	 start ;;
- status) status ;;
- *)
-	 echo "Usage: $0 {status} | {start|stop|restart} [<imagefile>|all] [force]" >&2
-	 exit 1 ;;
+  start) start ;;
+  stop) stop ;;
+  restart)
+    stop
+    #sleep 2
+    start ;;
+  status) status ;;
+  *)
+    echo "Usage: $0 {status} | {start|stop|restart} [<imagefile>|all] [force]" >&2
+    exit 1 ;;
 esac
 
 exit 0
-
