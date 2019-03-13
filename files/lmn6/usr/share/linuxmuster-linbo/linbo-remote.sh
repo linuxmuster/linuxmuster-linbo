@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20171009
+# 20190313
 # GPL V3
 #
 
@@ -89,20 +89,14 @@ usage(){
 list(){
  local line=""
  local pid=""
- local screen=""
- local status=""
  local c=0
- local d=""
- screen -wipe | grep .linbo-remote | while read line; do
-  let c+=1
-  pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-  screen="$(echo $line | awk '{ print $1 }')"
-  screen="${screen#*.}"
-  status="$(echo $line | awk '{ print $2 }')"
+ local d
+ screen -wipe | grep .linbo-remote | sort | sed -e 's|\.|\t|' | while read line; do
+  c=$(( c + 1 ))
   d=""
   [ $c -lt 100 ] && d=" "
   [ $c -lt 10 ] && d="  "
-  echo -e "$d$c\t$pid\t$screen\t$status"
+  echo -e "$d$c\t$line"
  done
 }
 

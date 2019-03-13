@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20190114
+# 20190313
 # GPL v3
 #
 
@@ -2586,8 +2586,9 @@ syncl(){
  sync; sync; sleep 1
  umount /mnt || umount -l /mnt
 
- # restore partition layout if it was altered above
- #[ -n "$repair_parts" ] && partition | tee -a /tmp/linbo.log
+ # restore partition labels
+ label_allpartitions
+
  sendlog
  cd / # ; mountcache "$1" -r
  return "$RC"
