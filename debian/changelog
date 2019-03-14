@@ -3,7 +3,7 @@ linuxmuster-linbo (2.3.44-0) babo62; urgency=low
   * implemented RestoreOpsiState start.conf option to add the ability to restore
     the state of opsi products after linbo sync (#107).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Mar 2019 19:12:47 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Mar 2019 19:26:23 +0100
 
 linuxmuster-linbo (2.3.43-0) babo62; urgency=low
 
