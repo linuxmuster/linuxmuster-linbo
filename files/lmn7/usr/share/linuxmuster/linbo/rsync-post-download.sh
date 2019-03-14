@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20180216
+# 20190314
 #
 
 # read in paedml specific environment
@@ -77,7 +77,8 @@ case $EXT in
   # if opsi server is configured and host is opsimanaged
   if ([ -n "$opsiip" -a -s "$imageini" ] && opsimanaged "$pcname"); then
    # get host's inifile from opsi server
-   clientini="${opsiip}:$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
+   clientini_local="$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
+   clientini="${opsiip}:$clientini_local"
    origini="/var/tmp/$(basename "$clientini")"
    newini="/var/tmp/$(basename "$clientini").new"
    echo "clientini: $clientini"
@@ -97,11 +98,21 @@ case $EXT in
     # patch license keys
     [ -n "$licensekey" ] && sed -e "s|^poolid-or-licensekey.*|poolid-or-licensekey = \[\"$licensekey\"\]|" -i "$newini"
     [ -n "$productkey" ] && sed -e "s|^productkey.*|productkey = \[\"$productkey\"\]|" -i "$newini"
+    # should opsi products be restored after sync?
+    restoreopsistate_res="$(restoreopsistate "$pcname" "$(basename "$imageini")")"
+    forceopsisetup_res="$(forceopsisetup "$pcname" "$(basename "$imageini")")"
+    # backup current inifile
+    [ "$restoreopsistate_res" = "yes" ] && ssh "$opsiip" cp "$clientini_local" "$clientini_local".bak
     # upload the new inifile
     rsync "$newini" "$clientini" ; RC="$?"
     [ "$RC" = "0" ] || echo "Upload of $(basename "$newini") to opsi failed!"
-    # repair opsi's file permissions
-    ssh "$opsiip" opsi-setup --set-rights "$OPSICLIENTDIR"
+    # restore opsi product status
+    if [ "$restoreopsistate_res" = "yes" ]; then
+      ssh "$opsiip" /usr/share/linuxmuster-opsi/opsiSetup.py "$RSYNC_HOST_NAME" "$forceopsisetup_res"
+    else
+      # repair opsi's file permissions
+      [ -z "$opsisetrights" ] && ssh "$opsiip" opsi-setup --set-rights "$OPSICLIENTDIR"
+    fi
    fi
    rm -f "$origini" "$newini"
   fi
