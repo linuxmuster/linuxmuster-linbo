@@ -361,7 +361,7 @@ systemctl start rsyncd
 %attr(0600,root,root) /etc/rsyncd.secrets.in
 /srv/tftp/boot/grub/ipxe.lkrn
 /srv/tftp/boot/grub/ipxe.efi
-/srv/tftp/boot/grub/grub.cfg
+%config(noreplace) /srv/tftp/boot/grub/grub.cfg
 /srv/tftp/boot/grub/locale
 /srv/tftp/boot/grub/i386-pc
 /srv/tftp/boot/grub/i386-efi
