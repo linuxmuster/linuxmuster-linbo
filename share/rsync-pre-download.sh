@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20180502
+# 20190114
 #
 
 # read in linuxmuster specific environment
@@ -19,6 +19,7 @@ else
 fi
 
 # Debug
+LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-download.log"
 exec >>$LOGFILE 2>&1
 #echo "$0 $*, Variables:" ; set
 
@@ -28,12 +29,6 @@ FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
 EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
-
-# fix: reverse lookup not working on oss4.0
-if [ -z "${RSYNC_HOST_NAME}" -o "${RSYNC_HOST_NAME}" = "UNKNOWN" -o "${RSYNC_HOST_NAME}" = "UNDETERMINED" ]; then
-    get_hostname "${RSYNC_HOST_ADDR}"
-    RSYNC_HOST_NAME="$RET"
-fi
 
 compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
 # hostname
@@ -93,7 +88,22 @@ case $EXT in
     echo "Opsi key for $RSYNC_HOST_NAME found, providing key file."
     echo "$key" > "$FILE"
     chmod 644 "$FILE"
+    # upload opsiip to client
+    linbo-ssh "$compname" "echo $opsiip > /tmp/opsiip"
+    # get opsi server cert and provide it to client
+    opsipem="opsiconfd.pem"
+    rsync -v "$opsiip:/etc/opsi/$opsipem" "$LINBODIR/$opsipem"
+    chmod 600 "$LINBODIR/$opsipem"
+    linbo-scp -v "$LINBODIR/$opsipem" "$compname:/tmp"
    fi
+  fi
+ ;;
+
+ # patch image registry files with sambadomain if necessary
+ *.reg)
+  search="Domain\"=\"$sambadomain\""
+  if ! grep -q "$search" "$FILE"; then
+    sed -i "s|Domain\"=.*|$search|g" "$FILE"
   fi
  ;;
 
@@ -102,13 +112,6 @@ case $EXT in
   # get key from workstations and write it to temporary file
   if [ -n "$compname" ]; then
    winkey="$(get_win_key $compname)"
-   # upload opsiip to client
-   linbo-ssh "$compname" "echo $opsiip > /tmp/opsiip"
-   # get opsi server cert and provide it to client
-   opsipem="opsiconfd.pem"
-   rsync -v "$opsiip:/etc/opsi/$opsipem" "$LINBODIR/$opsipem"
-   chmod 600 "$LINBODIR/$opsipem"
-   linbo-scp -v "$LINBODIR/$opsipem" "$compname:/tmp"
    officekey="$(get_office_key $compname)"
    [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
    [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"

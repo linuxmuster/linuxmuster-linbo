@@ -1,5 +1,7 @@
 Windows Registry Editor Version 5.00
 
+; linuxmuster.net 6.2 version
+
 ; notwendig, damit der Domaenenbeitritt klappt
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\LanmanWorkstation\Parameters]
 "DomainCompatibilityMode"=dword:00000001

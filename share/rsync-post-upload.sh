@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20180216
+# 20190114
 #
 
 # read in linuxmuster specific environment
@@ -31,14 +31,7 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
-
-# fix: reverse lookup not working on oss4.0
-if [ -z "${RSYNC_HOST_NAME}" -o "${RSYNC_HOST_NAME}" = "UNKNOWN" -o "${RSYNC_HOST_NAME}" = "UNDETERMINED" ]; then
-    get_hostname "${RSYNC_HOST_ADDR}"
-    RSYNC_HOST_NAME="$RET"
-fi
-
-compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
+compname="$(get_compname_from_rsync $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
 
 # get FQDN
 validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
@@ -113,8 +106,11 @@ case "$FTYPE" in
   /etc/init.d/linbo-bittorrent restart >&2
  ;;
  *.new)
-  # add new host data to workstations file
-  ROW="$(cat $FILE)"
+  # make row lmn7 compatible
+  search=";;;;;1;1"
+  replace=";;;;classroom-studentcomputer;;1;;;;;"
+  ROW="$(sed -e "s|$search|$replace|" $FILE)"
+  # add row with new host data to devices file
   if [ -e "$WIMPORTDATA" ]; then
    if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
     echo "$ROW"

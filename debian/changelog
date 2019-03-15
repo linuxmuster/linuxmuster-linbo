@@ -1,3 +1,54 @@
+linuxmuster-linbo (2.3.42-1) babo62; urgency=low
+
+  * more init scripts fixes due to different linuxmuster versions.
+  * rules file improvements.
+  * win10.global.reg files improvements (#90).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 21:30:01 +0100
+
+linuxmuster-linbo (2.3.42-0) babo62; urgency=low
+
+  * updated start.conf examples (#103).
+  * lmn7 only: improved patching reg files with sambadomainname (#104).
+  * updated win10.global.reg files with different linuxmuster.net 6.2 and 7 versions (#90).
+  * fixed error when one image name is included as part of another (#95).
+  * fixed device registration in lmn7 (#94).
+  * fixed download of not existing rsync image (#88).
+  * fixed issues with labels - only the udevadm part, not the reiserfs stuff (#85).
+  * fix: If bit-torrent is not used, the missing file xenial.cloop.torrent causes the Linbo start to abort (#92).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 18:10:53 +0100
+
+linuxmuster-linbo (2.3.41-0) babo62; urgency=low
+
+  * lmn7 only: patching reg files with sambadomainname (#104).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 13 Jan 2019 20:34:56 +0100
+
+linuxmuster-linbo (2.3.40-0) babo62; urgency=low
+
+  * fixed hostname patch for ubuntu clients, using short name.
+  * force ext4 filesystem creation to avoid security prompt.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 21 Dec 2018 11:53:22 +0100
+
+linuxmuster-linbo (2.3.39-1) babo62; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 16 Dec 2018 14:00:54 +0100
+
+linuxmuster-linbo (2.3.39-0) babo62; urgency=low
+
+  * merged https://github.com/PLanB2008/linuxmuster-linbo.
+  * improved nvme ssd recognition (#91).
+  * modifications due to ubuntu 18.04 build environment.
+  * linbo_cmd: handling clients fully qualified domainname.
+  * partially translated console messages to english.
+  * update to lts kernel 4.14.88 (#99).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 16 Dec 2018 13:58:27 +0100
+
 linuxmuster-linbo (2.3.38-0) babo62; urgency=low
 
   * lmn7: fixed missing prefix in grub-mkimage command for bios images in mkgrubhostimg.py.

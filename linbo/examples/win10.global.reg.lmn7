@@ -1,0 +1,23 @@
+Windows Registry Editor Version 5.00
+
+; linuxmuster.net 7 version
+
+; notwendig, damit der Domaenenbeitritt klappt
+[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
+"DisablePasswordChange"=dword:00000001
+"MaximumPasswordAge"=dword:000f4240
+"RefusePasswordChange"=dword:00000001
+"RequireSignOrSeal"=dword:00000001
+"RequireStrongKey"=dword:00000001
+
+; notwendig, damit Netlogon klappt
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths]
+"\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0"
+
+; deaktiviert den Hiberboot Modus damit Linbo syncen kann
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Power]
+"HiberbootEnabled"=dword:00000000
+
+; deaktiviert den Hiberboot Modus damit Linbo syncen kann
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power]
+"HiberbootEnabled"=dword:00000000

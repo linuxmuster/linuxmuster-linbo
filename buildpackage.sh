@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20161022
+# 20181214
 #
 
 for i in conf debian files graphics linbofs; do

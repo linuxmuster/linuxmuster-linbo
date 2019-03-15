@@ -12,3 +12,4 @@ linbo_gui32
 linbo_gui64
 configure-stamp
 .directory
+.debhelper

@@ -1,0 +1,162 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          linbo-multicast
+# Required-Start:    $network $local_fs
+# Required-Stop:     $network $local_fs
+# Should-Start:
+# Should-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts per image multicast sessions
+# Description:       Starts a multicast session for each LINBO image
+### END INIT INFO
+
+# thomas@linuxmuster.net
+# GPL v3
+# 20190114
+
+#set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DESC="Multicast session for"
+
+# lmn7 specific paths
+. /usr/share/linuxmuster/defaults.sh || exit 1
+INTERFACE="$(LANG=C ip route show | grep ^default | awk '{ print $5 }')"
+SERVERIP="$serverip"
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
+DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# read cmdline
+action="$1"
+images="$2"
+force="$3"
+
+# defaults
+START_MULTICAST=no
+PORTBASE=9000
+MINCLIENTS=16
+MINSECONDS=60
+MAXSECONDS=90
+MULTICASTLIST=$LINBODIR/multicast.list
+
+# read necessary functions and constants
+. /etc/default/linbo-multicast || exit 1
+[ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
+
+create_multicast_list() {
+  echo -n "Creating multicast.list"
+  [ -e "$MULTICASTLIST" ] && mv $MULTICASTLIST $MULTICASTLIST.old
+  p=$PORTBASE
+  for i in $images; do
+    echo "$i $SERVERIP:$p" >> $MULTICASTLIST
+    p=+2
+  done
+  echo .
+}
+
+images="$(active_images)"
+
+start() {
+  if [ -z "$images" ]; then
+    echo "There exist no images yet!"
+    rm -f "$MULTICASTLIST"
+    exit 0
+  fi
+
+  create_multicast_list
+  cd $LINBODIR
+
+  while read file serverport relax; do
+    port="${serverport##*:}"
+    if [ -s "$file" ]; then
+      # start daemon stuff
+      echo -n "Starting $DESC $file ... "
+
+      if screen -list | grep -qw "$file.mcast"; then
+        echo
+        echo "Multicast for $file is already running. Skipped!"
+        continue
+      fi
+
+      LOGFILE="$LINBODIR/log/${file}_mcast.log"
+
+      screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
+      sleep 1
+      if ! screen -list | grep -qw "$file.mcast"; then
+        RC=1
+        echo "failed!"
+      else
+        RC=0
+        echo "done!"
+      fi
+
+    fi
+  done < "$MULTICASTLIST"
+}
+
+stop(){
+
+  local i=""
+  local pid=""
+  for i in $images; do
+    if screen -list | grep -qw "$i.mcast"; then
+      echo -n "Stopping $DESC $i ... "
+      pid="$(screen -list | grep -w "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+      kill $pid ; RC="$?"
+      if [ "$RC" = "0" ]; then
+        echo "done!"
+      else
+        echo "failed!"
+      fi
+    fi
+  done
+  local pids="$(screen -list | grep mcast | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+  if [ -n "$pids" ]; then
+    echo -n "Sending all remaining linbo-multicast processes the TERM signal ... "
+    kill $pids ; RC="$?"
+    if [ "$RC" = "0" ]; then
+      echo "done!"
+    else
+      echo "failed!"
+    fi
+  fi
+}
+
+status(){
+  local line=""
+  local pid=""
+  local screen=""
+  local status=""
+  local c=0
+  local d=""
+  screen -wipe | grep [ioy][nos][cop].mcast | while read line; do
+    c=+1
+    pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    screen="$(echo $line | awk '{ print $1 }')"
+    screen="${screen#*.}"
+    status="$(echo $line | awk '{ print $2 }')"
+    d=""
+    [ $c -lt 100 ] && d=" "
+    [ $c -lt 10 ] && d="  "
+    echo -e "$d$c\t$pid\t$screen\t$status"
+  done
+}
+
+case "$action" in
+  start) start ;;
+  stop) stop ;;
+  restart)
+    stop
+    start ;;
+  status) status ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}" >&2
+    exit 1 ;;
+esac
+
+exit 0

@@ -21,6 +21,7 @@
  -no-webkit \
  -no-exceptions \
  -no-svg \
+ -no-script \
  -no-scripttools \
  -no-nis \
  -no-cups \
