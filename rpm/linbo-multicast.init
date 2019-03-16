@@ -94,7 +94,7 @@ start() {
     #[ "$port" = "$PORTBASE" ] || echo
     echo -en "  - Starting $DESC" "$file"
 
-    if screen -list | grep -q "$file.mcast"; then
+    if screen -list | grep -qw "$file.mcast"; then
      log_warning_msg "Multicast for $file is already running. Skipped!"
      continue
     fi
@@ -103,7 +103,7 @@ start() {
 
     screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
     sleep 1
-    if ! screen -list | grep -q "$file.mcast"; then
+    if ! screen -list | grep -qw "$file.mcast"; then
      echo " failed!"
     else
      RC=0
@@ -120,9 +120,9 @@ stop(){
  local i=""
  local pid=""
  for i in $images; do
-  if screen -list | grep -q "$i.mcast"; then
+  if screen -list | grep -qw "$i.mcast"; then
     echo -n "  - Stopping $DESC" "$i"
-    pid="$(screen -list | grep "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    pid="$(screen -list | grep -w "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"
     if [ "$RC" = "0" ]; then
       echo " OK."

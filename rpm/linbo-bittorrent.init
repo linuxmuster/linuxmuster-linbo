@@ -147,7 +147,7 @@ start(){
   # start daemon stuff
   echo -n "  - Starting $DESC for" "$i"
 
-  if screen -list | grep -q "$tname"; then
+  if screen -list | grep -qw "$tname"; then
    echo
    echo "Torrent for $i is already running. Skipped!"
    continue
@@ -177,7 +177,7 @@ start(){
 
   screen -dmS "$tname" $DAEMON $OPTIONS
   sleep 1
-  if ! screen -list | grep -q "$tname"; then
+  if ! screen -list | grep -qw "$tname"; then
    echo -n " "
    echo " failed!"
   else
@@ -193,7 +193,7 @@ stop(){
  local i=""
  local pid=""
  for i in $images; do
-  if screen -list | grep -q "$(basename $i.torrent)"; then
+  if screen -list | grep -qw "$(basename $i.torrent)"; then
     echo -n "  - Stopping $DESC for" "$i"
     pid="$(screen -list | grep "$(basename $i.torrent)" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"
