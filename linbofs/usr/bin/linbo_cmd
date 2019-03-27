@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20190313
+# 20190327
 # GPL v3
 #
 
@@ -2210,88 +2210,93 @@ do_opsi(){
 
 # restore windows activation tokens
 restore_winact(){
- # get image name
- [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
- # if an image is not yet created do nothing
- if [ -z "$image" ]; then
-  echo "Ueberspringe Reaktivierung, System ist unsynchronisiert."
-  return
- fi
- local archive
- local tarchive
- local i
- # get mac address
- local mac="$(mac | tr a-z A-Z)"
- # without linbo server
- if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
-  tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
-  # get mac address from archive name
-  for i in $tarchive; do
-   mac="$(echo $i | awk -F\. '{ print $1 }')"
-   if ifconfig -a | grep -q "$mac"; then
-    archive="$i"
-    break
-   fi
-  done
- else # with linbo server
-  archive="$mac.$image.winact.tar.gz"
-  # get server ip address
-  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
-  echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
-  # get token archive from linbo server
-  rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
-  if [ -s "/cache/$archive" ]; then
-   echo "OK!"
-  else
-   echo "ueberspringe Reaktivierung, keine Daten!"
-   return
+  # get image name
+  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
+  # if an image is not yet created do nothing
+  if [ -z "$image" ]; then
+    echo "Ueberspringe Reaktivierung, System ist unsynchronisiert."
+    return
   fi
-  # request windows/office productkeys
-  local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-  rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
-  [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
-  # create windows key batchfile
-  local cache_batchfile="/cache/$image.winact.cmd"
-  # remove old batchfile
-  rm -f "$cache_batchfile"
-  # create new one if keys are provided
-  if [ -n "$winkey" ]; then
-   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
-  fi
-  # add office key handling to batchfile if office token is in archive
-  if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
-   if [ -n "$officekey" ]; then
-    # get path to ospp.vbs
-    local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
-    if [ -n "$ospp" ]; then
-     # compute windows path to office installation dir
-     local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
-     # write office activations commands to batchfile
-     echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
-     echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
+  local archive
+  local tarchive
+  local i
+  # get mac address
+  local mac="$(mac | tr a-z A-Z)"
+  # without linbo server
+  if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
+    tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
+    # get mac address from archive name
+    for i in $tarchive; do
+      mac="$(echo $i | awk -F\. '{ print $1 }')"
+      if ifconfig -a | grep -q "$mac"; then
+        archive="$i"
+        break
+      fi
+    done
+  else # with linbo server
+    archive="$mac.$image.winact.tar.gz"
+    # get server ip address
+    local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
+    echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
+    # get token archive from linbo server
+    rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
+    if [ -s "/cache/$archive" ]; then
+      echo "OK!"
+    else
+      echo "ueberspringe Reaktivierung, keine Daten!"
+      return
     fi
-   fi
+    # request windows/office productkeys
+    local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
+    rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
+    [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
+    # create windows key batchfile
+    local cache_batchfile="/cache/$image.winact.cmd"
+    # remove old batchfile
+    rm -f "$cache_batchfile"
+    # create new one if keys are provided
+    if [ -n "$winkey" ]; then
+      echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
+    fi
+    # add office key handling to batchfile if office token is in archive
+    if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
+      if [ -n "$officekey" ]; then
+        # get path to ospp.vbs
+        local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
+        if [ -n "$ospp" ]; then
+          # compute windows path to office installation dir
+          local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
+          # write office activations commands to batchfile
+          echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
+          echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
+        fi
+      fi
+    fi
+    rm -f "$keyfile"
+  fi # localmode
+  # copy reactivation batchfile to windows partition
+  if [ -s "$cache_batchfile" ]; then
+    local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
+    if [ -n "$winkey" -a -n "$officekey" ]; then
+      local keymsg="Windows- und Office-Keys"
+    elif [ -n "$winkey" ]; then
+      local keymsg="Windows-Key"
+    else
+      local keymsg="Office-Key"
+    fi
+    echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
+    dos2unix "$cache_batchfile"
+    cp "$cache_batchfile" "$win_batchfile"
+  else # no keys, no batchfile
+    echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
   fi
-  rm -f "$keyfile"
- fi
- # copy reactivation batchfile to windows partition
- if [ -s "$cache_batchfile" ]; then
-  local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
-  if [ -n "$winkey" -a -n "$officekey" ]; then
-    local keymsg="Windows- und Office-Keys"
-  elif [ -n "$winkey" ]; then
-    local keymsg="Windows-Key"
-  else
-    local keymsg="Office-Key"
+  if [ -n "$archive" ]; then
+    echo "Stelle Windows-Aktivierungstokens wieder her."
+    if ! tar xf "/cache/$archive" -C; then
+      echo "Fehler beim Entpacken von $archive!"
+      return 1
+    fi
   fi
-  echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
-  dos2unix "$cache_batchfile"
-  cp "$cache_batchfile" "$win_batchfile"
-else # no keys, no batchfile
-  echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
- fi
- echo "Stelle Windows-Aktivierungstokens wieder her."
- tar xf "/cache/$archive" -C / || return 1
 }
 
 

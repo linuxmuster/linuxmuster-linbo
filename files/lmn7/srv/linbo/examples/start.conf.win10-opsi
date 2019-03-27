@@ -67,5 +67,5 @@ AutostartTimeout = 5       # Timeout in Sekunden fuer Benutzerabbruch bei Autost
 DefaultAction = sync       # Standardaktion bei Autostart: start|sync|new
 RestoreOpsiState = yes     # Stellt nach dem Sync den Opsi-Produktstatus wieder her
 ForceOpsiSetup = windows.domainjoin,swaudit
-# Komma separierte Liste von Opsi Produkt-IDs, die nach dem Sync auf Setup gestellt werden
+# Komma separierte Liste von Opsi Produkt-IDs, die nach dem Sync zwingend auf Setup gestellt werden
 Hidden = yes               # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)

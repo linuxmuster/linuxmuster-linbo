@@ -1,3 +1,22 @@
+linuxmuster-linbo (2.3.46-0) babo62; urgency=low
+
+  * linbofs, linbo_cmd:
+    - minor code beautifying.
+    - Fix #108: sync+start fails with windows systems in offline mode.
+  * lmn7 only:
+    - Fix #89: update-linbofs warns and corrects unsecure permissions of ssh files,
+      which differ from the standard.
+    - postinst: Apply current server ip to start.conf examples on configured systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Mar 2019 16:15:09 +0100
+
+linuxmuster-linbo (2.3.45-0) babo62; urgency=low
+
+  * lmn62: removed PubkeyAcceptedKeyTypes=+ssh-dss from ssh_config since it
+    caused a bad configuration error.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 15 Mar 2019 15:45:04 +0100
+
 linuxmuster-linbo (2.3.44-0) babo62; urgency=low
 
   * implemented RestoreOpsiState start.conf option to add the ability to restore
