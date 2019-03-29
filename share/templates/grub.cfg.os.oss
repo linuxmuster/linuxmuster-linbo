@@ -24,7 +24,7 @@ menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
   linux /vmlinuz @@append@@
   initrd /initrd
  elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
-  linux /boot/vmlinuz root=@@partition@@ @@append@@
+  linux /boot/vmlinuz @@append@@
   initrd /boot/initrd
  elif [ -e /@@kernel@@ -a -e /@@initrd@@ ]; then
   linux /@@kernel@@ @@append@@
