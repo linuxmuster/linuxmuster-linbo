@@ -1237,7 +1237,7 @@ mk_linefiboot(){
  mkdir -p /mnt/boot/efi/EFI
  grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
  umount /mnt/boot/efi
- [ "$RC" = "0" ] || touch "$doneflag"
+ [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
 
