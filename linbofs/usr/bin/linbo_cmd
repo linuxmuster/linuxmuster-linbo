@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20190327
+# 20190328
 # GPL v3
 #
 
@@ -2290,9 +2290,9 @@ restore_winact(){
   else # no keys, no batchfile
     echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
   fi
-  if [ -n "$archive" ]; then
+  if [ -n "$archive" -a -s "/cache/$archive" ]; then
     echo "Stelle Windows-Aktivierungstokens wieder her."
-    if ! tar xf "/cache/$archive" -C; then
+    if ! tar xf "/cache/$archive" -C /; then
       echo "Fehler beim Entpacken von $archive!"
       return 1
     fi
