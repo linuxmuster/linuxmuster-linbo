@@ -14,7 +14,7 @@
 
 # thomas@linuxmuster.net
 # GPL v3
-# 20190114
+# 20190406
 
 #set -e
 
@@ -54,7 +54,7 @@ create_multicast_list() {
   p=$PORTBASE
   for i in $images; do
     echo "$i $SERVERIP:$p" >> $MULTICASTLIST
-    p=+2
+    p=$(( $p + 2 ))
   done
   echo .
 }

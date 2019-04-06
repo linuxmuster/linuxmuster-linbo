@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.48-0) babo62; urgency=low
+
+  * Fix #110: linbo-multicast v7, increase port counter is faulty.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 06 Apr 2019 10:34:31 +0200
+
 linuxmuster-linbo (2.3.47-0) babo62; urgency=low
 
   * Fix von Fix #108: sync+start fails with windows systems in offline mode.
