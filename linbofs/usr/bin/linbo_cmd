@@ -1221,74 +1221,42 @@ mk_winefiboot(){
  return "$RC"
 }
 
-# get_efipath: convert path to efi path and returns this efi path
-# args: path
-get_efipath(){
- local ORIGPATH="$1"
- local NEWPATH="$(echo "$ORIGPATH" | tr "a-z" "A-Z" | tr '\/' '\\' )"
- echo "$NEWPATH"
- return 0
-}
-
 # mk_linefiboot: prepares linux os for efi boot
-# args: partition grubdisk efipart bootloaderid kernel initrd append
+# args: partition grubdisk efipart bootloaderid
 mk_linefiboot(){
-# TODO grub parameter
- local OSGRUB=
- [ -d /mnt/boot/grub ] && OSGRUB="1"
+ [ -d /mnt/boot/grub ] || return 1
  local partition="$1"
  local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
  [ -e "$doneflag" ] && return 0
  local grubdisk="$2"
  local efipart="$3"
  local bootloaderid="$4"
- local KERNEL="$5"
- local INITRD="$6"
- local APPEND="$7"
  local RC="0"
  mkdir -p /mnt/boot/efi
  mount "$efipart" /mnt/boot/efi || return 1
  mkdir -p /mnt/boot/efi/EFI
- if [ -n "$OSGRUB" ]; then
-  grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
- else # use nvram
-  RC="$(efibootmgr --verbose |grep "$bootloaderid")"
-  if [ -z "$RC" ]; then # create linbo entry
-  # TODO Test Backslashes
-   local EFIKERNEL="$(get_efipath "\EFI\$bootloaderid\$KERNEL" )"
-   local EFIINITRD="$(get_efipath "\EFI\$bootloaderid\$INITRD" )"
-   efibootmgr --create --disk "$grubdisk" --part "$(get_partnr_from_partition $partition)" --label "$bootloaderid"  \
-              --loader "$EFIKERNEL" --unicode 'root=$partition initrd=$EFIINITRD $APPEND' || return "1"
-  fi
-  RC="$(set_efibootnext "$bootloaderid")"
- fi
+ grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
  umount /mnt/boot/efi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
 
 # mk_efiboot: if returns 1 a reboot via grub will be initiated, othwerwise reboot via efi directly
-# args: efipart partition grubdisk kernel initrd append
+# args: efipart partition grubdisk
 mk_efiboot(){
  local efipart="$1"
  local partition="$2"
  local grubdisk="$3"
- local KERNEL="$4"
- local INITRD="$5"
- local APPEND="$6"
  local startflag="/tmp/.start"
  local bootloaderid
  local doneflag="/tmp/.grub-install"
- # repair efi configuration
+ # repare efi configuration
  repair_efi "$efipart" || return 1
  # restore windows efi boot files
  local RC="0"
  if [ "$(fstype $partition)" = "ntfs" ]; then
   bootloaderid="Windows Boot Manager"
   mk_winefiboot "$partition" "$efipart" "$bootloaderid" || RC="1"
- elif [ "$partition" = "$cachedev" ]; then # reboot linbo
-  booloaderid="linbo"
-  mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid" "$KERNEL" "$INITRD" "$APPEND" || RC="1"
  else # assume linux system
   bootloaderid="$(osname "$partition")"
   if [ -n "$bootloaderid" ]; then
@@ -1368,7 +1336,7 @@ prepare_reboot(){
  local noefibootmgr="$(kerneloptions | grep -iw noefibootmgr)"
  remote_cache "$(cachedev)" || local localcache="yes"
  if [ -z "$noefibootmgr" -a -n "$efipart" ]; then
-  mk_efiboot "$efipart" "$partition" "$grubdisk" "$KERNEL" "$INITRD" "$APPEND" && efiboot="true"
+  mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then
   if [ -n "$localcache" ]; then
