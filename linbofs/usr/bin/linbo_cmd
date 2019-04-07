@@ -1066,7 +1066,7 @@ set_efibootnext(){
  # get the bootnr
  local bootnextnr="$(print_efi_bootnr "$bootloaderid")"
  if [ -n "$bootnextnr" ]; then
-  echo "Setze EFI BootNext: $bootnextnr."
+  echo "Setze EFI BootNext: $bootnextnr." >> /tmp/linbo.log
   efibootmgr --bootnext "$bootnextnr" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
  else
   return 1
@@ -1227,15 +1227,14 @@ get_efipath(){
  local ORIGPATH="$1"
  local NEWPATH="$(echo "$ORIGPATH" | tr "a-z" "A-Z" | tr '\/' '\\' )"
  echo "$NEWPATH"
- return 0
 }
 
 # mk_linefiboot: prepares linux os for efi boot
 # args: partition grubdisk efipart bootloaderid kernel initrd append
 mk_linefiboot(){
-# TODO grub parameter
  local OSGRUB=
- [ -d /mnt/boot/grub ] && OSGRUB="1"
+ [ -d /mnt/boot/grub ] && OSGRUB="grub-install"
+ [ -d /mnt/boot/grub2 ] && OSGRUB="grub2-install"
  local partition="$1"
  local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
  [ -e "$doneflag" ] && return 0
@@ -1243,24 +1242,35 @@ mk_linefiboot(){
  local efipart="$3"
  local bootloaderid="$4"
  local KERNEL="$5"
+ [ "${KERNEL:0:1}" = "/" ] || KERNEL="/$KERNEL"
  local INITRD="$6"
+ [ "${INITRD:0:1}" = "/" ] || INITRD="/$INITRD"
  local APPEND="$7"
  local RC="0"
  mkdir -p /mnt/boot/efi
  mount "$efipart" /mnt/boot/efi || return 1
  mkdir -p /mnt/boot/efi/EFI
  if [ -n "$OSGRUB" ]; then
-  grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+  for d in dev proc sys; do mount -B /$d /mnt/$d; done
+  chroot /mnt /bin/bash "$OSGRUB" --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+  umount /mnt/dev /mnt/proc /mnt/sys
  else # use nvram
-  RC="$(efibootmgr --verbose |grep "$bootloaderid")"
-  if [ -z "$RC" ]; then # create linbo entry
-  # TODO Test Backslashes
-   local EFIKERNEL="$(get_efipath "\EFI\$bootloaderid\$KERNEL" )"
-   local EFIINITRD="$(get_efipath "\EFI\$bootloaderid\$INITRD" )"
-   efibootmgr --create --disk "$grubdisk" --part "$(get_partnr_from_partition $partition)" --label "$bootloaderid"  \
-              --loader "$EFIKERNEL" --unicode 'root=$partition initrd=$EFIINITRD $APPEND' || return "1"
+  if ! efibootmgr |grep -qw "$bootloaderid"; then
+   local EFIKERNEL="$(get_efipath "/EFI/$bootloaderid$KERNEL" )"
+   local EFIINITRD="$(get_efipath "/EFI/$bootloaderid$INITRD" )"
+   efibootmgr --create --disk "$grubdisk" --part "$(get_partnr_from_partition $efipart)" --label "$bootloaderid"  \
+              --loader "$EFIKERNEL" --unicode "root=$partition initrd=$EFIINITRD $APPEND" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC="1"
   fi
-  RC="$(set_efibootnext "$bootloaderid")"
+  if [ "$RC" = "0" ]; then
+   for f in "$KERNEL" "$INITRD"; do
+    if [ -s "/mnt$f" ]; then
+     rsync -L "/mnt$f" "/mnt/boot/efi/EFI/$bootloaderid${f%/*}/" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC="1"
+    fi
+   done
+  fi
+  if [ "$RC" = "0" ]; then
+   set_efibootnext "$bootloaderid" || RC="1"
+  fi
  fi
  umount /mnt/boot/efi
  [ "$RC" = "0" ] && touch "$doneflag"
@@ -1287,7 +1297,7 @@ mk_efiboot(){
   bootloaderid="Windows Boot Manager"
   mk_winefiboot "$partition" "$efipart" "$bootloaderid" || RC="1"
  elif [ "$partition" = "$cachedev" ]; then # reboot linbo
-  booloaderid="linbo"
+  bootloaderid="linbo"
   mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid" "$KERNEL" "$INITRD" "$APPEND" || RC="1"
  else # assume linux system
   bootloaderid="$(osname "$partition")"
@@ -2586,14 +2596,17 @@ syncl(){
  # linux stuff begin
 
  # grub efi
- if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
+ UPDATEGRUB=
+ [ -d /mnt/boot/grub ] && UPDATEGRUB="update-grub"
+ [ -d /mnt/boot/grub2 ] && UPDATEGRUB="grub2-mkconfig -o /boot/grub2/grub.cfg"
+ if [ -n "$efipart" -a -n "$UPDATEGRUB" ]; then
   mkdir -p /mnt/boot/efi
   mount "$efipart" /mnt/boot/efi
   local i
   for i in /dev /dev/pts /proc /sys; do
    mount --bind "$i" /mnt"$i"
   done
-  chroot /mnt update-grub
+  chroot /mnt "$UPDATEGRUB"
   for i in /sys /proc /dev/pts /dev; do
    umount /mnt"$i"
   done
@@ -3230,7 +3243,12 @@ update(){
       fi
       ( umount -a ; /sbin/reboot -f )
     fi
-
+    if [ -n "$cachedev" ]; then
+      local KERNEL="linbo64"
+      local INITRD="linbofs64.lz"
+      local APPEND="quiet localboot"
+      mk_boot "$cachedev" "$KERNEL" "$INITRD" "$APPEND" || RC="1"
+    fi
   else
     RC="1"
   fi
