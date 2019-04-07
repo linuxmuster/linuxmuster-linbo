@@ -1221,6 +1221,7 @@ mk_winefiboot(){
  return "$RC"
 }
 
+<<<<<<< HEAD
 # get_efipath: convert path to efi path and returns this efi path
 # args: path
 get_efipath(){
@@ -1229,27 +1230,37 @@ get_efipath(){
  echo "$NEWPATH"
 }
 
+=======
+>>>>>>> merge-oss-lmn
 # mk_linefiboot: prepares linux os for efi boot
-# args: partition grubdisk efipart bootloaderid kernel initrd append
+# args: partition grubdisk efipart bootloaderid
 mk_linefiboot(){
+<<<<<<< HEAD
  local OSGRUB=
  [ -d /mnt/boot/grub ] && OSGRUB="grub-install"
  [ -d /mnt/boot/grub2 ] && OSGRUB="grub2-install"
+=======
+ [ -d /mnt/boot/grub ] || return 1
+>>>>>>> merge-oss-lmn
  local partition="$1"
  local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
  [ -e "$doneflag" ] && return 0
  local grubdisk="$2"
  local efipart="$3"
  local bootloaderid="$4"
+<<<<<<< HEAD
  local KERNEL="$5"
  [ "${KERNEL:0:1}" = "/" ] || KERNEL="/$KERNEL"
  local INITRD="$6"
  [ "${INITRD:0:1}" = "/" ] || INITRD="/$INITRD"
  local APPEND="$7"
+=======
+>>>>>>> merge-oss-lmn
  local RC="0"
  mkdir -p /mnt/boot/efi
  mount "$efipart" /mnt/boot/efi || return 1
  mkdir -p /mnt/boot/efi/EFI
+<<<<<<< HEAD
  if [ -n "$OSGRUB" ]; then
   for d in dev proc sys; do mount -B /$d /mnt/$d; done
   chroot /mnt /bin/bash "$OSGRUB" --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
@@ -1272,33 +1283,36 @@ mk_linefiboot(){
    set_efibootnext "$bootloaderid" || RC="1"
   fi
  fi
+=======
+ grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+>>>>>>> merge-oss-lmn
  umount /mnt/boot/efi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
 
 # mk_efiboot: if returns 1 a reboot via grub will be initiated, othwerwise reboot via efi directly
-# args: efipart partition grubdisk kernel initrd append
+# args: efipart partition grubdisk
 mk_efiboot(){
  local efipart="$1"
  local partition="$2"
  local grubdisk="$3"
- local KERNEL="$4"
- local INITRD="$5"
- local APPEND="$6"
  local startflag="/tmp/.start"
  local bootloaderid
  local doneflag="/tmp/.grub-install"
- # repair efi configuration
+ # repare efi configuration
  repair_efi "$efipart" || return 1
  # restore windows efi boot files
  local RC="0"
  if [ "$(fstype $partition)" = "ntfs" ]; then
   bootloaderid="Windows Boot Manager"
   mk_winefiboot "$partition" "$efipart" "$bootloaderid" || RC="1"
+<<<<<<< HEAD
  elif [ "$partition" = "$cachedev" ]; then # reboot linbo
   bootloaderid="linbo"
   mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid" "$KERNEL" "$INITRD" "$APPEND" || RC="1"
+=======
+>>>>>>> merge-oss-lmn
  else # assume linux system
   bootloaderid="$(osname "$partition")"
   if [ -n "$bootloaderid" ]; then
@@ -1378,7 +1392,7 @@ prepare_reboot(){
  local noefibootmgr="$(kerneloptions | grep -iw noefibootmgr)"
  remote_cache "$(cachedev)" || local localcache="yes"
  if [ -z "$noefibootmgr" -a -n "$efipart" ]; then
-  mk_efiboot "$efipart" "$partition" "$grubdisk" "$KERNEL" "$INITRD" "$APPEND" && efiboot="true"
+  mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then
   if [ -n "$localcache" ]; then

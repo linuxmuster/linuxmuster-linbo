@@ -91,9 +91,13 @@ menuentry 'OS localboot' {
     linux /vmlinuz $reboot_append
     initrd /initrd.img
     boot
-    elif [ -e /vmlinuz -a -e /initrd ]; then
+   elif [ -e /vmlinuz -a -e /initrd ]; then
     linux /vmlinuz $reboot_append
     initrd /initrd
+    boot
+   elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
+    linux /boot/vmlinuz $reboot_append
+    initrd /boot/initrd
     boot
    elif [ -s /boot/grub/grub.cfg ] ; then
     configfile /boot/grub/grub.cfg
