@@ -1230,7 +1230,7 @@ get_efipath(){
 }
 
 # mk_linefiboot: prepares linux os for efi boot
-# args: partition grubdisk efipart bootloaderid
+# args: partition grubdisk efipart bootloaderid kernel initrd append
 mk_linefiboot(){
  local OSGRUB=
  [ -d /mnt/boot/grub ] && OSGRUB="grub-install"
@@ -1278,15 +1278,18 @@ mk_linefiboot(){
 }
 
 # mk_efiboot: if returns 1 a reboot via grub will be initiated, othwerwise reboot via efi directly
-# args: efipart partition grubdisk
+# args: efipart partition grubdisk kernel initrd append
 mk_efiboot(){
  local efipart="$1"
  local partition="$2"
  local grubdisk="$3"
+ local KERNEL="$4"
+ local INITRD="$5"
+ local APPEND="$6"
  local startflag="/tmp/.start"
  local bootloaderid
  local doneflag="/tmp/.grub-install"
- # repare efi configuration
+ # repair efi configuration
  repair_efi "$efipart" || return 1
  # restore windows efi boot files
  local RC="0"
@@ -1375,7 +1378,7 @@ prepare_reboot(){
  local noefibootmgr="$(kerneloptions | grep -iw noefibootmgr)"
  remote_cache "$(cachedev)" || local localcache="yes"
  if [ -z "$noefibootmgr" -a -n "$efipart" ]; then
-  mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
+  mk_efiboot "$efipart" "$partition" "$grubdisk" "$KERNEL" "$INITRD" "$APPEND" && efiboot="true"
  fi
  if [ "$efiboot" = "false" ]; then
   if [ -n "$localcache" ]; then
