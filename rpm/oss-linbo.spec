@@ -372,12 +372,12 @@ systemctl start rsyncd
 /srv/tftp/icons
 /srv/tftp/linbo
 %attr(0644,root,root) /srv/tftp/linbo.md5
-/srv/tftp/linbofs.lz
-/srv/tftp/linbofs.lz.md5
+%config /srv/tftp/linbofs.lz
+%config /srv/tftp/linbofs.lz.md5
 /srv/tftp/linbo64
 %attr(0644,root,root) /srv/tftp/linbo64.md5
-/srv/tftp/linbofs64.lz
-/srv/tftp/linbofs64.lz.md5
+%config /srv/tftp/linbofs64.lz
+%config /srv/tftp/linbofs64.lz.md5
 /srv/tftp/examples
 /srv/tftp/linuxmuster-win
 /srv/tftp/linbo-version
