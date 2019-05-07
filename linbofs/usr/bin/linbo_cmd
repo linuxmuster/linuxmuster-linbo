@@ -1250,10 +1250,12 @@ mk_linefiboot(){
  mkdir -p /mnt/boot/efi
  mount "$efipart" /mnt/boot/efi || return 1
  mkdir -p /mnt/boot/efi/EFI
- if [ -n "$OSGRUB" ]; then
-  for d in dev proc sys; do mount -B /$d /mnt/$d; done
-  chroot /mnt /bin/bash "$OSGRUB" --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
-  umount /mnt/dev /mnt/proc /mnt/sys
+ if [ "$OSGRUB" = "grub2-install" ]; then
+  for d in dev proc sys sys/firmware/efi/efivars; do mount -B /$d /mnt/$d; done
+  chroot /mnt "$OSGRUB" --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+  umount /mnt/dev /mnt/proc /mnt/sys/firmware/efi/efivars /mnt/sys
+ elif [ -n "$OSGRUB" ]; then
+  "$OSGRUB" --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
  else # use nvram
   if ! efibootmgr |grep -qw "$bootloaderid"; then
    local EFIKERNEL="$(get_efipath "/EFI/$bootloaderid$KERNEL" )"
