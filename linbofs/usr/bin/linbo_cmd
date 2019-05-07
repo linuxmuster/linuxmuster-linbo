@@ -1086,7 +1086,7 @@ set_efibootorder(){
    [ -n "$bootnextnr" ] && bootorder="$bootnextnr"
  fi
  # searchstrings for grub (local boot) and efi network devices
- for i in grub ipv4 pxev4 "efi network" "usb nic" "onboard nic"; do
+ for i in grub ip4 ipv4 pxev4 "efi network" "usb nic" "onboard nic"; do
    nr="$(print_efi_bootnr "$i" "$efiout")"
    [ -z "$nr" ] && continue
    if [ -n "$bootorder" ]; then
