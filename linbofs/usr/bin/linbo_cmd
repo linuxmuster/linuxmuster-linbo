@@ -3245,7 +3245,7 @@ update(){
       fi
       ( umount -a ; /sbin/reboot -f )
     fi
-    if [ -n "$cachedev" ]; then
+    if [ -n "$cachedev" -a -n "$reboot" ]; then
       local KERNEL="linbo64"
       local INITRD="linbofs64.lz"
       local APPEND="quiet localboot"
