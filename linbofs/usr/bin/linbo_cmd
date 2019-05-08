@@ -1232,9 +1232,11 @@ get_efipath(){
 # mk_linefiboot: prepares linux os for efi boot
 # args: partition grubdisk efipart bootloaderid kernel initrd append
 mk_linefiboot(){
+ local ROOTDIR=/mnt
+ [ -n "$bootloaderid" -a "$bootloaderid" = "linbo" ] && ROOTDIR=/cache
  local OSGRUB=
- [ -d /mnt/boot/grub ] && OSGRUB="grub-install"
- [ -d /mnt/boot/grub2 ] && OSGRUB="grub2-install"
+ [ -d $ROOTDIR/boot/grub ] && OSGRUB="grub-install"
+ [ -d $ROOTDIR/boot/grub2 ] && OSGRUB="grub2-install"
  local partition="$1"
  local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
  [ -e "$doneflag" ] && return 0
@@ -1247,15 +1249,15 @@ mk_linefiboot(){
  [ "${INITRD:0:1}" = "/" ] || INITRD="/$INITRD"
  local APPEND="$7"
  local RC="0"
- mkdir -p /mnt/boot/efi
- mount "$efipart" /mnt/boot/efi || return 1
- mkdir -p /mnt/boot/efi/EFI
+ mkdir -p $ROOTDIR/boot/efi
+ mount "$efipart" $ROOTDIR/boot/efi || return 1
+ mkdir -p $ROOTDIR/boot/efi/EFI
  if [ "$OSGRUB" = "grub2-install" ]; then
-  for d in dev proc sys sys/firmware/efi/efivars; do mount -B /$d /mnt/$d; done
-  chroot /mnt "$OSGRUB" --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
-  umount /mnt/dev /mnt/proc /mnt/sys/firmware/efi/efivars /mnt/sys
+  for d in dev proc sys sys/firmware/efi/efivars; do mount -B /$d $ROOTDIR/$d; done
+  chroot "$ROOTDIR" "$OSGRUB" --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+  umount $ROOTDIR/dev $ROOTDIR/proc $ROOTDIR/sys/firmware/efi/efivars $ROOTDIR/sys
  elif [ -n "$OSGRUB" ]; then
-  "$OSGRUB" --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
+  "$OSGRUB" --root-directory=$ROOTDIR --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
  else # use nvram
   if ! efibootmgr |grep -qw "$bootloaderid"; then
    local EFIKERNEL="$(get_efipath "/EFI/$bootloaderid$KERNEL" )"
@@ -1265,8 +1267,8 @@ mk_linefiboot(){
   fi
   if [ "$RC" = "0" ]; then
    for f in "$KERNEL" "$INITRD"; do
-    if [ -s "/mnt$f" ]; then
-     rsync -L "/mnt$f" "/mnt/boot/efi/EFI/$bootloaderid${f%/*}/" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC="1"
+    if [ -s "$ROOTDIR$f" ]; then
+     rsync -L "$ROOTDIR$f" "$ROOTDIR/boot/efi/EFI/$bootloaderid${f%/*}/" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC="1"
     fi
    done
   fi
@@ -1274,7 +1276,7 @@ mk_linefiboot(){
    set_efibootnext "$bootloaderid" || RC="1"
   fi
  fi
- umount /mnt/boot/efi
+ umount $ROOTDIR/boot/efi
  [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
