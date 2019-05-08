@@ -1478,6 +1478,7 @@ mk_boot(){
   echo -n "Installiere GRUB in MBR/EFI von $grubdisk ... "
   [ -n "$efipart" ] && nonv="--no-nvram"
   grub-install -s $nonv $grubdisk 2>> /tmp/linbo.log || RC="1"
+  [ -n "$efipart" ] && repair_efi "$efipart" 2>> /tmp/linbo.log || RC="1"
   if [ "$RC" = "0" ]; then
    touch "$doneflag"
    echo "OK!"
