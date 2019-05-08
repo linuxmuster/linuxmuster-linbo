@@ -1237,6 +1237,7 @@ mk_linefiboot(){
  local OSGRUB=
  [ -d $ROOTDIR/boot/grub ] && OSGRUB="grub-install"
  [ -d $ROOTDIR/boot/grub2 ] && OSGRUB="grub2-install"
+ [ "$bootloaderid" = "linbo" ] && OSGRUB="linbo"
  local partition="$1"
  local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
  [ -e "$doneflag" ] && return 0
@@ -1252,13 +1253,13 @@ mk_linefiboot(){
  mkdir -p $ROOTDIR/boot/efi
  mount "$efipart" $ROOTDIR/boot/efi || return 1
  mkdir -p $ROOTDIR/boot/efi/EFI
- if [ "$OSGRUB" = "grub2-install" ]; then
+ if [ "$OSGRUB" = "grub2-install" ]; then # f.ex. opensuse
   for d in dev proc sys sys/firmware/efi/efivars; do mount -B /$d $ROOTDIR/$d; done
   chroot "$ROOTDIR" "$OSGRUB" --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
   umount $ROOTDIR/dev $ROOTDIR/proc $ROOTDIR/sys/firmware/efi/efivars $ROOTDIR/sys
- elif [ -n "$OSGRUB" ]; then
+ elif [ "$OSGRUB" = "grub-install" ]; then # f.ex. ubuntu
   "$OSGRUB" --root-directory=$ROOTDIR --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
- else # use nvram
+ else # use nvram for linbo always
   if ! efibootmgr |grep -qw "$bootloaderid"; then
    local EFIKERNEL="$(get_efipath "/EFI/$bootloaderid$KERNEL" )"
    local EFIINITRD="$(get_efipath "/EFI/$bootloaderid$INITRD" )"
