@@ -53,13 +53,16 @@ update_linbofs() {
  local suffix=$1
  local linbofscachedir="$LINBOCACHEDIR/linbofs$suffix"
  local linbofs="$LINBODIR/linbofs${suffix}.lz"
+ if [ "$FLAVOUR" = "oss" ]; then
+   linbofs="$LINBOSHAREDIR/initrd/linbofs${suffix}.lz"
+ fi
  local linbofs_md5="$linbofs".md5
  rm -f "$linbofs_md5"
  rm -rf "$linbofscachedir"
  mkdir -p "$linbofscachedir"
 
  # check for default linbofs${suffix}.lz
- [ ! -s "$LINBODIR/linbofs${suffix}.lz" ] && bailout "Error: $LINBODIR/linbofs${suffix}.lz not found!"
+ [ ! -s "$linbofs" ] && bailout "Error: $linbofs not found!"
 
  # begin to process linbofs${suffix}.lz
  echo "Processing linbofs${suffix} update ..."
@@ -100,6 +103,9 @@ update_linbofs() {
  # copy default start.conf
  cp -f $LINBODIR/start.conf .
 
+ if [ "$FLAVOUR" = "oss" ]; then
+   linbofs="$LINBODIR/linbofs${suffix}.lz"
+ fi
  # pack default linbofs${suffix}.lz again
  find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
  [ $RC -ne 0 ] && bailout "failed!"
