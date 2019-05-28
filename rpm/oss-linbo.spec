@@ -186,14 +186,18 @@ ln -sf ../../etc/init.d/linbo-bittorrent %{buildroot}/usr/sbin/rclinbo-bittorren
 install rpm/linbo-multicast.init %{buildroot}/etc/init.d/linbo-multicast
 ln -sf ../../etc/init.d/linbo-multicast %{buildroot}/usr/sbin/rclinbo-multicast
 install share/templates/grub.cfg.pxe %{buildroot}/srv/tftp/boot/grub/grub.cfg
+# linbo kernels, initrds
+mkdir -p %{buildroot}/usr/share/linbo/initrd
 install build/build-i386/images/bzImage %{buildroot}/srv/tftp/linbo
 install build/build-i386/images/bzImage.md5 %{buildroot}/srv/tftp/linbo.md5
-install build/build-i386/images/rootfs.cpio.lz %{buildroot}/srv/tftp/linbofs.lz
-install build/build-i386/images/rootfs.cpio.lz.md5 %{buildroot}/srv/tftp/linbofs.lz.md5
+install build/build-i386/images/rootfs.cpio.lz %{buildroot}/usr/share/linbo/initrd/linbofs.lz
+touch %{buildroot}/srv/tftp/linbofs.lz
+touch %{buildroot}/srv/tftp/linbofs.lz.md5
 install build/build-x86_64/images/bzImage %{buildroot}/srv/tftp/linbo64
 install build/build-x86_64/images/bzImage.md5 %{buildroot}/srv/tftp/linbo64.md5
-install build/build-x86_64/images/rootfs.cpio.lz %{buildroot}/srv/tftp/linbofs64.lz
-install build/build-x86_64/images/rootfs.cpio.lz.md5 %{buildroot}/srv/tftp/linbofs64.lz.md5
+install build/build-x86_64/images/rootfs.cpio.lz %{buildroot}/usr/share/linbo/initrd/linbofs64.lz
+touch %{buildroot}/srv/tftp/linbofs64.lz
+touch %{buildroot}/srv/tftp/linbofs64.lz.md5
 mkdir -p %{buildroot}/usr/bin
 install build/build-x86_64/host/bin/grub-mkimage %{buildroot}/usr/bin/linbo-grub-mkimage
 install build/build-x86_64/host/bin/grub-mkstandalone %{buildroot}/usr/bin/linbo-grub-mkstandalone
@@ -372,12 +376,12 @@ systemctl start rsyncd
 /srv/tftp/icons
 /srv/tftp/linbo
 %attr(0644,root,root) /srv/tftp/linbo.md5
-%config /srv/tftp/linbofs.lz
-%config /srv/tftp/linbofs.lz.md5
+%ghost /srv/tftp/linbofs.lz
+%ghost /srv/tftp/linbofs.lz.md5
 /srv/tftp/linbo64
 %attr(0644,root,root) /srv/tftp/linbo64.md5
-%config /srv/tftp/linbofs64.lz
-%config /srv/tftp/linbofs64.lz.md5
+%ghost /srv/tftp/linbofs64.lz
+%ghost /srv/tftp/linbofs64.lz.md5
 /srv/tftp/examples
 /srv/tftp/linuxmuster-win
 /srv/tftp/linbo-version
