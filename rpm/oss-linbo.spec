@@ -206,11 +206,29 @@ ln -sf ../../bin/linbo-grub-mkimage grub-mkimage
 ln -sf ../../bin/linbo-grub-mkstandalone grub-mkstandalone
 popd
 mkdir -p %{buildroot}/usr/share/oss/plugins/add_device
-install rpm/linbo-update-ips.pl %{buildroot}/usr/share/oss/plugins/add_device/linbo-update-ips.pl
 mkdir -p %{buildroot}/usr/share/oss/plugins/modify_device
-install rpm/linbo-modify-device.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
 mkdir -p %{buildroot}/usr/share/oss/plugins/delete_device
+install rpm/linbo-modify-dhcpd.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-dhcpd.pl
+pushd %{buildroot}/usr/share/oss/plugins/add_device
+ln -s ../modify_device/linbo-modify-dhcpd.pl linbo-add-dhcpd.pl
+popd
+pushd %{buildroot}/usr/share/oss/pugins/delete_device
+ln -s ../modify_device/linbo-modify-dhcpd.pl linbo-delete-dhcpd.pl
+popd
+install rpm/linbo-modify-device.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
+install rpm/linbo-update-ips.pl %{buildroot}/usr/share/oss/plugins/add_device/linbo-update-ips.pl
 install rpm/linbo-delete-device.pl %{buildroot}/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
+
+# mkdir -p %{buildroot}/usr/share/oss/plugins/add_hwconf
+# mkdir -p %{buildroot}/usr/share/oss/plugins/modify_hwconf
+# mkdir -p %{buildroot}/usr/share/oss/plugins/delete_hwconf
+# install rpm/linbo-modify-hwconf.pl %{buildroot}/usr/share/oss/plugins/modify_hwconf/linbo-modify-hwconf.pl
+# pushd %{buildroot}/usr/share/oss/plugins/add_hwconf
+# ln -s ../modify_hwconf/linbo-modify-hwconf.pl linbo-add-hwconf.pl
+# popd
+# pushd %{buildroot}/usr/share/oss/pugins/delete_hwconf
+# ln -s ../modify_hwconf/linbo-modify-hwconf.pl linbo-delete-hwconf.pl
+# popd
 mkdir -p %{buildroot}/usr/share/oss/plugins/shares/itool/open
 install rpm/linbo-restore-vlan-links.sh %{buildroot}/usr/share/oss/plugins/shares/itool/open/linbo-restore-vlan-links.sh
 mkdir -p %{buildroot}/var/log/linbo
@@ -399,10 +417,20 @@ systemctl start rsyncd
 %dir /usr/share/oss/plugins
 %dir /usr/share/oss/plugins/add_device
 /usr/share/oss/plugins/add_device/linbo-update-ips.pl
+/usr/share/oss/plugins/modify_device/linbo-add-dhcpd.pl
 %dir /usr/share/oss/plugins/modify_device
 /usr/share/oss/plugins/modify_device/linbo-modify-device.pl
+/usr/share/oss/plugins/modify_device/linbo-modify-dhcpd.pl
 %dir /usr/share/oss/plugins/delete_device
 /usr/share/oss/plugins/delete_device/linbo-delete-device.pl
+/usr/share/oss/plugins/modify_device/linbo-delete-dhcpd.pl
+# %dir /usr/share/oss/plugins/add_hwconf
+# /usr/share/oss/plugins/add_hwconf/linbo-add-hwconf.pl
+# %dir /usr/share/oss/plugins/modify_hwconf
+# /usr/share/oss/plugins/modify_hwconf/linbo-modify-hwconf.pl
+# %dir /usr/share/oss/plugins/delete_hwconf
+# /usr/share/oss/plugins/delete_hwconf/linbo-delete-hwconf.pl
+
 %dir /usr/share/oss/plugins/shares
 %dir /usr/share/oss/plugins/shares/itool
 %dir /usr/share/oss/plugins/shares/itool/open
