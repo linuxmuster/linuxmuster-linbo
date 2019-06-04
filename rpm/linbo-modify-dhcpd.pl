@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wd
+#!/usr/bin/perl -w
 # linbo-[add|delete|modify]-dhcpd.pl
 #
 # Update dhcpd database entries for host after add/modify/delete device
@@ -104,13 +104,13 @@ if( $operation eq 'modify' or $operation eq 'delete' ){
     print "old dhcp entries for $host{'name'} deleted.\n";
 }
 
-if( $operation eq 'add' or $operatiron eq 'modify' ){
+if( $operation eq 'add' or $operation eq 'modify' ){
     my $file = `mktemp /tmp/linbo_write_dhcpdXXXX.txt`;
     my $dhcppath = {"objectType" => "Device", "objectId" => $device_id, "keyword" => "dhcpStatements", "value" => "option extensions-path \"$host{'hwconf'}\""};
     my $dhcpboot = {"objectType" => "Device", "objectId" => $device_id, "keyword" => "dhcpStatements", "value" => "filename \"$bootfile\""};
     write_file("$file", encode_json($dhcppath));
     if( $USE_DB eq '1' ){
-        `echo "INSERT INTO OSSMConfig(objectType,objectId,keyword,value,creator_id) VALUES('Device',$device_id,'dhcpStatements','$dhcppath{value}',1);" |mysql OSS`;
+        `echo "INSERT INTO OSSMConfig(objectType,objectId,keyword,value,creator_id) VALUES('Device',$device_id,'dhcpStatements','$dhcppath->{value}',1);" |mysql OSS`;
         $result = "OK";
     } else {
         $result = `/usr/sbin/oss_api_post_file.sh devices/$device_id/dhcp $file\n`;
@@ -122,7 +122,7 @@ if( $operation eq 'add' or $operatiron eq 'modify' ){
     }
     write_file("$file", encode_json($dhcpboot));
     if( $USE_DB eq '1' ){
-        `echo "INSERT INTO OSSMConfig(objectType,objectId,keyword,value,creator_id) VALUES('Device',$device_id,'dhcpStatements','$dhcpboot{value}',1);" |mysql OSS`;
+        `echo "INSERT INTO OSSMConfig(objectType,objectId,keyword,value,creator_id) VALUES('Device',$device_id,'dhcpStatements','$dhcpboot->{value}',1);" |mysql OSS`;
         $result = "OK";
     } else {
         $result = `/usr/sbin/oss_api_post_file.sh devices/$device_id/dhcp $file\n`;
