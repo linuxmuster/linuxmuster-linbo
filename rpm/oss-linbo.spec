@@ -212,7 +212,7 @@ install rpm/linbo-modify-dhcpd.pl %{buildroot}/usr/share/oss/plugins/modify_devi
 pushd %{buildroot}/usr/share/oss/plugins/add_device
 ln -s ../modify_device/linbo-modify-dhcpd.pl linbo-add-dhcpd.pl
 popd
-pushd %{buildroot}/usr/share/oss/pugins/delete_device
+pushd %{buildroot}/usr/share/oss/plugins/delete_device
 ln -s ../modify_device/linbo-modify-dhcpd.pl linbo-delete-dhcpd.pl
 popd
 install rpm/linbo-modify-device.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
@@ -226,7 +226,7 @@ install rpm/linbo-delete-device.pl %{buildroot}/usr/share/oss/plugins/delete_dev
 # pushd %{buildroot}/usr/share/oss/plugins/add_hwconf
 # ln -s ../modify_hwconf/linbo-modify-hwconf.pl linbo-add-hwconf.pl
 # popd
-# pushd %{buildroot}/usr/share/oss/pugins/delete_hwconf
+# pushd %{buildroot}/usr/share/oss/plugins/delete_hwconf
 # ln -s ../modify_hwconf/linbo-modify-hwconf.pl linbo-delete-hwconf.pl
 # popd
 mkdir -p %{buildroot}/usr/share/oss/plugins/shares/itool/open
