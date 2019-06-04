@@ -417,13 +417,13 @@ systemctl start rsyncd
 %dir /usr/share/oss/plugins
 %dir /usr/share/oss/plugins/add_device
 /usr/share/oss/plugins/add_device/linbo-update-ips.pl
-/usr/share/oss/plugins/modify_device/linbo-add-dhcpd.pl
+/usr/share/oss/plugins/add_device/linbo-add-dhcpd.pl
 %dir /usr/share/oss/plugins/modify_device
 /usr/share/oss/plugins/modify_device/linbo-modify-device.pl
 /usr/share/oss/plugins/modify_device/linbo-modify-dhcpd.pl
 %dir /usr/share/oss/plugins/delete_device
 /usr/share/oss/plugins/delete_device/linbo-delete-device.pl
-/usr/share/oss/plugins/modify_device/linbo-delete-dhcpd.pl
+/usr/share/oss/plugins/delete_device/linbo-delete-dhcpd.pl
 # %dir /usr/share/oss/plugins/add_hwconf
 # /usr/share/oss/plugins/add_hwconf/linbo-add-hwconf.pl
 # %dir /usr/share/oss/plugins/modify_hwconf
