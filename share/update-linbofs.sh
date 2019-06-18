@@ -14,6 +14,7 @@ source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
 source $HELPERFUNCTIONS || exit 1
 [ -n "$LINBOCACHEDIR" ] || LINBOCACHEDIR="/var/cache/linuxmuster-linbo"
+[ -n "$LINBOFSDIR" ] || LINBOFSDIR="$LINBODIR"
 
 if [ "$FLAVOUR" != "oss" ]; then
   if [ ! -e "$SETUPINI" -a ! -e "$INSTALL" ]; then
@@ -53,24 +54,23 @@ update_linbofs() {
  local suffix=$1
  local linbofscachedir="$LINBOCACHEDIR/linbofs$suffix"
  local linbofs="$LINBODIR/linbofs${suffix}.lz"
- if [ "$FLAVOUR" = "oss" ]; then
-   linbofs="$LINBOSHAREDIR/initrd/linbofs${suffix}.lz"
- fi
  local linbofs_md5="$linbofs".md5
+ local linbofs_orig="$LINBOFSDIR/linbofs${suffix}.lz"
+
  rm -f "$linbofs_md5"
  rm -rf "$linbofscachedir"
  mkdir -p "$linbofscachedir"
 
  # check for default linbofs${suffix}.lz
- [ ! -s "$linbofs" ] && bailout "Error: $linbofs not found!"
+ [ ! -s "$linbofs_orig" ] && bailout "Error: $linbofs_orig not found!"
 
  # begin to process linbofs${suffix}.lz
  echo "Processing linbofs${suffix} update ..."
 
  # unpack linbofs.lz to cache dir
  cd "$linbofscachedir" || bailout "Cannot change to $linbofscachedir!"
- xzcat "$linbofs" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
- [ $RC -ne 0 ] && bailout " Failed to unpack $(basename "$linbofs")!"
+ xzcat "$linbofs_orig" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC=$?
+ [ $RC -ne 0 ] && bailout " Failed to unpack $(basename "$linbofs_orig")!"
 
  # store linbo md5 password
  echo -n "$linbo_md5passwd" > etc/linbo_passwd
@@ -103,9 +103,6 @@ update_linbofs() {
  # copy default start.conf
  cp -f $LINBODIR/start.conf .
 
- if [ "$FLAVOUR" = "oss" ]; then
-   linbofs="$LINBODIR/linbofs${suffix}.lz"
- fi
  # pack default linbofs${suffix}.lz again
  find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
  [ $RC -ne 0 ] && bailout "failed!"
