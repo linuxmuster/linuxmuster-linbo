@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.49-0) babo62; urgency=low
+
+  * added warning to start.conf examples (#111) and translated them to english.
+  * fixed linbo_cmd: mk_linefiboot has wrong return value (#109).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Jun 2019 19:03:24 +0200
+
 linuxmuster-linbo (2.3.48-0) babo62; urgency=low
 
   * Fix #110: linbo-multicast v7, increase port counter is faulty.

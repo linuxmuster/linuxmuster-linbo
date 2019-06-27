@@ -1,67 +1,67 @@
-# LINBO start.conf Beispiel mit
-# Windows 7 auf Partition 1 (NTFS)
-# Cache auf Partition 2
-# Daten auf Partition 3
+# LINBO start.conf, example for windows 7
+# DON'T EDIT THIS FILE! MAKE A COPY AND ADAPT THE VALUES TO YOUR NEEDS!
+# operating system on partition 1
+# cache on partition 2
+# data on partition 3
 
-[LINBO]                  # globale Konfiguration
-Server = 10.16.1.1       # IP des Linbo-Servers, der das Linbo-Repository vorhaelt
-Group = gruppe           # Name der Rechnergruppe fuer die diese Konfigurationsdatei gilt
-# Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
-Cache = /dev/sda2        # lokale Cache Partition
-RootTimeout = 600        # automatischer Rootlogout nach 600 Sek.
-AutoPartition = no       # automatische Partitionsreparatur beim LINBO-Start
-AutoFormat = no          # kein automatisches Formatieren aller Partitionen beim LINBO-Start
-AutoInitCache = no       # kein automatisches Befuellen des Caches beim LINBO-Start
-DownloadType = torrent   # Image-Download per torrent|multicast|rsync, default ist rsync
-BackgroundFontColor = white         # Bildschirmschriftfarbe (default: white)
-ConsoleFontColorStdout = lightgreen # Konsolenschriftfarbe (default: white)
-ConsoleFontColorStderr = orange     # Konsolenschriftfarbe fuer Fehler-/Warnmeldungen (default: red)
-SystemType = bios                   # moeglich ist bios|bios64|efi32|efi64 (Standard: bios fuer bios 32bit)
-KernelOptions = quiet splash        # Beispiele:
-#KernelOptions = acpi=noirq irqpoll # LINBO Kerneloptionen (z. B. acpi=off), m. Leerz. getrennt
-#KernelOptions = server=10.16.1.5   # Abweichende Linbo-Server-IP als Kerneloption gesetzt
-                                    # falls gesetzt wird diese IP beim Workstationsimport verwendet
+[LINBO]                             # global section
+Server = 10.16.1.1                  # linbo server ip address
+Group = group                       # name of the hardware group
+# IMPORTANT: server and group will be automatically set during device import!
+Cache = /dev/sda2                   # cache partition
+RootTimeout = 600                   # logout from admin console after 600 secs
+AutoPartition = no                  # no partition repair during LINBO startup
+AutoFormat = no                     # no formatting of all partitions during LINBO startup
+AutoInitCache = no                  # no initial cache setup during LINBO startup
+DownloadType = torrent              # image download method (torrent|multicast|rsync)
+BackgroundFontColor = white         # font color of status section (default: white)
+ConsoleFontColorStdout = lightgreen # console font color (default: white)
+ConsoleFontColorStderr = orange     # console error font color (default: red)
+SystemType = bios64                 # possible values: bios|bios64|efi32|efi64 (default: bios)
+KernelOptions = quiet splash        # linbo kernel options, space separated
+#KernelOptions = acpi=noirq irqpoll # linbo kernel options example for use with acpi problems
+#KernelOptions = server=10.16.1.5   # different pxe server ip, (needs device import to be activated)
 
-[Partition]              # Start einer Partitionsdefinition fuer ein Betriebssystem (Windows)
-Dev = /dev/sda1          # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
-Label = windows          # Partitionslabel
-Size = 50G               # Partitionsgroesse 50G, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
-Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = ntfs            # Dateisystem ntfs
-Bootable = yes           # Bootable-Flag
+[Partition]          # partition section (operating system)
+Dev = /dev/sda1      # device name of the partition
+Label = windows      # partition label
+Size = 30G           # partition size 30G, will use kiB if no unit (M, G or T) is set
+Id = 7               # partition id (7 = ntfs)
+FSType = ntfs        # filesystem ntfs
+Bootable = yes       # set bootable flag yes
 
-[Partition]              # Start einer Partitionsdefinition, Cachepartition
-Dev = /dev/sda2          # Device-Name der Partition (sda2 = zweite Partition auf erster Platte)
-Label = cache            # Partitionslabel
-Size = 50G               # Partitionsgroesse 50G
-Id = 83                  # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = ext4            # Dateisystem ext4
-Bootable = yes           # Bootable-Flag
+[Partition]          # partition section (cache)
+Dev = /dev/sda2      # device name of the partition
+Label = cache        # partition label
+Size = 30G           # partition size 30G
+Id = 83              # partition id (83 = linux)
+FSType = ext4        # filesystem ext4
+Bootable = yes       # set bootable flag yes
 
-[Partition]              # Definition der Swap-Partition
-Dev = /dev/sda3          # Device-Name der Partition (sda3 = dritte Partition auf erster Platte)
-Label = daten            # Partitionslabel
-Size =                   # Partitionsgroesse (Rest der Platte)
-Id = 7                   # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, ...)
-FSType = ntfs            # Dateisystem swap
-Bootable = no            # Bootable-Flag
+[Partition]          # partition section (data)
+Label = data         # partition label
+Dev = /dev/sda3      # device name of the partition
+Size =               # partition size (no value = remaining space of the disk)
+Id = 7               # partition id (7 = ntfs)
+FSType = ntfs        # filesystem ntfs
+Bootable = no        # set bootable flag no
 
-[OS]                        # Beginn einer Betriebssystemdefinition
-Name = Windows 7            # Name des Betriebssystems
-Version =                   # Version (unbenutzt, leer lassen)
-Description = Windows 7 SP1 # Beschreibung
-IconName = win7.png         # Icon fuer den Startbutton, muss unter /var/linbo/icons abgelegt sein
-Image =                     # differentielles Image (Erweiterung .rsync, Verwendung nicht empfohlen)
-BaseImage = win7.cloop      # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1            # Bootpartition (unbenutzt, immer gleich Rootpartition)
-Root = /dev/sda1            # Rootpartition, in die das BS installiert ist
-Kernel = auto               # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
-Initrd =                    # Windows: leer
-Append =                    # Windows: leer
-StartEnabled = yes          # "Start"-Button anzeigen
-SyncEnabled = yes           # "Sync+Start"-Button anzeigen
-NewEnabled = yes            # "Neu+Start"-Button anzeigen
-Autostart = no              # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5        # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
-DefaultAction = sync        # Standardaktion bei Autostart: start|sync|new
-Hidden = yes                # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
+[OS]                          # os section
+Name = Windows 7              # os name
+Version =                     # version (not used)
+Description = Windows 7 SP1   # detailed description of os
+IconName = win7.png           # icon filename in LINBODIR/icons
+Image =                       # filename of differential image (extension .rsync, optional)
+BaseImage = win7.cloop        # filename of main image (extension .cloop)
+Boot = /dev/sda1              # boot partition (not used, identical with root partition)
+Root = /dev/sda1              # root partition of the os
+Kernel = auto                 # auto for windows
+Initrd =                      # empty for windows
+Append =                      # empty for windows
+StartEnabled = yes            # show start button
+SyncEnabled = yes             # show sync+start button
+NewEnabled = yes              # show new+start button
+Autostart = no                # automatic start of os (yes|no)
+AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
+DefaultAction = sync          # default action on automatic start: start|sync|new
+Hidden = yes                  # hide os tab (unused option, leave it at yes)
