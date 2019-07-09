@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20190627
+# 20190709
 # GPL v3
 #
 
@@ -1476,19 +1476,39 @@ do_machinepw(){
 }
 
 # update linuxmuster-win scripts and install start tasks
-# no args
+# update_win partition
 # invoked by start() & syncl()
 update_win(){
- local doneflag="/tmp/.update_win"
- [ -e "$doneflag" ] && return 0
- local RC="0"
- mkdir -p /mnt/linuxmuster-win
- # copy scripts to os rootdir
- #rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
- # don't delete custom scripts on os partition
- rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
- [ "$RC" = "0" ] && touch "$doneflag"
- return "$RC"
+  local doneflag="/tmp/.update_win"
+  [ -e "$doneflag" ] && return 0
+  [ -b "$1" ] || return 1
+  local RC="0"
+  mkdir -p /mnt/linuxmuster-win
+  # copy scripts to os rootdir
+  rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+  if [ "$RC" = "0" ]; then
+    touch "$doneflag"
+    # restrict access rights on certain files and folders on windows partition
+    local partition="$1"
+    local seclist
+    local i
+    local curdir="$(pwd)"
+    cd /mnt
+    for i in .linbo .guid.* Boot EFI linuxmuster-win; do
+      [ -e "$i" ] && seclist="$seclist $i"
+    done
+    cd "$curdir"
+    if [ -n "$seclist" ]; then
+      sync
+      umount /mnt 2>> /tmp/linbo.log
+      for i in $seclist; do
+        echo "Restrict access rights on $i:" | tee -a /tmp/linbo.log
+        ntfssecaudit "$partition" 700 "$i" | tee -a /tmp/linbo.log
+      done
+      mountpart "$partition" /mnt 2>> /tmp/linbo.log
+    fi
+  fi
+  return "$RC"
 }
 
 # start: start operating system
@@ -1528,7 +1548,7 @@ start(){
    # install/update grub/efi stuff if cache is mounted
    mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
    # update linuxmuster-win scripts and install start tasks
-   [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win | tee -a /tmp/linbo.log
+   [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win "$partition" | tee -a /tmp/linbo.log
   fi
  else
   echo "Konnte Betriebssystem-Partition $partition nicht mounten." >&2
@@ -2520,7 +2540,7 @@ syncl(){
 
   # update linuxmuster-win scripts and restore windows activation
   if [ -d /cache/linuxmuster-win ]; then
-   update_win || RC="1"
+   update_win "$rootdev" || RC="1"
    if [ "$RC" = "0" ]; then
     restore_winact || RC="1"
    fi

@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20190804
+# 20190708
 # GPL v3
 #
 
@@ -406,15 +406,15 @@ build-stamp: configure-stamp
 	fi
 
 	# ntfs-3g
-	-@if [ ! -e $(NTFS3G_DIR)/src/ntfs-3g ]; then \
+	-@if [ ! -e $(NTFS3G_DIR)/ntfsprogs/.libs/ntfssecaudit ]; then \
 		echo "[1mBuilding ntfs-3g...[0m" ; \
-		( cd $(NTFS3G_DIR) && PATH=$(TOOLCHAIN):$(PATH) ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-xattr-mappings --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip ntfsprogs/.libs/mkntfs && strip ntfsprogs/.libs/ntfsclone && strip ntfsprogs/.libs/ntfslabel && strip ntfsprogs/.libs/ntfsresize && strip libntfs-3g/.libs/libntfs-3g.so.88 ); \
+		( cd $(NTFS3G_DIR) && export PATH=$(TOOLCHAIN):$(PATH) && ARCH=i386 CFLAGS=-m32 ./configure --host=i386-linux-gnu --enable-xattr-mappings --enable-posix-acls && make && make extra && strip src/.libs/ntfs-3g && strip ntfsprogs/.libs/mkntfs && strip ntfsprogs/.libs/ntfsclone && strip ntfsprogs/.libs/ntfslabel && strip ntfsprogs/.libs/ntfsresize && strip ntfsprogs/.libs/ntfssecaudit && strip libntfs-3g/.libs/libntfs-3g.so.88 ); \
 	fi
 
 	# ntfs-3g64
-	-@if [ ! -e $(NTFS3G64_DIR)/src/ntfs-3g ]; then \
+	-@if [ ! -e $(NTFS3G64_DIR)/ntfsprogs/.libs/ntfssecaudit ]; then \
 		echo "[1mBuilding 64bit ntfs-3g...[0m" ; \
-		( cd $(NTFS3G64_DIR) && ./configure --enable-xattr-mappings --enable-posix-acls && make && strip src/.libs/ntfs-3g && strip ntfsprogs/.libs/mkntfs && strip ntfsprogs/.libs/ntfsclone && strip ntfsprogs/.libs/ntfslabel && strip ntfsprogs/.libs/ntfsresize && strip libntfs-3g/.libs/libntfs-3g.so.88 ); \
+		( cd $(NTFS3G64_DIR) && ./configure --enable-xattr-mappings --enable-posix-acls && make && make extra && strip src/.libs/ntfs-3g && strip ntfsprogs/.libs/mkntfs && strip ntfsprogs/.libs/ntfsclone && strip ntfsprogs/.libs/ntfslabel && strip ntfsprogs/.libs/ntfsresize && strip ntfsprogs/.libs/ntfssecaudit && strip libntfs-3g/.libs/libntfs-3g.so.88 ); \
 	fi
 
 	# qt32

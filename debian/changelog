@@ -1,9 +1,15 @@
+linuxmuster-linbo (2.3.50-0) babo62; urgency=low
+
+  * fixed user access rights for linuxmuster-win scripts on ntfs filesystems (#113).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 09 Jul 2019 09:58:40 +0200
+
 linuxmuster-linbo (2.3.49-0) babo62; urgency=low
 
   * added warning to start.conf examples (#111) and translated them to english.
   * fixed linbo_cmd: mk_linefiboot has wrong return value (#109).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Jun 2019 19:03:24 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 08 Jul 2019 18:29:57 +0200
 
 linuxmuster-linbo (2.3.48-0) babo62; urgency=low
 
