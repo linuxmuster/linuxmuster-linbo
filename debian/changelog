@@ -1,8 +1,9 @@
 linuxmuster-linbo (2.3.50-0) babo62; urgency=low
 
   * fixed user access rights for linuxmuster-win scripts on ntfs filesystems (#113).
+  * lmn7 only: fixed missing function get_mac() in helperfunctions.sh (#112).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 09 Jul 2019 09:58:40 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 09 Jul 2019 11:37:52 +0200
 
 linuxmuster-linbo (2.3.49-0) babo62; urgency=low
 

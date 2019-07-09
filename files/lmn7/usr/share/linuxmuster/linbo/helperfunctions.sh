@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20190314
+# 20190709
 #
 
 # converting string to lower chars
@@ -77,6 +77,20 @@ get_hostname() {
    done
   fi
   [ -n "$RET" ] && tolower "$RET"
+  return 0
+}
+
+# extract mac address from file devices.csv
+get_mac() {
+  unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$pattern " | awk '{ print $2 }' | tr a-z A-Z` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep -i ^"$pattern " | awk '{ print $2 }' | tr a-z A-Z` &> /dev/null
+  fi
   return 0
 }
 
