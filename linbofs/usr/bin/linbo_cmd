@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20190709
+# 20190710
 # GPL v3
 #
 
@@ -112,15 +112,15 @@ sendlog(){
 # by "/", in order to get applied only for the root file system.
 #
 # Should match common Windows/Linux garbage
-RSYNC_EXCLUDE='[Pp][Aa][Gg][Ee][Ff][Ii][Ll][Ee].[Ss][Yy][Ss]
-[Hh][Ii][Bb][Ee][Rr][Ff][Ii][Ll].[Ss][Yy][Ss]
-[Hh][Ii][Bb][Ee][Rr][Nn][Aa][Tt][Ee].[Ss][Yy][Ss]
+RSYNC_EXCLUDE='[Pp][Aa][Gg][Ee][Ff][Ii][Ll][Ee]*
+[Ss][Ww][Aa][Pp][Ff][Ii][Ll][Ee]*
+[Hh][Ii][Bb][Ee][Rr][Ff][Ii][Ll]*
+[Hh][Ii][Bb][Ee][Rr][Nn][Aa][Tt][Ee]*
 [Ww][Ii][Nn]386.[Ss][Ww][Pp]
 Papierkorb/*
 [Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
-swapfile
 tmp/*
 var/log/ConsoleKit/history
 var/tmp/*'
