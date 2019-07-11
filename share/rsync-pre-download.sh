@@ -32,6 +32,10 @@ echo "$FILE" > "$PIDFILE"
 
 compname="$(get_compname_from_rsync $RSYNC_HOST_NAME)"
 # hostname
+if [ -z "${RSYNC_HOST_NAME}" -o "${RSYNC_HOST_NAME}" = "UNKNOWN" -o "${RSYNC_HOST_NAME}" = "UNDETERMINED" ]; then
+    get_hostname "${RSYNC_HOST_ADDR}"
+    RSYNC_HOST_NAME="$RET"
+fi
 
 # get FQDN
 validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"

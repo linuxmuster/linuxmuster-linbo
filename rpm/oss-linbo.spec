@@ -205,6 +205,7 @@ pushd %{buildroot}/usr/share/linbo
 ln -sf ../../bin/linbo-grub-mkimage grub-mkimage
 ln -sf ../../bin/linbo-grub-mkstandalone grub-mkstandalone
 popd
+mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
 popd
