@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-COREUTILS_VERSION = 8.27
+COREUTILS_VERSION = 8.30
 COREUTILS_SITE = $(BR2_GNU_MIRROR)/coreutils
 COREUTILS_SOURCE = coreutils-$(COREUTILS_VERSION).tar.xz
 COREUTILS_LICENSE = GPL-3.0+
@@ -55,7 +55,7 @@ COREUTILS_CONF_ENV = ac_cv_c_restrict=no \
 	MAKEINFO=true \
 	INSTALL_PROGRAM=$(INSTALL)
 
-COREUTILS_BIN_PROGS = cat chgrp chmod chown cp date dd df dir echo false \
+COREUTILS_BIN_PROGS = base64 cat chgrp chmod chown cp date dd df dir echo false \
 	kill link ln ls mkdir mknod mktemp mv nice printenv pwd rm rmdir \
 	vdir sleep stty sync touch true uname join
 

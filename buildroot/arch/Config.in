@@ -154,6 +154,14 @@ config BR2_mips64el
 	  http://www.mips.com/
 	  http://en.wikipedia.org/wiki/MIPS_Technologies
 
+config BR2_nds32
+	bool "nds32"
+	select BR2_ARCH_HAS_NO_TOOLCHAIN_BUILDROOT
+	select BR2_ARCH_HAS_MMU_MANDATORY
+	help
+	  nds32 is a 32-bit architecture developed by Andes Technology.
+	  https://en.wikipedia.org/wiki/Andes_Technology
+
 config BR2_nios2
 	bool "Nios II"
 	select BR2_ARCH_HAS_MMU_MANDATORY
@@ -197,6 +205,17 @@ config BR2_powerpc64le
 	  alliance. Little endian.
 	  http://www.power.org/
 	  http://en.wikipedia.org/wiki/Powerpc
+
+config BR2_riscv
+	bool "RISCV"
+	select BR2_ARCH_HAS_MMU_MANDATORY
+	select BR2_ARCH_NEEDS_GCC_AT_LEAST_7
+	help
+	  RISC-V is an open, free Instruction Set Architecture created
+	  by the UC Berkeley Architecture Research group and supported
+	  and promoted by RISC-V Foundation.
+	  https://riscv.org/
+	  https://en.wikipedia.org/wiki/RISC-V
 
 config BR2_sh
 	bool "SuperH"
@@ -306,9 +325,6 @@ config BR2_GCC_TARGET_FP32_MODE
 config BR2_GCC_TARGET_CPU
 	string
 
-config BR2_GCC_TARGET_CPU_REVISION
-	string
-
 # The value of this option will be passed as --with-fpu=<value> when
 # building gcc (internal backend) or -mfpu=<value> in the toolchain
 # wrapper (external toolchain)
@@ -411,6 +427,10 @@ if BR2_mips || BR2_mips64 || BR2_mipsel || BR2_mips64el
 source "arch/Config.in.mips"
 endif
 
+if BR2_nds32
+source "arch/Config.in.nds32"
+endif
+
 if BR2_nios2
 source "arch/Config.in.nios2"
 endif
@@ -421,6 +441,10 @@ endif
 
 if BR2_powerpc || BR2_powerpc64 || BR2_powerpc64le
 source "arch/Config.in.powerpc"
+endif
+
+if BR2_riscv
+source "arch/Config.in.riscv"
 endif
 
 if BR2_sh

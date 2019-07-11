@@ -5,11 +5,13 @@
 ################################################################################
 
 # When updating the version, please also update mesa3d-headers
-MESA3D_VERSION = 18.1.5
+MESA3D_VERSION = 19.0.3
 MESA3D_SOURCE = mesa-$(MESA3D_VERSION).tar.xz
 MESA3D_SITE = https://mesa.freedesktop.org/archive
 MESA3D_LICENSE = MIT, SGI, Khronos
 MESA3D_LICENSE_FILES = docs/license.html
+# 0002-configure.ac-invert-order-for-wayland-scanner-check.patch
+# 0003-set-LIBCLC_INCLUDEDIR.patch
 MESA3D_AUTORECONF = YES
 
 MESA3D_INSTALL_STAGING = YES
@@ -26,6 +28,9 @@ MESA3D_DEPENDENCIES = \
 # Disable assembly usage.
 MESA3D_CONF_OPTS = --disable-asm
 
+# autotools are deprecated in favour of meson, for now force autotools
+MESA3D_CONF_OPTS += --enable-autotools
+
 # Disable static, otherwise configure will fail with: "Cannot enable both static
 # and shared."
 ifeq ($(BR2_SHARED_STATIC_LIBS),y)
@@ -41,6 +46,18 @@ MESA3D_CONF_OPTS += \
 else
 # Avoid automatic search of llvm-config
 MESA3D_CONF_OPTS += --disable-llvm
+endif
+
+# Disable opencl-icd: OpenCL lib will be named libOpenCL instead of
+# libMesaOpenCL and CL headers are installed
+ifeq ($(BR2_PACKAGE_MESA3D_OPENCL),y)
+MESA3D_PROVIDES += libopencl
+MESA3D_DEPENDENCIES += clang libclc
+MESA3D_CONF_OPTS += --enable-opencl \
+	--disable-opencl-icd \
+	--with-clang-libdir=$(STAGING_DIR)/usr/lib
+else
+MESA3D_CONF_OPTS += --disable-opencl
 endif
 
 ifeq ($(BR2_PACKAGE_MESA3D_NEEDS_ELFUTILS),y)
@@ -61,6 +78,8 @@ MESA3D_DEPENDENCIES += \
 	xlib_libXext \
 	xlib_libXdamage \
 	xlib_libXfixes \
+	xlib_libXrandr \
+	xlib_libXxf86vm \
 	xorgproto \
 	libxcb
 MESA3D_CONF_OPTS += --enable-glx --disable-mangling
@@ -79,7 +98,8 @@ endif
 # Drivers
 
 #Gallium Drivers
-MESA3D_GALLIUM_DRIVERS-$(BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_ETNAVIV)  += etnaviv imx
+MESA3D_GALLIUM_DRIVERS-$(BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_ETNAVIV)  += etnaviv
+MESA3D_GALLIUM_DRIVERS-$(BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_KMSRO)    += kmsro
 MESA3D_GALLIUM_DRIVERS-$(BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_NOUVEAU)  += nouveau
 MESA3D_GALLIUM_DRIVERS-$(BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_R600)     += r600
 MESA3D_GALLIUM_DRIVERS-$(BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_RADEONSI) += radeonsi
@@ -117,12 +137,10 @@ MESA3D_CONF_OPTS += --enable-dri3
 else
 MESA3D_CONF_OPTS += --disable-dri3
 endif
-ifeq ($(BR2_PACKAGE_XLIB_LIBXXF86VM),y)
-MESA3D_DEPENDENCIES += xlib_libXxf86vm
-endif
 MESA3D_CONF_OPTS += \
 	--enable-shared-glapi \
 	--enable-driglx-direct \
+	--with-dri-driverdir=/usr/lib/dri \
 	--with-dri-drivers=$(subst $(space),$(comma),$(MESA3D_DRI_DRIVERS-y))
 endif
 
@@ -200,13 +218,6 @@ MESA3D_PROVIDES += libgles
 MESA3D_CONF_OPTS += --enable-gles1 --enable-gles2
 else
 MESA3D_CONF_OPTS += --disable-gles1 --disable-gles2
-endif
-
-ifeq ($(BR2_PACKAGE_MESA3D_OPENGL_TEXTURE_FLOAT),y)
-MESA3D_CONF_OPTS += --enable-texture-float
-MESA3D_LICENSE_FILES += docs/patents.txt
-else
-MESA3D_CONF_OPTS += --disable-texture-float
 endif
 
 ifeq ($(BR2_PACKAGE_XLIB_LIBXVMC),y)
