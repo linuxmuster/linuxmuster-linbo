@@ -6,7 +6,7 @@
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
 Version:	2.3.44
-Release:	2
+Release:	oss4.1
 License:	GPLv3
 Vendor:		openSUSE Linux
 Packager:	fschuett@gymhim.de
@@ -205,32 +205,6 @@ pushd %{buildroot}/usr/share/linbo
 ln -sf ../../bin/linbo-grub-mkimage grub-mkimage
 ln -sf ../../bin/linbo-grub-mkstandalone grub-mkstandalone
 popd
-mkdir -p %{buildroot}/usr/share/oss/plugins/add_device
-mkdir -p %{buildroot}/usr/share/oss/plugins/modify_device
-mkdir -p %{buildroot}/usr/share/oss/plugins/delete_device
-install rpm/linbo-modify-dhcpd.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-dhcpd.pl
-pushd %{buildroot}/usr/share/oss/plugins/add_device
-ln -s ../modify_device/linbo-modify-dhcpd.pl linbo-add-dhcpd.pl
-popd
-pushd %{buildroot}/usr/share/oss/plugins/delete_device
-ln -s ../modify_device/linbo-modify-dhcpd.pl linbo-delete-dhcpd.pl
-popd
-install rpm/linbo-modify-device.pl %{buildroot}/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
-install rpm/linbo-update-ips.pl %{buildroot}/usr/share/oss/plugins/add_device/linbo-update-ips.pl
-install rpm/linbo-delete-device.pl %{buildroot}/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
-
-# mkdir -p %{buildroot}/usr/share/oss/plugins/add_hwconf
-# mkdir -p %{buildroot}/usr/share/oss/plugins/modify_hwconf
-# mkdir -p %{buildroot}/usr/share/oss/plugins/delete_hwconf
-# install rpm/linbo-modify-hwconf.pl %{buildroot}/usr/share/oss/plugins/modify_hwconf/linbo-modify-hwconf.pl
-# pushd %{buildroot}/usr/share/oss/plugins/add_hwconf
-# ln -s ../modify_hwconf/linbo-modify-hwconf.pl linbo-add-hwconf.pl
-# popd
-# pushd %{buildroot}/usr/share/oss/plugins/delete_hwconf
-# ln -s ../modify_hwconf/linbo-modify-hwconf.pl linbo-delete-hwconf.pl
-# popd
-mkdir -p %{buildroot}/usr/share/oss/plugins/shares/itool/open
-install rpm/linbo-restore-vlan-links.sh %{buildroot}/usr/share/oss/plugins/shares/itool/open/linbo-restore-vlan-links.sh
 mkdir -p %{buildroot}/var/log/linbo
 pushd %{buildroot}/srv/tftp/
 ln -sf ../../var/log/linbo log
@@ -260,17 +234,6 @@ mkdir -p %{buildroot}/var/adm/fillup-templates
 install rpm/sysconfig.bittorrent %{buildroot}/var/adm/fillup-templates/sysconfig.bittorrent
 mkdir -p %{buildroot}/var/lib/bittorrent
 mkdir -p %{buildroot}/var/log/bittorrent
-
-mkdir -p %{buildroot}/etc/import-workstations.d
-mkdir -p %{buildroot}/usr/sbin
-install rpm/import_workstations %{buildroot}/usr/sbin/import_workstations
-mkdir -p %{buildroot}/usr/share/linbo
-install rpm/linbo_sync_hosts.pl %{buildroot}/usr/share/linbo/linbo_sync_hosts.pl
-install rpm/linbo_update_workstations.pl %{buildroot}/usr/share/linbo/linbo_update_workstations.pl
-install rpm/linbo_write_dhcpd.pl %{buildroot}/usr/share/linbo/linbo_write_dhcpd.pl
-install rpm/wimport.sh %{buildroot}/usr/share/linbo/wimport.sh
-
-export NO_BRP_CHECK_RPATH=true
 
 %pre
 if ! grep -qw ^bittorrent /etc/passwd; then
@@ -349,7 +312,6 @@ systemctl start rsyncd
 %files
 %defattr(-,root,root)
 %dir /etc/linbo
-%dir /etc/import-workstations.d
 %config /etc/linbo/linbo.conf
 %attr(644,root,root) %config /etc/linbo/ssh_config
 %attr(644,root,root) %config /etc/linbo/start.conf.default.in
@@ -406,34 +368,11 @@ systemctl start rsyncd
 /usr/share/linbo
 /usr/share/doc/packages/oss-linbo
 %defattr(0755,root,root)
-/usr/sbin/import_workstations
 /usr/sbin/linbo-ssh
 /usr/sbin/linbo-scp
 /usr/sbin/linbo-remote
 /usr/sbin/update-linbofs
 /usr/bin/linbo-grub-mkimage
 /usr/bin/linbo-grub-mkstandalone
-%dir /usr/share/oss
-%dir /usr/share/oss/plugins
-%dir /usr/share/oss/plugins/add_device
-/usr/share/oss/plugins/add_device/linbo-update-ips.pl
-/usr/share/oss/plugins/add_device/linbo-add-dhcpd.pl
-%dir /usr/share/oss/plugins/modify_device
-/usr/share/oss/plugins/modify_device/linbo-modify-device.pl
-/usr/share/oss/plugins/modify_device/linbo-modify-dhcpd.pl
-%dir /usr/share/oss/plugins/delete_device
-/usr/share/oss/plugins/delete_device/linbo-delete-device.pl
-/usr/share/oss/plugins/delete_device/linbo-delete-dhcpd.pl
-# %dir /usr/share/oss/plugins/add_hwconf
-# /usr/share/oss/plugins/add_hwconf/linbo-add-hwconf.pl
-# %dir /usr/share/oss/plugins/modify_hwconf
-# /usr/share/oss/plugins/modify_hwconf/linbo-modify-hwconf.pl
-# %dir /usr/share/oss/plugins/delete_hwconf
-# /usr/share/oss/plugins/delete_hwconf/linbo-delete-hwconf.pl
-
-%dir /usr/share/oss/plugins/shares
-%dir /usr/share/oss/plugins/shares/itool
-%dir /usr/share/oss/plugins/shares/itool/open
-/usr/share/oss/plugins/shares/itool/open/linbo-restore-vlan-links.sh
 
 %changelog
