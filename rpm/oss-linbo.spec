@@ -6,7 +6,7 @@
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
 Version:	2.3.44
-Release:	oss4.1
+Release:	3
 License:	GPLv3
 Vendor:		openSUSE Linux
 Packager:	fschuett@gymhim.de
