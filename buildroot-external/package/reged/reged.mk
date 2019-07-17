@@ -11,7 +11,7 @@ REGED_LICENSE = GPLv2
 REGED_LICENSE_FILES = COPYING.txt
 
 define REGED_EXTRACT_CMDS
-	unzip -d $(@D) $(DL_DIR)/$(REGED_SOURCE)
+	unzip -d $(@D) $(DL_DIR)/reged/$(REGED_SOURCE)
 endef
 
 define REGED_BUILD_CMDS
