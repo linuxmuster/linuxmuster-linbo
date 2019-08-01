@@ -492,6 +492,7 @@ do_linbo_update(){
 network(){
  echo
  echo "Starting network configuration ..."
+ sleep 2
  if [ -n "$localmode" ]; then
   echo "Localmode configured, bypassing network configuration."
   copyfromcache "start.conf icons"
