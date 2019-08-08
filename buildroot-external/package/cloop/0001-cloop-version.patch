@@ -6,7 +6,7 @@ diff -up ./advfs.cc.orig ./advfs.cc
  #define CLOOP2_PREAMBLE "#!/bin/sh\n" "#V2.0 Format\n" "modprobe cloop file=$0 && mount -r -t iso9660 /dev/cloop $1\n" "exit $?\n"
  #define CLOOP4_PREAMBLE "#!/bin/sh\n" "#V4.0 Format\n" "modprobe cloop file=$0 && mount -r -t iso9660 /dev/cloop $1\n" "exit $?\n"
 +#define CLOOP_PREAMBLE CLOOP4_PREAMBLE
-+#define cloop_format_version 5.1
++#define cloop_format_version 5.2
  
  #define MAXLEN(bs) ((bs) + (bs)/1000 + 12)
  
@@ -22,14 +22,3 @@ diff -up ./cloop.h.orig ./cloop.h
  
  /* Get value of first 4 bits */
  #define CLOOP_BLOCK_FLAGS(x)  ((unsigned int)(((x) & 0xf000000000000000LLU) >> 60))
-diff -up ./cloop.c.orig ./cloop.c
---- ./cloop.c.orig      2019-07-07 12:32:21.000000000 +0200
-+++ ./cloop.c   2019-07-26 22:09:39.036949882 +0200
-@@ -316,7 +316,7 @@ static ssize_t cloop_read_from_file(stru
-    // mutex_lock(&clo->clo_rq_mutex);
-    old_fs = get_fs();
-    set_fs(KERNEL_DS);
--   size_read = vfs_read(f, (void __user *)(buf + buf_done), size, &pos);
-+   size_read = kernel_read(f, (void __user *)(buf + buf_done), size, &pos);
-    set_fs(old_fs);
-    // mutex_unlock(&clo->clo_rq_mutex);

@@ -1,0 +1,78 @@
+diff -up ./cloop.c.orig ./cloop.c
+--- ./cloop.c.orig      2019-07-26 22:18:51.014476823 +0200
++++ ./cloop.c   2019-08-08 07:09:08.860416050 +0200
+@@ -17,7 +17,7 @@
+ \************************************************************************/
+ 
+ #define CLOOP_NAME "cloop"
+-#define CLOOP_VERSION "5.1"
++#define CLOOP_VERSION "5.2"
+ #define CLOOP_MAX 8
+ 
+ #ifndef KBUILD_MODNAME
+@@ -316,7 +316,7 @@ static ssize_t cloop_read_from_file(stru
+    // mutex_lock(&clo->clo_rq_mutex);
+    old_fs = get_fs();
+    set_fs(KERNEL_DS);
+-   size_read = vfs_read(f, (void __user *)(buf + buf_done), size, &pos);
++   size_read = kernel_read(f, (void __user *)(buf + buf_done), size, &pos);
+    set_fs(old_fs);
+    // mutex_unlock(&clo->clo_rq_mutex);
+ 
+@@ -399,6 +399,9 @@ static int cloop_load_buffer(struct cloo
+ 
+ static blk_status_t cloop_handle_request(struct cloop_device *clo, struct request *req)
+ {
++ int buffered_blocknum = -1;
++ int preloaded = 0;
++ loff_t offset = (loff_t) blk_rq_pos(req)<<9;
+  struct bio_vec bvec;
+  struct req_iterator iter;
+  blk_status_t ret = BLK_STS_OK;
+@@ -417,16 +420,13 @@ static blk_status_t cloop_handle_request
+ 
+  rq_for_each_segment(bvec, req, iter)
+  {
+-  int buffered_blocknum = -1;
+-  int preloaded = 0;
+-  loff_t offset = (loff_t) blk_rq_pos(req)<<9;
+-  loff_t block_offset = offset;
+-  char *to_ptr      = page_address(bvec.bv_page) + bvec.bv_offset;
+   unsigned long len = bvec.bv_len;
++  char *to_ptr      = page_address(bvec.bv_page) + bvec.bv_offset;
+ 
+   while(len > 0)
+   {
+    u_int32_t length_in_buffer;
++   loff_t block_offset = offset;
+    u_int32_t offset_in_buffer;
+    char *from_ptr;
+    /* do_div (div64.h) returns the 64bit division remainder and  */
+@@ -475,6 +475,7 @@ static blk_status_t cloop_queue_rq(struc
+  struct cloop_device *clo = q->queuedata;
+  struct request *req      = bd->rq;
+  blk_status_t ret         = BLK_STS_OK;
++ #if 1 /* Does it work when loading libraries? */
+  /* Since we have a buffered block list as well as data to read */
+  /* from disk (slow), and are (probably) never called from an   */
+  /* interrupt, we use a simple mutex lock right here to ensure  */
+@@ -482,12 +483,19 @@ static blk_status_t cloop_queue_rq(struc
+  if(!mutex_trylock(&clo->clo_rq_mutex))
+    /* Busy, retry later, possibly reschedule other requests */
+    return BLK_STS_DEV_RESOURCE;
++ #else
++ spin_lock(&clo->queue_lock);
++ #endif
+  blk_mq_start_request(req);
+  do {
+   ret = cloop_handle_request(clo, req);
+  } while(blk_update_request(req, ret, blk_rq_cur_bytes(req)));
+  blk_mq_end_request(req, ret);
++ #if 1 /* See above */
+  mutex_unlock(&clo->clo_rq_mutex);
++ #else
++ spin_unlock(&clo->queue_lock);
++ #endif
+  return ret;
+ }
+ 
