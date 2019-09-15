@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20190114
+# 20190915
 #
 
 # read in linuxmuster specific environment
@@ -83,11 +83,12 @@ case "$FTYPE" in
    #  fetch samba nt password hash from ldap machine account
    url="--url=/var/lib/samba/private/sam.ldb"
    unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+   suppcredentials="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" supplementalCredentials | sed -n '/^'supplementalCredentials':/,/^$/ { /^'supplementalCredentials':/ { s/^'supplementalCredentials': *// ; h ; $ !d}; /^ / { H; $ !d}; /^ /! { x; s/\n //g; p; q}; $ { x; s/\n //g; p; q} }' | awk '{ print $2 }')"
    if [ -n "$unicodepwd" ]; then
     echo "Writing samba password hash file for image $image."
     template="$LINBOTPLDIR/machineacct"
     imagemacct="$LINBODIR/$image.macct"
-    sed -e "s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
+    sed -e "s|@@unicodepwd@@|$unicodepwd|" -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
     chmod 600 "$imagemacct"
    else
     rm -f "$imagemacct"

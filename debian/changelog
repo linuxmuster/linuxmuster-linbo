@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.52-0) babo62; urgency=low
+
+  * added restore of supplementalCredentials.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 15 Sep 2019 14:23:00 +0200
+
 linuxmuster-linbo (2.3.51-0) babo62; urgency=low
 
   * improved swapfile excludes during image build.
