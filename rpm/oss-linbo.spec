@@ -137,6 +137,7 @@ Authors:
 %setup -D
 
 %build
+export FORCE_UNSAFE_CONFIGURE=1
 export BR2_DL_DIR=%{_sourcedir}
 make -f rpm/Makefile build
 
