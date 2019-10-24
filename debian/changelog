@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.53-ni-0) babo62; urgency=low
+
+  * Fix: fixed linbo boot error where screen stucks in linbo during windows boot
+
+ -- Andreas Till <andreas.till@netzint.de>  Tue, 24 Oct 2019 16:05:29 +0200
+
 linuxmuster-linbo (2.3.52-0) babo62; urgency=low
 
   * Fix #115: Backup and restore of supplementalCredentials.
