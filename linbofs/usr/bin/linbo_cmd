@@ -564,6 +564,11 @@ mountpart(){
    ;;
  esac
  mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
+ if [ $? != 0 ] && [ $type = ntfs ]; then
+     echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue"
+     ntfsfix $mountdev
+     mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
+ fi
  return "$RC"
 }
 
