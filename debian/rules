@@ -79,11 +79,14 @@ BB64_DIR=src64/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
 
 # chntpw
 CHNTPW_ARCHIVE=$(shell grep chntpw- debian/md5sums.src | awk '{ print $$2 }')
-CHNTPW_DIR=src/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
-CHNTPW_URL=http://pkg.linuxmuster.net/linbo-build-cache
+#CHNTPW_DIR=src/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
+CHNTPW_DIR=src/$(shell echo $(CHNTPW_ARCHIVE)  | sed -e 's/.zip//')
+# TODO: Better source for this...
+CHNTPW_URL=http://archive.linuxmuster.net/linbo-build-cache
 
 # chntpw64
-CHNTPW64_DIR=src64/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
+#CHNTPW64_DIR=src64/$(shell echo $(CHNTPW_ARCHIVE) | sed -e 's/-source//' | sed -e 's/.zip//')
+CHNTPW64_DIR=src64/$(shell echo $(CHNTPW_ARCHIVE)  | sed -e 's/.zip//')
 
 # ms-sys
 MSSYS_ARCHIVE=$(shell grep ms-sys- debian/md5sums.src | awk '{ print $$2 }')
@@ -179,6 +182,7 @@ configure-stamp:
 	fi
 
 	# chntpw
+	 echo debug1
 	-@if [ ! -d $(CHNTPW_DIR) ]; then \
 		( [ -e cache/$(CHNTPW_ARCHIVE) ] || ( cd cache && wget $(CHNTPW_URL)/$(CHNTPW_ARCHIVE) ) ); \
 		( cd cache && grep $(CHNTPW_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
@@ -197,6 +201,7 @@ configure-stamp:
 		echo "[1mPatching chntpw64 sources...[0m" ; \
 		( cd $(CHNTPW64_DIR) && for i in ../../patches/chntpw64/*; do patch -p1 <$$i; done ); \
 	fi
+	
 
 	# ms-sys
 	-@if [ ! -d $(MSSYS_DIR) ]; then \
