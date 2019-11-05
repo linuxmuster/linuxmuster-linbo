@@ -23,7 +23,8 @@ KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
 KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
 KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
 KERNEL_DIR=kernel/linux-$(KVERS)
-KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
+#KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
+KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x
 #KERNEL_URL=$(LML_URL)
 
 # kernel non pae
@@ -113,9 +114,9 @@ BIN32_DEBS=acl bc bluez bvi cloop-utils coreutils ctorrent dosfstools dropbear-b
 	e2fsprogs efibootmgr ethtool gdisk grub-pc grub-pc-bin grub-common grub-efi-ia32-bin \
 	grub2-common hdparm kmod libc-bin libcom-err2 libext2fs2 libefiboot1 libefivar1 \
 	libgmp10 libgpod-common libmtp-runtime libnetpbm10 libparted2 libpci3 libpng16-16 \
-	libpopt0 libtomcrypt1 libtommath1 mount netpbm ncurses-bin parted pcmciautils \
-	reiserfsprogs rsync systemd sysvinit-utils udev udpcast util-linux uuid-dev \
-	uuid-runtime zlib1g zlib1g-dev
+	libpopt0 libpopt-dev libpng-dev libtomcrypt1 libtommath1 mount netpbm ncurses-bin parted pcmciautils \
+	reiserfsprogs rsync systemd sysvinit-utils udev udpcast util-linux \
+	uuid-runtime uuid-dev libz3-dev libpopt-dev  zlib1g zlib1g-dev
 
 # linbofs files for initramfs
 LINBOINITRAMFS=$(CURDIR)/cache/linbo_initramfs.conf

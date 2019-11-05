@@ -1,4 +1,4 @@
-linuxmuster-linbo (2.3.53-ni-0) babo62; urgency=low
+linuxmuster-linbo (2.3.53-0) babo62; urgency=low
 
   * Fix: fixed linbo boot error where screen stucks in linbo during windows boot
 
