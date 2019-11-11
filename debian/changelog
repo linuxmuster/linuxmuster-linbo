@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.53-1-ni) babo62; urgency=low
+
+  * Fix: Fixed ntfsfix device call
+
+ -- Andreas Till <andreas.till@netzint.de>  Mon, 11 Nov 2019 14:25:29 +0200
+
 linuxmuster-linbo (2.3.53-0-ni) babo62; urgency=low
 
   * Fix: fixed linbo boot error where screen stucks in linbo during windows boot
