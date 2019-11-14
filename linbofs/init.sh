@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20181214
+# 20191114
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -102,6 +102,7 @@ init_setup(){
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
 
  # process parameters given on kernel command line
+ cache=""
  for i in $CMDLINE; do
 
   case "$i" in
@@ -113,13 +114,19 @@ init_setup(){
    ;;
 
    *=*)
-   echo "Evaluating $i ..."
+    echo "Evaluating $i ..."
     eval "$i"
    ;;
 
   esac
 
  done # cmdline
+
+ # get optionally give cache partition
+ if [ -n "$cache" ]; then
+   cache_given="$cache"
+   cache=""
+ fi
 
  # get optionally given start.conf location
  if [ -n "$conf" ]; then
@@ -646,8 +653,11 @@ network(){
   # Still nothing new, revert to old version.
   [ ! -s /start.conf ] && mv -f /start.conf.dist /start.conf
  fi
- # modify cache in start.conf if cache was given and no extra start.conf was defined
- [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # modify cache in start.conf if cache was given on cl and no extra start.conf was defined
+ if [ -z "$extra" -a -n "$cache_given" -a -b "$cache_given" ]; then
+   cache="$cache_given"
+   modify_cache /start.conf
+ fi
  # disable auto functions if noauto is given
  if [ -n "$noauto" ]; then
   autostart=0
