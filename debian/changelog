@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.53-0) babo62; urgency=low
+
+  * Fix #118: mount fallback.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Nov 2019 18:36:00 +0100
+
 linuxmuster-linbo (2.3.52-0) babo62; urgency=low
 
   * Fix #115: Backup and restore of supplementalCredentials.
