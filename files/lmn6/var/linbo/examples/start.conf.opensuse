@@ -14,6 +14,7 @@ RootTimeout = 600                   # logout from admin console after 600 secs
 AutoPartition = no                  # no partition repair during LINBO startup
 AutoFormat = no                     # no formatting of all partitions during LINBO startup
 AutoInitCache = no                  # no initial cache setup during LINBO startup
+AutoFix = no                        # try to fix dirty bit before mount
 DownloadType = torrent              # image download method (torrent|multicast|rsync)
 BackgroundFontColor = white         # font color of status section (default: white)
 ConsoleFontColorStdout = lightgreen # console font color (default: white)
