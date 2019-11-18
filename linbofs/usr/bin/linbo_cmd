@@ -555,7 +555,7 @@ mountpart(){
    # thoschi - check for dirty bit (if autofix is set in start.conf and ntfsfix returns error
    if [ $(grep -i ^autofix /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z) == "yes" ]; then
      if [ "$(ntfs-3g "$mountdev" "$2" 2>&1 >/dev/null | grep -c "unclean"; umount "$mountdev")" == "1" ]; then
-       /bin/ntfsfix "$mountdev"
+       /bin/ntfsfix "$mountdev" &> /dev/null
        echo "Dirty-Bit auf $mountdev wurde entfernt!" | tee -a /tmp/linbo.log
      fi
    fi
