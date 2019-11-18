@@ -553,8 +553,12 @@ mountpart(){
  case "$type" in
   *ntfs*)
    # thoschi - check for dirty bit (if autofix is set in start.conf and ntfsfix returns error
-   [ $(grep -i ^autofix /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z) == "yes" ] && /bin/ntfsfix -n "$mountdev"; RC="$?"
-   [ "$RC" = "1" ] && /bin/ntfsfix "$mountdev"
+   if [ $(grep -i ^autofix /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }' | tr A-Z a-z) == "yes" ]; then
+     if [ "$(ntfs-3g "$mountdev" "$2" 2>&1 >/dev/null | grep -c "unclean"; umount "$mountdev")" == "1" ]; then
+       /bin/ntfsfix "$mountdev"
+       echo "Dirty-Bit auf $mountdev wurde entfernt!" | tee -a /tmp/linbo.log
+     fi
+   fi
    OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
    #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
