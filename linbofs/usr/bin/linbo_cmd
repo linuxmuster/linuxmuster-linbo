@@ -552,6 +552,9 @@ mountpart(){
  type="$(fstype $1)"
  case "$type" in
   *ntfs*)
+   # check for dirty bit (if autofix is set in start.conf and ntfsfix returns error
+   [ $(grep -i ^autofix /start.conf | tail -1 | awk -F= '{ print $2 }' | awk '{ print $1 }') == 1 ] && /bin/ntfsfix -n "$mountdev"; RC="$?"
+   [ "$RC" = "1" ] && /bin/ntfsfix "$mountdev"
    OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
    #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
