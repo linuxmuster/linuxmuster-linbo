@@ -4,14 +4,13 @@
 #
 ################################################################################
 
-REISERFSPROGS_VERSION = 3.6.27
+REISERFSPROGS_VERSION = 3.6.24
 REISERFSPROGS_SOURCE = reiserfsprogs-$(REISERFSPROGS_VERSION).tar.xz
 REISERFSPROGS_SITE = https://www.kernel.org/pub/linux/kernel/people/jeffm/reiserfsprogs/v$(REISERFSPROGS_VERSION)
 REISERFSPROGS_LICENSE = GPLv2 with modifications
 REISERFSPROGS_LICENSE_FILES = COPYING README
 REISERFSPROGS_DEPENDENCIES = util-linux
 REISERFSPROGS_CONF_OPTS += CFLAGS="$(TARGET_CFLAGS) -std=gnu89"
-REISERFSPROGS_MAKE_OPTS += CFLAGS+=' -fgnu89-inline -D_GNU_SOURCE'
 
 define REISERFSPROGS_AUTORECONF
 	cd $(@D) && autoreconf -fvi
