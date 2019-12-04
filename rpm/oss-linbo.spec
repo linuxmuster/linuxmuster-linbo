@@ -86,7 +86,7 @@ Source68:       popt-1.16.tar.gz
 Source69:       Python-2.7.16.tar.xz
 Source70:       Python-3.7.3.tar.xz
 Source71:       qtbase-everywhere-src-5.12.2.tar.xz
-Source72:       reiserfsprogs-3.6.24.tar.xz
+Source72:       reiserfsprogs-3.6.27.tar.xz
 Source73:       rsync-3.1.3.tar.gz
 Source74:       setuptools-41.0.1.zip
 Source75:       udpcast-20120424.tar.gz
