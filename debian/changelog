@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.54-0) babo62; urgency=low
+
+  * update-linbofs: add server's timezone file to linbofs.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Nov 2019 21:02:21 +0100
+
 linuxmuster-linbo (2.3.53-0) babo62; urgency=low
 
   * Fix #118: mount fallback.

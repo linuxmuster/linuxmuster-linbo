@@ -3,10 +3,10 @@
 # creating/updating linbofs.lz with linbo password and ssh keys
 # has to be invoked during linuxmuster-setup,  package upgrade or
 # linbo password change in /etc/rsyncd.secrets.
-# 
+#
 # thomas@linuxmuster.net
 # GPL V3
-# 20161207
+# 20191206
 #
 
 # read linuxmuster environment
@@ -97,6 +97,9 @@ update_linbofs() {
  # copy default start.conf
  cp -f $LINBODIR/start.conf .
 
+ # copy timezone info file
+ [ -n "$zi" -a -e "$zi" ] && cp -L "$zi" etc/localtime
+
  # pack default linbofs${suffix}.lz again
  find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
  [ $RC -ne 0 ] && bailout "failed!"
@@ -119,6 +122,9 @@ create_www_links(){
 
 # avoid linbo password being set multiple times
 LINBOPW=false
+
+# timezone
+[ -e /etc/localtime ] && zi="$(LANG=C file /etc/localtime | awk '{ print $5 }')"
 
 update_linbofs
 update_linbofs -np
