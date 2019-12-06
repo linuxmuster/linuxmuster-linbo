@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20191114
+# 20191206
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -618,6 +618,10 @@ network(){
   if [ -s /start.conf ]; then
    echo "Network connection to $server established successfully."
    grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
+   echo "Syncing time from server:"
+   ntpd -n -q -p "$server"
+   hwclock --systohc
+   date
    # linbo update & grub installation
    do_linbo_update "$server"
    # also look for other needed files

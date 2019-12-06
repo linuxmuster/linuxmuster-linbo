@@ -1,6 +1,7 @@
 linuxmuster-linbo (2.3.54-0) babo62; urgency=low
 
   * update-linbofs: add server's timezone file to linbofs.
+  * init.sh: syncs time from server on linbo start.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Nov 2019 21:02:21 +0100
 
