@@ -19,6 +19,7 @@ KODI_DEPENDENCIES = \
 	freetype \
 	gnutls \
 	host-gawk \
+	host-gettext \
 	host-gperf \
 	host-kodi-jsonschemabuilder \
 	host-kodi-texturepacker \
@@ -38,7 +39,6 @@ KODI_DEPENDENCIES = \
 	openssl \
 	pcre \
 	python \
-	readline \
 	sqlite \
 	taglib \
 	tinyxml \
@@ -163,16 +163,6 @@ ifeq ($(BR2_TOOLCHAIN_HAS_LIBATOMIC),y)
 KODI_CXX_FLAGS += -latomic
 endif
 
-ifeq ($(BR2_PACKAGE_KODI_PLATFORM_AML),y)
-KODI_CONF_OPTS += -DENABLE_AML=ON -DENABLE_OPENGLES=ON
-# The following line can be removed when bumping to 18.0-Leia,
-# see upstream PR 13425
-KODI_CXX_FLAGS += -DMESA_EGL_NO_X11_HEADERS
-KODI_DEPENDENCIES += libamcodec odroid-mali
-else
-KODI_CONF_OPTS += -DENABLE_AML=OFF
-endif
-
 ifeq ($(BR2_PACKAGE_KODI_PLATFORM_RBPI),y)
 KODI_CONF_OPTS += -DCORE_SYSTEM_NAME=rbpi -DENABLE_OPENGLES=ON
 KODI_DEPENDENCIES += rpi-userland
@@ -205,7 +195,7 @@ endif
 
 ifeq ($(BR2_PACKAGE_KODI_NONFREE),y)
 KODI_CONF_OPTS += -DENABLE_NONFREE=ON
-KODI_LICENSE := $(KODI_LICENSE), unrar
+KODI_LICENSE += , unrar
 KODI_LICENSE_FILES += lib/UnrarXLib/license.txt
 else
 KODI_CONF_OPTS += -DENABLE_NONFREE=OFF

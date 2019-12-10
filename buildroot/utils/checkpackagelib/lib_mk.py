@@ -4,6 +4,7 @@
 # menu options using "make menuconfig" and by running "make" with appropriate
 # packages enabled.
 
+import os
 import re
 
 from checkpackagelib.base import _CheckFunction
@@ -125,7 +126,9 @@ class OverriddenVariable(_CheckFunction):
                 self.conditionally_set.append(variable)
                 return
             if self.CONCATENATING.search(text):
-                return
+                return ["{}:{}: immediate assignment to append to variable {}"
+                        .format(self.filename, lineno, variable),
+                        text]
             if self.USUALLY_OVERRIDDEN.search(text):
                 return
             if assignment in self.OVERRIDING_ASSIGNMENTS:
@@ -165,10 +168,9 @@ class PackageHeader(_CheckFunction):
 
 class RemoveDefaultPackageSourceVariable(_CheckFunction):
     packages_that_may_contain_default_source = ["binutils", "gcc", "gdb"]
-    PACKAGE_NAME = re.compile("/([^/]+)\.mk")
 
     def before(self):
-        package = self.PACKAGE_NAME.search(self.filename).group(1)
+        package, _ = os.path.splitext(os.path.basename(self.filename))
         package_upper = package.replace("-", "_").upper()
         self.package = package
         self.FIND_SOURCE = re.compile(
@@ -238,11 +240,10 @@ class TypoInPackageVariable(_CheckFunction):
         "TARGET_FINALIZE_HOOKS",
         "TARGETS_ROOTFS",
         "XTENSA_CORE_NAME"]))
-    PACKAGE_NAME = re.compile("/([^/]+)\.mk")
     VARIABLE = re.compile("^([A-Z0-9_]+_[A-Z0-9_]+)\s*(\+|)=")
 
     def before(self):
-        package = self.PACKAGE_NAME.search(self.filename).group(1)
+        package, _ = os.path.splitext(os.path.basename(self.filename))
         package = package.replace("-", "_").upper()
         # linux tools do not use LINUX_TOOL_ prefix for variables
         package = package.replace("LINUX_TOOL_", "")

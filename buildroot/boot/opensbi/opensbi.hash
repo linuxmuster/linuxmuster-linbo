@@ -1,2 +1,3 @@
 # locally computed
-sha256 07f18b73abf3b85aabe5bead19a923716c100d30eb58033459f39c3a224be300 opensbi-v0.3.tar.gz
+sha256 bc82f1e63663cafb7976b324d8a01263510cfd816063dc89e0ccffb9763fb1dd opensbi-0.5.tar.gz
+sha256 82d13fb1bf6bb162629deeea9eb9c117e74548d3b707e478967691fe79a68e21 COPYING.BSD

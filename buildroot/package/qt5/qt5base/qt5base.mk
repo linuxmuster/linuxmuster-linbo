@@ -34,6 +34,14 @@ ifeq ($(BR2_PACKAGE_QT5_VERSION_LATEST),y)
 QT5BASE_CONFIGURE_OPTS += -no-optimize-debug
 endif
 
+QT5BASE_CFLAGS = $(TARGET_CFLAGS)
+QT5BASE_CXXFLAGS = $(TARGET_CXXFLAGS)
+
+ifeq ($(BR2_TOOLCHAIN_HAS_GCC_BUG_90620),y)
+QT5BASE_CFLAGS += -O0
+QT5BASE_CXXFLAGS += -O0
+endif
+
 ifeq ($(BR2_PACKAGE_QT5_VERSION_5_6),y)
 QT5BASE_DEPENDENCIES += pcre
 else
@@ -93,7 +101,7 @@ QT5BASE_LICENSE = GPL-3.0 or LGPL-2.1 with exception or LGPL-3.0, GFDL-1.3 (docs
 QT5BASE_LICENSE_FILES = LICENSE.GPLv3 LICENSE.LGPLv21 LGPL_EXCEPTION.txt LICENSE.LGPLv3 LICENSE.FDL
 endif
 ifeq ($(BR2_PACKAGE_QT5BASE_EXAMPLES),y)
-QT5BASE_LICENSE := $(QT5BASE_LICENSE), BSD-3-Clause (examples)
+QT5BASE_LICENSE += , BSD-3-Clause (examples)
 QT5BASE_LICENSE_FILES += header.BSD
 endif
 
@@ -145,7 +153,7 @@ QT5BASE_DEPENDENCIES += harfbuzz
 else
 # qt harfbuzz otherwise (using QAtomic instead)
 QT5BASE_CONFIGURE_OPTS += -qt-harfbuzz
-QT5BASE_LICENSE := $(QT5BASE_LICENSE), MIT (harfbuzz)
+QT5BASE_LICENSE += , MIT (harfbuzz)
 QT5BASE_LICENSE_FILES += src/3rdparty/harfbuzz-ng/COPYING
 endif
 else
@@ -260,6 +268,13 @@ QT5BASE_CONFIGURE_OPTS += -no-gtk
 endif
 endif
 
+ifeq ($(BR2_PACKAGE_SYSTEMD),y)
+QT5BASE_CONFIGURE_OPTS += -journald
+QT5BASE_DEPENDENCIES += systemd
+else
+QT5BASE_CONFIGURE_OPTS += -no-journald
+endif
+
 # Build the list of libraries to be installed on the target
 QT5BASE_INSTALL_LIBS_y                                 += Qt5Core
 QT5BASE_INSTALL_LIBS_$(BR2_PACKAGE_QT5BASE_XCB)        += Qt5XcbQpa
@@ -344,8 +359,8 @@ define QT5BASE_CONFIGURE_CMDS
 		-nomake tests \
 		-device buildroot \
 		-device-option CROSS_COMPILE="$(TARGET_CROSS)" \
-		-device-option BR_COMPILER_CFLAGS="$(TARGET_CFLAGS)" \
-		-device-option BR_COMPILER_CXXFLAGS="$(TARGET_CXXFLAGS)" \
+		-device-option BR_COMPILER_CFLAGS="$(QT5BASE_CFLAGS)" \
+		-device-option BR_COMPILER_CXXFLAGS="$(QT5BASE_CXXFLAGS)" \
 		$(QT5BASE_CONFIGURE_OPTS) \
 	)
 endef

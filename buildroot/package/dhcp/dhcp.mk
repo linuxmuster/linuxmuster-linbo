@@ -10,6 +10,12 @@ DHCP_INSTALL_STAGING = YES
 DHCP_LICENSE = MPL-2.0
 DHCP_LICENSE_FILES = LICENSE
 DHCP_DEPENDENCIES = bind
+
+# use libtool-enabled configure.ac
+define DHCP_LIBTOOL_AUTORECONF
+	cp $(@D)/configure.ac+lt $(@D)/configure.ac
+endef
+
 DHCP_CONF_ENV = \
 	CPPFLAGS='-D_PATH_DHCPD_CONF=\"/etc/dhcp/dhcpd.conf\" \
 		-D_PATH_DHCLIENT_CONF=\"/etc/dhcp/dhclient.conf\"' \
@@ -33,6 +39,8 @@ ifeq ($(BR2_STATIC_LIBS),y)
 DHCP_CONF_ENV += LIBS="`$(STAGING_DIR)/usr/bin/bind9-config --libs bind9`"
 DHCP_CONF_OPTS += --disable-libtool
 else
+DHCP_POST_EXTRACT_HOOKS += DHCP_LIBTOOL_AUTORECONF
+DHCP_AUTORECONF = YES
 DHCP_CONF_OPTS += --enable-libtool
 endif
 
@@ -40,11 +48,19 @@ ifeq ($(BR2_PACKAGE_DHCP_SERVER_DELAYED_ACK),y)
 DHCP_CONF_OPTS += --enable-delayed-ack
 endif
 
+define DHCP_INSTALL_LIBS
+	$(MAKE) -C $(@D)/common install-exec DESTDIR=$(TARGET_DIR)
+	$(MAKE) -C $(@D)/omapip install-exec DESTDIR=$(TARGET_DIR)
+endef
+
 ifeq ($(BR2_PACKAGE_DHCP_SERVER),y)
+define DHCP_INSTALL_CTL_LIBS
+	$(MAKE) -C $(@D)/dhcpctl install-exec DESTDIR=$(TARGET_DIR)
+endef
 define DHCP_INSTALL_SERVER
 	mkdir -p $(TARGET_DIR)/var/lib
 	(cd $(TARGET_DIR)/var/lib; ln -snf /tmp dhcp)
-	$(INSTALL) -m 0755 -D $(@D)/server/dhcpd $(TARGET_DIR)/usr/sbin/dhcpd
+	$(MAKE) -C $(@D)/server DESTDIR=$(TARGET_DIR) install-sbinPROGRAMS
 	$(INSTALL) -m 0644 -D package/dhcp/dhcpd.conf \
 		$(TARGET_DIR)/etc/dhcp/dhcpd.conf
 endef
@@ -54,8 +70,7 @@ ifeq ($(BR2_PACKAGE_DHCP_RELAY),y)
 define DHCP_INSTALL_RELAY
 	mkdir -p $(TARGET_DIR)/var/lib
 	(cd $(TARGET_DIR)/var/lib; ln -snf /tmp dhcp)
-	$(INSTALL) -m 0755 -D $(DHCP_DIR)/relay/dhcrelay \
-		$(TARGET_DIR)/usr/sbin/dhcrelay
+	$(MAKE) -C $(@D)/relay DESTDIR=$(TARGET_DIR) install-sbinPROGRAMS
 endef
 endif
 
@@ -63,8 +78,8 @@ ifeq ($(BR2_PACKAGE_DHCP_CLIENT),y)
 define DHCP_INSTALL_CLIENT
 	mkdir -p $(TARGET_DIR)/var/lib
 	(cd $(TARGET_DIR)/var/lib; ln -snf /tmp dhcp)
-	$(INSTALL) -m 0755 -D $(DHCP_DIR)/client/dhclient \
-		$(TARGET_DIR)/sbin/dhclient
+	$(MAKE) -C $(@D)/client DESTDIR=$(TARGET_DIR) sbindir=/sbin \
+		install-sbinPROGRAMS
 	$(INSTALL) -m 0644 -D package/dhcp/dhclient.conf \
 		$(TARGET_DIR)/etc/dhcp/dhclient.conf
 	$(INSTALL) -m 0755 -D package/dhcp/dhclient-script \
@@ -99,6 +114,8 @@ endef
 endif
 
 define DHCP_INSTALL_TARGET_CMDS
+	$(DHCP_INSTALL_LIBS)
+	$(DHCP_INSTALL_CTL_LIBS)
 	$(DHCP_INSTALL_RELAY)
 	$(DHCP_INSTALL_SERVER)
 	$(DHCP_INSTALL_CLIENT)

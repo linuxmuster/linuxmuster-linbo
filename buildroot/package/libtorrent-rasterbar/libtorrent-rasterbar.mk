@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBTORRENT_RASTERBAR_VERSION = 1.2.1
+LIBTORRENT_RASTERBAR_VERSION = 1.2.2
 LIBTORRENT_RASTERBAR_SITE = https://github.com/arvidn/libtorrent/releases/download/libtorrent-$(subst .,_,$(LIBTORRENT_RASTERBAR_VERSION))
 LIBTORRENT_RASTERBAR_LICENSE = BSD-3-Clause
 LIBTORRENT_RASTERBAR_LICENSE_FILES = COPYING
@@ -19,6 +19,10 @@ LIBTORRENT_RASTERBAR_CXXFLAGS = $(TARGET_CXXFLAGS) -std=c++11
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58864
 ifeq ($(BR2_m68k_cf),y)
 LIBTORRENT_RASTERBAR_CXXFLAGS += -fno-defer-pop
+endif
+
+ifeq ($(BR2_TOOLCHAIN_HAS_GCC_BUG_85180),y)
+LIBTORRENT_RASTERBAR_CXXFLAGS += -O0
 endif
 
 LIBTORRENT_RASTERBAR_CONF_OPTS += CXXFLAGS="$(LIBTORRENT_RASTERBAR_CXXFLAGS)"

@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-JANUS_GATEWAY_VERSION = v0.6.3
-JANUS_GATEWAY_SITE = $(call github,meetecho,janus-gateway,$(JANUS_GATEWAY_VERSION))
+JANUS_GATEWAY_VERSION = 0.7.3
+JANUS_GATEWAY_SITE = $(call github,meetecho,janus-gateway,v$(JANUS_GATEWAY_VERSION))
 JANUS_GATEWAY_LICENSE = GPL-3.0
 JANUS_GATEWAY_LICENSE_FILES = COPYING
 
@@ -116,8 +116,5 @@ JANUS_GATEWAY_CONF_OPTS += --enable-websockets
 else
 JANUS_GATEWAY_CONF_OPTS += --disable-websockets
 endif
-
-# Parallel build broken
-JANUS_GATEWAY_MAKE = $(MAKE1)
 
 $(eval $(autotools-package))

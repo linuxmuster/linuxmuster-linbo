@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-FREESWITCH_VERSION = 1.8.6
-FREESWITCH_SOURCE = freeswitch-$(FREESWITCH_VERSION).tar.xz
-FREESWITCH_SITE = http://files.freeswitch.org/freeswitch-releases
+FREESWITCH_VERSION = 1.10.1
+FREESWITCH_SOURCE = freeswitch-$(FREESWITCH_VERSION).-release.tar.xz
+FREESWITCH_SITE = https://files.freeswitch.org/freeswitch-releases
 # External modules need headers/libs from staging
 FREESWITCH_INSTALL_STAGING = YES
 FREESWITCH_LICENSE = MPL-1.1, \
@@ -164,7 +164,7 @@ FREESWITCH_PRE_CONFIGURE_HOOKS += FREESWITCH_ENABLE_MODULES
 # mod_isac supports a limited set of archs
 # src/mod/codecs/mod_isac/typedefs.h
 ifeq ($(BR2_i386)$(BR2_mips)$(BR2_mipsel)$(BR2_mips64)$(BR2_mips64el)$(BR2_x86_64),y)
-FREESWITCH_LICENSE := $(FREESWITCH_LICENSE), BSD-3-Clause (mod_isac)
+FREESWITCH_LICENSE += , BSD-3-Clause (mod_isac)
 FREESWITCH_LICENSE_FILES += src/mod/codecs/mod_isac/LICENSE
 FREESWITCH_ENABLED_MODULES += codecs/mod_isac
 endif
@@ -218,6 +218,13 @@ endif
 ifeq ($(BR2_PACKAGE_LIBMEMCACHED),y)
 FREESWITCH_DEPENDENCIES += libmemcached
 FREESWITCH_ENABLED_MODULES += applications/mod_memcache
+endif
+
+ifeq ($(BR2_PACKAGE_LIBOPENH264),y)
+FREESWITCH_LICENSE += , BSD-2-Clause (libopenh264)
+FREESWITCH_LICENSE_FILES += docs/OPENH264_BINARY_LICENSE.txt
+FREESWITCH_DEPENDENCIES += libopenh264
+FREESWITCH_ENABLED_MODULES += codecs/mod_openh264
 endif
 
 ifeq ($(BR2_PACKAGE_LIBPNG),y)
@@ -278,12 +285,8 @@ endif
 ifeq ($(BR2_PACKAGE_POSTGRESQL),y)
 FREESWITCH_CONF_ENV += \
 	ac_cv_path_PG_CONFIG=$(STAGING_DIR)/usr/bin/pg_config
-FREESWITCH_CONF_OPTS += \
-	--enable-core-pgsql-pkgconfig \
-	--enable-core-pgsql-support
 FREESWITCH_DEPENDENCIES += postgresql
-else
-FREESWITCH_CONF_OPTS += --disable-core-pgsql-support
+FREESWITCH_ENABLED_MODULES += databases/mod_pgsql
 endif
 
 ifeq ($(BR2_PACKAGE_UNIXODBC),y)
@@ -300,7 +303,7 @@ FREESWITCH_DEPENDENCIES += xz
 endif
 
 ifeq ($(BR2_TOOLCHAIN_GCC_AT_LEAST_4_8)$(BR2_PACKAGE_FFMPEG),yy)
-FREESWITCH_LICENSE := $(FREESWITCH_LICENSE), BSD-3-Clause (libvpx, libyuv)
+FREESWITCH_LICENSE += , BSD-3-Clause (libvpx, libyuv)
 FREESWITCH_LICENSE_FILES += libs/libvpx/LICENSE libs/libyuv/LICENSE
 FREESWITCH_CONF_OPTS += --enable-libvpx --enable-libyuv
 FREESWITCH_DEPENDENCIES += host-yasm ffmpeg

@@ -17,8 +17,13 @@ TOOLCHAIN_WRAPPER_ARGS = $($(PKG)_TOOLCHAIN_WRAPPER_ARGS)
 TOOLCHAIN_WRAPPER_ARGS += -DBR_SYSROOT='"$(STAGING_SUBDIR)"'
 
 TOOLCHAIN_WRAPPER_OPTS = \
+	$(ARCH_TOOLCHAIN_WRAPPER_OPTS) \
 	$(call qstrip,$(BR2_SSP_OPTION)) \
 	$(call qstrip,$(BR2_TARGET_OPTIMIZATION))
+
+ifeq ($(BR2_REPRODUCIBLE),y)
+TOOLCHAIN_WRAPPER_OPTS += -Wl,--build-id=none
+endif
 
 # We create a list like '"-mfoo", "-mbar", "-mbarfoo"' so that each flag is a
 # separate argument when used in execv() by the toolchain wrapper.
@@ -46,6 +51,10 @@ endif
 
 ifeq ($(BR2_CCACHE_USE_BASEDIR),y)
 TOOLCHAIN_WRAPPER_ARGS += -DBR_CCACHE_BASEDIR='"$(BASE_DIR)"'
+endif
+
+ifeq ($(BR2_PIC_PIE),y)
+TOOLCHAIN_WRAPPER_ARGS += -DBR2_PIC_PIE
 endif
 
 ifeq ($(BR2_RELRO_PARTIAL),y)

@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-SSLH_VERSION = v1.20
+SSLH_VERSION = 1.20
+SSLH_SOURCE = sslh-v$(SSLH_VERSION).tar.gz
 SSLH_SITE = http://www.rutschle.net/tech/sslh
 SSLH_LICENSE = GPL-2.0+
 SSLH_LICENSE_FILES = COPYING
@@ -25,6 +26,13 @@ SSLH_DEPENDENCIES += pcre
 SSLH_MAKE_OPTS += USELIBPCRE=1
 else
 SSLH_MAKE_OPTS += USELIBPCRE=
+endif
+
+ifeq ($(BR2_PACKAGE_SYSTEMD),y)
+SSLH_DEPENDENCIES += systemd
+SSLH_MAKE_OPTS += USESYSTEMD=1
+else
+SSLH_MAKE_OPTS += USESYSTEMD=
 endif
 
 define SSLH_BUILD_CMDS

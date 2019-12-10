@@ -19,7 +19,7 @@ else
 OPTEE_OS_SITE = $(call github,OP-TEE,optee_os,$(OPTEE_OS_VERSION))
 endif
 
-OPTEE_OS_DEPENDENCIES = host-openssl host-python-pycrypto
+OPTEE_OS_DEPENDENCIES = host-openssl host-python-pycrypto host-python-pyelftools
 
 # On 64bit targets, OP-TEE OS can be built in 32bit mode, or
 # can be built in 64bit mode and support 32bit and 64bit
@@ -62,6 +62,8 @@ OPTEE_OS_LOCAL_SDK = $(OPTEE_OS_BUILDDIR_OUT)/export-ta_arm32
 OPTEE_OS_SDK = $(STAGING_DIR)/lib/optee/export-ta_arm32
 endif
 
+OPTEE_OS_IMAGE_FILES = $(call qstrip,$(BR2_TARGET_OPTEE_OS_CORE_IMAGES))
+
 ifeq ($(BR2_TARGET_OPTEE_OS_CORE),y)
 define OPTEE_OS_BUILD_CORE
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) O=$(OPTEE_OS_BUILDDIR_OUT) \
@@ -69,8 +71,9 @@ define OPTEE_OS_BUILD_CORE
 endef
 define OPTEE_OS_INSTALL_IMAGES_CORE
 	mkdir -p $(BINARIES_DIR)
-	cp -dpf $(@D)/$(OPTEE_OS_BUILDDIR_OUT)/core/tee.bin $(BINARIES_DIR)
-	cp -dpf $(@D)/$(OPTEE_OS_BUILDDIR_OUT)/core/tee-*_v2.bin $(BINARIES_DIR)
+	$(foreach f,$(OPTEE_OS_IMAGE_FILES), \
+		cp -dpf $(wildcard $(@D)/$(OPTEE_OS_BUILDDIR_OUT)/core/$(f)) $(BINARIES_DIR)/
+	)
 endef
 endif # BR2_TARGET_OPTEE_OS_CORE
 
