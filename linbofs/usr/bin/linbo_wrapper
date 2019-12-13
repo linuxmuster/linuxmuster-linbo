@@ -228,7 +228,7 @@ format_partition(){
  local fcmd=""
  if [ -n "$label" ]; then
   case "$fstype" in
-   swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
+   xfs|swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
    reiserfs) label="-l $label" ;;
    *[Ff][Aa][Tt]*) label="-n $label" ;;
    *) ;;
@@ -238,6 +238,8 @@ format_partition(){
   [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
   [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
   [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype -F $label $dev" ;;
+  # sparse format is standard and unusable by grub
+  [Xx][Ff][Ss]) fcmd="mkfs.xfs -i sparse=0 -f $label $dev" ;;
   [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
   *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $dev" ;;
   *) echo "Unbekanntes Dateisystem: $fstype!"

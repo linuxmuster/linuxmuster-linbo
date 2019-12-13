@@ -576,7 +576,8 @@ mountpart(){
    OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
    #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
    ;;
-  *fat*)
+  *fat*|*xfs*)
+   # on xfs acl and user_xattr are enabled by default
    #mount -o "$OPTS" "$1" "$2" ; RC="$?"
    ;;
   *)
@@ -603,6 +604,7 @@ mk_label(){
   case "$fstype" in
     swap) mkswap -L "$label" "$partition" || RC=1 ;;
     ext2|ext3|ext4) e2label "$partition" "$label" || RC=1 ;;
+    xfs) xfs_admin -L "$label" "$partition" || RC=1 ;;
     reiserfs) reiserfstune -l "$label" "$partition" || RC=1 ;;
     [Nn][Tt][Ff][Ss]*) ntfslabel -f "$partition" "$label" || RC=1 ;;
     *[Ff][Aa][Tt]*) fatlabel "$partition" "$label" || RC=1 ;;
@@ -621,7 +623,7 @@ format(){
  local RC
  if [ -n "$label" ]; then
   case "$fstype" in
-   swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
+   swap|ext2|ext3|ext4|xfs|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
    reiserfs) label="-l $label" ;;
    *[Ff][Aa][Tt]*) label="-n $label" ;;
    *) ;;
@@ -631,6 +633,8 @@ format(){
   [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $partition" ;;
   [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $partition" ;;
   [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype $label -F -F $partition" ;;
+  # sparse format is standard and unusable by grub
+  [Xx][Ff][Ss]) fcmd="mkfs.xfs -i sparse=0 -f $label $partition" ;;
   [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $partition" ;;
   *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $partition" ;;
   *) return 1 ;;

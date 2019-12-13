@@ -131,7 +131,7 @@ get_hostname "$HOSTNAME"
 # required modules
 # common modules
 GRUB_COMMON_MODULES="all_video boot chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm gzio http \
-ntfs linux linux16 loadenv minicmd net part_gpt part_msdos png progress read reiserfs search sleep terminal test tftp"
+ntfs linux linux16 loadenv minicmd net part_gpt part_msdos png progress read reiserfs search sleep terminal test tftp xfs"
 
 # arch specific netboot modules
 GRUB_EFI32_MODULES="$GRUB_COMMON_MODULES efi_gop efi_uga efinet linuxefi"

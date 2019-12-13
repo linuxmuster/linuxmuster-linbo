@@ -39,6 +39,7 @@ insmod reiserfs
 insmod search
 insmod terminal
 insmod test
+insmod xfs
 
 # find cache partition and set it as root
 if search --set root --file /start.conf; then

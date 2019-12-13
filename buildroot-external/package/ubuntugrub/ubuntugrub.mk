@@ -157,7 +157,7 @@ endif
 
 # common modules
 HOST_UBUNTUGRUB_COMMON_MODS=all_video chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu gfxterm http \
- ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test tftp
+ ntfs linux loadenv minicmd net part_gpt part_msdos png progress reiserfs search terminal test tftp xfs
 # modules needed for cd/usb boot
 HOST_UBUNTUGRUB_ISO_MODS=iso9660 usb
 
