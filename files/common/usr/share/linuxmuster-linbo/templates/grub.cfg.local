@@ -46,7 +46,7 @@ if search --set root --file /start.conf; then
 
  #loadfont $prefix/fonts/unicode.pf2
 
- terminal_output gfxterm
+ terminal_output console
  background_image $prefix/linbo_wallpaper.png
 fi
 

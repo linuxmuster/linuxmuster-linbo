@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.55-0) babo62; urgency=low
+
+  * merged pr #124 from netzint:master
+  * lmn7: mkgrubhostimg.py, fixed parsing host variables
+  * linbo_cmd: moved rsync ecludes to file /etc/rsync.exclude
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 31 Jan 2020 20:20:06 +0100
+
 linuxmuster-linbo (2.3.54-0) babo62; urgency=low
 
   * update-linbofs: add server's timezone file to linbofs.
