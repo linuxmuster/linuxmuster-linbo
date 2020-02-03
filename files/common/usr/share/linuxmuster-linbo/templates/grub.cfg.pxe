@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20171106
+# 20200203
 #
 
 set timeout=0
@@ -16,7 +16,7 @@ insmod gfxmenu
 insmod minicmd
 insmod progress
 
-terminal_output console
+terminal_output gfxterm
 
 set color_normal=white/black
 set color_highlight=yellow/black
@@ -73,6 +73,7 @@ menuentry 'Default' {
  fi
 
  if [ -n "${tmproot}" ]; then
+  terminal_output console
   echo Booting operating system ...
   echo
 

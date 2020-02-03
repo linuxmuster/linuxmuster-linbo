@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.56-0) babo62; urgency=low
+
+  * grub console output fix on operating system boot.
+  * fix time sync output.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 03 Feb 2020 18:03:01 +0100
+
 linuxmuster-linbo (2.3.55-0) babo62; urgency=low
 
   * merged pr #124 from netzint:master
