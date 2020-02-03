@@ -8,5 +8,7 @@ cache
 linbo_gui32
 linbo_gui64
 configure-stamp
+build-stamp
 .directory
 .debhelper
+debian/linuxmuster-linbo-common/var/linbo/

@@ -5,7 +5,7 @@
 #
 # linuxmuster-mkgrubimg.py
 # thomas@linuxmuster.net
-# 20180618
+# 20200131
 #
 
 import configparser
@@ -79,7 +79,17 @@ imgrel = img.replace(constants.LINBOGRUBDIR, 'boot/grub')
 hostcfg = img.replace('.img', '.cfg')
 
 # get other host parameters from hostrow
-field1, field2, group, mac, ip, field6, field7, field8, field9, field10, field11 = hostrow
+field1 = hostrow[0]
+field2 = hostrow[1]
+group = hostrow[2]
+mac = hostrow[3]
+ip = hostrow[4]
+field6 = hostrow[5]
+field7 = hostrow[6]
+field8 = hostrow[7]
+field9 = hostrow[8]
+field10 = hostrow[9]
+field11 = hostrow[10]
 
 # path to group specific cfg
 groupcfg = constants.LINBOGRUBDIR + '/' + group + '.cfg'
