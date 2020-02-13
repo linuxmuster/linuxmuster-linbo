@@ -237,7 +237,8 @@ format_partition(){
  case "$fstype" in
   [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
   [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
-  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype -F $label $dev" ;;
+  [Ee][Xx][Tt][2]) fcmd="mkfs.$fstype -F -F $label $dev" ;;
+  [Ee][Xx][Tt][34]) fcmd="mkfs.$fstype -j -F -F $label $dev" ;;
   # sparse format is standard and unusable by grub
   [Xx][Ff][Ss]) fcmd="mkfs.xfs -i sparse=0 -f $label $dev" ;;
   [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
