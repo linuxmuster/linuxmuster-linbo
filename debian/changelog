@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.57-0) babo62; urgency=low
+
+  * fork time sync to background.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Feb 2020 10:13:41 +0100
+
 linuxmuster-linbo (2.3.56-0) babo62; urgency=low
 
   * grub console output fix on operating system boot.
