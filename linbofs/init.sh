@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20200218
+# 20200414
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -603,14 +603,15 @@ network(){
  [ -n "$hostname" ] || hostname="`get_hostname $ipaddr`"
  [ -n "$hostname" ] && hostname "$hostname"
  [ -n "$server" ] || server="`get_server`"
- echo "IP: $ipaddr * Hostname: $hostname * Server: $server"
+ macaddr="`ifconfig | grep -B1 "$ip" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
+ echo "IP: $ipaddr * Hostname: $hostname * MAC: $macaddr * Server: $server"
  # Move away old start.conf and look for updates
  mv /start.conf /start.conf.dist
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
   echo "Loading configuration files from $server ..."
-  for i in "start.conf-$ipaddr" "start.conf"; do
+  for i in "start.conf-$macaddr" "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "/start.conf" &> /dev/null && break
   done
   # set flag for working network connection and do additional stuff which needs

@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20190915
+# 20200414
 #
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 LOGFILE="$LINBOLOGDIR/rsync-post-upload.log"
 
@@ -28,16 +28,16 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
-compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
 
-# get FQDN
-validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+# fetch host & domainname
+do_rsync_hostname
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "IP: $RSYNC_HOST_ADDR"
+echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
-echo "BACKUP: $BACKUP"
-echo "FTYPE: $FTYPE"
+echo "EXT: $EXT"
 
 # Check for backup file that should have been created by pre-upload script
 if [ -s "$BACKUP" ]; then

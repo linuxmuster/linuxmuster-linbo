@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20190709
+# 20200414
 #
 
 # converting string to lower chars
@@ -62,7 +62,7 @@ get_hostname() {
    pattern="${pattern//./\\.}"
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   elif validmac "$pattern"; then
-   RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
    local result=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern"` &> /dev/null
    local i
@@ -77,7 +77,7 @@ get_hostname() {
    done
   fi
   [ -n "$RET" ] && tolower "$RET"
-  return 0
+  echo "$RET"
 }
 
 # extract mac address from file devices.csv
@@ -91,13 +91,41 @@ get_mac() {
   else # assume hostname
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep -i ^"$pattern " | awk '{ print $2 }' | tr a-z A-Z` &> /dev/null
   fi
-  return 0
+  echo "$RET"
 }
 
 # return hostgroup of device from devices.csv
 get_hostgroup(){
-  local clientname="$(echo "$1" | tr A-Z a-z)"
-  grep -v ^# "$WIMPORTDATA" | grep -w "$clientname" | awk -F\; '{ print $2 " " $3 }'  | grep -w "$clientname" | awk '{ print $2 }'
+  local clientname="$1"
+  grep -v ^# "$WIMPORTDATA" | grep -wi "$clientname" | awk -F\; '{ print $2 " " $3 }' | grep -wi "$clientname" | awk '{ print $2 }'
+}
+
+# return mac address from dhcp leases
+get_mac_dhcp(){
+  validip "$1" || return
+  LANG=C grep -A10 "$1" /var/lib/dhcp/dhcpd.leases | grep "hardware ethernet" | awk '{ print $3 }' | awk -F\; '{ print $1 }' | tr A-Z a-z
+}
+
+# return hostname by dhcp ip from devices.csv
+get_hostname_dhcp_ip(){
+  validip "$1" || return
+  local macaddr="$(get_mac_dhcp "$1")"
+  [ -z "$macaddr" ] && return
+  get_hostname "$macaddr"
+}
+
+# do hostname handling for linbos rsync xfer scripts
+do_rsync_hostname(){
+  # handle unknown hostname in case of dynamic ip client
+  if echo "$RSYNC_HOST_NAME" | grep -q UNKNOWN; then
+    local compname_tmp="$(get_hostname_dhcp_ip "$RSYNC_HOST_ADDR")"
+    [ -n "$compname_tmp" ] && RSYNC_HOST_NAME="$(echo "$RSYNC_HOST_NAME" | sed -e "s|UNKNOWN|$compname_tmp|")"
+  fi
+  compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
+  # get FQDN
+  validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+  export compname
+  export RSYNC_HOST_NAME
 }
 
 # return active images

@@ -3,13 +3,13 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20190313
+# 20200414
 # GPL V3
 #
 
 # read linuxmuster environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 KNOWNCMDS="label partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
 DLTYPES="multicast rsync torrent"
@@ -367,9 +367,8 @@ if [ -n "$WAIT" ]; then
  for i in $IP; do
   [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
   echo -n " $i ... "
-  # get mac address of client, stored in $RET
-  get_mac "$i"
-  [ -n "$DIRECT" ] && $WOL "$RET"
+  # get mac address of client from devices.csv
+  [ -n "$DIRECT" ] && $WOL "$(get_mac "$i")"
   if [ -n "$ONBOOT" ]; then
    # reboot linbo-clients which are already online
    if is_online "$i"; then
@@ -412,8 +411,7 @@ send_cmds(){
   fi
 
   # create a temporary script with linbo remote commands
-  get_hostname "$i"
-  HOSTNAME="$RET"
+  HOSTNAME="$(get_hostname "$i")"
   REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
   echo "#!/bin/sh" > $REMOTESCRIPT
   local c=0

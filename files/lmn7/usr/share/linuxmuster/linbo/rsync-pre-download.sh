@@ -7,7 +7,7 @@
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 # Debug
 LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-download.log"
@@ -21,11 +21,8 @@ EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
-# hostname
-compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
-
-# get FQDN
-validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+# fetch host & domainname
+do_rsync_hostname
 
 # recognize upload of windows activation tokens
 stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
@@ -34,6 +31,7 @@ stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "IP: $RSYNC_HOST_ADDR"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
@@ -72,7 +70,7 @@ case $EXT in
   echo "Upload request for $host_logfile."
   src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
   tgt_logfile="$LINBOLOGDIR/$host_logfile"
-  linbo-scp -v "${RSYNC_HOST_NAME}:$src_logfile" "$FILE" || RC="1"
+  linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
   if [ -s "$FILE" ]; then
    echo "## Log session begin: $(date) ##" >> "$tgt_logfile"
    cat "$FILE" >> "$tgt_logfile"
@@ -94,12 +92,12 @@ case $EXT in
     echo "$key" > "$FILE"
     chmod 644 "$FILE"
     # upload opsiip to client
-    linbo-ssh "$compname" "echo $opsiip > /tmp/opsiip"
+    linbo-ssh "$RSYNC_HOST_ADDR" "echo $opsiip > /tmp/opsiip"
     # get opsi server cert and provide it to client
     opsipem="opsiconfd.pem"
     rsync -v "$opsiip:/etc/opsi/$opsipem" "$LINBODIR/$opsipem"
     chmod 600 "$LINBODIR/$opsipem"
-    linbo-scp -v "$LINBODIR/$opsipem" "$compname:/tmp"
+    linbo-scp -v "$LINBODIR/$opsipem" "$RSYNC_HOST_ADDR:/tmp"
    fi
   fi
  ;;
@@ -129,7 +127,7 @@ case $EXT in
   FILE="${FILE%.upload}"
   # fetch archive from client
   echo "Upload request for windows activation tokens archive."
-  linbo-scp "${RSYNC_HOST_NAME}:/cache/$(basename $FILE)" "${FILE}.tmp" || RC="1"
+  linbo-scp "${RSYNC_HOST_ADDR}:/cache/$(basename $FILE)" "${FILE}.tmp" || RC="1"
   # if archive file already exists try to merge old and new archives
   if [ -s "$FILE" -a "$RC" = "0" ]; then
    echo "Updating existing archive $FILE."
