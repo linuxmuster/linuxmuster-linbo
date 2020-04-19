@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20200414
+# 20200419
 #
 
 # converting string to lower chars
@@ -214,7 +214,7 @@ get_ip() {
   else # assume hostname
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   fi
-  return 0
+  echo "$RET"
 }
 
 # get pxe flag: get_pxe ip|host

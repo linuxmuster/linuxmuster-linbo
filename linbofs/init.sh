@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20200414
+# 20200419
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -629,7 +629,10 @@ network(){
     rsync -L "$server::linbo/$i" "/$i" &> /dev/null
    done
    # get optional onboot linbo-remote commands
-   rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
+   for i in $hostname $ipaddr; do
+    rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
+    [ -s /linbocmd ] && break
+   done
    if [ -s "/linbocmd" ]; then
     for i in noauto nobuttons; do
      grep -q "$i" /linbocmd && eval "$i"=yes
