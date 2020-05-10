@@ -7,6 +7,9 @@ Build instructions:
 * Add 32bit Architecture:  
   `sudo dpkg --add-architecture i386`  
   `sudo apt update`
+  
+* If you are using Ubuntu server or minimal:
+  `sudo apt install dpkg-dev`
 
 * Install build depends (uses sudo):  
   `./get-depends.sh`
