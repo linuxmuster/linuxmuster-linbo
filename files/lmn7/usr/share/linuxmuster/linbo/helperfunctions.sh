@@ -80,6 +80,37 @@ get_hostname() {
   echo "$RET"
 }
 
+# get broadcast addres for specified ip address via /etc/linuxmuster/subnets.csv file
+get_bcaddress(){
+python3 <<END
+import ipaddress
+import sys
+import csv
+
+subnetFile='/etc/linuxmuster/subnets.csv'
+
+def decomment(csvfile):
+    for row in csvfile:
+        raw = row.split('#')[0].strip()
+        if raw: yield row
+
+lmnSubnets=[]
+with open('/etc/linuxmuster/subnets.csv') as csvfile:
+    reader = csv.reader(decomment(csvfile), delimiter=';')
+    for row in reader:
+        lmnSubnets.append(row[0])
+
+for subnet in lmnSubnets:
+    if ipaddress.ip_address(ip) in ipaddress.ip_network(subnet):
+        try:
+            ip="$1"
+            network= ipaddress.IPv4Interface(subnet)
+            print (network.network.broadcast_address)
+        except:
+            quit(1)
+END
+}
+
 # extract mac address from file devices.csv
 get_mac() {
   unset RET

@@ -375,6 +375,12 @@ if [ -n "$WAIT" ]; then
   echo -n " $i ... "
   # get mac address of client from devices.csv
   macaddr="$(get_mac "$i")"
+  # get ip address of client from devices.csv
+  ipaddr="$(get_ip "$i")"
+  # try to determine broadcast address from subnets.csv
+  # if fails just dont use -i BROADCASTADDRESS parameter
+  bcaddr=$(get_bcaddress "$ipaddr") && WOL="$WOL -i $bcaddr"
+
   [ -n "$DIRECT" ] && $WOL "$macaddr"
   if [ -n "$ONBOOT" ]; then
    # reboot linbo-clients which are already online
