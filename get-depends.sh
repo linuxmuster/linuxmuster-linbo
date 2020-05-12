@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# thomas@linuxmuster.net
+# 20181214
+#
 
 [ "$(id -u)" = "0" ] || SUDO="sudo"
 
@@ -18,6 +22,10 @@ if ! grep -q "Source: linuxmuster-linbo" debian/control; then
 fi
 
 # install build depends
-BUILDDEPENDS="$(grep ^Build-Depends: debian/control | sed -e 's|Build-Depends: ||' -e 's|,| |g')"
-$SUDO apt update -y
-$SUDO apt install -y $BUILDDEPENDS
+BUILDDEPENDS="$(LANG=C dpkg-checkbuilddeps 2>&1 | sed -e 's|dpkg-checkbuilddeps: error: Unmet build dependencies: ||' -e 's|[(][^)]*[)]||g')"
+if [ -n "$BUILDDEPENDS" ]; then
+  $SUDO apt update -y
+  $SUDO apt install -y $BUILDDEPENDS kmod
+else
+  echo "Nothing to do."
+fi

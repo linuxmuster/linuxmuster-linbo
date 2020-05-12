@@ -1,21 +1,181 @@
+linuxmuster-linbo (2.3.59-0) babo62; urgency=low
+
+  * lmn7: further modifications and fixes for dynamicip hosts support (#126).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 19 Apr 2020 13:03:55 +0200
+
+linuxmuster-linbo (2.3.58-0) babo62; urgency=low
+
+  * lmn7:
+    - fix #126: support for dynamic ip hosts.
+    - helperfunctions and rsync xfer scripts improvements.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 14 Apr 2020 17:23:32 +0200
+
+linuxmuster-linbo (2.3.57-0) babo62; urgency=low
+
+  * fork time sync to background.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Feb 2020 10:13:41 +0100
+
+linuxmuster-linbo (2.3.56-0) babo62; urgency=low
+
+  * grub console output fix on operating system boot.
+  * fix time sync output.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 03 Feb 2020 18:03:01 +0100
+
+linuxmuster-linbo (2.3.55-0) babo62; urgency=low
+
+  * merged pr #124 from netzint:master
+  * lmn7: mkgrubhostimg.py, fixed parsing host variables
+  * linbo_cmd: moved rsync ecludes to file /etc/rsync.exclude
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 31 Jan 2020 20:20:06 +0100
+
+linuxmuster-linbo (2.3.54-0) babo62; urgency=low
+
+  * update-linbofs: add server's timezone file to linbofs.
+  * init.sh: syncs time from server on linbo start.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 06 Dec 2019 11:32:55 +0100
+
+linuxmuster-linbo (2.3.53-0) babo62; urgency=low
+
+  * Fix #118: mount fallback.
+  * Fix #117: start.conf are found on the lokal storage.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Nov 2019 21:02:21 +0100
+
+linuxmuster-linbo (2.3.52-0) babo62; urgency=low
+
+  * Fix #115: Backup and restore of supplementalCredentials.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Sep 2019 21:23:59 +0200
+
+linuxmuster-linbo (2.3.51-0) babo62; urgency=low
+
+  * improved swapfile excludes during image build.
+  * splitted start.conf examples for lmn62 and lmn7.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 17 Jul 2019 16:04:59 +0200
+
+linuxmuster-linbo (2.3.50-0) babo62; urgency=low
+
+  * fixed user access rights for linuxmuster-win scripts on ntfs filesystems (#113).
+  * lmn7 only: fixed missing function get_mac() in helperfunctions.sh (#112).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 09 Jul 2019 11:37:52 +0200
+
+linuxmuster-linbo (2.3.49-0) babo62; urgency=low
+
+  * added warning to start.conf examples (#111) and translated them to english.
+  * fixed linbo_cmd: mk_linefiboot has wrong return value (#109).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 08 Jul 2019 18:29:57 +0200
+
+linuxmuster-linbo (2.3.48-0) babo62; urgency=low
+
+  * Fix #110: linbo-multicast v7, increase port counter is faulty.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 06 Apr 2019 10:34:31 +0200
+
+linuxmuster-linbo (2.3.47-0) babo62; urgency=low
+
+  * Fix von Fix #108: sync+start fails with windows systems in offline mode.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Mar 2019 14:24:53 +0100
+
+linuxmuster-linbo (2.3.46-0) babo62; urgency=low
+
+  * linbofs, linbo_cmd:
+    - minor code beautifying.
+    - Fix #108: sync+start fails with windows systems in offline mode.
+  * lmn7 only:
+    - Fix #89: update-linbofs warns and corrects unsecure permissions of ssh files,
+      which differ from the standard.
+    - postinst: Apply current server ip to start.conf examples on configured systems.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Mar 2019 16:15:09 +0100
+
+linuxmuster-linbo (2.3.45-0) babo62; urgency=low
+
+  * lmn62: removed PubkeyAcceptedKeyTypes=+ssh-dss from ssh_config since it
+    caused a bad configuration error.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 15 Mar 2019 15:45:04 +0100
+
+linuxmuster-linbo (2.3.44-0) babo62; urgency=low
+
+  * implemented RestoreOpsiState start.conf option to add the ability to restore
+    the state of opsi products after linbo sync (#107).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Mar 2019 19:26:23 +0100
+
+linuxmuster-linbo (2.3.43-0) babo62; urgency=low
+
+  * restore partition labels after sync (probably workaround for #102 & #106).
+  * fix status in linbo-remote -l (#105).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Mar 2019 10:26:40 +0100
+
+linuxmuster-linbo (2.3.42-1) babo62; urgency=low
+
+  * more init scripts fixes due to different linuxmuster versions.
+  * rules file improvements.
+  * win10.global.reg files improvements (#90).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 21:30:01 +0100
+
+linuxmuster-linbo (2.3.42-0) babo62; urgency=low
+
+  * updated start.conf examples (#103).
+  * lmn7 only: improved patching reg files with sambadomainname (#104).
+  * updated win10.global.reg files with different linuxmuster.net 6.2 and 7 versions (#90).
+  * fixed error when one image name is included as part of another (#95).
+  * fixed device registration in lmn7 (#94).
+  * fixed download of not existing rsync image (#88).
+  * fixed issues with labels - only the udevadm part, not the reiserfs stuff (#85).
+  * fix: If bit-torrent is not used, the missing file xenial.cloop.torrent causes the Linbo start to abort (#92).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jan 2019 18:10:53 +0100
+
+linuxmuster-linbo (2.3.41-0) babo62; urgency=low
+
+  * lmn7 only: patching reg files with sambadomainname (#104).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 13 Jan 2019 20:34:56 +0100
+
+linuxmuster-linbo (2.3.40-0) babo62; urgency=low
+
+  * fixed hostname patch for ubuntu clients, using short name.
+  * force ext4 filesystem creation to avoid security prompt.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 21 Dec 2018 11:53:22 +0100
+
+linuxmuster-linbo (2.3.39-1) babo62; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 16 Dec 2018 14:00:54 +0100
+
+linuxmuster-linbo (2.3.39-0) babo62; urgency=low
+
+  * merged https://github.com/PLanB2008/linuxmuster-linbo.
+  * improved nvme ssd recognition (#91).
+  * modifications due to ubuntu 18.04 build environment.
+  * linbo_cmd: handling clients fully qualified domainname.
+  * partially translated console messages to english.
+  * update to lts kernel 4.14.88 (#99).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 16 Dec 2018 13:58:27 +0100
+
 linuxmuster-linbo (2.3.38-0) babo62; urgency=low
 
-  * kernel upgrade
+  * lmn7: fixed missing prefix in grub-mkimage command for bios images in mkgrubhostimg.py.
+  * nvm ssd recognition fix.
 
- -- Andreas Till <andreas.till@netzint.de>  Wed, 29 Aug 2018 16:32:20 +0000
-
-linuxmuster-linbo (2.3.37-2) babo62; urgency=low
-
-  * bump
-
- -- Andreas Till <andreas.till@netzint.de>  Wed, 29 Aug 2018 14:43:13 +0000
-
-linuxmuster-linbo (2.3.37-1) babo62; urgency=low
-
-  * added workaround for nvme devices if /dev/disk/by-path is missing
-
- -- Andreas Till <andreas.till@netzint.de>  Tue, 28 Aug 2018 11:22:13 +0000
-
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 13 Sep 2018 09:00:54 +0200
 
 linuxmuster-linbo (2.3.37-0) babo62; urgency=low
 

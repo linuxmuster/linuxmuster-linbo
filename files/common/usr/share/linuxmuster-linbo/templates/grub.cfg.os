@@ -1,6 +1,6 @@
 # group specific grub.cfg template for linbo net boot, should work with linux and windows operating systems
 # thomas@linuxmuster.net
-# 20171107
+# 20200203
 #
 
 # start "@@osname@@" directly
@@ -17,6 +17,7 @@ menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
  fi
  set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
 
+ terminal_output console
  if [ -e /vmlinuz -a -e /initrd.img ]; then
   linux /vmlinuz @@append@@
   initrd /initrd.img
@@ -44,6 +45,7 @@ menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
   chainloader $win_efiloader
   boot
  fi
+ terminal_output gfxterm
 
 }
 

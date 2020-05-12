@@ -1,0 +1,18 @@
+# File patterns for exclusion when creating/restoring rsync-archives
+# These patterns should match through the entire filesystem tree.
+# When cleaning up before compression, however, they will be prefixed
+# by "/", in order to get applied only for the root file system.
+#
+# Should match common Windows/Linux garbage
+[Pp][Aa][Gg][Ee][Ff][Ii][Ll][Ee]*
+[Ss][Ww][Aa][Pp][Ff][Ii][Ll][Ee]*
+[Hh][Ii][Bb][Ee][Rr][Ff][Ii][Ll]*
+[Hh][Ii][Bb][Ee][Rr][Nn][Aa][Tt][Ee]*
+[Ww][Ii][Nn]386.[Ss][Ww][Pp]
+Papierkorb/*
+[Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
+\$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
+[Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
+tmp/*
+var/log/ConsoleKit/history
+var/tmp/*

@@ -2,12 +2,12 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20180216
+# 20200414
 #
 
 # read in paedml specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 # Debug
 LOGFILE="$LINBOLOGDIR/rsync-post-download.log"
@@ -28,15 +28,15 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 FILE="$(<$PIDFILE)"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
 
-# get FQDN
-validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+# fetch host & domainname
+do_rsync_hostname
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "IP: $RSYNC_HOST_ADDR"
+echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
-
-pcname="$(echo $RSYNC_HOST_NAME | awk -F \. '{ print $1 }')"
 
 # handle request for obsolete menu.lst
 if stringinstring "menu.lst." "$FILE"; then
@@ -75,9 +75,10 @@ case $EXT in
   # take requested file from pre-download script
   imageini="$FILE"
   # if opsi server is configured and host is opsimanaged
-  if ([ -n "$opsiip" -a -s "$imageini" ] && opsimanaged "$pcname"); then
+  if ([ -n "$opsiip" -a -s "$imageini" ] && opsimanaged "$compname"); then
    # get host's inifile from opsi server
-   clientini="${opsiip}:$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
+   clientini_local="$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
+   clientini="${opsiip}:$clientini_local"
    origini="/var/tmp/$(basename "$clientini")"
    newini="/var/tmp/$(basename "$clientini").new"
    echo "clientini: $clientini"
@@ -97,11 +98,21 @@ case $EXT in
     # patch license keys
     [ -n "$licensekey" ] && sed -e "s|^poolid-or-licensekey.*|poolid-or-licensekey = \[\"$licensekey\"\]|" -i "$newini"
     [ -n "$productkey" ] && sed -e "s|^productkey.*|productkey = \[\"$productkey\"\]|" -i "$newini"
+    # should opsi products be restored after sync?
+    restoreopsistate_res="$(restoreopsistate "$compname" "$(basename "$imageini")")"
+    forceopsisetup_res="$(forceopsisetup "$compname" "$(basename "$imageini")")"
+    # backup current inifile
+    [ "$restoreopsistate_res" = "yes" ] && ssh "$opsiip" cp "$clientini_local" "$clientini_local".bak
     # upload the new inifile
     rsync "$newini" "$clientini" ; RC="$?"
     [ "$RC" = "0" ] || echo "Upload of $(basename "$newini") to opsi failed!"
-    # repair opsi's file permissions
-    ssh "$opsiip" opsi-setup --set-rights "$OPSICLIENTDIR"
+    # restore opsi product status
+    if [ "$restoreopsistate_res" = "yes" ]; then
+      ssh "$opsiip" /usr/share/linuxmuster-opsi/opsiSetup.py "$RSYNC_HOST_NAME" "$forceopsisetup_res"
+    else
+      # repair opsi's file permissions
+      [ -z "$opsisetrights" ] && ssh "$opsiip" opsi-setup --set-rights "$OPSICLIENTDIR"
+    fi
    fi
    rm -f "$origini" "$newini"
   fi
@@ -145,11 +156,11 @@ case $EXT in
   # grubenv template
   grubenv_tpl="$LINBOTPLDIR/grubenv.reboot"
   # create fifo socket
-  fifo="$LINBODIR/boot/grub/spool/${pcname}.reboot"
+  fifo="$LINBODIR/boot/grub/spool/${compname}.reboot"
   rm -f "$fifo"
   mkfifo "$fifo"
   # create screen session
-  screen -dmS "${pcname}.reboot" "$LINBOSHAREDIR/reboot_pipe.sh" "$bootpart" "$kernel" "$initrd" "$append" "$grubenv_tpl" "$fifo"
+  screen -dmS "${compname}.reboot" "$LINBOSHAREDIR/reboot_pipe.sh" "$bootpart" "$kernel" "$initrd" "$append" "$grubenv_tpl" "$fifo"
  ;;
 
  upgrade)

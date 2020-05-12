@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 # thomas@linuxmuster.net
-# 20170331
+# 20190114
 # GPL v3
 
 #set -e
@@ -21,18 +21,10 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="BitTorrent service for"
 
-# lmn specific paths
-# lmn7
-if [ -d /usr/share/linuxmuster/linbo ]; then
- source /usr/share/linuxmuster/defaults.sh || exit 1
-#lmn6x
-elif [ -d /usr/share/linuxmuster-linbo ]; then
-  source /usr/share/linuxmuster/config/dist.conf || exit 1
-else
-  exit 1
-fi
+# lmn6 specific paths
+. /usr/share/linuxmuster/config/dist.conf || exit 1
 DAEMON=$LINBOSHAREDIR/linbo-torrenthelper.sh
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
@@ -63,10 +55,10 @@ DISPLAY_INTERVAL=1
 MAX_SLICE_LENGTH=131072
 CLIENT_CONFIG="torrent-client.conf"
 
-# get daemon default settings and exit if 
-[ -e /etc/default/linbo-bittorrent ] && source /etc/default/linbo-bittorrent
+# get daemon default settings and exit if
+[ -e /etc/default/linbo-bittorrent ] && . /etc/default/linbo-bittorrent
 [ "$START_BITTORRENT" = "1" ] || exit 0
-source /etc/default/bittorrent || exit 1
+. /etc/default/bittorrent || exit 1
 [ "$START_BTTRACK" = "1" ] || exit 0
 
 cd $LINBODIR
@@ -143,7 +135,7 @@ start(){
   # start daemon stuff
   log_daemon_msg "Starting $DESC" "$i"
 
-  if screen -list | grep -q "$tname"; then
+  if screen -list | grep -qw "$tname"; then
    echo
    log_failure_msg "Torrent for $i is already running. Skipped!"
    continue
@@ -170,7 +162,7 @@ start(){
            --saveas $i"
   screen -dmS "$tname" $DAEMON $OPTIONS
   sleep 1
-  if ! screen -list | grep -q "$tname"; then
+  if ! screen -list | grep -qw "$tname"; then
    echo -n " "
    log_failure_msg "failed!"
   else
@@ -185,7 +177,7 @@ stop(){
  local i=""
  local pid=""
  for i in $images; do
-  if screen -list | grep -q "$(basename $i.torrent)"; then
+  if screen -list | grep -qw "$(basename $i.torrent)"; then
     log_daemon_msg "Stopping $DESC" "$i"
     pid="$(screen -list | grep "$(basename $i.torrent)" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"

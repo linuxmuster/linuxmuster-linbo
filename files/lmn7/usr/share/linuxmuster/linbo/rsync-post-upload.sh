@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20180216
+# 20200414
 #
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 LOGFILE="$LINBOLOGDIR/rsync-post-upload.log"
 
@@ -28,16 +28,16 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
-compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
 
-# get FQDN
-validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+# fetch host & domainname
+do_rsync_hostname
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "IP: $RSYNC_HOST_ADDR"
+echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
-echo "BACKUP: $BACKUP"
-echo "FTYPE: $FTYPE"
+echo "EXT: $EXT"
 
 # Check for backup file that should have been created by pre-upload script
 if [ -s "$BACKUP" ]; then
@@ -83,11 +83,12 @@ case "$FTYPE" in
    #  fetch samba nt password hash from ldap machine account
    url="--url=/var/lib/samba/private/sam.ldb"
    unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+   suppcredentials="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" supplementalCredentials | sed -n '/^'supplementalCredentials':/,/^$/ { /^'supplementalCredentials':/ { s/^'supplementalCredentials': *// ; h ; $ !d}; /^ / { H; $ !d}; /^ /! { x; s/\n //g; p; q}; $ { x; s/\n //g; p; q} }' | awk '{ print $2 }')"
    if [ -n "$unicodepwd" ]; then
     echo "Writing samba password hash file for image $image."
     template="$LINBOTPLDIR/machineacct"
     imagemacct="$LINBODIR/$image.macct"
-    sed -e "s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
+    sed -e "s|@@unicodepwd@@|$unicodepwd|" -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
     chmod 600 "$imagemacct"
    else
     rm -f "$imagemacct"
@@ -114,10 +115,15 @@ case "$FTYPE" in
   # restart torrent service if torrent file was uploaded.
   echo "Torrent file ${FILE##*/} detected. Restarting bittorrent service." >&2
   /etc/init.d/linbo-bittorrent restart >&2
+
  ;;
+
  *.new)
-  # add new host data to workstations file
-  ROW="$(cat $FILE)"
+  # make row lmn7 compatible
+  search=";;;;;1;1"
+  replace=";;;;classroom-studentcomputer;;1;;;;;"
+  ROW="$(sed -e "s|$search|$replace|" $FILE)"
+  # add row with new host data to devices file
   if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
    echo "$ROW"
    echo "is already present in workstations file. Skipped!" >&2
@@ -129,7 +135,9 @@ case "$FTYPE" in
   fi
   rm $FILE
  ;;
+
  *) ;;
+
 esac
 
 echo "RC: $RSYNC_EXIT_STATUS"

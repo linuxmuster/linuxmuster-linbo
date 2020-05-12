@@ -3,7 +3,7 @@
 # postinst script for linuxmuster-linbo7
 # thomas@linuxmuster.net
 # GPL v3
-# 20170529
+# 20190327
 #
 
 set -e
@@ -40,10 +40,6 @@ case "$1" in
  mkdir -p "$LINBODIR/torrentadds"
  # temp dir
  mkdir -p "$LINBODIR/tmp"
-
- # update serverip in start.conf
- echo "Setting server ip in start.conf.default."
- sed -e "s/^[Ss][Ee][Rr][Vv][Ee][Rr] = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" -i "$LINBODIR/start.conf"
 
  # create bittorrent system user if necessary
  if ! grep -qw ^bittorrent /etc/passwd; then
@@ -101,8 +97,17 @@ case "$1" in
  # create grub netboot directory
  "$LINBOSHAREDIR/mkgrubnetdir.sh"
 
- # read constants & setup values
+ # do the rest only on configured systems
  [ -e "$SETUPINI" ] || exit 0
+
+ # update serverip in start.conf
+ echo "Setting correct serverip in start.conf examples."
+ for i in $LINBODIR/start.conf $LINBODIR/examples/start.conf.*; do
+  if ! grep -qi ^"Server = $serverip" "$i"; then
+    sed -i "s/^[Ss][Ee][Rr][Vv][Ee][Rr] = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" "$i"
+  fi
+ done
+
  update-linbofs
 
  ;;

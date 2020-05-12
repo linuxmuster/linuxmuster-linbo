@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20170130
+# 20191206
 #
 
 # read linuxmuster environment
@@ -44,6 +44,7 @@ update_linbofs() {
  local linbofscachedir="$LINBOCACHEDIR/linbofs$suffix"
  local linbofs="$LINBODIR/linbofs${suffix}.lz"
  local linbofs_md5="$linbofs".md5
+ local i
  rm -f "$linbofs_md5"
  rm -rf "$linbofscachedir"
  mkdir -p "$linbofscachedir"
@@ -71,9 +72,23 @@ update_linbofs() {
  cat /root/.ssh/id_*.pub > .ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
+ # check and repair permissions
+ for i in .ssh .ssh/authorized_keys; do
+  perms="$(LANG=C stat "$i" | grep ^Access | grep Uid: | awk -F\( '{ print $2 }' | awk -F\/ '{ print $1 }')"
+	if [ "${perms:1:3}" = "666" -o "${perms:1:3}" = "777" ]; then
+	 echo "WARNING! $i has bogus permissions!"
+	 sleep 3
+	 echo "Repairing for now but check your filesystem!"
+	 [ -d "$i" ] && chmod 755 "$i"
+	 [ -f "$i" ] && chmod 644 "$i"
+  fi
+ done
 
  # copy default start.conf
  cp -f $LINBODIR/start.conf .
+
+ # copy timezone info file
+ [ -n "$zi" -a -e "$zi" ] && cp -L "$zi" etc/localtime
 
  # pack default linbofs${suffix}.lz again
  find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
@@ -103,6 +118,9 @@ if [ -z "$linbo_passwd" ]; then
 fi
 # md5sum of linbo password goes into ramdisk
 linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+
+# timezone
+[ -e /etc/localtime ] && zi="$(LANG=C file /etc/localtime | awk '{ print $5 }')"
 
 # process linbofs updates
 update_linbofs

@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20171106
+# 20200203
 #
 
 set timeout=0
@@ -73,6 +73,7 @@ menuentry 'Default' {
  fi
 
  if [ -n "${tmproot}" ]; then
+  terminal_output console
   echo Booting operating system ...
   echo
 

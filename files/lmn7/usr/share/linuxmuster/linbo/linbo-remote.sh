@@ -3,13 +3,13 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20171009
+# 20200419
 # GPL V3
 #
 
 # read linuxmuster environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 KNOWNCMDS="label partition format initcache sync start create_cloop create_rsync upload_cloop upload_rsync reboot halt"
 DLTYPES="multicast rsync torrent"
@@ -88,20 +88,14 @@ usage(){
 list(){
  local line=""
  local pid=""
- local screen=""
- local status=""
  local c=0
- local d=""
- screen -wipe | grep .linbo-remote | while read line; do
-  let c+=1
-  pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-  screen="$(echo $line | awk '{ print $1 }')"
-  screen="${screen#*.}"
-  status="$(echo $line | awk '{ print $2 }')"
+ local d
+ screen -wipe | grep .linbo-remote | sort | sed -e 's|\.|\t|' | while read line; do
+  c=$(( c + 1 ))
   d=""
   [ $c -lt 100 ] && d=" "
   [ $c -lt 10 ] && d="  "
-  echo -e "$d$c\t$pid\t$screen\t$status"
+  echo -e "$d$c\t$line"
  done
 }
 
@@ -117,7 +111,17 @@ while getopts ":b:c:dg:hi:lnp:r:w:" opt; do
   b) BETWEEN=$OPTARG ;;
   c) DIRECT=$OPTARG ;;
   d) NOBUTTONS=yes ;;
-  i) IP=$OPTARG ;;
+  i)
+    if validip "$OPTARG"; then
+      HOSTS="$(get_hostname "$OPTARG")"
+    else
+      HOSTS="$OPTARG"
+    fi
+    if ! validhostname "$HOSTS"; then
+      echo "Invalid ip or hostname."
+      usage
+    fi
+    ;;
   g) GROUP=$OPTARG ;;
   p) ONBOOT=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
@@ -133,8 +137,8 @@ while getopts ":b:c:dg:hi:lnp:r:w:" opt; do
 done
 
 # check options
-[ -z "$GROUP" -a -z "$IP" -a -z "$ROOM" ] && usage
-[ -n "$GROUP" -a -n "$IP" ] && usage
+[ -z "$GROUP" -a -z "$HOSTS" -a -z "$ROOM" ] && usage
+[ -n "$GROUP" -a -n "$HOSTS" ] && usage
 [ -n "$GROUP" -a -n "$ROOM" ] && usage
 [ -n "$IP" -a -n "$ROOM" ] && usage
 [ -n "$DIRECT" -a -n "$ONBOOT" ] && usage
@@ -295,25 +299,21 @@ NR_OF_CMDS=$c
 ## evaluate commands string - end
 
 
-# evaluate ip / group / room
-if [ -n "$IP" ]; then
- # get ip if hostname was given
- if ! validip "$IP"; then
-  get_ip "$IP"
-  [ -z "$RET" ] && usage
-  IP="$RET"
- fi
+# evaluate hosts / group / room
+if [ -n "$HOSTS" ]; then
  # test for pxe flag
- pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
- [ "$pxe" = "0" ] && usage
-
+ pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTS" | awk -F\; '{ print $11 }' | grep -v 0)"
+ if [ -z "$pxe" ]; then
+  echo "$HOSTS is no pxe client."
+  usage
+ fi
 elif [ -n "$GROUP" ]; then # hosts in group with pxe flag set
- IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
- [ -z "$IP" ] && usage
+ HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $2, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
+ [ -z "$HOSTS" ] && usage
 
 else # hosts in room with pxe flag set
- IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
- [ -z "$IP" ] && usage
+ HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $2, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
+ [ -z "$HOSTS" ] && usage
 fi
 
 
@@ -352,7 +352,7 @@ if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" ]; then
 
  echo
  echo "Preparing onboot linbo tasks:"
- for i in $IP; do
+ for i in $HOSTS; do
   echo -n " $i ... "
   [ -n "$DIRECT" ] && echo "noauto nobuttons" > "$(onbootcmdfile "$i")"
   [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
@@ -370,22 +370,22 @@ if [ -n "$WAIT" ]; then
  echo
  echo "Trying to wake up:"
  c=0
- for i in $IP; do
+ for i in $HOSTS; do
   [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
   echo -n " $i ... "
-  # get mac address of client, stored in $RET
-  get_mac "$i"
-  [ -n "$DIRECT" ] && $WOL "$RET"
+  # get mac address of client from devices.csv
+  macaddr="$(get_mac "$i")"
+  [ -n "$DIRECT" ] && $WOL "$macaddr"
   if [ -n "$ONBOOT" ]; then
    # reboot linbo-clients which are already online
    if is_online "$i"; then
     echo "Client is already online, rebooting ..."
     $SSH "$i" reboot &> /dev/null
    else
-    $WOL "$RET"
+    $WOL "$macaddr"
    fi
   fi
-  [ -z "$DIRECT" -a -z "$ONBOOT" ] && $WOL "$RET"
+  [ -z "$DIRECT" -a -z "$ONBOOT" ] && $WOL "$macaddr"
   c=$(( $c + 1 ))
  done
 fi
@@ -399,7 +399,7 @@ send_cmds(){
 
  echo
  echo "Sending command(s) to:"
- for i in $IP; do
+ for i in $HOSTS; do
   echo -n " $i ... "
 
   # look for not fetched onboot file and delete it
@@ -418,8 +418,7 @@ send_cmds(){
   fi
 
   # create a temporary script with linbo remote commands
-  get_hostname "$i"
-  HOSTNAME="$RET"
+  HOSTNAME="$i"
   REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
   echo "#!/bin/sh" > $REMOTESCRIPT
   local c=0
@@ -457,7 +456,7 @@ test_onboot(){
  # verifying if clients have done their onboot tasks
  echo
  echo "Verifying onboot tasks:"
- for i in $IP; do
+ for i in $HOSTS; do
   echo -n " $i ... "
   if [ -e "$(onbootcmdfile "$i")" ]; then
    rm -f "$(onbootcmdfile "$i")"
@@ -478,7 +477,7 @@ test_online(){
  # testing if clients are online
  echo
  echo "Testing if clients have booted:"
- for i in $IP; do
+ for i in $HOSTS; do
   echo -n " $i ... "
   if is_online "$i"; then
    echo "Online!"

@@ -2,7 +2,7 @@ Linuxmuster-linbo is the free and opensource imaging solution for linuxmuster.ne
 
 Build instructions:
 
-* Install 64bit Ubuntu 16.04.
+* Install 64bit Ubuntu 18.04.
 
 * Add 32bit Architecture:  
   `sudo dpkg --add-architecture i386`  

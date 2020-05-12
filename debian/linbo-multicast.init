@@ -14,30 +14,20 @@
 
 # thomas@linuxmuster.net
 # GPL v3
-# 20170331
+# 20190114
 
 #set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Multicast session for"
 
-# lmn specific paths
-# lmn7
-if [ -d /usr/share/linuxmuster/linbo ]; then
-  source /usr/share/linuxmuster/defaults.sh || exit 1
-  INTERFACE="$(grep ^iface "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  SERVERIP="$(grep ^serverip "$SETUPINI" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-# lmn6x
-elif [ -d /usr/share/linuxmuster-linbo ]; then
-  source /usr/share/linuxmuster/config/dist.conf || exit 1
-  source /var/lib/linuxmuster/network.settings
-  SERVERIP=$serverip
-  source /etc/default/linuxmuster-base
-  INTERFACE=$IFACE
-else
-  exit 1
-fi
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+# lmn6 specific paths
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+. /var/lib/linuxmuster/network.settings
+SERVERIP=$serverip
+. /etc/default/linuxmuster-base
+INTERFACE=$IFACE
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
 DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
 
 # Gracefully exit if the package has been removed.
@@ -57,9 +47,9 @@ MAXSECONDS=90
 MULTICASTLIST=$LINBODIR/multicast.list
 
 # read necessary functions and constants
-source /etc/default/linbo-multicast || exit 1
+. /etc/default/linbo-multicast || exit 1
 [ "$(echo $START_MULTICAST | tr a-z A-Z)" = "YES" ] || exit 0
-source /lib/lsb/init-functions
+. /lib/lsb/init-functions
 
 create_multicast_list() {
   echo -n "Creating multicast.list"
@@ -91,7 +81,7 @@ start() {
     #[ "$port" = "$PORTBASE" ] || echo
     log_daemon_msg "Starting $DESC" "$file"
 
-    if screen -list | grep -q "$file.mcast"; then
+    if screen -list | grep -qw "$file.mcast"; then
      echo
      log_failure_msg "Multicast for $file is already running. Skipped!"
      continue
@@ -101,7 +91,7 @@ start() {
 
     screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
     sleep 1
-    if ! screen -list | grep -q "$file.mcast"; then
+    if ! screen -list | grep -qw "$file.mcast"; then
      echo -n " "
      log_failure_msg "failed!"
     else
@@ -119,9 +109,9 @@ stop(){
  local i=""
  local pid=""
  for i in $images; do
-  if screen -list | grep -q "$i.mcast"; then
+  if screen -list | grep -qw "$i.mcast"; then
     log_daemon_msg "Stopping $DESC" "$i"
-    pid="$(screen -list | grep "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    pid="$(screen -list | grep -w "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
     kill $pid ; RC="$?"
     log_end_msg "$RC"
   fi

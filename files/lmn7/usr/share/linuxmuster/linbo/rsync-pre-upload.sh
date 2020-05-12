@@ -6,9 +6,13 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 20180216
+# 20200414
 # GPL v3
 #
+
+# read in linuxmuster specific environment
+source /usr/share/linuxmuster/defaults.sh || exit 1
+source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 # Debug
 LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-upload.log"
@@ -29,10 +33,14 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 # Save filename for post-script and exit, if it is a new host data file
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
 
+# fetch host & domainname
+do_rsync_hostname
+
 echo "HOSTNAME: $RSYNC_HOST_NAME"
+echo "IP: $RSYNC_HOST_ADDR"
+echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
-echo "BACKUP: $BACKUP"
 echo "EXT: $EXT"
 
 if [ "$EXT" = ".new" ]; then
