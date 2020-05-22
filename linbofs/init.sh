@@ -620,7 +620,7 @@ network(){
    echo "Network connection to $server established successfully."
    grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
    echo "Starting time sync ..."
-   ( ntpd -n -q -p "$server" && hwclock --systohc ) &
+   ( ntpd -n -q -p "$server" && hwclock --utc --systohc ) &
    #date
    # linbo update & grub installation
    do_linbo_update "$server"
