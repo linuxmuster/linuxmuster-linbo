@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20200419
+# 20200527
 #
 
 # converting string to lower chars
@@ -78,6 +78,18 @@ get_hostname() {
   fi
   [ -n "$RET" ] && tolower "$RET"
   echo "$RET"
+}
+
+# get broadcast address for specified ip address
+get_bcaddress(){
+python3 <<END
+from functions import getIpBcAddress
+try:
+  ip="$1"
+  print(getIpBcAddress(ip))
+except:
+  quit(1)
+END
 }
 
 # extract mac address from file devices.csv

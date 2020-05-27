@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.60-0) babo62; urgency=low
+
+  * lmn7:
+    - merged #131: wake-on-lan improvement & update-linbofs timezone fix.
+    - reworked helperfunctions, get_bcaddress.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 May 2020 20:55:43 +0200
+
 linuxmuster-linbo (2.3.59-0) babo62; urgency=low
 
   * lmn7: further modifications and fixes for dynamicip hosts support (#126).

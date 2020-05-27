@@ -87,8 +87,9 @@ update_linbofs() {
  # copy default start.conf
  cp -f $LINBODIR/start.conf .
 
- # copy timezone info file
- [ -n "$zi" -a -e "$zi" ] && cp -L "$zi" etc/localtime
+# timezone
+# copy timezone info file
+[ -e /etc/localtime ] && cp -L "/etc/localtime" etc/localtime
 
  # pack default linbofs${suffix}.lz again
  find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
@@ -119,8 +120,6 @@ fi
 # md5sum of linbo password goes into ramdisk
 linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
 
-# timezone
-[ -e /etc/localtime ] && zi="$(LANG=C file /etc/localtime | awk '{ print $5 }')"
 
 # process linbofs updates
 update_linbofs
