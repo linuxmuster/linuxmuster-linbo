@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20200527
+# 20200528
 # GPL V3
 #
 
@@ -140,7 +140,6 @@ done
 [ -z "$GROUP" -a -z "$HOSTS" -a -z "$ROOM" ] && usage
 [ -n "$GROUP" -a -n "$HOSTS" ] && usage
 [ -n "$GROUP" -a -n "$ROOM" ] && usage
-[ -n "$IP" -a -n "$ROOM" ] && usage
 [ -n "$DIRECT" -a -n "$ONBOOT" ] && usage
 [ -z "$DIRECT" -a -z "$ONBOOT" -a -z "$WAIT" ] && usage
 if [ -n "$WAIT" ]; then
@@ -167,7 +166,7 @@ fi
 
 if [ -n "$CMDS" ]; then
  # no upload or create for groups/rooms
- case "$CMDS" in *upload*|*create*) [ -z "$IP" ] && usage ;; esac
+ case "$CMDS" in *upload*|*create*) [ -z "$HOSTS" ] && usage ;; esac
 
  # provide secrets for upload
  case "$CMDS" in *upload*) SECRETS=/etc/rsyncd.secrets ;; esac
@@ -379,7 +378,8 @@ if [ -n "$WAIT" ]; then
   ipaddr="$(get_ip "$i")"
   # try to determine broadcast address from subnets.csv
   # if fails just dont use -i BROADCASTADDRESS parameter
-  bcaddr=$(get_bcaddress "$ipaddr") && WOL="$WOL -i $bcaddr"
+  # hosts don't wake up anymore with this fix
+  #bcaddr=$(get_bcaddress "$ipaddr") && WOL="$WOL -i $bcaddr"
 
   [ -n "$DIRECT" ] && $WOL "$macaddr"
   if [ -n "$ONBOOT" ]; then

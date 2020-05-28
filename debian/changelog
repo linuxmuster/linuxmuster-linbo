@@ -1,3 +1,11 @@
+linuxmuster-linbo (2.3.61-0) lmn7; urgency=low
+
+  * lmn7:
+    - fix #129: create_cloop und upload_cloop won't work anymore.
+    - removed fix #131 "wake-on-lan improvement" (hosts don't wake up anymore with this fix).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 May 2020 15:34:30 +0200
+
 linuxmuster-linbo (2.3.60-0) babo62; urgency=low
 
   * lmn7:
