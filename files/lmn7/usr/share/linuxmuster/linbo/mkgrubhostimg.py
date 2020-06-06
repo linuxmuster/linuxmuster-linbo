@@ -5,7 +5,7 @@
 #
 # linuxmuster-mkgrubimg.py
 # thomas@linuxmuster.net
-# 20200131
+# 20200606
 #
 
 import configparser
@@ -170,8 +170,8 @@ if setfilename == True:
     rc = writeTextfile(wsfile, content.replace(row_old, row_new), 'w')
     # modify dhcpd.conf
     rc, content = readTextfile(constants.DHCPDEVCONF)
-    row_old = re.findall('host ' + ip + ' .*?(?=}|$)', content, re.DOTALL)[0]
-    row_new = 'host ' + ip + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
+    row_old = re.findall('host ' + hostname + ' .*?(?=}|$)', content, re.DOTALL)[0]
+    row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
     rc = writeTextfile(constants.DHCPDEVCONF, content.replace(row_old, row_new), 'w')
     # finally restart dhcp service
     os.system('service isc-dhcp-server restart')

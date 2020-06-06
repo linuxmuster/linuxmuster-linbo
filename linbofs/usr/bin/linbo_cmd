@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20200131
+# 20200606
 # GPL v3
 #
 
@@ -1000,24 +1000,28 @@ print_efi_bootnr(){
 # create efi boot entry
 # create_efiboot label efipart
 create_efiboot(){
- # return if entry exists
- efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
- local label="$1"
- local efipart="$2"
- local efidisk="$(get_disk_from_partition "$efipart")"
- local efipartnr="$(echo "$efipart" | sed "s|$efidisk||")"
- local efiloader
- local bits
- case "$label" in
-  *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
-  grub)
-   bits="$(get_64)"
-   [ -z "$bits" ] && bits="32"
-   efiloader="\\EFI\\grub\\grubx${bits}.efi"
-   ;;
-  *) return 1 ;;
- esac
- efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
+  # return if entry exists
+  efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
+  local label="$1"
+  local efipart="$2"
+  local efipartnr
+  local efidisk="$(get_disk_from_partition "$efipart")"
+  case "$efidisk" in
+    *nvme*) efipartnr="$(echo "$efipart" | sed "s|${efidisk}p||")" ;;
+    *) efipartnr="$(echo "$efipart" | sed "s|$efidisk||")" ;;
+  esac
+  local efiloader
+  local bits
+  case "$label" in
+    *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
+    grub)
+      bits="$(get_64)"
+      [ -z "$bits" ] && bits="32"
+      efiloader="\\EFI\\grub\\grubx${bits}.efi"
+      ;;
+    *) return 1 ;;
+  esac
+  efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
 }
 
 # set_efibootnext: creates efi bootnext entry

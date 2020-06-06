@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.62-0) lmn7; urgency=low
+
+  * fix #123: create_efiboot() fails with NVMe devices.
+  * lmn7: mkgrubhostimg.py fix, ip changed to hostname in dhcp's devices.conf.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 06 Jun 2020 12:59:33 +0200
+
 linuxmuster-linbo (2.3.61-0) lmn7; urgency=low
 
   * lmn7:
