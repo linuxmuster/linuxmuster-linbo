@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20200419
+# 20200611
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -620,7 +620,8 @@ network(){
    echo "Network connection to $server established successfully."
    grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
    echo "Starting time sync ..."
-   ( ntpd -n -q -p "$server" && hwclock --systohc ) &
+   #( ntpd -n -q -p "$server" && hwclock --systohc ) &
+   ntpd -n -q -p "$server" &
    #date
    # linbo update & grub installation
    do_linbo_update "$server"

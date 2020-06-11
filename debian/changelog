@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.63-0) lmn7; urgency=low
+
+  * fix #132: tell hwclock to assume rtc is in utc.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 11 Jun 2020 17:01:19 +0200
+
 linuxmuster-linbo (2.3.62-0) lmn7; urgency=low
 
   * fix #123: create_efiboot() fails with NVMe devices.
