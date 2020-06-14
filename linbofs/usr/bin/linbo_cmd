@@ -749,6 +749,7 @@ convert_size(){
  echo $size
 }
 
+# thoschi
 # there are some problems with existing labels, so the new command "wipe" (that does just some dding) might help  
 wipe(){
  local RC=0
