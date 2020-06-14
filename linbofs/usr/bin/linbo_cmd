@@ -749,6 +749,15 @@ convert_size(){
  echo $size
 }
 
+# there are some problems with existing labels, so the new command "wipe" (that does just some dding) might help  
+wipe(){
+ local table="$1"
+ [ -s "$table" ] || return 1
+ local disk="/dev/$(basename "$table")"
+ [ -b "$disk" ] || return 1
+ dd if=/dev/zero of=$disk bs=512 count=1
+}
+
 # partition with parted, invoked by partition() for each disk
 # args: table
 mk_parted(){
@@ -944,6 +953,8 @@ partition(){
   fi
   case "$line" in dev=*|label=*|id=*|fstype=*|size=*|bootable=*) eval "$line" ;; esac
  done
+
+ # remove all partition information from disk (to 
 
  # get all disks from start.conf
  local disks="$(get_disks_startconf)"
@@ -3531,6 +3542,7 @@ case "$cmd" in
  update) update "$@" ;;
  upload) upload "$@" ;;
  version) version ;;
+ wipe) wipe "$@" ;;
  writefile) writefile "$@" ;;
  *) help "$cmd" "$@" ;;
 esac
