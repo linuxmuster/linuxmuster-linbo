@@ -293,6 +293,7 @@ help(){
  echo
  echo "Verfügbare Befehle sind:"
  echo
+ echo "wipe                     : Überschreiben alter Partitionsinformationen."
  echo "partition                : Schreibe die Partitionstabelle."
  echo "label                    : Versieht alle Partitionen mit Label, die in der"
  echo "                           start.conf-Datei definiert und formatiert sind."
@@ -345,6 +346,10 @@ while [ "$#" -gt "0" ]; do
   linbo)
    echo "${cmd}:${param}" > "$SECRETS"
    ;;
+
+  wipe)
+   linbo_cmd wipe
+  ;;
 
   partition)
    get_partitions
