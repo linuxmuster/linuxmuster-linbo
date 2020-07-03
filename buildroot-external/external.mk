@@ -8,7 +8,7 @@ endef
 NTFS_3G_POST_INSTALL_TARGET_HOOKS += NTFS_3G_MOUNT_USE_NTFS_3G
 
 # xkbcommon: activate german keyboard as default
-LIBXKBCOMMON_CONF_OPTS += --with-default-layout=de --with-default-variant=nodeadkeys
+LIBXKBCOMMON_CONF_OPTS += -Ddefault-layout=de -Ddefault-variant=nodeadkeys
 
 # busybox config: redefine FIXUP_CMDS - add ntpd, use ash instead of bash
 define BUSYBOX_EXTERNAL_FIXUPS
