@@ -4,12 +4,13 @@
 #
 ################################################################################
 
-SYSTEMD_VERSION = 243.4
+SYSTEMD_VERSION = 245.5
 SYSTEMD_SITE = $(call github,systemd,systemd-stable,v$(SYSTEMD_VERSION))
-SYSTEMD_LICENSE = LGPL-2.1+, GPL-2.0+ (udev), Public Domain (few source files, see README)
-SYSTEMD_LICENSE_FILES = LICENSE.GPL2 LICENSE.LGPL2.1 README
+SYSTEMD_LICENSE = LGPL-2.1+, GPL-2.0+ (udev), Public Domain (few source files, see README), BSD-3-Clause (tools/chromiumos)
+SYSTEMD_LICENSE_FILES = LICENSE.GPL2 LICENSE.LGPL2.1 README tools/chromiumos/LICENSE
 SYSTEMD_INSTALL_STAGING = YES
 SYSTEMD_DEPENDENCIES = \
+	$(BR2_COREUTILS_HOST_DEPENDENCY) \
 	$(if $(BR2_PACKAGE_BASH_COMPLETION),bash-completion) \
 	host-gperf \
 	kmod \
@@ -25,7 +26,6 @@ SYSTEMD_CONF_OPTS += \
 	-Dman=false \
 	-Dima=false \
 	-Dldconfig=false \
-	-Ddefault-dnssec=no \
 	-Ddefault-hierarchy=hybrid \
 	-Dtests=false \
 	-Dsplit-bin=true \
@@ -49,15 +49,16 @@ else
 SYSTEMD_CONF_OPTS += -Dacl=false
 endif
 
+ifeq ($(BR2_PACKAGE_LIBAPPARMOR),y)
+SYSTEMD_DEPENDENCIES += libapparmor
+SYSTEMD_CONF_OPTS += -Dapparmor=true
+else
+SYSTEMD_CONF_OPTS += -Dapparmor=false
+endif
+
 ifeq ($(BR2_PACKAGE_AUDIT),y)
 SYSTEMD_DEPENDENCIES += audit
 SYSTEMD_CONF_OPTS += -Daudit=true
-define SYSTEMD_INSTALL_SERVICE_AUDIT
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../../usr/lib/systemd/system/auditd.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/auditd.service
-endef
-
 else
 SYSTEMD_CONF_OPTS += -Daudit=false
 endif
@@ -65,11 +66,6 @@ endif
 ifeq ($(BR2_PACKAGE_CRYPTSETUP),y)
 SYSTEMD_DEPENDENCIES += cryptsetup
 SYSTEMD_CONF_OPTS += -Dlibcryptsetup=true
-define SYSTEMD_INSTALL_TARGET_CRYPTSETUP
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../../usr/lib/systemd/system/remote-cryptsetup.target \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target
-endef
 else
 SYSTEMD_CONF_OPTS += -Dlibcryptsetup=false
 endif
@@ -79,6 +75,13 @@ SYSTEMD_DEPENDENCIES += elfutils
 SYSTEMD_CONF_OPTS += -Delfutils=true
 else
 SYSTEMD_CONF_OPTS += -Delfutils=false
+endif
+
+ifeq ($(BR2_PACKAGE_GNUTLS),y)
+SYSTEMD_DEPENDENCIES += gnutls
+SYSTEMD_CONF_OPTS += -Dgnutls=true
+else
+SYSTEMD_CONF_OPTS += -Dgnutls=false
 endif
 
 ifeq ($(BR2_PACKAGE_IPTABLES),y)
@@ -134,6 +137,12 @@ else
 SYSTEMD_CONF_OPTS += -Dpam=false
 endif
 
+ifeq ($(BR2_PACKAGE_UTIL_LINUX_LIBFDISK),y)
+SYSTEMD_CONF_OPTS += -Dfdisk=true
+else
+SYSTEMD_CONF_OPTS += -Dfdisk=false
+endif
+
 ifeq ($(BR2_PACKAGE_VALGRIND),y)
 SYSTEMD_DEPENDENCIES += valgrind
 SYSTEMD_CONF_OPTS += -Dvalgrind=true
@@ -164,9 +173,23 @@ endif
 
 ifeq ($(BR2_PACKAGE_LIBGCRYPT),y)
 SYSTEMD_DEPENDENCIES += libgcrypt
-SYSTEMD_CONF_OPTS += -Dgcrypt=true
+SYSTEMD_CONF_OPTS += -Ddefault-dnssec=allow-downgrade -Dgcrypt=true
 else
-SYSTEMD_CONF_OPTS += -Dgcrypt=false
+SYSTEMD_CONF_OPTS += -Ddefault-dnssec=no -Dgcrypt=false
+endif
+
+ifeq ($(BR2_PACKAGE_P11_KIT),y)
+SYSTEMD_DEPENDENCIES += p11-kit
+SYSTEMD_CONF_OPTS += -Dp11kit=true
+else
+SYSTEMD_CONF_OPTS += -Dp11kit=false
+endif
+
+ifeq ($(BR2_PACKAGE_OPENSSL),y)
+SYSTEMD_DEPENDENCIES += openssl
+SYSTEMD_CONF_OPTS += -Dopenssl=true
+else
+SYSTEMD_CONF_OPTS += -Dopenssl=false
 endif
 
 ifeq ($(BR2_PACKAGE_PCRE2),y)
@@ -204,6 +227,14 @@ endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_HWDB),y)
 SYSTEMD_CONF_OPTS += -Dhwdb=true
+define SYSTEMD_BUILD_HWDB
+	$(HOST_DIR)/bin/udevadm hwdb --update --root $(TARGET_DIR)
+endef
+SYSTEMD_TARGET_FINALIZE_HOOKS += SYSTEMD_BUILD_HWDB
+define SYSTEMD_RM_HWDB_SRV
+	rm -rf $(TARGET_DIR)/$(HOST_EUDEV_SYSCONFDIR)/udev/hwdb.d/
+endef
+SYSTEMD_ROOTFS_PRE_CMD_HOOKS += SYSTEMD_RM_HWDB_SRV
 else
 SYSTEMD_CONF_OPTS += -Dhwdb=false
 endif
@@ -269,20 +300,22 @@ SYSTEMD_CONF_OPTS += -Dlogind=false
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_MACHINED),y)
-SYSTEMD_CONF_OPTS += -Dmachined=true
-define SYSTEMD_INSTALL_TARGET_MACHINED
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../../lib/systemd/system/machines.target \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/machines.target
-endef
+SYSTEMD_CONF_OPTS += -Dmachined=true -Dnss-mymachines=true
 else
-SYSTEMD_CONF_OPTS += -Dmachined=false
+SYSTEMD_CONF_OPTS += -Dmachined=false -Dnss-mymachines=false
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_IMPORTD),y)
 SYSTEMD_CONF_OPTS += -Dimportd=true
 else
 SYSTEMD_CONF_OPTS += -Dimportd=false
+endif
+
+ifeq ($(BR2_PACKAGE_SYSTEMD_HOMED),y)
+SYSTEMD_CONF_OPTS += -Dhomed=true
+SYSTEMD_DEPENDENCIES += cryptsetup openssl
+else
+SYSTEMD_CONF_OPTS += -Dhomed=false
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_HOSTNAMED),y)
@@ -309,6 +342,19 @@ else
 SYSTEMD_CONF_OPTS += -Dlocaled=false
 endif
 
+ifeq ($(BR2_PACKAGE_SYSTEMD_REPART),y)
+SYSTEMD_CONF_OPTS += -Drepart=true
+SYSTEMD_DEPENDENCIES += openssl
+else
+SYSTEMD_CONF_OPTS += -Drepart=false
+endif
+
+ifeq ($(BR2_PACKAGE_SYSTEMD_USERDB),y)
+SYSTEMD_CONF_OPTS += -Duserdb=true
+else
+SYSTEMD_CONF_OPTS += -Duserdb=false
+endif
+
 ifeq ($(BR2_PACKAGE_SYSTEMD_COREDUMP),y)
 SYSTEMD_CONF_OPTS += -Dcoredump=true
 SYSTEMD_COREDUMP_USER = systemd-coredump -1 systemd-coredump -1 * /var/lib/systemd/coredump - - Core Dumper
@@ -318,11 +364,6 @@ endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_PSTORE),y)
 SYSTEMD_CONF_OPTS += -Dpstore=true
-define SYSTEMD_INSTALL_SERVICE_PSTORE
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/systemd-remount-fs.service.wants
-	ln -sf ../../../../lib/systemd/system/systemd-pstore.service \
-		$(TARGET_DIR)/etc/systemd/system/systemd-remount-fs.service.wants/systemd-pstore.service
-endef
 else
 SYSTEMD_CONF_OPTS += -Dpstore=false
 endif
@@ -337,30 +378,12 @@ endif
 ifeq ($(BR2_PACKAGE_SYSTEMD_NETWORKD),y)
 SYSTEMD_CONF_OPTS += -Dnetworkd=true
 SYSTEMD_NETWORKD_USER = systemd-network -1 systemd-network -1 * - - - Network Manager
-define SYSTEMD_INSTALL_SOCKET_NETWORKD
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/sockets.target.wants
-	ln -sf ../../../../lib/systemd/system/systemd-networkd.socket \
-		$(TARGET_DIR)/etc/systemd/system/sockets.target.wants/systemd-networkd.socket
-endef
-define SYSTEMD_INSTALL_SERVICE_NETWORKD
-	ln -sf ../../../lib/systemd/system/systemd-networkd.service \
-		$(TARGET_DIR)/etc/systemd/system/dbus-org.freedesktop.network1.service
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../../lib/systemd/system/systemd-networkd.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/systemd-networkd.service
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/network-online.target.wants
-	ln -sf ../../../../lib/systemd/system/systemd-networkd-wait-online.service \
-		$(TARGET_DIR)/etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/network-pre.target.wants
-	ln -sf ../../../../lib/systemd/system/systemd-network-generator.service \
-		$(TARGET_DIR)/etc/systemd/system/network-pre.target.wants/systemd-network-generator.service
-endef
 SYSTEMD_NETWORKD_DHCP_IFACE = $(call qstrip,$(BR2_SYSTEM_DHCP))
 ifneq ($(SYSTEMD_NETWORKD_DHCP_IFACE),)
 define SYSTEMD_INSTALL_NETWORK_CONFS
 	sed s/SYSTEMD_NETWORKD_DHCP_IFACE/$(SYSTEMD_NETWORKD_DHCP_IFACE)/ \
-		package/systemd/dhcp.network > \
-		$(TARGET_DIR)/etc/systemd/network/dhcp.network
+		$(SYSTEMD_PKGDIR)/dhcp.network > \
+		$(TARGET_DIR)/etc/systemd/network/$(SYSTEMD_NETWORKD_DHCP_IFACE).network
 endef
 endif
 else
@@ -372,31 +395,25 @@ define SYSTEMD_INSTALL_RESOLVCONF_HOOK
 	ln -sf ../run/systemd/resolve/resolv.conf \
 		$(TARGET_DIR)/etc/resolv.conf
 endef
-SYSTEMD_CONF_OPTS += -Dresolve=true
+SYSTEMD_CONF_OPTS += -Dnss-resolve=true -Dresolve=true
 SYSTEMD_RESOLVED_USER = systemd-resolve -1 systemd-resolve -1 * - - - Network Name Resolution Manager
-define SYSTEMD_INSTALL_SERVICE_RESOLVED
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../lib/systemd/system/systemd-resolved.service \
-		$(TARGET_DIR)/etc/systemd/system/dbus-org.freedesktop.resolve1.service
-	ln -sf ../../../../lib/systemd/system/systemd-resolved.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/systemd-resolved.service
-endef
 else
-SYSTEMD_CONF_OPTS += -Dresolve=false
+SYSTEMD_CONF_OPTS += -Dnss-resolve=false -Dresolve=false
+endif
+
+ifeq ($(BR2_PACKAGE_GNUTLS),y)
+SYSTEMD_CONF_OPTS += -Ddns-over-tls=gnutls -Ddefault-dns-over-tls=opportunistic
+SYSTEMD_DEPENDENCIES += gnutls
+else ifeq ($(BR2_PACKAGE_OPENSSL),y)
+SYSTEMD_CONF_OPTS += -Ddns-over-tls=openssl -Ddefault-dns-over-tls=opportunistic
+SYSTEMD_DEPENDENCIES += openssl
+else
+SYSTEMD_CONF_OPTS += -Ddns-over-tls=false -Ddefault-dns-over-tls=no
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_TIMESYNCD),y)
 SYSTEMD_CONF_OPTS += -Dtimesyncd=true
 SYSTEMD_TIMESYNCD_USER = systemd-timesync -1 systemd-timesync -1 * - - - Network Time Synchronization
-define SYSTEMD_INSTALL_SERVICE_TIMESYNCD
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/sysinit.target.wants
-	ln -sf ../../../../lib/systemd/system/systemd-timesyncd.service \
-		$(TARGET_DIR)/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
-	ln -sf ../../../../lib/systemd/system/systemd-time-wait-sync.service \
-		$(TARGET_DIR)/etc/systemd/system/sysinit.target.wants/systemd-time-wait-sync.service
-	ln -sf ../../../lib/systemd/system/systemd-timesyncd.service \
-		$(TARGET_DIR)/etc/systemd/system/dbus-org.freedesktop.timesync1.service
-endef
 else
 SYSTEMD_CONF_OPTS += -Dtimesyncd=false
 endif
@@ -447,18 +464,8 @@ SYSTEMD_CONF_OPTS += -Dfallback-hostname=$(SYSTEMD_FALLBACK_HOSTNAME)
 endif
 
 define SYSTEMD_INSTALL_INIT_HOOK
-	ln -fs ../lib/systemd/systemd $(TARGET_DIR)/sbin/init
-	ln -fs ../bin/systemctl $(TARGET_DIR)/sbin/halt
-	ln -fs ../bin/systemctl $(TARGET_DIR)/sbin/poweroff
-	ln -fs ../bin/systemctl $(TARGET_DIR)/sbin/reboot
-	ln -fs ../bin/systemctl $(TARGET_DIR)/sbin/shutdown
-	ln -fs ../../../lib/systemd/system/multi-user.target \
-		$(TARGET_DIR)/etc/systemd/system/default.target
-	ln -fs ../../../lib/systemd/system/reboot.target \
-		$(TARGET_DIR)/etc/systemd/system/ctrl-alt-del.target
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../../lib/systemd/system/remote-fs.target \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/remote-fs.target
+	ln -fs multi-user.target \
+		$(TARGET_DIR)/usr/lib/systemd/system/default.target
 endef
 
 define SYSTEMD_INSTALL_MACHINEID_HOOK
@@ -466,9 +473,6 @@ define SYSTEMD_INSTALL_MACHINEID_HOOK
 endef
 
 SYSTEMD_POST_INSTALL_TARGET_HOOKS += \
-	SYSTEMD_INSTALL_TARGET_CRYPTSETUP \
-	SYSTEMD_INSTALL_TARGET_MACHINED \
-	SYSTEMD_INSTALL_SOCKET_NETWORKD \
 	SYSTEMD_INSTALL_INIT_HOOK \
 	SYSTEMD_INSTALL_MACHINEID_HOOK \
 	SYSTEMD_INSTALL_RESOLVCONF_HOOK
@@ -492,62 +496,177 @@ define SYSTEMD_USERS
 	$(SYSTEMD_TIMESYNCD_USER)
 endef
 
-define SYSTEMD_DISABLE_SERVICE_TTY1
-	rm -f $(TARGET_DIR)/etc/systemd/system/getty.target.wants/getty@tty1.service
-endef
-
 ifneq ($(call qstrip,$(BR2_TARGET_GENERIC_GETTY_PORT)),)
-# systemd needs getty.service for VTs and serial-getty.service for serial ttys
-# note that console-getty.service should be used on /dev/console as it should not have dependencies
-# also patch the file to use the correct baud-rate, the default baudrate is 115200 so look for that
+# systemd provides multiple units to autospawn getty as neede
+# * getty@.service to start a getty on normal TTY
+# * sertial-getty@.service to start a getty on serial lines
+# * console-getty.service for generic /dev/console
+# * container-getty@.service for a getty on /dev/pts/*
+#
+# the generator systemd-getty-generator will
+# * read the console= kernel command line parameter
+# * enable one of the above units depending on what it finds
+#
+# Systemd defaults to enablinb getty@tty1.service
+#
+# What we want to do
+# * Enable a getty on $BR2_TARGET_GENERIC_TTY_PATH
+# * Set the baudrate for all units according to BR2_TARGET_GENERIC_GETTY_BAUDRATE
+# * Always enable a getty on the console using systemd-getty-generator
+#   (backward compatibility with previous releases of buildroot)
+#
+# What we do
+# * disable getty@tty1 (enabled by upstream systemd)
+# * enable getty@xxx if  $BR2_TARGET_GENERIC_TTY_PATH is a tty
+# * enable serial-getty@xxx for other $BR2_TARGET_GENERIC_TTY_PATH
+# * rewrite baudrates if a baudrate is provided
 define SYSTEMD_INSTALL_SERVICE_TTY
+	mkdir $(TARGET_DIR)/usr/lib/systemd/system/getty@.service.d; \
+	printf '[Install]\nDefaultInstance=\n' \
+		>$(TARGET_DIR)/usr/lib/systemd/system/getty@.service.d/buildroot-console.conf; \
 	if [ $(BR2_TARGET_GENERIC_GETTY_PORT) = "console" ]; \
 	then \
-		TARGET="console-getty.service"; \
-		LINK_NAME="console-getty.service"; \
+		: ; \
 	elif echo $(BR2_TARGET_GENERIC_GETTY_PORT) | egrep -q 'tty[0-9]*$$'; \
 	then \
-		TARGET="getty@.service"; \
-		LINK_NAME="getty@$(call qstrip,$(BR2_TARGET_GENERIC_GETTY_PORT)).service"; \
+		printf '[Install]\nDefaultInstance=%s\n' \
+			$(call qstrip,$(BR2_TARGET_GENERIC_GETTY_PORT)) \
+			>$(TARGET_DIR)/usr/lib/systemd/system/getty@.service.d/buildroot-console.conf; \
 	else \
-		TARGET="serial-getty@.service"; \
-		LINK_NAME="serial-getty@$(call qstrip,$(BR2_TARGET_GENERIC_GETTY_PORT)).service"; \
+		mkdir $(TARGET_DIR)/usr/lib/systemd/system/serial-getty@.service.d;\
+		printf '[Install]\nDefaultInstance=%s\n' \
+			$(call qstrip,$(BR2_TARGET_GENERIC_GETTY_PORT)) \
+			>$(TARGET_DIR)/usr/lib/systemd/system/serial-getty@.service.d/buildroot-console.conf;\
 	fi; \
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/getty.target.wants/; \
-	ln -fs ../../../../lib/systemd/system/$${TARGET} \
-		$(TARGET_DIR)/etc/systemd/system/getty.target.wants/$${LINK_NAME}; \
 	if [ $(call qstrip,$(BR2_TARGET_GENERIC_GETTY_BAUDRATE)) -gt 0 ] ; \
 	then \
-		$(SED) 's,115200,$(BR2_TARGET_GENERIC_GETTY_BAUDRATE),' $(TARGET_DIR)/lib/systemd/system/$${TARGET}; \
+		$(SED) 's/115200/$(BR2_TARGET_GENERIC_GETTY_BAUDRATE),115200/' $(TARGET_DIR)/lib/systemd/system/getty@.service; \
+		$(SED) 's/115200/$(BR2_TARGET_GENERIC_GETTY_BAUDRATE),115200/' $(TARGET_DIR)/lib/systemd/system/serial-getty@.service; \
+		$(SED) 's/115200/$(BR2_TARGET_GENERIC_GETTY_BAUDRATE),115200/' $(TARGET_DIR)/lib/systemd/system/console-getty@.service; \
+		$(SED) 's/115200/$(BR2_TARGET_GENERIC_GETTY_BAUDRATE),115200/' $(TARGET_DIR)/lib/systemd/system/container-getty@.service; \
 	fi
 endef
 endif
 
-define SYSTEMD_INSTALL_SERVICE_AUTOVT
-	ln -sf ../../../lib/systemd/system/getty@.service \
-		$(TARGET_DIR)/lib/systemd/system/autovt@.service
-endef
-
-define SYSTEMD_INSTALL_SERVICE_BOOT_CHECK
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/boot-complete.target.requires
-	ln -sf ../../../../lib/systemd/system/systemd-boot-check-no-failures.service \
-		$(TARGET_DIR)/etc/systemd/system/boot-complete.target.requires/systemd-boot-check-no-failures.service
+define SYSTEMD_INSTALL_PRESET
+	$(INSTALL) -D -m 644 $(SYSTEMD_PKGDIR)/80-buildroot.preset $(TARGET_DIR)/usr/lib/systemd/system-preset/80-buildroot.preset
 endef
 
 define SYSTEMD_INSTALL_INIT_SYSTEMD
-	$(SYSTEMD_DISABLE_SERVICE_TTY1)
+	$(SYSTEMD_INSTALL_PRESET)
 	$(SYSTEMD_INSTALL_SERVICE_TTY)
-	$(SYSTEMD_INSTALL_SERVICE_AUTOVT)
-	$(SYSTEMD_INSTALL_SERVICE_RESOLVED)
-	$(SYSTEMD_INSTALL_SERVICE_TIMESYNCD)
 	$(SYSTEMD_INSTALL_NETWORK_CONFS)
-	$(SYSTEMD_INSTALL_SERVICE_PSTORE)
-	$(SYSTEMD_INSTALL_SERVICE_NETWORKD)
-	$(SYSTEMD_INSTALL_SERVICE_AUDIT)
-	$(SYSTEMD_INSTALL_SERVICE_BOOT_CHECK)
 endef
+
+define SYSTEMD_PRESET_ALL
+	$(HOST_DIR)/bin/systemctl --root=$(TARGET_DIR) preset-all
+endef
+SYSTEMD_TARGET_FINALIZE_HOOKS += SYSTEMD_PRESET_ALL
 
 SYSTEMD_CONF_ENV = $(HOST_UTF8_LOCALE_ENV)
 SYSTEMD_NINJA_ENV = $(HOST_UTF8_LOCALE_ENV)
 
+define SYSTEMD_LINUX_CONFIG_FIXUPS
+	$(call KCONFIG_ENABLE_OPT,CONFIG_CGROUPS)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_INOTIFY_USER)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_FHANDLE)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_AUTOFS4_FS)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_TMPFS_POSIX_ACL)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_TMPFS_XATTR)
+endef
+
+# We need a very minimal host variant, so we disable as much as possible.
+HOST_SYSTEMD_CONF_OPTS = \
+	-Dsplit-bin=true \
+	-Dsplit-usr=false \
+	--prefix=/usr \
+	--libdir=lib \
+	--sysconfdir=/etc \
+	--localstatedir=/var \
+	-Dutmp=false \
+	-Dhibernate=false \
+	-Dldconfig=false \
+	-Dresolve=false \
+	-Defi=false \
+	-Dtpm=false \
+	-Denvironment-d=false \
+	-Dbinfmt=false \
+	-Drepart=false \
+	-Dcoredump=false \
+	-Dpstore=false \
+	-Dlogind=false \
+	-Dhostnamed=false \
+	-Dlocaled=false \
+	-Dmachined=false \
+	-Dportabled=false \
+	-Duserdb=false \
+	-Dhomed=false \
+	-Dnetworkd=false \
+	-Dtimedated=false \
+	-Dtimesyncd=false \
+	-Dremote=false \
+	-Dcreate-log-dirs=false \
+	-Dnss-myhostname=false \
+	-Dnss-mymachines=false \
+	-Dnss-resolve=false \
+	-Dnss-systemd=false \
+	-Dfirstboot=false \
+	-Drandomseed=false \
+	-Dbacklight=false \
+	-Dvconsole=false \
+	-Dquotacheck=false \
+	-Dsysusers=false \
+	-Dtmpfiles=false \
+	-Dimportd=false \
+	-Dhwdb=false \
+	-Drfkill=false \
+	-Dman=false \
+	-Dhtml=false \
+	-Dsmack=false \
+	-Dpolkit=false \
+	-Dblkid=false \
+	-Didn=false \
+	-Dadm-group=false \
+	-Dwheel-group=false \
+	-Dzlib=false \
+	-Dgshadow=false \
+	-Dima=false \
+	-Dtests=false \
+	-Dglib=false \
+	-Dacl=false \
+	-Dsysvinit-path=''
+
+HOST_SYSTEMD_DEPENDENCIES = \
+	$(BR2_COREUTILS_HOST_DEPENDENCY) \
+	host-util-linux \
+	host-patchelf \
+	host-libcap \
+	host-gperf
+
+# Fix RPATH After installation
+# * systemd provides a install_rpath instruction to meson because the binaries
+#   need to link with libsystemd which is not in a standard path
+# * meson can only replace the RPATH, not append to it
+# * the original rpath is thus lost.
+# * the original path had been tweaked by buildroot via LDFLAGS to add
+#   $(HOST_DIR)/lib
+# * thus re-tweak rpath after the installation for all binaries that need it
+HOST_SYSTEMD_HOST_TOOLS = \
+	systemd-analyze \
+	systemd-machine-id-setup \
+	systemd-mount \
+	systemd-nspawn \
+	systemctl \
+	udevadm
+
+HOST_SYSTEMD_NINJA_ENV = DESTDIR=$(HOST_DIR)
+
+define HOST_SYSTEMD_FIX_RPATH
+	$(foreach f,$(HOST_SYSTEMD_HOST_TOOLS), \
+		$(HOST_DIR)/bin/patchelf --set-rpath $(HOST_DIR)/lib:$(HOST_DIR)/lib/systemd $(HOST_DIR)/bin/$(f)
+	)
+endef
+HOST_SYSTEMD_POST_INSTALL_HOOKS += HOST_SYSTEMD_FIX_RPATH
+
 $(eval $(meson-package))
+$(eval $(host-meson-package))

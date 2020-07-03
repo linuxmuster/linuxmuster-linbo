@@ -4,17 +4,18 @@
 #
 ################################################################################
 
-CUPS_FILTERS_VERSION = 1.25.11
+CUPS_FILTERS_VERSION = 1.26.0
 CUPS_FILTERS_SITE = http://openprinting.org/download/cups-filters
 CUPS_FILTERS_LICENSE = GPL-2.0, GPL-2.0+, GPL-3.0, GPL-3.0+, LGPL-2, LGPL-2.1+, MIT, BSD-4-Clause
 CUPS_FILTERS_LICENSE_FILES = COPYING
 
 CUPS_FILTERS_DEPENDENCIES = cups libglib2 lcms2 qpdf fontconfig freetype jpeg
 
-CUPS_FILTERS_CONF_OPTS = --disable-imagefilters \
+CUPS_FILTERS_CONF_OPTS = \
 	--disable-mutool \
 	--disable-foomatic \
 	--disable-braille \
+	--enable-imagefilters \
 	--with-cups-config=$(STAGING_DIR)/usr/bin/cups-config \
 	--with-sysroot=$(STAGING_DIR) \
 	--with-pdftops=pdftops \

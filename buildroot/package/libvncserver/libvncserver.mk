@@ -13,6 +13,15 @@ LIBVNCSERVER_INSTALL_STAGING = YES
 LIBVNCSERVER_DEPENDENCIES = host-pkgconf lzo
 LIBVNCSERVER_CONF_OPTS = -DWITH_LZO=ON
 
+# 0003-Limit-lenght-to-INT_MAX-bytes-in-rfbProcessFileTransferReadBuffer.patch
+LIBVNCSERVER_IGNORE_CVES += CVE-2018-20750
+
+# 0004-rfbserver-don-t-leak-stack-memory-to-the-remote.patch
+LIBVNCSERVER_IGNORE_CVES += CVE-2019-15681
+
+# 0006-libvncclient-cursor-limit-width-height-input-values.patch
+LIBVNCSERVER_IGNORE_CVES += CVE-2019-20788
+
 # only used for examples
 LIBVNCSERVER_CONF_OPTS += \
 	-DWITH_FFMPEG=OFF \

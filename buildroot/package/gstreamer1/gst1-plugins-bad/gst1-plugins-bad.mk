@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GST1_PLUGINS_BAD_VERSION = 1.16.1
+GST1_PLUGINS_BAD_VERSION = 1.16.2
 GST1_PLUGINS_BAD_SOURCE = gst-plugins-bad-$(GST1_PLUGINS_BAD_VERSION).tar.xz
 GST1_PLUGINS_BAD_SITE = https://gstreamer.freedesktop.org/src/gst-plugins-bad
 GST1_PLUGINS_BAD_INSTALL_STAGING = YES
@@ -23,7 +23,6 @@ GST1_PLUGINS_BAD_CONF_OPTS = \
 	-Dwinks=disabled \
 	-Dandroidmedia=disabled \
 	-Dapplemedia=disabled \
-	-Dintrospection=disabled \
 	-Dgobject-cast-checks=disabled \
 	-Dglib-asserts=disabled \
 	-Dglib-checks=disabled
@@ -42,7 +41,6 @@ GST1_PLUGINS_BAD_CONF_OPTS += \
 	-Dfaac=disabled \
 	-Dflite=disabled \
 	-Dgsm=disabled \
-	-Dfluidsynth=disabled \
 	-Dkate=disabled \
 	-Dladspa=disabled \
 	-Dlv2=disabled \
@@ -64,9 +62,16 @@ GST1_PLUGINS_BAD_CONF_OPTS += \
 
 GST1_PLUGINS_BAD_DEPENDENCIES = gst1-plugins-base gstreamer1
 
+ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
+GST1_PLUGINS_BAD_CONF_OPTS += -Dintrospection=enabled
+GST1_PLUGINS_BAD_DEPENDENCIES += gobject-introspection
+else
+GST1_PLUGINS_BAD_CONF_OPTS += -Dintrospection=disabled
+endif
+
 ifeq ($(BR2_PACKAGE_GST1_PLUGINS_BAD_PLUGIN_WAYLAND),y)
 GST1_PLUGINS_BAD_CONF_OPTS += -Dwayland=enabled
-GST1_PLUGINS_BAD_DEPENDENCIES += wayland wayland-protocols
+GST1_PLUGINS_BAD_DEPENDENCIES += libdrm wayland wayland-protocols
 else
 GST1_PLUGINS_BAD_CONF_OPTS += -Dwayland=disabled
 endif
@@ -524,6 +529,13 @@ GST1_PLUGINS_BAD_CONF_OPTS += -Dfdkaac=enabled
 GST1_PLUGINS_BAD_DEPENDENCIES += fdk-aac
 else
 GST1_PLUGINS_BAD_CONF_OPTS += -Dfdkaac=disabled
+endif
+
+ifeq ($(BR2_PACKAGE_GST1_PLUGINS_BAD_PLUGIN_FLUIDSYNTH),y)
+GST1_PLUGINS_BAD_CONF_OPTS += -Dfluidsynth=enabled
+GST1_PLUGINS_BAD_DEPENDENCIES += fluidsynth
+else
+GST1_PLUGINS_BAD_CONF_OPTS += -Dfluidsynth=disabled
 endif
 
 ifeq ($(BR2_PACKAGE_GST1_PLUGINS_BAD_PLUGIN_GL),y)
