@@ -1,7 +1,7 @@
 include $(sort $(wildcard $(BR2_EXTERNAL_LINBO_PATH)/package/*/*.mk))
 
 # ntfs-3g: activate acls, use ntfs-3g with mount command
-NTFS_3G_CONF_OPTS += --enable-posix-acls
+NTFS_3G_CONF_OPTS += --enable-posix-acls --enable-xattr-mappings --enable-extras
 define NTFS_3G_MOUNT_USE_NTFS_3G
 	( cd $(TARGET_DIR)/usr/sbin; ln -sf ../bin/ntfs-3g mount.ntfs )
 endef
