@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20190114
+# 20200606
 # GPL v3
 #
 
@@ -106,25 +106,6 @@ sendlog(){
  done
 }
 
-# File patterns for exclusion when creating/restoring rsync-archives
-# These patterns should match through the entire filesystem tree.
-# When cleaning up before compression, however, they will be prefixed
-# by "/", in order to get applied only for the root file system.
-#
-# Should match common Windows/Linux garbage
-RSYNC_EXCLUDE='[Pp][Aa][Gg][Ee][Ff][Ii][Ll][Ee].[Ss][Yy][Ss]
-[Hh][Ii][Bb][Ee][Rr][Ff][Ii][Ll].[Ss][Yy][Ss]
-[Hh][Ii][Bb][Ee][Rr][Nn][Aa][Tt][Ee].[Ss][Yy][Ss]
-[Ww][Ii][Nn]386.[Ss][Ww][Pp]
-Papierkorb/*
-[Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
-\$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
-[Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
-swapfile
-tmp/*
-var/log/ConsoleKit/history
-var/tmp/*'
-
 bailout(){
  echo "DEBUG: bailout() aufgerufen, linbo_cmd=$PID, my_pid=$$" >&2
  echo ""
@@ -157,7 +138,7 @@ bailout(){
  umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
  umount /cloop >/dev/null 2>&1 || umount -l /cloop >/dev/null 2>&1
  rmmod cloop >/dev/null 2>&1
- rm -f "$TMP" /tmp/rsync.exclude
+ rm -f "$TMP"
  echo "Abgebrochen." >&2
  echo "" >&2
  exit $?
@@ -524,68 +505,77 @@ update_devices(){
 
 # mountpart partition destdir [options]
 mountpart(){
- local RC=0
- local type=""
- local i=0
- local wmsg=0
- local label="$(print_partlabel "$1")"
- # "noatime" is required for later remount, otherwise kernel will default to "relatime",
- # which busybox mount does not know
- local OPTS="noatime"
- if [ "$3" = "-r" ]; then OPTS="$OPTS,ro"; else OPTS="$OPTS,rw"; fi
- # fix vanished cloop symlink
- if [ "$1" = "/dev/cloop" ]; then
-  # wait for cloop0 to appear
-  for i in 1 2 3 4 5; do
-   if [ -b /dev/cloop0 ]; then
-    rm -f /dev/cloop
-    ln -sf /dev/cloop0 /dev/cloop
-    break
-   else
-    [ "$i" = "5" ] && break
-    echo "CLOOP-Device ist noch nicht verfügbar, versuche erneut..."
-    wmsg=1
-    sleep 2
-   fi
-  done
-  if [ ! -b /dev/cloop0 ]; then
-   echo "CLOOP-Device ist nicht bereit! Breche ab!"
-   return 1
-  else
-   [ "$wmsg" = "1" ] && echo "...Ok! :-)"
+  local RC=0
+  local type=""
+  local i=0
+  local wmsg=0
+  local label="$(print_partlabel "$1")"
+  # "noatime" is required for later remount, otherwise kernel will default to "relatime",
+  # which busybox mount does not know
+  local OPTS="noatime"
+  if [ "$3" = "-r" ]; then OPTS="$OPTS,ro"; else OPTS="$OPTS,rw"; fi
+  # fix vanished cloop symlink
+  if [ "$1" = "/dev/cloop" ]; then
+    # wait for cloop0 to appear
+    for i in 1 2 3 4 5; do
+      if [ -b /dev/cloop0 ]; then
+        rm -f /dev/cloop
+        ln -sf /dev/cloop0 /dev/cloop
+        break
+      else
+        [ "$i" = "5" ] && break
+        echo "CLOOP-Device ist noch nicht verfügbar, versuche erneut..."
+        wmsg=1
+        sleep 2
+      fi
+    done
+    if [ ! -b /dev/cloop0 ]; then
+      echo "CLOOP-Device ist nicht bereit! Breche ab!"
+      return 1
+    else
+      [ "$wmsg" = "1" ] && echo "...Ok! :-)"
+    fi
   fi
- fi
- # wait for partition, if not labeled
- if [ -z "$label" ]; then
-  for i in 1 2 3 4 5; do
-   RC="$?"
-   [ "$RC" = "0" ] && break
-   [ "$i" = "5" ] && break
-   echo "Partition $1 ist noch nicht verfügbar, versuche erneut..."
-   sleep 2
-  done
-  [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
-  local mountdev="$1"
- else
-  # mount per label
-  local mountdev="LABEL=$label"
- fi
- type="$(fstype $1)"
- case "$type" in
-  *ntfs*)
-   OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
-   #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
-   ;;
-  *fat*)
-   #mount -o "$OPTS" "$1" "$2" ; RC="$?"
-   ;;
-  *)
-   OPTS="$OPTS,acl,user_xattr"
-   #mount -o "$OPTS" "$1" "$2" ; RC="$?"
-   ;;
- esac
- mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
- return "$RC"
+  # wait for partition, if not labeled
+  if [ -z "$label" ]; then
+    for i in 1 2 3 4 5; do
+      RC="$?"
+      [ "$RC" = "0" ] && break
+      [ "$i" = "5" ] && break
+      echo "Partition $1 ist noch nicht verfügbar, versuche erneut..."
+      sleep 2
+    done
+    [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfügbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
+    local mountdev="$1"
+  else
+    # mount per label
+    local mountdev="LABEL=$label"
+  fi
+  type="$(fstype $1)"
+  case "$type" in
+    *ntfs*)
+      OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
+      #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
+    ;;
+    *fat*)
+      #mount -o "$OPTS" "$1" "$2" ; RC="$?"
+    ;;
+    *)
+      OPTS="$OPTS,acl,user_xattr"
+      #mount -o "$OPTS" "$1" "$2" ; RC="$?"
+    ;;
+  esac
+  mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
+  # second try with default options and ntfsfix in case of ntfs (netzint)
+  if [ "$RC" != "0" -a "$type" = "ntfs" ]; then
+    echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
+    ntfsfix "$1"
+    mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
+    # second try with default options for other filesystems
+  elif [ "$RC" != "0" ]; then
+    mount "$mountdev" "$2" ; RC="$?"
+  fi
+  return "$RC"
 }
 
 # Return true if cache is NFS- or SAMBA-Share
@@ -1038,24 +1028,24 @@ print_efi_bootnr(){
 # create efi boot entry
 # create_efiboot label efipart
 create_efiboot(){
- # return if entry exists
- efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
- local label="$1"
- local efipart="$2"
- local efidisk="$(get_disk_from_partition "$efipart")"
- local efipartnr="$(get_partnr_from_partition "$efipart")"
- local efiloader
- local bits
- case "$label" in
-  *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
-  grub)
-   bits="$(get_64)"
-   [ -z "$bits" ] && bits="32"
-   efiloader="\\EFI\\grub\\grubx${bits}.efi"
-   ;;
-  *) return 1 ;;
- esac
- efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
+  # return if entry exists
+  efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
+  local label="$1"
+  local efipart="$2"
+  local efidisk="$(get_disk_from_partition "$efipart")"
+  local efipartnr="$(get_partnr_from_partition "$efipart")"
+  local efiloader
+  local bits
+  case "$label" in
+    *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
+    grub)
+      bits="$(get_64)"
+      [ -z "$bits" ] && bits="32"
+      efiloader="\\EFI\\grub\\grubx${bits}.efi"
+      ;;
+    *) return 1 ;;
+  esac
+  efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
 }
 
 # set_efibootnext: creates efi bootnext entry
@@ -1237,7 +1227,7 @@ mk_linefiboot(){
  mkdir -p /mnt/boot/efi/EFI
  grub-install --root-directory=/mnt --bootloader-id="$bootloaderid" "$grubdisk" 2>> /tmp/linbo.log || RC="1"
  umount /mnt/boot/efi
- [ "$RC" = "0" ] || touch "$doneflag"
+ [ "$RC" = "0" ] && touch "$doneflag"
  return "$RC"
 }
 
@@ -1504,19 +1494,39 @@ do_machinepw(){
 }
 
 # update linuxmuster-win scripts and install start tasks
-# no args
+# update_win partition
 # invoked by start() & syncl()
 update_win(){
- local doneflag="/tmp/.update_win"
- [ -e "$doneflag" ] && return 0
- local RC="0"
- mkdir -p /mnt/linuxmuster-win
- # copy scripts to os rootdir
- #rsync -r --delete /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
- # don't delete custom scripts on os partition
- rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
- [ "$RC" = "0" ] && touch "$doneflag"
- return "$RC"
+  local doneflag="/tmp/.update_win"
+  [ -e "$doneflag" ] && return 0
+  [ -b "$1" ] || return 1
+  local RC="0"
+  mkdir -p /mnt/linuxmuster-win
+  # copy scripts to os rootdir
+  rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+  if [ "$RC" = "0" ]; then
+    touch "$doneflag"
+    # restrict access rights on certain files and folders on windows partition
+    local partition="$1"
+    local seclist
+    local i
+    local curdir="$(pwd)"
+    cd /mnt
+    for i in .linbo .guid.* Boot EFI linuxmuster-win; do
+      [ -e "$i" ] && seclist="$seclist $i"
+    done
+    cd "$curdir"
+    if [ -n "$seclist" ]; then
+      sync
+      umount /mnt 2>> /tmp/linbo.log
+      for i in $seclist; do
+        echo "Restrict access rights on $i:" | tee -a /tmp/linbo.log
+        ntfssecaudit "$partition" 700 "$i" | tee -a /tmp/linbo.log
+      done
+      mountpart "$partition" /mnt 2>> /tmp/linbo.log
+    fi
+  fi
+  return "$RC"
 }
 
 # start: start operating system
@@ -1556,7 +1566,7 @@ start(){
    # install/update grub/efi stuff if cache is mounted
    mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
    # update linuxmuster-win scripts and install start tasks
-   [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win | tee -a /tmp/linbo.log
+   [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win "$partition" | tee -a /tmp/linbo.log
   fi
  else
   echo "Konnte Betriebssystem-Partition $partition nicht mounten." >&2
@@ -1606,15 +1616,6 @@ get_partition_size(){
 get_filesize(){
  ls -l "$1" 2>/dev/null | awk '{print $5}' 2>/dev/null
  return $?
-}
-
-# mk_exclude
-# Create /tmp/rsync.exclude
-mk_exclude(){
-rm -f /tmp/rsync.exclude
-cat > /tmp/rsync.exclude <<EOT
-${RSYNC_EXCLUDE}
-EOT
 }
 
 # save_efi_bcd targetdir efipart
@@ -1796,7 +1797,6 @@ mk_cloop(){
      if mountpart /dev/cloop /cloop -r 2>> /tmp/linbo.log; then
       echo "Starte Kompression von $2 -> $3 (differentiell)." | tee -a /tmp/image.log
       prepare_fs /mnt "$2" | tee -a /tmp/image.log
-      mk_exclude
       # determine rsync opts due to fstype
       local type="$(fstype "$2")"
       case $type in
@@ -1804,7 +1804,7 @@ mk_cloop(){
        *vfat*) ROPTS="-rtz" ;;
        *) ROPTS="-az" ;;
       esac
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 ; RC="$?"
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" --only-write-batch="$3" /mnt/ /cloop 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" = "0" ]; then
         imgsize="$(get_filesize $3)"
@@ -2002,17 +2002,8 @@ sync_cloop(){
     if test -s "$1" && modprobe cloop file=/cache/"$1"; then
      mkdir -p /cloop
      if mountpart /dev/cloop /cloop -r 2>> /tmp/linbo.log; then
-      # file list is obsolete
-      #list="$1".list
-      #FROMLIST=""
-      #[ -r "$list" ] && FROMLIST="--files-from=$list"
-      mk_exclude
-      # knopper: added --inplace
-      #[ "$(fstype "$2")" = "vfat" ] && ROPTS="$ROPTS --inplace"
-      # tschmitt: added logging parameter
-      #interruptible rsync "$ROPTS" --fake-super --partial --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt >"$TMP" 2>&1 ; RC="$?"
-      echo "Synchronisation läuft ... bitte warten ..."
-      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/tmp/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt 2>&1 ; RC="$?"
+      echo "Synchronisation laeuft ... bitte warten ..."
+      interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /cloop/ /mnt 2>&1 ; RC="$?"
       umount /cloop
       if [ "$RC" != "0" ]; then
        cat "$TMP" >&2 | tee -a /tmp/image.log
@@ -2238,88 +2229,93 @@ do_opsi(){
 
 # restore windows activation tokens
 restore_winact(){
- # get image name
- [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
- # if an image is not yet created do nothing
- if [ -z "$image" ]; then
-  echo "Überspringe Reaktivierung, System ist unsynchronisiert."
-  return
- fi
- local archive
- local tarchive
- local i
- # get mac address
- local mac="$(mac | tr a-z A-Z)"
- # without linbo server
- if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
-  tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
-  # get mac address from archive name
-  for i in $tarchive; do
-   mac="$(echo $i | awk -F\. '{ print $1 }')"
-   if ifconfig -a | grep -q "$mac"; then
-    archive="$i"
-    break
-   fi
-  done
- else # with linbo server
-  archive="$mac.$image.winact.tar.gz"
-  # get server ip address
-  local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
-  echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
-  # get token archive from linbo server
-  rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
-  if [ -s "/cache/$archive" ]; then
-   echo "OK!"
-  else
-   echo "überspringe Reaktivierung, keine Daten!"
-   return
+  # get image name
+  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
+  # if an image is not yet created do nothing
+  if [ -z "$image" ]; then
+    echo "Überspringe Reaktivierung, System ist unsynchronisiert."
+    return
   fi
-  # request windows/office productkeys
-  local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-  rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
-  [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
-  # create windows key batchfile
-  local cache_batchfile="/cache/$image.winact.cmd"
-  # remove old batchfile
-  rm -f "$cache_batchfile"
-  # create new one if keys are provided
-  if [ -n "$winkey" ]; then
-   echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
-  fi
-  # add office key handling to batchfile if office token is in archive
-  if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
-   if [ -n "$officekey" ]; then
-    # get path to ospp.vbs
-    local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
-    if [ -n "$ospp" ]; then
-     # compute windows path to office installation dir
-     local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
-     # write office activations commands to batchfile
-     echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
-     echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
+  local archive
+  local tarchive
+  local i
+  # get mac address
+  local mac="$(mac | tr a-z A-Z)"
+  # without linbo server
+  if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
+    tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
+    # get mac address from archive name
+    for i in $tarchive; do
+      mac="$(echo $i | awk -F\. '{ print $1 }')"
+      if ifconfig -a | grep -q "$mac"; then
+        archive="$i"
+        break
+      fi
+    done
+  else # with linbo server
+    archive="$mac.$image.winact.tar.gz"
+    # get server ip address
+    local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
+    echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
+    # get token archive from linbo server
+    rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
+    if [ -s "/cache/$archive" ]; then
+      echo "OK!"
+    else
+      echo "überspringe Reaktivierung, keine Daten!"
+      return
     fi
-   fi
+    # request windows/office productkeys
+    local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
+    rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
+    [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
+    # create windows key batchfile
+    local cache_batchfile="/cache/$image.winact.cmd"
+    # remove old batchfile
+    rm -f "$cache_batchfile"
+    # create new one if keys are provided
+    if [ -n "$winkey" ]; then
+      echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
+    fi
+    # add office key handling to batchfile if office token is in archive
+    if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
+      if [ -n "$officekey" ]; then
+        # get path to ospp.vbs
+        local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
+        if [ -n "$ospp" ]; then
+          # compute windows path to office installation dir
+          local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
+          # write office activations commands to batchfile
+          echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
+          echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
+        fi
+      fi
+    fi
+    rm -f "$keyfile"
+  fi # localmode
+  # copy reactivation batchfile to windows partition
+  if [ -s "$cache_batchfile" ]; then
+    local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
+    if [ -n "$winkey" -a -n "$officekey" ]; then
+      local keymsg="Windows- und Office-Keys"
+    elif [ -n "$winkey" ]; then
+      local keymsg="Windows-Key"
+    else
+      local keymsg="Office-Key"
+    fi
+    echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
+    dos2unix "$cache_batchfile"
+    cp "$cache_batchfile" "$win_batchfile"
+  else # no keys, no batchfile
+    echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
   fi
-  rm -f "$keyfile"
- fi
- # copy reactivation batchfile to windows partition
- if [ -s "$cache_batchfile" ]; then
-  local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
-  if [ -n "$winkey" -a -n "$officekey" ]; then
-    local keymsg="Windows- und Office-Keys"
-  elif [ -n "$winkey" ]; then
-    local keymsg="Windows-Key"
-  else
-    local keymsg="Office-Key"
+  if [ -n "$archive" -a -s "/cache/$archive" ]; then
+    echo "Stelle Windows-Aktivierungstokens wieder her."
+    if ! tar xf "/cache/$archive" -C /; then
+      echo "Fehler beim Entpacken von $archive!"
+      return 1
+    fi
   fi
-  echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
-  dos2unix "$cache_batchfile"
-  cp "$cache_batchfile" "$win_batchfile"
-else # no keys, no batchfile
-  echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
- fi
- echo "Stelle Windows-Aktivierungstokens wieder her."
- tar xf "/cache/$archive" -C / || return 1
 }
 
 
@@ -2543,7 +2539,7 @@ syncl(){
 
   # update linuxmuster-win scripts and restore windows activation
   if [ -d /cache/linuxmuster-win ]; then
-   update_win || RC="1"
+   update_win "$rootdev" || RC="1"
    if [ "$RC" = "0" ]; then
     restore_winact || RC="1"
    fi
@@ -2614,8 +2610,9 @@ syncl(){
  sync; sync; sleep 1
  umount /mnt || umount -l /mnt
 
- # restore partition layout if it was altered above
- #[ -n "$repair_parts" ] && partition | tee -a /tmp/linbo.log
+ # restore partition labels
+ label_allpartitions
+
  sendlog
  cd / # ; mountcache "$1" -r
  return "$RC"

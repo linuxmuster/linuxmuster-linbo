@@ -25,7 +25,9 @@ fi
 BUILDDEPENDS="$(LANG=C dpkg-checkbuilddeps 2>&1 | sed -e 's|dpkg-checkbuilddeps: error: Unmet build dependencies: ||' -e 's|[(][^)]*[)]||g')"
 if [ -n "$BUILDDEPENDS" ]; then
   $SUDO apt update -y
-  $SUDO apt install -y $BUILDDEPENDS
+  $SUDO apt install dpkg-dev
+  $SUDO dpkg --add-architecture i386
+  $SUDO apt install -y $BUILDDEPENDS kmod
 else
   echo "Nothing to do."
 fi

@@ -1,16 +1,17 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20190114
+# 20200414
 #
 
-# read in linuxmuster specific environment
+# read in specific environment
 source /etc/linbo/linbo.conf || exit 1
 source $ENVDEFAULTS || exit 1
 source $HELPERFUNCTIONS || exit 1
 [ "$FLAVOUR" = "lmn6" ] && source "$LINBOSHAREDIR/lmn6helperfunctions.sh"
 [ -n "$LINBODIR" ] || LINBOLOGDIR="/var/log"
 [ -n "$LINBOLOGDIR" ] || LINBOLOGDIR="$LINBODIR/log"
+
 LOGFILE="$LINBOLOGDIR/rsync-post-upload.log"
 
 # Debug
@@ -31,17 +32,16 @@ FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
 FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
-compname="$(get_compname_from_rsync $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
 
-# get FQDN
-validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+# fetch host & domainname
+do_rsync_hostname
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
-echo "ADDRESS: $RSYNC_HOST_ADDR"
+echo "IP: $RSYNC_HOST_ADDR"
+echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
-echo "BACKUP: $BACKUP"
-echo "FTYPE: $FTYPE"
+echo "EXT: $EXT"
 
 # Check for backup file that should have been created by pre-upload script
 if [ -s "$BACKUP" ]; then

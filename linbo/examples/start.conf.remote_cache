@@ -1,53 +1,60 @@
-# LINBO start.conf Beispiel fuer Remote Cache
-# Windows 7 System auf Partition 1 (NTFS)
-# Daten auf Partition 2
-# Cache Remote auf Server
+# LINBO start.conf, example for remote cache
+# DON'T EDIT THIS FILE! MAKE A COPY AND ADAPT THE VALUES TO YOUR NEEDS!
+# operating system on partition 1
+# data on partition 2
+# cache on server smb share linbo-repo
 
-[LINBO]                         # globale Konfiguration
-Server = 10.16.1.1              # IP des TFTP-Servers, der Images vorhaelt
-Group = gruppe                  # Name der Rechnergruppe
-# Achtung: Server und Group werden beim Workstationsimport automatisch gesetzt!
-Cache = //10.16.1.1/linbo-repo  # Cache auf 10.16.1.1 in linbo-repo SMB-Share
-SystemType = bios               # Moegliche Werte: bios|bios64|efi32|efi64
-RootTimeout = 600               # automatischer Rootlogout nach 600 Sek.
-AutoPartition = no              # keine automatische Partitionsreparatur beim LINBO-Start
-AutoFormat = no                 # kein automatisches Formatieren aller Partitionen beim LINBO-Start
-AutoInitCache = no              # kein automatisches Befuellen des Caches beim LINBO-Start
-DownloadType = torrent          # Image-Download per torrent|multicast|rsync, default ist rsync
-KernelOptions = quiet splash    # spezielle LINBO Kerneloptionen ergaenzen (z. B. acpi=off, irqpoll)
+[LINBO]                             # global section
+Server = 10.0.0.1                   # linbo server ip address
+Group = group                       # name of the hardware group
+# IMPORTANT: server and group will be automatically set during device import!
+Cache = //10.0.0.1/linbo-repo      # cache on server smb share linbo-repo
+RootTimeout = 600                   # logout from admin console after 600 secs
+AutoPartition = no                  # no partition repair during LINBO startup
+AutoFormat = no                     # no formatting of all partitions during LINBO startup
+AutoInitCache = no                  # no initial cache setup during LINBO startup
+DownloadType = torrent              # image download method (torrent|multicast|rsync)
+BackgroundFontColor = white         # font color of status section (default: white)
+ConsoleFontColorStdout = lightgreen # console font color (default: white)
+ConsoleFontColorStderr = orange     # console error font color (default: red)
+SystemType = bios64                 # possible values: bios|bios64|efi32|efi64 (default: bios)
+KernelOptions = quiet splash        # linbo kernel options, space separated
 
-[Partition]                     # Start einer Partitionsdefinition, Windows 7
-Dev = /dev/sda1                 # Device-Name der Partition (sda1 = erste Partition auf erster Platte)
-Label = windows                 # Partitionslabel
-Size = 50G                      # Partitionsgroesse 50G, ist keine Einheit (M, G oder T) angegeben, wird kiB angenommen
-Id = 7                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = ntfs                   # Dateisystem auf der Partition
-Bootable = yes                  # Bootable-Flag
+[Partition]          # partition section (operating system)
+Dev = /dev/sda1      # device name of the partition
+Label = windows      # partition label
+Size = 50G           # partition size 50G, will use kiB if no unit (M, G or T) is set
+Id = 7               # partition id (7 = ntfs)
+FSType = ntfs        # filesystem ntfs
+Bootable = yes       # set bootable flag yes
 
-[Partition]                     # Start einer Partitionsdefinition, Datenpartition
-Dev = /dev/sda2                 # Device-Name der Partition (sda2 = zweite Partition auf erster IDE-Platte)
-Label = daten                   # Partitionslabel
-Size =                          # Datenpartition nimmt den Rest der Platte ein
-Id = 7                          # Partitionstyp (83 = Linux, 82 = swap, c = FAT32, 7 = NTFS, ...)
-FSType = ntfs                   # Dateisystem auf der Partition
-Bootable = no                   # Bootable-Flag
+[Partition]          # partition section (data)
+Label = data         # partition label
+Dev = /dev/sda2      # device name of the partition
+Size =               # partition size (no value = remaining space of the disk)
+Id = 7               # partition id (7 = ntfs)
+FSType = ntfs        # filesystem ntfs
+Bootable = no        # set bootable flag no
 
-[OS]                            # Beginn einer Betriebssystemdefinition
-Name = Windows 7                # Name des Betriebssystems
-Version =                       # Version (unbenutzt, leer lassen)
-Description = Windows 7 SP1     # Beschreibung
-IconName = win7.png             # Icon fuer den Startbutton, muss unter /var/linbo/icons abgelegt sein
-Image =                         # differentielles Image (Erweiterung .rsync), Verwendung nicht empfohlen
-BaseImage = win7.cloop          # Dateiname des Basisimages (Erweiterung .cloop)
-Boot = /dev/sda1                # Bootpartition (unbenutzt, immer gleich Rootpartition)
-Root = /dev/sda1                # Rootpartition, in die das BS installiert ist
-Kernel = auto                   # Windows: auto (LINBO & Grub erkennen die Startparameter automatisch)
-Initrd =                        # Windows: leer
-Append =                        # Windows: leer
-StartEnabled = yes              # "Start"-Button anzeigen
-SyncEnabled = yes               # "Sync+Start"-Button anzeigen
-NewEnabled = yes                # "Neu+Start"-Button anzeigen
-Autostart = no                  # automatischer Start des Betriebssystems (yes|no)
-AutostartTimeout = 5            # Timeout in Sekunden fuer Benutzerabbruch bei Autostart
-DefaultAction = sync            # Standardaktion bei Autostart: start|sync|new
-Hidden = yes                    # verstecke OS-Reiter (unbenutzte Option, auf "yes" lassen)
+[OS]                          # os section
+Name = Windows 7              # os name
+Version =                     # version (not used)
+Description = Windows 7 SP1   # detailed description of os
+IconName = win7.png           # icon filename in /srv/linbo/icons
+Image =                       # filename of differential image (extension .rsync, optional)
+BaseImage = win7.cloop        # filename of main image (extension .cloop)
+Boot = /dev/sda1              # boot partition (not used, identical with root partition)
+Root = /dev/sda1              # root partition of the os
+Kernel = auto                 # auto for windows
+Initrd =                      # empty for windows
+Append =                      # empty for windows
+StartEnabled = yes            # show start button
+SyncEnabled = yes             # show sync+start button
+NewEnabled = yes              # show new+start button
+Autostart = no                # automatic start of os (yes|no)
+AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
+DefaultAction = sync          # default action on automatic start: start|sync|new
+RestoreOpsiState = no         # restore opsi product state after sync (yes|no)
+ForceOpsiSetup =              # comma separated list of opsi product ids, which are forced
+                              # to setup after sync (e.g. mozilla.firefox,mozilla.thunderbird)
+Hidden = yes                  # hide os tab (unused option, leave it at yes)

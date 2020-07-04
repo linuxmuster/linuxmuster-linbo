@@ -1,7 +1,7 @@
 # ssh_config for linbo remote commands per ssh
 #
 # thomas@linuxmuster.net
-# 20160917
+# 20190315
 #
 # This is the ssh client system-wide configuration file.  See
 # ssh_config(5) for more information.  This file provides defaults for
@@ -46,9 +46,6 @@ Host *
     HashKnownHosts yes
     GSSAPIAuthentication yes
     GSSAPIDelegateCredentials no
-# needed for linbo remote client connections
-#    PubkeyAcceptedKeyTypes=+ssh-dss
     StrictHostKeyChecking no
     UserKnownHostsFile ~/.ssh/linbo_hosts
     Port 2222
-

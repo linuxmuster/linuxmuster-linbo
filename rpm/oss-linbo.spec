@@ -5,8 +5,8 @@
 # don't clean build dir
 Name:		oss-linbo
 Summary:	OSS linux installation and boot environment
-Version:	2.3.44
-Release:	1
+Version:	2.3.63
+Release:	0
 License:	GPLv3
 Vendor:		openSUSE Linux
 Packager:	fschuett@gymhim.de

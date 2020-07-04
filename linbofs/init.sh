@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20181214
+# 20200611
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -102,6 +102,7 @@ init_setup(){
  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
 
  # process parameters given on kernel command line
+ cache=""
  for i in $CMDLINE; do
 
   case "$i" in
@@ -113,13 +114,19 @@ init_setup(){
    ;;
 
    *=*)
-   echo "Evaluating $i ..."
+    echo "Evaluating $i ..."
     eval "$i"
    ;;
 
   esac
 
  done # cmdline
+
+ # get optionally give cache partition
+ if [ -n "$cache" ]; then
+   cache_given="$cache"
+   cache=""
+ fi
 
  # get optionally given start.conf location
  if [ -n "$conf" ]; then
@@ -596,14 +603,15 @@ network(){
  [ -n "$hostname" ] || hostname="`get_hostname $ipaddr`"
  [ -n "$hostname" ] && hostname "$hostname"
  [ -n "$server" ] || server="`get_server`"
- echo "IP: $ipaddr * Hostname: $hostname * Server: $server"
+ macaddr="`ifconfig | grep -B1 "$ip" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
+ echo "IP: $ipaddr * Hostname: $hostname * MAC: $macaddr * Server: $server"
  # Move away old start.conf and look for updates
  mv /start.conf /start.conf.dist
  if [ -n "$server" ]; then
   export server
   echo "linbo_server='$server'" >> /tmp/dhcp.log
   echo "Loading configuration files from $server ..."
-  for i in "start.conf-$ipaddr" "start.conf"; do
+  for i in "start.conf-$macaddr" "start.conf-$ipaddr" "start.conf"; do
    rsync -L "$server::linbo/$i" "/start.conf" &> /dev/null && break
   done
   # set flag for working network connection and do additional stuff which needs
@@ -611,6 +619,10 @@ network(){
   if [ -s /start.conf ]; then
    echo "Network connection to $server established successfully."
    grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
+   echo "Starting time sync ..."
+   #( ntpd -n -q -p "$server" && hwclock --systohc ) &
+   ntpd -n -q -p "$server" &
+   #date
    # linbo update & grub installation
    do_linbo_update "$server"
    # also look for other needed files
@@ -618,7 +630,10 @@ network(){
     rsync -L "$server::linbo/$i" "/$i" &> /dev/null
    done
    # get optional onboot linbo-remote commands
-   rsync -L "$server::linbo/linbocmd/$ipaddr.cmd" "/linbocmd" &> /dev/null
+   for i in $hostname $ipaddr; do
+    rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
+    [ -s /linbocmd ] && break
+   done
    if [ -s "/linbocmd" ]; then
     for i in noauto nobuttons; do
      grep -q "$i" /linbocmd && eval "$i"=yes
@@ -646,8 +661,11 @@ network(){
   # Still nothing new, revert to old version.
   [ ! -s /start.conf ] && mv -f /start.conf.dist /start.conf
  fi
- # modify cache in start.conf if cache was given and no extra start.conf was defined
- [ -z "$extra" -a -b "$cache" ] && modify_cache /start.conf
+ # modify cache in start.conf if cache was given on cl and no extra start.conf was defined
+ if [ -z "$extra" -a -n "$cache_given" -a -b "$cache_given" ]; then
+   cache="$cache_given"
+   modify_cache /start.conf
+ fi
  # disable auto functions if noauto is given
  if [ -n "$noauto" ]; then
   autostart=0
