@@ -1,8 +1,8 @@
 #
-# lmn7 helperfunctions for linbo scripts
+# oss helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20180216
+# 20200527
 #
 get_group(){
  local HOSTNAME=
@@ -71,7 +71,7 @@ get_hostname() {
    pattern="${pattern//./\\.}"
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $2 }' | grep ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   elif validmac "$pattern"; then
-   RET=`grep -v ^# $WIMPORTDATA awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $4 " " $2 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   else # assume hostname
    local result=`grep -v ^# $WIMPORTDATA | tr A-Z a-z | awk -F\; '{ print $2 }' | grep -wi ^"$pattern"` &> /dev/null
    local i
@@ -86,7 +86,67 @@ get_hostname() {
    done
   fi
   [ -n "$RET" ] && tolower "$RET"
-  return 0
+  echo "$RET"
+}
+
+# get broadcast address for specified ip address
+get_bcaddress(){
+python3 <<END
+from functions import getIpBcAddress
+try:
+  ip="$1"
+  print(getIpBcAddress(ip))
+except:
+  quit(1)
+END
+}
+
+# extract mac address from file devices.csv
+get_mac() {
+  unset RET
+  [ -f "$WIMPORTDATA" ] || return 1
+  local pattern="$1"
+  if validip "$pattern"; then
+   pattern="${pattern//./\\.}"
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $5 " " $4 }' | grep ^"$pattern " | awk '{ print $2 }' | tr a-z A-Z` &> /dev/null
+  else # assume hostname
+   RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $4 }' | grep -i ^"$pattern " | awk '{ print $2 }' | tr a-z A-Z` &> /dev/null
+  fi
+  echo "$RET"
+}
+
+# return hostgroup of device from devices.csv
+get_hostgroup(){
+  local clientname="$1"
+  grep -v ^# "$WIMPORTDATA" | grep -wi "$clientname" | awk -F\; '{ print $2 " " $3 }' | grep -wi "$clientname" | awk '{ print $2 }'
+}
+
+# return mac address from dhcp leases
+get_mac_dhcp(){
+  validip "$1" || return
+  LANG=C grep -A10 "$1" /var/lib/dhcp/dhcpd.leases | grep "hardware ethernet" | awk '{ print $3 }' | awk -F\; '{ print $1 }' | tr A-Z a-z
+}
+
+# return hostname by dhcp ip from devices.csv
+get_hostname_dhcp_ip(){
+  validip "$1" || return
+  local macaddr="$(get_mac_dhcp "$1")"
+  [ -z "$macaddr" ] && return
+  get_hostname "$macaddr"
+}
+
+# do hostname handling for linbos rsync xfer scripts
+do_rsync_hostname(){
+  # handle unknown hostname in case of dynamic ip client
+  if echo "$RSYNC_HOST_NAME" | grep -q UNKNOWN; then
+    local compname_tmp="$(get_hostname_dhcp_ip "$RSYNC_HOST_ADDR")"
+    [ -n "$compname_tmp" ] && RSYNC_HOST_NAME="$(echo "$RSYNC_HOST_NAME" | sed -e "s|UNKNOWN|$compname_tmp|")"
+  fi
+  compname="$(echo $RSYNC_HOST_NAME | awk -F\. '{ print $1 }' | tr A-Z a-z)"
+  # get FQDN
+  validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
+  export compname
+  export RSYNC_HOST_NAME
 }
 
 # test if string is in string
@@ -115,7 +175,7 @@ get_ip() {
   else # assume hostname
    RET=`grep -v ^# $WIMPORTDATA | awk -F\; '{ print $2 " " $5 }' | grep -i ^"$pattern " | awk '{ print $2 }'` &> /dev/null
   fi
-  return 0
+  echo "$RET"
 }
 
 # get pxe flag: get_pxe ip|host
@@ -200,11 +260,12 @@ save_image_macct(){
    #  fetch samba nt password hash from ldap machine account
    url="--url=/var/lib/samba/private/sam.ldb"
    unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+   suppcredentials="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" supplementalCredentials | sed -n '/^'supplementalCredentials':/,/^$/ { /^'supplementalCredentials':/ { s/^'supplementalCredentials': *// ; h ; $ !d}; /^ / { H; $ !d}; /^ /! { x; s/\n //g; p; q}; $ { x; s/\n //g; p; q} }' | awk '{ print $2 }')"
    if [ -n "$unicodepwd" ]; then
     echo "Writing samba password hash file for image $image."
     template="$LINBOTPLDIR/machineacct"
     imagemacct="$LINBODIR/$image.macct"
-    sed -e "s|@@unicodepwd@@|$unicodepwd|" "$template" > "$imagemacct"
+    sed -e "s|@@unicodepwd@@|$unicodepwd|" -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
     chmod 600 "$imagemacct"
    else
     rm -f "$imagemacct"
@@ -317,4 +378,58 @@ get_office_key(){
   local compname="$1"
   local officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
   echo "$officekey"
+}
+
+# return value of RestoreOpsiState from start.conf: restoreopsistate clientname imagename.opsi
+restoreopsistate() {
+  local clientname="$(echo "$1" | awk -F \. '{ print $1 }' | tr A-Z a-z)"
+  local imagename="$(echo "$2" | sed -e 's|.opsi||')"
+  local hostgroup="$(get_hostgroup "$clientname")"
+  local startconf="$LINBODIR/start.conf.$hostgroup"
+  local line
+  local imagefound="no"
+  local result
+  local ocount=0
+  local icount=0
+  grep -v ^# "$startconf" | grep -i ^[br][ae][s][et][io][mr][ae][go][ep] | while read line; do
+    if echo "$line" | grep -qi ^baseimage; then
+      icount=$((icount + 1))
+      echo "$line" | grep -qw "$imagename" && imagefound="yes"
+    fi
+    if echo "$line" | grep -qi ^restoreopsistate; then
+      ocount=$((ocount + 1))
+      result="$(echo "$line" | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | awk '{ print $1 }' | tr A-Z a-z)"
+    fi
+    if [ $ocount -eq $icount -a "$imagefound" = "yes" ]; then
+      echo -n "$result"
+      return
+    fi
+  done
+}
+
+# return list of of productids from start.conf: forceopsisetup clientname imagename.opsi
+forceopsisetup() {
+  local clientname="$(echo "$1" | awk -F \. '{ print $1 }' | tr A-Z a-z)"
+  local imagename="$(echo "$2" | sed -e 's|.opsi||')"
+  local hostgroup="$(get_hostgroup "$clientname")"
+  local startconf="$LINBODIR/start.conf.$hostgroup"
+  local line
+  local imagefound="no"
+  local result
+  local ocount=0
+  local icount=0
+  grep -v ^# "$startconf" | grep -i ^[bf][ao][sr][ec][ie][mo][ap][gs][ei] | while read line; do
+    if echo "$line" | grep -qi ^baseimage; then
+      icount=$((icount + 1))
+      echo "$line" | grep -qw "$imagename" && imagefound="yes"
+    fi
+    if echo "$line" | grep -qi ^forceopsisetup; then
+      ocount=$((ocount + 1))
+      result="$(echo "$line" | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | awk '{ print $1 }' | tr A-Z a-z)"
+    fi
+    if [ $ocount -eq $icount -a "$imagefound" = "yes" ]; then
+      echo -n "$result"
+      return
+    fi
+  done
 }
