@@ -2117,6 +2117,41 @@ patch_fstab(){
  fi
 }
 
+# garblixa
+# patch fstab with swap partition(s)
+patch_fstab_swapdev (){
+ local startconf=/start.conf
+ local fstab=/mnt/etc/fstab
+ local swapdev=""
+ [ -s $startconf ] || return 1
+ [ -s $fstab ] || return 1
+ # get swap partitions from start.conf
+ local swapdevs_startconf=$(sed ':a;N;$!ba;s/\n/;UMBRUCH;/g' $startconf | sed 's/ //g'|sed 's/\[Partition\]/\n/g' | grep -i 'fstype=swap' | sed 's/;UMBRUCH;/\n/g' | grep -i 'dev=/' | cut -d'=' -f2)
+ # write swap fstab entry for every swap entry from start.conf where a swap partition exists
+ for swapdev in $swapdevs_startconf; do
+  # check if there is a corresponding swap entry from start.conf in $fstab
+  local swapdev_fstab=$(grep ^$swapdev $fstab | grep -iw swap)
+  # check if there is a corresponding swap partition
+  local swapdev_partition=$(fdisk -l | grep -i swap | grep $swapdev)
+  # only if there is no corresponding swap entry from start.conf already in $fstab
+  if [ -z "$swapdev_fstab" ]; then
+   # only if there is a corresponding swap partition on the disk, create add an entry in $fstab
+   if [ -n "$swapdev_partition" ]; then
+    echo "$swapdev	none	swap	sw,nofail	0	0" >> $fstab
+   fi
+  fi
+ done
+ # remove swap entries from fstab where no start.conf swap entry exists
+ # prepair $swapdevs_startconf for use with `grep -vE`
+ local swapdevs_startconf=$(echo $swapdevs_startconf | sed -e 's/ /|/g')
+ local swapdev_nonexist_fstab=$(grep -iw swap $fstab | grep -v "^#" | grep -vE "$swapdevs_startconf" | awk '{ print $1 }')
+  if [ -n "$swapdev_nonexist_fstab" ]; then
+   for line in $swapdev_nonexist_fstab; do
+    sed  -i "\|^$line.*$|d" $fstab
+   done
+ fi
+}
+
 # process opsi stuff if client is installed: do_opsi baseimage image
 do_opsi(){
  # search for opsi's client config on windows partition
@@ -2570,6 +2605,7 @@ syncl(){
 
  # fstab
  [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+ [ -f /mnt/etc/fstab ] && patch_fstab_swapdev
 
  # linux stuff end
 
