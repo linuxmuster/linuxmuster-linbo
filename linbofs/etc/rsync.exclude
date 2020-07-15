@@ -13,6 +13,12 @@ Papierkorb/*
 [Rr][Ee][Cc][Yy][Cc][Ll][Ee][DdRr]/*
 \$[Rr][Ee][Cc][Yy][Cc][Ll][Ee].[Bb][Ii][Nn]/*
 [Ll][Ii][Nn][Bb][Oo].[Ll][Ss][Tt]
+swap.img
 tmp/*
 var/log/ConsoleKit/history
+var/log/lastlog
+var/log/*.1
+var/log/*.gz
+var/log/*/*.1
+var/log/*/*.gz
 var/tmp/*

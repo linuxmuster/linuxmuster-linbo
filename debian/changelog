@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.64-0) lmn7; urgency=low
+
+  * linbofs: rsync.exclude additions.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 15 Jul 2020 15:45:00 +0200
+
 linuxmuster-linbo (2.3.63-0) lmn7; urgency=low
 
   * fix #132: tell hwclock to assume rtc is in utc.
