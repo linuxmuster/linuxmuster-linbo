@@ -36,7 +36,7 @@ usage(){
  echo " -d                 Disables start, sync and new buttons on next boot."
  echo "                    To be used together with option -p."
  echo " -g <group>         All hosts of this hostgroup will be processed."
- echo " -i <ip|hostname>   Ip or hostname of client to be processed."
+ echo " -i <ip1,ip2,...>   IP or hostname of clients to be processed."
  echo " -l                 List current linbo-remote screens."
  echo " -n                 Bypasses a start.conf configured auto functions"
  echo "                    (partition, format, initcache, start) on next boot."
@@ -292,15 +292,20 @@ NR_OF_CMDS=$c
 
 # evaluate ip / group / room
 if [ -n "$IP" ]; then
- # get ip if hostname was given
- if ! validip "$IP"; then
-  get_ip "$IP"
-  [ -z "$RET" ] && usage
-  IP="$RET"
- fi
- # test for pxe flag
- pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
- [ "$pxe" = "0" ] && usage
+ tmpips="$(echo "$IP" | cut -d',' --output-delimiter=$'\n' -f1-)"
+ IP=""
+ for i in $tmpips; do
+   # get ip if hostname was given
+   if ! validip "$i"; then
+    get_ip "$i"
+    [ -z "$RET" ] && usage
+    i="$RET"
+   fi
+   # test for pxe flag
+   pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$i" | awk -F\; '{ print $11 }')"
+   [ "$pxe" = "0" ] && usage
+   IP="$IP $i"
+ done
 
 elif [ -n "$GROUP" ]; then # hosts in group with pxe flag set
  IP="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
