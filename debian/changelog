@@ -3,8 +3,9 @@ linuxmuster-linbo (2.3.64-0) lmn7; urgency=low
   * linbofs: rsync.exclude additions.
   * Fix #86: Added support for multiple individual hosts or IPs.
   * Fix #116: .postsync vanishes after sync.
+  * Fix #48: udhcpc: dns labels can actually start with a number.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2020 13:58:41 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2020 14:24:23 +0200
 
 linuxmuster-linbo (2.3.63-0) lmn7; urgency=low
 
