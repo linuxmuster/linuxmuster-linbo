@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20200606
+# 20200721
 # GPL v3
 #
 
@@ -2945,8 +2945,8 @@ upload(){
  if [ -s "$5" ]; then
   local FILES="$5"
   # file list is obsolete
-  #for ext in info list reg desc torrent; do
-  for ext in info postsync reg desc torrent; do
+  #for ext in info postsync reg desc torrent; do
+  for ext in info desc torrent; do
    [ -s "${5}.${ext}" ] && FILES="$FILES ${5}.${ext}"
   done
   echo "Lade $FILES auf $1 hoch ..." | tee -a /tmp/linbo.log

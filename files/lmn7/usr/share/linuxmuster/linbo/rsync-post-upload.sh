@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20200414
+# 20200721
 #
 
 # read in linuxmuster specific environment
@@ -48,14 +48,16 @@ if [ -s "$BACKUP" ]; then
   ARCHIVE="${FILE%%$EXT}-$DATE$EXT"
   mv -fv "$BACKUP" "$ARCHIVE"
   echo "Archive file ${ARCHIVE##*/} created." >&2
-  # backup macct and opsi files
+  # backup macct, opsi, reg, postsync files
   case "$FTYPE" in
    *.cloop|*.rsync)
-    for i in macct opsi postsync; do
+    for i in macct opsi reg postsync; do
      if [ -e "${FILE}.$i" ];then
-      mv -fv "${FILE}.$i" "${ARCHIVE}.$i"
+      cp -fv "${FILE}.$i" "${ARCHIVE}.$i"
       echo "$(basename ${ARCHIVE}.$i) created."
-      chmod 600 "${ARCHIVE}.$i"
+      case "$i" in
+        macct|opsi) chmod 600 "${ARCHIVE}.$i" ;;
+      esac
      fi
     done
    ;;

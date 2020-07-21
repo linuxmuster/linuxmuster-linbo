@@ -1,9 +1,10 @@
 linuxmuster-linbo (2.3.64-0) lmn7; urgency=low
 
   * linbofs: rsync.exclude additions.
-  * Merged #86: Added support for multiple individual hosts or IPs.
+  * Fix #86: Added support for multiple individual hosts or IPs.
+  * Fix #116: .postsync vanishes after sync.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 15 Jul 2020 16:37:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2020 13:58:41 +0200
 
 linuxmuster-linbo (2.3.63-0) lmn7; urgency=low
 
