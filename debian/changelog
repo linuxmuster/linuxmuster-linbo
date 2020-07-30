@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.65-0) lmn7; urgency=low
+
+  * Fix #136: Linbo fails when label exists (mk_parted zeroes the mbr before creating the partition table).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2020 14:24:23 +0200
+
 linuxmuster-linbo (2.3.64-0) lmn7; urgency=low
 
   * linbofs: rsync.exclude additions.

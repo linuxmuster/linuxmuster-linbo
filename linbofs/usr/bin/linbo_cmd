@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20200721
+# 20200730
 # GPL v3
 #
 
@@ -757,7 +757,10 @@ mk_parted(){
  local CMD="parted -s -a opt $disk mkpart"
  # efi system -> gpt label
  systemtype | grep -qi efi && disklabel="gpt"
- echo "Erstelle neue $disklabel Partitionstabelle auf $disk."
+ echo "Creating new $disklabel partition table on $disk."
+ # first overwrite mbr
+ dd if=/dev/zero of=$disk bs=512 count=1 || RC="1"
+ # second create partition label
  parted -s "$disk" mklabel "$disklabel" || RC="1"
 
  local n=0
