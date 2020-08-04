@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20200528
+# 20200804
 # GPL V3
 #
 
@@ -47,6 +47,7 @@ usage(){
  echo "                    and wait <sec> seconds before executing the"
  echo "                    commands given with \"-c\" or in case of \"-p\" after"
  echo "                    the creation of the pxe boot files."
+ echo " -u                 Use broadcast address with wol."
  echo
  echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
  echo "             \"-p\" as well."
@@ -100,7 +101,7 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:dg:hi:lnp:r:w:" opt; do
+while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
 
 # debug
 #echo "### opt: $opt $OPTARG"
@@ -125,10 +126,7 @@ while getopts ":b:c:dg:hi:lnp:r:w:" opt; do
   g) GROUP=$OPTARG ;;
   p) ONBOOT=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
-  w) WAIT=$OPTARG
-     isinteger "$WAIT" || usage ;;
-  n) NOAUTO=yes ;;
-  h) usage ;;
+  u) USEBCADDR=yes ;;
   \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
   :) echo "Option -$OPTARG requires an argument." >&2
@@ -376,10 +374,11 @@ if [ -n "$WAIT" ]; then
   macaddr="$(get_mac "$i")"
   # get ip address of client from devices.csv
   ipaddr="$(get_ip "$i")"
-  # try to determine broadcast address from subnets.csv
-  # if fails just dont use -i BROADCASTADDRESS parameter
-  # hosts don't wake up anymore with this fix
-  #bcaddr=$(get_bcaddress "$ipaddr") && WOL="$WOL -i $bcaddr"
+  # use broadcast address
+  if [ -n "$USEBCADDR" ]; then
+    bcaddr=$(get_bcaddress "$ipaddr")
+    validip "$bcaddr" && WOL="$WOL -i $bcaddr"
+  fi
 
   [ -n "$DIRECT" ] && $WOL "$macaddr"
   if [ -n "$ONBOOT" ]; then

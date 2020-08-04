@@ -1,8 +1,10 @@
 linuxmuster-linbo (2.3.66-0) lmn7; urgency=low
 
   * Fix linbo_wrapper, get_images(): improved getting image names from start.conf.
+  * Fix #131: WOL improvement, new parameter -u for linbo-remote to use broadcast
+    address additionally with wakeonlan.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 4 Aug 2020 19:04:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 4 Aug 2020 19:26:00 +0200
 
 linuxmuster-linbo (2.3.65-0) lmn7; urgency=low
 
