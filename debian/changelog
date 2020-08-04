@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.66-0) lmn7; urgency=low
+
+  * Fix linbo_wrapper, get_images(): improved getting image names from start.conf.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 4 Aug 2020 19:04:00 +0200
+
 linuxmuster-linbo (2.3.65-0) lmn7; urgency=low
 
   * Fix #136: Linbo fails when label exists (mk_parted zeroes the mbr before creating the partition table).

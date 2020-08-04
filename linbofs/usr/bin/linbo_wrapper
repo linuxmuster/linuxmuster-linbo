@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20180220
+# 20200804
 # GPL V3
 #
 
@@ -68,8 +68,8 @@ get_downloadtype(){
 
 # get image names
 get_images(){
- local baseimages=`grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'`
- local diffimages=`grep -i ^image /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'`
+ local baseimages=`grep -i ^baseimage /start.conf | sed -e 's/#.*$//' | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e '/^$/d'`
+ local diffimages=`grep -i ^image /start.conf | sed -e 's/#.*$//' | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e '/^$/d'`
  [ -n "$baseimages" -a -n "$diffimages" ] && images="$baseimages $diffimages"
  [ -n "$baseimages" -a -z "$diffimages" ] && images="$baseimages"
  echo "$images"
