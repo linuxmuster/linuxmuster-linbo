@@ -4,6 +4,7 @@ linuxmuster-linbo (2.3.66-0) lmn7; urgency=low
   * Fix #131: WOL improvement, new parameter -u for linbo-remote to use broadcast
     address additionally with wakeonlan.
   * added kmod, grub2-common & grub-efi-ia32-bin to build dependencies.
+  * update to kernel 4.14.192.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 4 Aug 2020 19:40:00 +0200
 
