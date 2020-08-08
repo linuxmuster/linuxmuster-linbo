@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20200804
+# 20200808
 # GPL V3
 #
 
@@ -21,68 +21,74 @@ TMPDIR=/var/tmp
 
 # usage info
 usage(){
- echo
- echo "Usage: `basename $0` <options>"
- echo
- echo "Options:"
- echo
- echo " -h                 Show this help."
- echo " -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic"
- echo "                    packets to the particular hosts. Must be used in"
- echo "                    conjunction with \"-w\"."
- echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
- echo "                    per ssh direct to the client(s)."
- echo " -d                 Disables start, sync and new buttons on next boot."
- echo "                    To be used together with option -p."
- echo " -g <group>         All hosts of this hostgroup will be processed."
- echo " -i <ip|hostname>   Ip or hostname of client to be processed."
- echo " -l                 List current linbo-remote screens."
- echo " -n                 Bypasses a start.conf configured auto functions"
- echo "                    (partition, format, initcache, start) on next boot."
- echo "                    To be used together with option -p."
- echo " -r <room>          All hosts of this room will be processed."
- echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
- echo "                    once next time the client boots."
- echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
- echo "                    and wait <sec> seconds before executing the"
- echo "                    commands given with \"-c\" or in case of \"-p\" after"
- echo "                    the creation of the pxe boot files."
- echo " -u                 Use broadcast address with wol."
- echo
- echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
- echo "             \"-p\" as well."
- echo "           * Option \"-c\" together with \"-w\" bypasses start.conf configured"
- echo "             auto functions (partition, format, initcache, start) and disables"
- echo "             start, sync and new buttons on next boot automatically."
- echo
- echo "Supported commands for -c or -p options are:"
- echo
- echo "partition                : Writes the partition table."
- echo "label                    : Labels all partitions defined in start.conf."
- echo "                           Note: Partitions have to be formatted."
- echo "format                   : Writes the partition table and formats all"
- echo "                           partitions."
- echo "format:<#>               : Writes the partition table and formats only"
- echo "                           partition nr <#>."
- echo "initcache:<dltype>       : Updates local cache. <dltype> is one of"
- echo "                           rsync|multicast|torrent."
- echo "                           If dltype is not specified it is read from"
- echo "                           start.conf."
- echo "sync:<#>                 : Syncs the operating system on position nr <#>."
- echo "start:<#>                : Starts the operating system on pos. nr <#>."
- echo "create_cloop:<#>:<\"msg\"> : Creates a cloop image from operating system nr <#>."
- echo "create_rsync:<#>:<\"msg\"> : Creates a rsync image from operating system nr <#>."
- echo "upload_cloop:<#>         : Uploads the cloop image from operating system nr <#>."
- echo "upload_rsync:<#>         : Uploads the rsync image from operating system nr <#>."
- echo "reboot                   : Reboots the client."
- echo "halt                     : Shuts the client down."
- echo
- echo "<\"msg\"> is an optional image comment."
- echo "The position numbers are related to the position in start.conf."
- echo "The commands were sent per ssh to the linbo_wrapper on the client and processed"
- echo "in the order given on the commandline."
- echo "create_* and upload_* commands cannot be used with -r and -g options."
- exit 1
+  msg="$1"
+  echo
+  echo "Usage: `basename $0` <options>"
+  echo
+  echo "Options:"
+  echo
+  echo " -h                 Show this help."
+  echo " -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic"
+  echo "                    packets to the particular hosts. Must be used in"
+  echo "                    conjunction with \"-w\"."
+  echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
+  echo "                    per ssh direct to the client(s)."
+  echo " -d                 Disables start, sync and new buttons on next boot."
+  echo "                    To be used together with option -p."
+  echo " -g <group>         All hosts of this hostgroup will be processed."
+  echo " -i <i1,i2,...>     Single ip or hostname or comma separated list of ips"
+  echo "                    or hostnames of clients to be processed."
+  echo " -l                 List current linbo-remote screens."
+  echo " -n                 Bypasses a start.conf configured auto functions"
+  echo "                    (partition, format, initcache, start) on next boot."
+  echo "                    To be used together with option -p."
+  echo " -r <room>          All hosts of this room will be processed."
+  echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
+  echo "                    once next time the client boots."
+  echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
+  echo "                    and wait <sec> seconds before executing the"
+  echo "                    commands given with \"-c\" or in case of \"-p\" after"
+  echo "                    the creation of the pxe boot files."
+  echo " -u                 Use broadcast address with wol."
+  echo
+  echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
+  echo "             \"-p\" as well."
+  echo "           * Option \"-c\" together with \"-w\" bypasses start.conf configured"
+  echo "             auto functions (partition, format, initcache, start) and disables"
+  echo "             start, sync and new buttons on next boot automatically."
+  echo
+  echo "Supported commands for -c or -p options are:"
+  echo
+  echo "partition                : Writes the partition table."
+  echo "label                    : Labels all partitions defined in start.conf."
+  echo "                           Note: Partitions have to be formatted."
+  echo "format                   : Writes the partition table and formats all"
+  echo "                           partitions."
+  echo "format:<#>               : Writes the partition table and formats only"
+  echo "                           partition nr <#>."
+  echo "initcache:<dltype>       : Updates local cache. <dltype> is one of"
+  echo "                           rsync|multicast|torrent."
+  echo "                           If dltype is not specified it is read from"
+  echo "                           start.conf."
+  echo "sync:<#>                 : Syncs the operating system on position nr <#>."
+  echo "start:<#>                : Starts the operating system on pos. nr <#>."
+  echo "create_cloop:<#>:<\"msg\"> : Creates a cloop image from operating system nr <#>."
+  echo "create_rsync:<#>:<\"msg\"> : Creates a rsync image from operating system nr <#>."
+  echo "upload_cloop:<#>         : Uploads the cloop image from operating system nr <#>."
+  echo "upload_rsync:<#>         : Uploads the rsync image from operating system nr <#>."
+  echo "reboot                   : Reboots the client."
+  echo "halt                     : Shuts the client down."
+  echo
+  echo "<\"msg\"> is an optional image comment."
+  echo "The position numbers are related to the position in start.conf."
+  echo "The commands were sent per ssh to the linbo_wrapper on the client and processed"
+  echo "in the order given on the commandline."
+  echo "create_* and upload_* commands cannot be used with hostlists, -r and -g options."
+  if [ -n "$msg" ]; then
+    echo
+    echo "$msg"
+  fi
+  exit 1
 }
 
 # list linbo-remote screens
@@ -113,20 +119,35 @@ while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
   c) DIRECT=$OPTARG ;;
   d) NOBUTTONS=yes ;;
   i)
-    if validip "$OPTARG"; then
-      HOSTS="$(get_hostname "$OPTARG")"
-    else
-      HOSTS="$OPTARG"
-    fi
-    if ! validhostname "$HOSTS"; then
-      echo "Invalid ip or hostname."
-      usage
-    fi
+    # create a list of ips
+    for i in ${OPTARG//,/ }; do
+      if validip "$i"; then
+        IP="$i"
+      else
+        IP="$(gethostip "$i" | awk '{ print $2 }')"
+        validip "$IP" || IP=""
+      fi
+      if [ -n "$IP" ]; then
+        # check for pxe flag, only use linbo related pxe flags 1 & 2
+        pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
+        [ "$pxe" = "1" -o "$pxe" = "2" ] || continue
+        if [ -n "$HOSTS" ]; then
+          HOSTS="$HOSTS $IP"
+        else
+          HOSTS="$IP"
+        fi
+      fi
+    done
+    [ -z "$HOSTS" ] && usage "Empty host list!"
     ;;
   g) GROUP=$OPTARG ;;
   p) ONBOOT=$OPTARG  ;;
   r) ROOM=$OPTARG ;;
   u) USEBCADDR=yes ;;
+  w) WAIT=$OPTARG
+     isinteger "$WAIT" || usage ;;
+  n) NOAUTO=yes ;;
+  h) usage ;;
   \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
   :) echo "Option -$OPTARG requires an argument." >&2
@@ -135,11 +156,11 @@ while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
 done
 
 # check options
-[ -z "$GROUP" -a -z "$HOSTS" -a -z "$ROOM" ] && usage
-[ -n "$GROUP" -a -n "$HOSTS" ] && usage
-[ -n "$GROUP" -a -n "$ROOM" ] && usage
-[ -n "$DIRECT" -a -n "$ONBOOT" ] && usage
-[ -z "$DIRECT" -a -z "$ONBOOT" -a -z "$WAIT" ] && usage
+[ -z "$GROUP" -a -z "$HOSTS" -a -z "$ROOM" ] && usage "No hosts, no group, no room defined!"
+[ -n "$GROUP" -a -n "$HOSTS" ] && usage "Group and hosts defined!"
+[ -n "$GROUP" -a -n "$ROOM" ] && usage "Group and room defined!"
+[ -n "$DIRECT" -a -n "$ONBOOT" ] && usage "Direct and onboot commands defined!"
+[ -z "$DIRECT" -a -z "$ONBOOT" -a -z "$WAIT" ] && usage "No commands or wakeonlan defined!"
 if [ -n "$WAIT" ]; then
  if [ ! -x "$WOL" ]; then
   echo "$WOL not found!"
@@ -148,8 +169,8 @@ if [ -n "$WAIT" ]; then
  [ -n "$DIRECT" -a "$WAIT" = "0" ] && WAIT=""
 fi
 if [ -n "$BETWEEN" ]; then
- [ -z "$WAIT" ] && usage
- isinteger "$BETWEEN" || usage
+ [ -z "$WAIT" ] && usage "-b can only be used with -w!"
+ isinteger "$BETWEEN" || usage "$BETWEEN is not an integer variable!"
 fi
 
 if [ -n "$DIRECT" ]; then
@@ -162,12 +183,15 @@ elif [ -n "$ONBOOT" ]; then
  ONBOOT="yes"
 fi
 
+# no upload or create commands for list of hosts
 if [ -n "$CMDS" ]; then
- # no upload or create for groups/rooms
- case "$CMDS" in *upload*|*create*) [ -z "$HOSTS" ] && usage ;; esac
+  pattern=" |'"
+  [[ $HOSTS =~ $pattern ]] && LIST="yes"
+  [ -n "$GROUP" -o -n "$ROOM" ] && LIST="yes"
+  case "$CMDS" in *upload*|*create*) [ -n "$LIST" ] && usage "Upload or create cannot be used with lists!" ;; esac
 
- # provide secrets for upload
- case "$CMDS" in *upload*) SECRETS=/etc/rsyncd.secrets ;; esac
+  # provide secrets for upload
+  case "$CMDS" in *upload*) SECRETS=/etc/rsyncd.secrets ;; esac
 fi
 
 
@@ -217,7 +241,7 @@ strip_cmds(){
 # extract number parameter
 extract_nr(){
  local nr="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
- isinteger "$nr" || usage
+ isinteger "$nr" || usage "$nr is not an integer variable!"
  strip_cmds ":$nr"
  command[$c]="$cmd:$nr"
 }
@@ -246,7 +270,7 @@ while [ -n "$CMDS" ]; do
  # extract command from string
  cmd="$(echo "$CMDS" | awk -F\: '{ print $1 }' | awk -F\, '{ print $1 }')"
  # check if command is known
- stringinstring "$cmd" "$KNOWNCMDS" || usage
+ stringinstring "$cmd" "$KNOWNCMDS" || usage "Command \"$cmd\" is not known!"
  # build array of commands
  command[$c]="$cmd"
  # strip command from beginning of string
@@ -260,14 +284,14 @@ while [ -n "$CMDS" ]; do
   ;;
 
   sync|start|upload_cloop|upload_rsync)
-   [ "${CMDS:0:1}" = ":" ] || usage
+   [ "${CMDS:0:1}" = ":" ] || usage "Command string \"$CMDS\" is not valid!"
    extract_nr
   ;;
 
   initcache)
    if [ "${CMDS:0:1}" = ":" ]; then
     dltype="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
-    stringinstring "$dltype" "$DLTYPES" || usage
+    stringinstring "$dltype" "$DLTYPES" || usage "$dltype is not known!"
     strip_cmds ":$dltype"
     command[$c]="$cmd:$dltype"
    fi
@@ -280,10 +304,7 @@ while [ -n "$CMDS" ]; do
 
   label|partition|reboot|halt) ;;
 
-  *)
-   echo "Unknown command: $cmd."
-   usage
-  ;;
+  *) usage "Unknown command: $cmd!" ;;
 
  esac
 
@@ -296,22 +317,15 @@ NR_OF_CMDS=$c
 ## evaluate commands string - end
 
 
-# evaluate hosts / group / room
-if [ -n "$HOSTS" ]; then
- # test for pxe flag
- pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTS" | awk -F\; '{ print $11 }' | grep -v 0)"
- if [ -z "$pxe" ]; then
-  echo "$HOSTS is no pxe client."
-  usage
- fi
-elif [ -n "$GROUP" ]; then # hosts in group with pxe flag set
- HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $2, $11 }' | grep ^"$GROUP " | grep -v " 0" | awk '{ print $2 }')"
- [ -z "$HOSTS" ] && usage
-
-else # hosts in room with pxe flag set
- HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $2, $11 }' | grep ^"$ROOM " | grep -v " 0"  | awk '{ print $2 }')"
- [ -z "$HOSTS" ] && usage
+# get ips of group or room if given on cl
+if [ -n "$GROUP" ]; then # hosts in group with pxe flag set
+  HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep " [1-2]" | awk '{ print $2 }')"
+  msg="group $GROUP"
+elif [ -n "$ROOM" ]; then # hosts in room with pxe flag set
+  HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep " [1-2]" | awk '{ print $2 }')"
+  msg="room $ROOM"
 fi
+[ -z "$HOSTS" ] && usage "No hosts in $msg!"
 
 
 # script header info
@@ -372,12 +386,10 @@ if [ -n "$WAIT" ]; then
   echo -n " $i ... "
   # get mac address of client from devices.csv
   macaddr="$(get_mac "$i")"
-  # get ip address of client from devices.csv
-  ipaddr="$(get_ip "$i")"
   # use broadcast address
   if [ -n "$USEBCADDR" ]; then
-    bcaddr=$(get_bcaddress "$ipaddr")
-    validip "$bcaddr" && WOL="$WOL -i $bcaddr"
+    bcaddr=$(get_bcaddress "$i")
+    [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
   fi
 
   [ -n "$DIRECT" ] && $WOL "$macaddr"

@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.3.66-1) lmn7; urgency=low
+
+  * lmn7: linbo-remote: fixes and improvements concerning to hostlists and the
+    use of wol broadcast address, increased verbosity.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net> Sat, 08 Aug 2020 16:48:50 +0200
+
 linuxmuster-linbo (2.3.66-0) lmn7; urgency=low
 
   * Fix linbo_wrapper, get_images(): improved getting image names from start.conf.
