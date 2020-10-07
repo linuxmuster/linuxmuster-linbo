@@ -2,26 +2,6 @@ Windows Registry Editor Version 5.00
 ; tschmitt@linuxmuster.net
 ; 26.10.2015
 
-; Win7/Samba 3.4.x - Workstation Share, AutoDisconnect ausschalten
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\lanmanserver\parameters]
-"AutoShareWks"=dword:00000001
-"AutoDisconnect"=dword:FFFFFFFF
-
-; notwendig, damit der Domaenenbeitritt klappt
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\LanmanWorkstation\Parameters]
-"DNSNameResolutionRequired"=dword:00000000
-"DomainCompatibilityMode"=dword:00000001
-"RequireSecuritySignature"=dword:00000000
-"EnableSecuritySignature"=dword:00000000
-
-; notwendig, damit der Domaenenbeitritt klappt
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
-"DisablePasswordChange"=dword:00000001
-"MaximumPasswordAge"=dword:000f4240
-"RefusePasswordChange"=dword:00000001
-"RequireSignOrSeal"=dword:00000001
-"RequireStrongKey"=dword:00000001
-
 ; optional, beschleunigt Anmeldevorgang
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "SlowLinkDetectEnabled"=dword:00000000
