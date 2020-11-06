@@ -457,9 +457,9 @@ send_cmds(){
   chmod 755 $REMOTESCRIPT
 
   # start script in screen session
-  screen -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
+  screen -DmS $HOSTNAME.linbo-remote $REMOTESCRIPT &
 
-  echo "Ok!"
+  echo "Ok! (PID $!)"
  done
 }
 
