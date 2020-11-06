@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
+
+  * fix #145: /boot and /boot/efi fail to be unmounted, subsequent partitioning fails.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 06 Nov 2020 19:24:10 +0100
+
 linuxmuster-linbo (2.3.67-0) lmn7; urgency=low
 
   * lmn7: kernel update to 5.4.75.

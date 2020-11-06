@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20200730
+# 20201106
 # GPL v3
 #
 
@@ -1139,21 +1139,25 @@ umount_boot(){
 # mount_boot efipart
 # fake mounts boot partition for grub
 mount_boot(){
- local efipart="$1"
- mkdir -p /boot
- if ! mount | grep -q " /boot "; then
-  mount --bind /cache/boot /boot || return 1
- fi
- if [ -n "$efipart" ]; then
-  mkdir -p /boot/efi
-  if ! mount | grep -q " /boot/efi "; then
-   if ! mount "$efipart" /boot/efi; then
-    umount_boot
-    return 1
-   fi
+  local efipart="$1"
+  mkdir -p /boot
+  if ! mount | grep -q " /boot "; then
+    mount --bind /cache/boot /boot || return 1
   fi
-  mkdir -p /boot/efi/EFI
- fi
+  if [ -n "$efipart" ]; then
+    mkdir -p /boot/efi
+    if ! mount | grep -q " /boot/efi "; then
+      if ! mount "$efipart" /boot/efi; then
+        umount_boot
+        return 1
+      fi
+    fi
+    # fschuett, this can fail, if mount is ro
+    if ! mkdir -p /boot/efi/EFI; then
+      umount_boot
+      return 1
+    fi
+  fi
 }
 
 # mk_winefiboot: restore and install windows efi boot files
