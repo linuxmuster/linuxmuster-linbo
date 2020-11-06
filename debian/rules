@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20190708
+# 20201106
 # GPL v3
 #
 
@@ -23,15 +23,12 @@ KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
 KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
 KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
 KERNEL_DIR=kernel/linux-$(KVERS)
-#KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
-KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x
-#KERNEL_URL=$(LML_URL)
-
 # kernel non pae
 KERNELNP_DIR=kernel-np/linux-$(KVERS)
-
 # kernel64
 KERNEL64_DIR=kernel64/linux-$(KVERS)
+#KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
+KERNEL_URL=$(LML_URL)
 
 # backports
 #BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
@@ -43,22 +40,21 @@ KERNEL64_DIR=kernel64/linux-$(KVERS)
 #BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
 
 # cloop
-### integreate cloop in LMN
-#CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
+### integrate cloop in LMN
+CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
+CLOOP_VERSION=$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
 #CLOOP_ARCHIVE=$(shell grep cloop- debian/md5sums.src | awk '{ print $$2 }')
-CLOOP_DIR=kernel/cloop
+#CLOOP_DIR=kernel/cloop
 #CLOOP_DIR=kernel/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
-#CLOOP_DIR=kernel/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-###CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
-##CLOOP_URL=$(LML_URL)
-
+CLOOP_DIR=kernel/cloop-$(CLOOP_VERSION)
 # cloop non pae
 #CLOOPNP_DIR=kernel-np/$(shell echo $(CLOOP_ARCHIVE) | sed -e 's/.tar.gz//')
-CLOOPNP_DIR=kernel-np/cloop
-
+CLOOPNP_DIR=kernel-np/cloop-$(CLOOP_VERSION)
 # cloop64
 #CLOOP64_DIR=kernel64/cloop-$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/-2.tar.gz//')
-CLOOP64_DIR=kernel64/cloop
+CLOOP64_DIR=kernel64/cloop-$(CLOOP_VERSION)
+###CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
+CLOOP_URL=$(LML_URL)
 
 # qt
 QT_ARCHIVE=$(shell grep qt- debian/md5sums.src | awk '{ print $$2 }')
@@ -202,7 +198,7 @@ configure-stamp:
 		echo "[1mPatching chntpw64 sources...[0m" ; \
 		( cd $(CHNTPW64_DIR) && for i in ../../patches/chntpw64/*; do patch -p1 <$$i; done ); \
 	fi
-	
+
 
 	# ms-sys
 	-@if [ ! -d $(MSSYS_DIR) ]; then \
@@ -258,9 +254,9 @@ configure-stamp:
 	fi
 
 	# cloop
-	-@if [ ! -d $(CLOOP_DIR) ]; then \
-		git clone https://github.com/PLanB2008/cloop kernel/cloop;\
-	fi
+	#-@if [ ! -d $(CLOOP_DIR) ]; then \
+	#	git clone https://github.com/PLanB2008/cloop kernel/cloop;\
+	#fi
 		#( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
 		#( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		#echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
@@ -268,35 +264,40 @@ configure-stamp:
 		#ln -sf ../$(CLOOP_DIR) kernel/cloop; \
 
 	# cloop with patch
-#	-@if [ ! -d $(CLOOP_DIR) ]; then \
-#		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-#		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-#		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-#		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
-#		( cd $(CLOOP_DIR) && patch -p1 <../../patches/cloop-4.3.diff ); \
-#		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
-#	fi
+	-@if [ ! -d $(CLOOP_DIR) ]; then \
+		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CLOOP_ARCHIVE) -C kernel; \
+		( cd $(CLOOP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
+		ln -sf ../$(CLOOP_DIR) kernel/cloop; \
+	fi
 
 	# cloop non pae
+	#-@if [ ! -d $(CLOOPNP_DIR) ]; then \
+	#	git clone https://github.com/PLanB2008/cloop kernel-np/cloop;\
+	#fi
 	-@if [ ! -d $(CLOOPNP_DIR) ]; then \
-		git clone https://github.com/PLanB2008/cloop kernel-np/cloop;\
+		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CLOOP_ARCHIVE) -C kernel-np; \
+		( cd $(CLOOPNP_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
+		ln -sf ../$(CLOOPNP_DIR) kernel-np/cloop; \
 	fi
-		#( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		#( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		#echo "[1mUnpacking non pae $(CLOOP_ARCHIVE)...[0m" ; \
-		#tar xf cache/$(CLOOP_ARCHIVE) -C kernel-np; \
-		#ln -sf ../$(CLOOPNP_DIR) kernel-np/cloop; \
-
 
 	# cloop64
+	#-@if [ ! -d $(CLOOP64_DIR) ]; then \
+	#	git clone https://github.com/PLanB2008/cloop kernel64/cloop;\
+	#fi
 	-@if [ ! -d $(CLOOP64_DIR) ]; then \
-		git clone https://github.com/PLanB2008/cloop kernel64/cloop;\
+		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
+		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
+		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
+		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
+		( cd $(CLOOP64_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
+		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
 	fi
-		#( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		#( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		#echo "[1mUnpacking 64bit $(CLOOP_ARCHIVE)...[0m" ; \
-		#tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
-		#ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
 
 	# kernel
 	-@if [ ! -d $(KERNEL_DIR) ]; then \

@@ -1,0 +1,12 @@
+--- a/cloop.c	2020-04-19 10:18:13.000000000 +0200
++++ b/cloop.c	2020-11-06 10:07:16.158512505 +0100
+@@ -316,7 +316,9 @@
+    // mutex_lock(&clo->clo_rq_mutex);
+    old_fs = get_fs();
+    set_fs(KERNEL_DS);
+-   size_read = vfs_read(f, (void __user *)(buf + buf_done), size, &pos);
++   // thomas@linuxmuster.net: use kernel_read instead
++   // size_read = vfs_read(f, (void __user *)(buf + buf_done), size, &pos);
++   size_read = kernel_read(f, (void __user *)(buf + buf_done), size, &pos);
+    set_fs(old_fs);
+    // mutex_unlock(&clo->clo_rq_mutex);
