@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
+
+  * fix #147: implemented logging image status of client.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Nov 2020 13:01:00 +0100
+
 linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
 
   * fix #145: /boot and /boot/efi fail to be unmounted, subsequent partitioning fails.

@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20190114
+# 20201111
 #
 
 # read in linuxmuster specific environment
@@ -79,6 +79,25 @@ case $EXT in
   rm -f "$FILE"
   touch "$FILE"
  ;;
+
+  # fetch image status from client
+*.status)
+  host_logfile="$(basename "$FILE")"
+  echo "Upload request for $host_logfile."
+  src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
+  tgt_logfile="$LINBOLOGDIR/$host_logfile"
+  linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
+  if [ -s "$FILE" ]; then
+    if [ -s "$tgt_logfile" ]; then
+      # remove older entry for image
+      image="$(cat "$FILE" | awk '{ print $3 }')"
+      [ -n "$image" ] && sed -i "/$image/d" "$tgt_logfile"
+    fi
+    cat "$FILE" >> "$tgt_logfile"
+  fi
+  rm -f "$FILE"
+  touch "$FILE"
+  ;;
 
  # provide host's opsi key for download
  *.opsikey)

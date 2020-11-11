@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201106
+# 20201111
 # GPL v3
 #
 
@@ -83,27 +83,30 @@ localmode(){
  return 0
 }
 
-# tschmitt: send logfile to linbo user on the server or store it local in cache
+# upload logfile to linbo server or store it local in cache
+# usage example (logfile parameter is optional): sendlog <name_of_logfile_in_tmp>
 sendlog(){
- local RC="1"
- local logfile
- local i
- for i in patch.log image.log linbo.log; do
-  logfile="/tmp/$i"
-  if [ -s "$logfile" ]; then
-   if localmode; then
-    if cache_writable; then
-     echo "Speichere Logdatei $i im Cache."
-     cp "$logfile" /cache
+  local RC="1"
+  local logfiles="$1"
+  [ -z "$logfiles" ] && logfiles="patch.log linbo.log image.log"
+  local i
+  for i in $logfiles; do
+    # add log extension
+    logfile="/tmp/$i"
+    if [ -s "$logfile" ]; then
+      if localmode; then
+        if cache_writable; then
+          echo "Speichere Logdatei $i im Cache."
+          cp "$logfile" /cache
+        fi
+      else
+        [ -e /tmp/linbo-network.done ] || return 0
+        echo "Veranlasse Upload von $i."
+        logfile="/tmp/$(hostname)_$i"
+        rsync $(serverip)::linbo"$logfile" "/tmp/$i" 2>"$TMP" || true
+      fi
     fi
-   else
-    [ -e /tmp/linbo-network.done ] || return 0
-    echo "Veranlasse Upload von $i."
-    logfile="/tmp/$(hostname)_$i"
-    rsync $(serverip)::linbo"$logfile" "/tmp/$i" 2>"$TMP" || true
-   fi
-  fi
- done
+  done
 }
 
 bailout(){
@@ -2596,6 +2599,12 @@ syncl(){
  # restore partition labels
  label_allpartitions
 
+ # log hosts image status
+ if [ "$RC" = "0" ]; then
+   local timestamp="$(getinfo /cache/$image.info timestamp)"
+   log_image_status "$image" "$timestamp" applied
+ fi
+
  sendlog
  cd / # ; mountcache "$1" -r
  return "$RC"
@@ -2645,10 +2654,24 @@ getinfo(){
  return 1
 }
 
+# write hosts image status to logfile
+# usage (flag can be "applied" or empty): log_image_status image timestamp flag
+log_image_status(){
+  if [ "$3" = "applied" ]; then
+    status="$(date +%Y%m%d%H%M) $3: $1 $2"
+  else
+    status="$2 created: $1 $2"
+  fi
+  echo "$status" | tee /tmp/image.status
+  sendlog image.status
+}
+
 # mk_info imagename baseimagename device_size image_size - creates timestamp file
 mk_info(){
- echo "[$1 Info File]
-timestamp=$(date +%Y%m%d%H%M)
+  local timestamp=$(date +%Y%m%d%H%M)
+  log_image_status $1 $timestamp
+  echo "[$1 Info File]
+timestamp=$timestamp
 image=$1
 baseimage=$2
 partitionsize=$3
