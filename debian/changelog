@@ -2,8 +2,9 @@ linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
 
   * fix #147: implemented logging image status of client.
   * more english translations of console messages and further code beautifying.
+  * fix #141: linbo manipulating the local start.conf when finding labels with same name.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Nov 2020 10:55:31 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 11 Nov 2020 14:20:36 +0100
 
 linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
 

@@ -470,14 +470,19 @@ update_devices(){
   local dev
   local devnew
   local label
+  local disk
+  local disknew
   grep -i ^dev /start.conf | sort -u | while read line; do
-    dev=""; devnew=""; label=""
+    dev=""; devnew=""; label=""; disk=""; disknew=""
     dev="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
     label="$(print_partlabel "$dev")"
     [ -z "$label" ] && continue
     devnew="$(print_realdev "$label")"
     [ -z "$devnew" ] && continue
     [ "$dev" = "$devnew" ] && continue
+    disk="$(get_disk_from_partition "$dev")"
+    disknew="$(get_disk_from_partition "$devnew")"
+    [ "$disk" = "$disknew" ] && continue
     echo "Korrigiere $dev --> $devnew"
     sed -i "s|$dev |$devnew |g
             s|$dev\t|$devnew\t|g
