@@ -1,0 +1,120 @@
+# LINBO start.conf, example for windows 10 & ubuntu
+# DON'T EDIT THIS FILE! MAKE A COPY AND ADAPT THE VALUES TO YOUR NEEDS!
+# windows on partition 1
+# ubuntu on partition 2
+# cache on partition 3
+# extended on partition 4
+# swap on partition 5
+# data on partition 6
+
+[LINBO]                             # global section
+Server = 10.0.0.1                   # linbo server ip address
+Group = group                       # name of the hardware group
+# IMPORTANT: server and group will be automatically set during device import!
+Cache = /dev/sda3                   # cache partition
+RootTimeout = 600                   # logout from admin console after 600 secs
+AutoPartition = no                  # no partition repair during LINBO startup
+AutoFormat = no                     # no formatting of all partitions during LINBO startup
+AutoInitCache = no                  # no initial cache setup during LINBO startup
+DownloadType = torrent              # image download method (torrent|multicast|rsync)
+BackgroundFontColor = white         # font color of status section (default: white)
+ConsoleFontColorStdout = lightgreen # console font color (default: white)
+ConsoleFontColorStderr = orange     # console error font color (default: red)
+SystemType = bios64                 # possible values: bios|bios64|efi32|efi64 (default: bios)
+KernelOptions = quiet splash        # linbo kernel options, space separated
+#KernelOptions = acpi=noirq irqpoll # linbo kernel options example for use with acpi problems
+#KernelOptions = server=10.0.0.5    # different pxe server ip, (needs device import to be activated)
+
+[Partition]          # partition section (operating system)
+Dev = /dev/sda1      # device name of the partition
+Label = windows      # partition label
+Size = 50G           # partition size 50G, will use kiB if no unit (M, G or T) is set
+Id = 7               # partition id (7 = ntfs)
+FSType = ntfs        # filesystem ntfs
+Bootable = yes       # set bootable flag yes
+
+[Partition]          # partition section (operating system)
+Dev = /dev/sda2      # device name of the partition
+Label = ubuntu       # partition label
+Size = 30G           # partition size 30G
+Id = 83              # partition id (83 = linux)
+FSType = ext4        # filesystem ext4
+Bootable = yes       # set bootable flag yes
+
+[Partition]          # partition section (cache)
+Dev = /dev/sda3      # device name of the partition
+Label = cache        # partition label
+Size = 80G           # partition size 80G
+Id = 83              # partition id (83 = linux)
+FSType = ext4        # filesystem ext4
+Bootable = yes       # set bootable flag yes
+
+[Partition]          # partition section (extended)
+Dev = /dev/sda4      # device name of the partition
+Label = extended     # partition label
+Size =               # partition size (empty in case of extended partition)
+Id = 5               # partition id (5 = extended partition)
+FSType =             # filesystem (empty in case of extended partition)
+Bootable = no        # set bootable flag no
+
+[Partition]          # partition section (swap)
+Dev = /dev/sda5      # device name of the partition
+Label = swap         # partition label
+Size = 8G            # partition size 8G
+Id = 82              # partition id (82 = swap)
+FSType = swap        # filesystem swap
+Bootable = no        # set bootable flag no
+
+[Partition]          # partition section (data)
+Label = data         # partition label
+Dev = /dev/sda6      # device name of the partition
+Size =               # partition size (no value = remaining space of the disk)
+Id = 7               # partition id (7 = ntfs)
+FSType = ntfs        # filesystem ntfs
+Bootable = no        # set bootable flag no
+
+[OS]                          # os section
+Name = Windows 10             # os name
+Version =                     # version (not used)
+Description = Windows 10 1903 # detailed description of os
+IconName = win10.png          # icon filename in /srv/linbo/icons
+Image =                       # filename of differential image (extension .rsync, optional)
+BaseImage = win10.cloop       # filename of main image (extension .cloop)
+Boot = /dev/sda1              # boot partition (not used, identical with root partition)
+Root = /dev/sda1              # root partition of the os
+Kernel = auto                 # auto for windows
+Initrd =                      # empty for windows
+Append =                      # empty for windows
+StartEnabled = yes            # show start button
+SyncEnabled = yes             # show sync+start button
+NewEnabled = yes              # show new+start button
+Autostart = no                # automatic start of os (yes|no)
+AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
+DefaultAction = sync          # default action on automatic start: start|sync|new
+RestoreOpsiState = no         # restore opsi product state after sync (yes|no)
+ForceOpsiSetup =              # comma separated list of opsi product ids, which are forced
+                              # to setup after sync (e.g. mozilla.firefox,mozilla.thunderbird)
+Hidden = yes                  # hide os tab (unused option, leave it at yes)
+
+[OS]                          # os section
+Name = Ubuntu                 # os name
+Version =                     # version (not used)
+Description = Ubuntu 20.04    # detailed description of os
+IconName = ubuntu.png         # icon filename in /srv/linbo/icons
+Image =                       # filename of differential image (extension .rsync, optional)
+BaseImage = ubuntu.cloop      # filename of main image (extension .cloop)
+Boot = /dev/sda2              # boot partition (not used, identical with root partition)
+Root = /dev/sda2              # root partition of the os
+Kernel = boot/vmlinuz              # relative path to kernel
+Initrd = boot/initrd.img           # relative path to initrd
+Append = ro splash            # kernel append parameters
+StartEnabled = yes            # show start button
+SyncEnabled = yes             # show sync+start button
+NewEnabled = yes              # show new+start button
+Autostart = no                # automatic start of os (yes|no)
+AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
+DefaultAction = sync          # default action on automatic start: start|sync|new
+RestoreOpsiState = no         # restore opsi product state after sync (yes|no)
+ForceOpsiSetup =              # comma separated list of opsi product ids, which are forced
+                              # to setup after sync (e.g. mozilla.firefox,mozilla.thunderbird)
+Hidden = yes                  # hide os tab (unused option, leave it at yes)
