@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201111
+# 20201120
 # GPL v3
 #
 
@@ -1459,7 +1459,8 @@ invoke_macct(){
   else
     return
   fi
-  download "$serverip" "$macctfile" && echo "Maschinenpasswort auf $serverip wurde gesetzt."
+  echo "Setting machine password on $serverip ..."
+  download "$serverip" "$macctfile"
   remote_cache "$(cachedev)" || rm -f "/cache/$macctfile"
 }
 
