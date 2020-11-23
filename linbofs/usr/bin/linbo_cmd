@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201120
+# 20201121
 # GPL v3
 #
 
@@ -1780,6 +1780,7 @@ mk_cloop(){
         ls -l "$3"
       else
         echo "Creation of $3 failed. :(" | tee -a /tmp/image.log
+        return "$RC"
       fi
       ;;
     differential)
@@ -1807,6 +1808,7 @@ mk_cloop(){
               ls -l "$3"
             else
               echo "Creation of $3 failed. :(" | tee -a /tmp/image.log
+              return "$RC"
             fi
           else
             RC="$?"

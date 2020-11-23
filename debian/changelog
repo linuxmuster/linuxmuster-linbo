@@ -4,8 +4,9 @@ linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
   * more english translations of console messages and further code beautifying.
   * fix #141: linbo manipulating the local start.conf when finding labels with same name.
   * fix #142: added start.conf examples for Ubuntu 20.04 with correct kernel and initrd paths.
+  * fix #139: improved error handling in linbo_wrapper, linbo_cmd and linbo-remote.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 21 Nov 2020 11:39:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 23 Nov 2020 13:58:45 +0100
 
 linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
 

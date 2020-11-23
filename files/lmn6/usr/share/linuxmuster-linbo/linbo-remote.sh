@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20190313
+# 20201123
 # GPL V3
 #
 
@@ -420,8 +420,10 @@ send_cmds(){
   # create a temporary script with linbo remote commands
   get_hostname "$i"
   HOSTNAME="$RET"
+  LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
   REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
-  echo "#!/bin/sh" > $REMOTESCRIPT
+  echo "#!/bin/bash" > $REMOTESCRIPT
+  echo "RC=0" >> $REMOTESCRIPT
   local c=0
   while [ $c -lt $NR_OF_CMDS ]; do
    # pause between commands
@@ -429,21 +431,21 @@ send_cmds(){
    case ${command[$c]} in
     start*|reboot|halt|poweroff)
      START=yes
-     echo "$SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
+     echo "[ \$RC = 0 ] && $SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
      echo "sleep 10" >> $REMOTESCRIPT ;;
-    *) echo "$SSH $i $WRAPPER ${command[$c]}" >> $REMOTESCRIPT ;;
+    *) echo "[ \$RC = 0 ] && $SSH $i $WRAPPER ${command[$c]} || RC=1" >> $REMOTESCRIPT ;;
    esac
    c=$(( $c + 1 ))
   done
-  [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm /tmp/rsyncd.secrets" >> $REMOTESCRIPT
-  echo "rm $REMOTESCRIPT" >> $REMOTESCRIPT
-  echo "exit 0" >> $REMOTESCRIPT
+  [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm -f /tmp/rsyncd.secrets" >> $REMOTESCRIPT
+  echo "rm -f $REMOTESCRIPT" >> $REMOTESCRIPT
+  echo "exit \$RC" >> $REMOTESCRIPT
   chmod 755 $REMOTESCRIPT
 
   # start script in screen session
-  screen -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
+  screen -L -Logfile "$LOGFILE" -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
 
-  echo "Ok!"
+  echo "Started. Log see $LOGFILE."
  done
 }
 
