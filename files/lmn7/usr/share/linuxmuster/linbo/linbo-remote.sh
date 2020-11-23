@@ -459,9 +459,11 @@ send_cmds(){
   chmod 755 $REMOTESCRIPT
 
   # start script in screen session
-  screen -L -Logfile "$LOGFILE" -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
-
-  echo "Started. Log see $LOGFILE."
+  SCREENNAME="$HOSTNAME.linbo-remote"
+  screen -L -Logfile "$LOGFILE" -dmS "$SCREENNAME" $REMOTESCRIPT
+  PID="$(screen -ls | grep -w "$SCREENNAME" | awk '{print $1}' | awk -F. '{print $1}')"
+  [ -z "$PID" ] && PID="unknown"
+  echo "Started with PID $PID. Log see $LOGFILE."
  done
 }
 
