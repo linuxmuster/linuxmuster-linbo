@@ -93,72 +93,72 @@ usage(){
 
 # list linbo-remote screens
 list(){
- local line=""
- local pid=""
- local c=0
- local d
- screen -wipe | grep .linbo-remote | sort | sed -e 's|\.|\t|' | while read line; do
-  c=$(( c + 1 ))
-  d=""
-  [ $c -lt 100 ] && d=" "
-  [ $c -lt 10 ] && d="  "
-  echo -e "$d$c\t$line"
- done
+  local line=""
+  local pid=""
+  local c=0
+  local d
+  screen -wipe | grep .linbo-remote | sort | sed -e 's|\.|\t|' | while read line; do
+    c=$(( c + 1 ))
+    d=""
+    [ $c -lt 100 ] && d=" "
+    [ $c -lt 10 ] && d="  "
+    echo -e "$d$c\t$line"
+  done
 }
 
 # process cmdline
 while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
 
-# debug
-#echo "### opt: $opt $OPTARG"
+  # debug
+  #echo "### opt: $opt $OPTARG"
 
- case $opt in
-  l) list
-     exit 0 ;;
-  b) BETWEEN=$OPTARG ;;
-  c) DIRECT=$OPTARG ;;
-  d) NOBUTTONS=yes ;;
-  i)
-    # create a list of hosts
-    for i in ${OPTARG//,/ }; do
-      if validhostname "$i"; then
-        HOSTNAME="$i"
-      else
-        validip "$i" && IP="$i"
-        HOSTNAME=""
-      fi
-      [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }')"
-      if [ -n "$HOSTNAME" ]; then
-        # check for pxe flag, only use linbo related pxe flags 1 & 2
-        pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTNAME" | awk -F\; '{ print $11 }')"
-        if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
-          echo "Skipping $i, not a pxe host!"
-          continue
-        fi
-        if [ -n "$HOSTS" ]; then
-          HOSTS="$HOSTS $HOSTNAME"
+  case $opt in
+    l) list
+      exit 0 ;;
+    b) BETWEEN=$OPTARG ;;
+    c) DIRECT=$OPTARG ;;
+    d) NOBUTTONS=yes ;;
+    i)
+      # create a list of hosts
+      for i in ${OPTARG//,/ }; do
+        if validhostname "$i"; then
+          HOSTNAME="$i"
         else
-          HOSTS="$HOSTNAME"
+          validip "$i" && IP="$i"
+          HOSTNAME=""
         fi
-      else
-        echo "Host $i not found!"
-      fi
-    done
-    [ -z "$HOSTS" ] && usage "No valid hosts in list!"
-    ;;
-  g) GROUP=$OPTARG ;;
-  p) ONBOOT=$OPTARG  ;;
-  r) ROOM=$OPTARG ;;
-  u) USEBCADDR=yes ;;
-  w) WAIT=$OPTARG
-     isinteger "$WAIT" || usage ;;
-  n) NOAUTO=yes ;;
-  h) usage ;;
-  \?) echo "Invalid option: -$OPTARG" >&2
+        [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }')"
+        if [ -n "$HOSTNAME" ]; then
+          # check for pxe flag, only use linbo related pxe flags 1 & 2
+          pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTNAME" | awk -F\; '{ print $11 }')"
+          if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
+            echo "Skipping $i, not a pxe host!"
+            continue
+          fi
+          if [ -n "$HOSTS" ]; then
+            HOSTS="$HOSTS $HOSTNAME"
+          else
+            HOSTS="$HOSTNAME"
+          fi
+        else
+          echo "Host $i not found!"
+        fi
+      done
+      [ -z "$HOSTS" ] && usage "No valid hosts in list!"
+      ;;
+    g) GROUP=$OPTARG ;;
+    p) ONBOOT=$OPTARG  ;;
+    r) ROOM=$OPTARG ;;
+    u) USEBCADDR=yes ;;
+    w) WAIT=$OPTARG
+      isinteger "$WAIT" || usage ;;
+    n) NOAUTO=yes ;;
+    h) usage ;;
+    \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
-  :) echo "Option -$OPTARG requires an argument." >&2
-     usage ;;
- esac
+    :) echo "Option -$OPTARG requires an argument." >&2
+      usage ;;
+  esac
 done
 
 # check options
@@ -168,25 +168,25 @@ done
 [ -n "$DIRECT" -a -n "$ONBOOT" ] && usage "Direct and onboot commands defined!"
 [ -z "$DIRECT" -a -z "$ONBOOT" -a -z "$WAIT" ] && usage "No commands or wakeonlan defined!"
 if [ -n "$WAIT" ]; then
- if [ ! -x "$WOL" ]; then
-  echo "$WOL not found!"
-  exit 1
- fi
- [ -n "$DIRECT" -a "$WAIT" = "0" ] && WAIT=""
+  if [ ! -x "$WOL" ]; then
+    echo "$WOL not found!"
+    exit 1
+  fi
+  [ -n "$DIRECT" -a "$WAIT" = "0" ] && WAIT=""
 fi
 if [ -n "$BETWEEN" ]; then
- [ -z "$WAIT" ] && usage "-b can only be used with -w!"
- isinteger "$BETWEEN" || usage "$BETWEEN is not an integer variable!"
+  [ -z "$WAIT" ] && usage "-b can only be used with -w!"
+  isinteger "$BETWEEN" || usage "$BETWEEN is not an integer variable!"
 fi
 
 if [ -n "$DIRECT" ]; then
- CMDS="$DIRECT"
- DIRECT="yes"
- NOAUTO="yes"
- NOBUTTONS="yes"
+  CMDS="$DIRECT"
+  DIRECT="yes"
+  NOAUTO="yes"
+  NOBUTTONS="yes"
 elif [ -n "$ONBOOT" ]; then
- CMDS="$ONBOOT"
- ONBOOT="yes"
+  CMDS="$ONBOOT"
+  ONBOOT="yes"
 fi
 
 # no upload or create commands for list of hosts
@@ -204,119 +204,119 @@ fi
 # common functions
 # test if linbo-client is online
 is_online(){
- $SSH -o ConnectTimeout=1 "$1" /bin/ls /start.conf &> /dev/null && return 0
- return 1
+  $SSH -o ConnectTimeout=1 "$1" /bin/ls /start.conf &> /dev/null && return 0
+  return 1
 }
 
 # waiting routine
 do_wait(){
- local type="$1"
- local msg
- if [ "$type" = "wol" ]; then
-  msg="Waiting $WAIT second(s) for client(s) to boot"
-  secs="$WAIT"
+  local type="$1"
+  local msg
+  if [ "$type" = "wol" ]; then
+    msg="Waiting $WAIT second(s) for client(s) to boot"
+    secs="$WAIT"
+    echo
+  elif [ "$type" = "between" ]; then
+    msg="  "
+    secs="$BETWEEN"
+  fi
+  [ -z "$secs" -o "$secs" = "0" ] && return
+  local c=0
+  echo -n "$msg "
+  while [ $c -lt $secs ]; do
+    sleep 1
+    echo -n "."
+    c=$(( $c + 1 ))
+  done
   echo
- elif [ "$type" = "between" ]; then
-  msg="  "
-  secs="$BETWEEN"
- fi
- [ -z "$secs" -o "$secs" = "0" ] && return
- local c=0
- echo -n "$msg "
- while [ $c -lt $secs ]; do
-  sleep 1
-  echo -n "."
-  c=$(( $c + 1 ))
- done
- echo
 }
 
 # print onboot linbocmd filename
 onbootcmdfile(){
- echo "$LINBODIR/linbocmd/$1.cmd"
+  echo "$LINBODIR/linbocmd/$1.cmd"
 }
 
 
 ## evaluate commands string - begin
 # strip from beginning of commands string
 strip_cmds(){
- local tostrip="$1"
- CMDS="$(echo "$CMDS" | sed -e "s|^$tostrip||")"
+  local tostrip="$1"
+  CMDS="$(echo "$CMDS" | sed -e "s|^$tostrip||")"
 }
 
 # extract number parameter
 extract_nr(){
- local nr="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
- isinteger "$nr" || usage "$nr is not an integer variable!"
- strip_cmds ":$nr"
- command[$c]="$cmd:$nr"
+  local nr="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
+  isinteger "$nr" || usage "$nr is not an integer variable!"
+  strip_cmds ":$nr"
+  command[$c]="$cmd:$nr"
 }
 
 # extract comment
 extract_comment(){
- local comment="$(echo "$CMDS" | awk -F\: '{ print $2 }')"
- # count commas in comment string
- local nrofc="$(echo "$CMDS" | grep -o "," | wc -l)"
- # if more than zero commas exist
- if [ $nrofc -gt 0 ]; then
-  # strip next command
-  local i
-  for i in $KNOWNCMDS; do
-   stringinstring ",$i" "$comment" && comment="$(echo "$comment" | sed -e "s|\,${i}.*||")"
-  done
- fi
- strip_cmds ":$comment"
- command[$c]="${command[$c]}:\\\"$comment\\\""
+  local comment="$(echo "$CMDS" | awk -F\: '{ print $2 }')"
+  # count commas in comment string
+  local nrofc="$(echo "$CMDS" | grep -o "," | wc -l)"
+  # if more than zero commas exist
+  if [ $nrofc -gt 0 ]; then
+    # strip next command
+    local i
+    for i in $KNOWNCMDS; do
+      stringinstring ",$i" "$comment" && comment="$(echo "$comment" | sed -e "s|\,${i}.*||")"
+    done
+  fi
+  strip_cmds ":$comment"
+  command[$c]="${command[$c]}:\\\"$comment\\\""
 }
 
 # iterate over command string and split the commands
 c=0
 while [ -n "$CMDS" ]; do
 
- # extract command from string
- cmd="$(echo "$CMDS" | awk -F\: '{ print $1 }' | awk -F\, '{ print $1 }')"
- # check if command is known
- stringinstring "$cmd" "$KNOWNCMDS" || usage "Command \"$cmd\" is not known!"
- # build array of commands
- command[$c]="$cmd"
- # strip command from beginning of string
- strip_cmds "$cmd"
+  # extract command from string
+  cmd="$(echo "$CMDS" | awk -F\: '{ print $1 }' | awk -F\, '{ print $1 }')"
+  # check if command is known
+  stringinstring "$cmd" "$KNOWNCMDS" || usage "Command \"$cmd\" is not known!"
+  # build array of commands
+  command[$c]="$cmd"
+  # strip command from beginning of string
+  strip_cmds "$cmd"
 
- # evaluate commands and parameters
- case "$cmd" in
+  # evaluate commands and parameters
+  case "$cmd" in
 
-  format)
-   [ "${CMDS:0:1}" = ":" ] && extract_nr
-  ;;
+    format)
+      [ "${CMDS:0:1}" = ":" ] && extract_nr
+      ;;
 
-  sync|start|upload_cloop|upload_rsync)
-   [ "${CMDS:0:1}" = ":" ] || usage "Command string \"$CMDS\" is not valid!"
-   extract_nr
-  ;;
+    sync|start|upload_cloop|upload_rsync)
+      [ "${CMDS:0:1}" = ":" ] || usage "Command string \"$CMDS\" is not valid!"
+      extract_nr
+      ;;
 
-  initcache)
-   if [ "${CMDS:0:1}" = ":" ]; then
-    dltype="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
-    stringinstring "$dltype" "$DLTYPES" || usage "$dltype is not known!"
-    strip_cmds ":$dltype"
-    command[$c]="$cmd:$dltype"
-   fi
-  ;;
+    initcache)
+      if [ "${CMDS:0:1}" = ":" ]; then
+        dltype="$(echo "$CMDS" | awk -F\: '{ print $2 }' | awk -F\, '{ print $1 }')"
+        stringinstring "$dltype" "$DLTYPES" || usage "$dltype is not known!"
+        strip_cmds ":$dltype"
+        command[$c]="$cmd:$dltype"
+      fi
+      ;;
 
-  create_cloop|create_rsync)
-   extract_nr
-   [ "${CMDS:0:1}" = ":" ] && extract_comment
-  ;;
+    create_cloop|create_rsync)
+      extract_nr
+      [ "${CMDS:0:1}" = ":" ] && extract_comment
+      ;;
 
-  label|partition|reboot|halt) ;;
+    label|partition|reboot|halt) ;;
 
-  *) usage "Unknown command: $cmd!" ;;
+    *) usage "Unknown command: $cmd!" ;;
 
- esac
+  esac
 
- # remove preceding comma
- strip_cmds ","
- c=$(( $c + 1 ))
+  # remove preceding comma
+  strip_cmds ","
+  c=$(( $c + 1 ))
 
 done
 NR_OF_CMDS=$c
@@ -343,23 +343,23 @@ echo "###"
 # create onboot command string, if -p is given
 if [ -n "$ONBOOT" ]; then
 
- # add upload secrets
- [ -n "$SECRETS" ] && onbootcmds="$(grep ^linbo: "$SECRETS")"
+  # add upload secrets
+  [ -n "$SECRETS" ] && onbootcmds="$(grep ^linbo: "$SECRETS")"
 
- # collect commands
- c=0
- while [ $c -lt $NR_OF_CMDS ]; do
-  if [ -n "$onbootcmds" ]; then
-   onbootcmds="${onbootcmds},${command[$c]}"
-  else
-   onbootcmds="${command[$c]}"
-  fi
-  c=$(( $c + 1 ))
- done
+  # collect commands
+  c=0
+  while [ $c -lt $NR_OF_CMDS ]; do
+    if [ -n "$onbootcmds" ]; then
+      onbootcmds="${onbootcmds},${command[$c]}"
+    else
+      onbootcmds="${command[$c]}"
+    fi
+    c=$(( $c + 1 ))
+  done
 
- # add noauto and nobutton triggers
- [ -n "$NOAUTO" ] && onbootcmds="$onbootcmds noauto"
- [ -n "$NOBUTTONS" ] && onbootcmds="$onbootcmds nobuttons"
+  # add noauto and nobutton triggers
+  [ -n "$NOAUTO" ] && onbootcmds="$onbootcmds noauto"
+  [ -n "$NOBUTTONS" ] && onbootcmds="$onbootcmds nobuttons"
 
 fi # onboot command string
 
@@ -367,151 +367,151 @@ fi # onboot command string
 # create linbocmd files for onboot tasks, if -p or -w is given
 if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" ]; then
 
- echo
- echo "Preparing onboot linbo tasks:"
- for i in $HOSTS; do
-  echo -n " $i ... "
-  [ -n "$DIRECT" ] && echo "noauto nobuttons" > "$(onbootcmdfile "$i")"
-  [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
-  echo "Done."
- done
+  echo
+  echo "Preparing onboot linbo tasks:"
+  for i in $HOSTS; do
+    echo -n " $i ... "
+    [ -n "$DIRECT" ] && echo "noauto nobuttons" > "$(onbootcmdfile "$i")"
+    [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
+    echo "Done."
+  done
 
- chown nobody:root $LINBODIR/linbocmd/*
- chmod 660 $LINBODIR/linbocmd/*
+  chown nobody:root $LINBODIR/linbocmd/*
+  chmod 660 $LINBODIR/linbocmd/*
 
 fi
 
 
 # wake-on-lan, if -w is given
 if [ -n "$WAIT" ]; then
- echo
- echo "Trying to wake up:"
- c=0
- for i in $HOSTS; do
-  [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
-  echo -n " $i ... "
-  # get mac address of client from devices.csv
-  macaddr="$(get_mac "$i")"
-  # use broadcast address
-  if [ -n "$USEBCADDR" ]; then
-    bcaddr=$(get_bcaddress "$i")
-    [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
-  fi
+  echo
+  echo "Trying to wake up:"
+  c=0
+  for i in $HOSTS; do
+    [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
+    echo -n " $i ... "
+    # get mac address of client from devices.csv
+    macaddr="$(get_mac "$i")"
+    # use broadcast address
+    if [ -n "$USEBCADDR" ]; then
+      bcaddr=$(get_bcaddress "$i")
+      [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
+    fi
 
-  [ -n "$DIRECT" ] && $WOL "$macaddr"
-  if [ -n "$ONBOOT" ]; then
-   # reboot linbo-clients which are already online
-   if is_online "$i"; then
-    echo "Client is already online, rebooting ..."
-    $SSH "$i" reboot &> /dev/null
-   else
-    $WOL "$macaddr"
-   fi
-  fi
-  [ -z "$DIRECT" -a -z "$ONBOOT" ] && $WOL "$macaddr"
-  c=$(( $c + 1 ))
- done
+    [ -n "$DIRECT" ] && $WOL "$macaddr"
+    if [ -n "$ONBOOT" ]; then
+      # reboot linbo-clients which are already online
+      if is_online "$i"; then
+        echo "Client is already online, rebooting ..."
+        $SSH "$i" reboot &> /dev/null
+      else
+        $WOL "$macaddr"
+      fi
+    fi
+    [ -z "$DIRECT" -a -z "$ONBOOT" ] && $WOL "$macaddr"
+    c=$(( $c + 1 ))
+  done
 fi
 
 
 # send commands directly per linbo-ssh, with -c
 send_cmds(){
 
- # wait for clients to come up
- [ -n "$WAIT" ] && do_wait wol
+  # wait for clients to come up
+  [ -n "$WAIT" ] && do_wait wol
 
- echo
- echo "Sending command(s) to:"
- for i in $HOSTS; do
-  echo -n " $i ... "
+  echo
+  echo "Sending command(s) to:"
+  for i in $HOSTS; do
+    echo -n " $i ... "
 
-  # look for not fetched onboot file and delete it
-  [ -e "$(onbootcmdfile "$i")" ] && rm -f "$(onbootcmdfile "$i")"
+    # look for not fetched onboot file and delete it
+    [ -e "$(onbootcmdfile "$i")" ] && rm -f "$(onbootcmdfile "$i")"
 
-  # test if client is online
-  if ! is_online "$i"; then
-   echo "Not online, host skipped."
-   continue
-  fi
+    # test if client is online
+    if ! is_online "$i"; then
+      echo "Not online, host skipped."
+      continue
+    fi
 
-  # provide secrets for image upload
-  if [ -n "$SECRETS" ]; then
-   echo -n "Uploading secrets ... "
-   $SCP $SECRETS ${i}:/tmp
-  fi
+    # provide secrets for image upload
+    if [ -n "$SECRETS" ]; then
+      echo -n "Uploading secrets ... "
+      $SCP $SECRETS ${i}:/tmp
+    fi
 
-  # create a temporary script with linbo remote commands
-  HOSTNAME="$i"
-  LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
-  REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
-  echo "#!/bin/bash" > $REMOTESCRIPT
-  echo "RC=0" >> $REMOTESCRIPT
-  local c=0
-  while [ $c -lt $NR_OF_CMDS ]; do
-   # pause between commands
-   [ $c -gt 0 ] && echo "sleep 3" >> $REMOTESCRIPT
-   case ${command[$c]} in
-    start*|reboot|halt|poweroff)
-     START=yes
-     echo "[ \$RC = 0 ] && $SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
-     echo "sleep 10" >> $REMOTESCRIPT ;;
-    *) echo "[ \$RC = 0 ] && $SSH $i $WRAPPER ${command[$c]} || RC=1" >> $REMOTESCRIPT ;;
-   esac
-   c=$(( $c + 1 ))
+    # create a temporary script with linbo remote commands
+    HOSTNAME="$i"
+    LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
+    REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
+    echo "#!/bin/bash" > $REMOTESCRIPT
+    echo "RC=0" >> $REMOTESCRIPT
+    local c=0
+    while [ $c -lt $NR_OF_CMDS ]; do
+      # pause between commands
+      [ $c -gt 0 ] && echo "sleep 3" >> $REMOTESCRIPT
+      case ${command[$c]} in
+        start*|reboot|halt|poweroff)
+          START=yes
+          echo "[ \$RC = 0 ] && $SSH $i $WRAPPER ${command[$c]} &" >> $REMOTESCRIPT
+          echo "sleep 10" >> $REMOTESCRIPT ;;
+        *) echo "[ \$RC = 0 ] && $SSH $i $WRAPPER ${command[$c]} || RC=1" >> $REMOTESCRIPT ;;
+      esac
+      c=$(( $c + 1 ))
+    done
+    [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm -f /tmp/rsyncd.secrets" >> $REMOTESCRIPT
+    echo "rm -f $REMOTESCRIPT" >> $REMOTESCRIPT
+    echo "exit \$RC" >> $REMOTESCRIPT
+    chmod 755 $REMOTESCRIPT
+
+    # start script in screen session
+    SCREENNAME="$HOSTNAME.linbo-remote"
+    screen -L -Logfile "$LOGFILE" -dmS "$SCREENNAME" $REMOTESCRIPT
+    PID="$(screen -ls | grep -w "$SCREENNAME" | awk '{print $1}' | awk -F. '{print $1}')"
+    [ -z "$PID" ] && PID="unknown"
+    echo "Started with PID $PID. Log see $LOGFILE."
   done
-  [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm -f /tmp/rsyncd.secrets" >> $REMOTESCRIPT
-  echo "rm -f $REMOTESCRIPT" >> $REMOTESCRIPT
-  echo "exit \$RC" >> $REMOTESCRIPT
-  chmod 755 $REMOTESCRIPT
-
-  # start script in screen session
-  SCREENNAME="$HOSTNAME.linbo-remote"
-  screen -L -Logfile "$LOGFILE" -dmS "$SCREENNAME" $REMOTESCRIPT
-  PID="$(screen -ls | grep -w "$SCREENNAME" | awk '{print $1}' | awk -F. '{print $1}')"
-  [ -z "$PID" ] && PID="unknown"
-  echo "Started with PID $PID. Log see $LOGFILE."
- done
 }
 
 
 # test if waked up clients have done their onboot tasks, with -p
 test_onboot(){
 
- # wait for clients to come up
- do_wait wol
+  # wait for clients to come up
+  do_wait wol
 
- # verifying if clients have done their onboot tasks
- echo
- echo "Verifying onboot tasks:"
- for i in $HOSTS; do
-  echo -n " $i ... "
-  if [ -e "$(onbootcmdfile "$i")" ]; then
-   rm -f "$(onbootcmdfile "$i")"
-   echo "Not done, host skipped!"
-  else
-   echo "Ok!"
-  fi
- done
+  # verifying if clients have done their onboot tasks
+  echo
+  echo "Verifying onboot tasks:"
+  for i in $HOSTS; do
+    echo -n " $i ... "
+    if [ -e "$(onbootcmdfile "$i")" ]; then
+      rm -f "$(onbootcmdfile "$i")"
+      echo "Not done, host skipped!"
+    else
+      echo "Ok!"
+    fi
+  done
 }
 
 
 # test if waked up clienst are online
 test_online(){
 
- # wait for clients to come up
- do_wait wol
+  # wait for clients to come up
+  do_wait wol
 
- # testing if clients are online
- echo
- echo "Testing if clients have booted:"
- for i in $HOSTS; do
-  echo -n " $i ... "
-  if is_online "$i"; then
-   echo "Online!"
-  else
-   echo "Not online!"
-  fi
- done
+  # testing if clients are online
+  echo
+  echo "Testing if clients have booted:"
+  for i in $HOSTS; do
+    echo -n " $i ... "
+    if is_online "$i"; then
+      echo "Online!"
+    else
+      echo "Not online!"
+    fi
+  done
 }
 
 
