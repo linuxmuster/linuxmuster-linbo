@@ -119,26 +119,32 @@ while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
   c) DIRECT=$OPTARG ;;
   d) NOBUTTONS=yes ;;
   i)
-    # create a list of ips
+    # create a list of hosts
     for i in ${OPTARG//,/ }; do
-      if validip "$i"; then
-        IP="$i"
+      if validhostname "$i"; then
+        HOSTNAME="$i"
       else
-        IP="$(gethostip "$i" | awk '{ print $2 }')"
-        validip "$IP" || IP=""
+        validip "$i" && IP="$i"
+        HOSTNAME=""
       fi
-      if [ -n "$IP" ]; then
+      [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }')"
+      if [ -n "$HOSTNAME" ]; then
         # check for pxe flag, only use linbo related pxe flags 1 & 2
-        pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$IP" | awk -F\; '{ print $11 }')"
-        [ "$pxe" = "1" -o "$pxe" = "2" ] || continue
-        if [ -n "$HOSTS" ]; then
-          HOSTS="$HOSTS $IP"
-        else
-          HOSTS="$IP"
+        pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTNAME" | awk -F\; '{ print $11 }')"
+        if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
+          echo "Skipping $i, not a pxe host!"
+          continue
         fi
+        if [ -n "$HOSTS" ]; then
+          HOSTS="$HOSTS $HOSTNAME"
+        else
+          HOSTS="$HOSTNAME"
+        fi
+      else
+        echo "Host $i not found!"
       fi
     done
-    [ -z "$HOSTS" ] && usage "Empty host list!"
+    [ -z "$HOSTS" ] && usage "No valid hosts in list!"
     ;;
   g) GROUP=$OPTARG ;;
   p) ONBOOT=$OPTARG  ;;
@@ -319,10 +325,10 @@ NR_OF_CMDS=$c
 
 # get ips of group or room if given on cl
 if [ -n "$GROUP" ]; then # hosts in group with pxe flag set
-  HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $5, $11 }' | grep ^"$GROUP " | grep " [1-2]" | awk '{ print $2 }')"
+  HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $2, $11 }' | grep ^"$GROUP " | grep " [1-2]" | awk '{ print $2 }')"
   msg="group $GROUP"
 elif [ -n "$ROOM" ]; then # hosts in room with pxe flag set
-  HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $5, $11 }' | grep ^"$ROOM " | grep " [1-2]" | awk '{ print $2 }')"
+  HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $1, $2, $11 }' | grep ^"$ROOM " | grep " [1-2]" | awk '{ print $2 }')"
   msg="room $ROOM"
 fi
 [ -z "$HOSTS" ] && usage "No hosts in $msg!"

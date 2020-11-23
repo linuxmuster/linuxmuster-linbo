@@ -6,8 +6,9 @@ linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
   * fix #142: added start.conf examples for Ubuntu 20.04 with correct kernel and initrd paths.
   * fix #139: improved error handling in linbo_wrapper, linbo_cmd and linbo-remote.
   * fix #146: PID of screen launched (lmn7 only).
+  * fix #148: linbo-remote, handling of clients with dynamic ip (lmn7 only).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 23 Nov 2020 14:45:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 23 Nov 2020 17:39:07 +0100
 
 linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
 
