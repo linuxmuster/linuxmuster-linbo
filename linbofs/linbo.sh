@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 02.11.2015
+# 20201124
 #
 
 # Reset fb color mode
@@ -18,18 +18,18 @@ CMDLINE="$(cat /proc/cmdline)"
 
 # DEBUG
 case "$CMDLINE" in *\ debug*)
- for i in /tmp/linbo_gui.*.log; do
-  if [ -s "$i" ]; then
-   echo "Es gibt ein Log von einem früheren Start von linbo_gui in $i::"
-   cat "$i"
-   echo -n "Eingabetaste zum fortfahren drücken."
-   read dummy
-   rm -f "$i"
-  fi
- done
- echo "Starte DEBUG-Shell, verlassen mit 'exit'."
- ash >/dev/tty1 2>&1 < /dev/tty1
- ;;
+    for i in /tmp/linbo_gui.*.log; do
+      if [ -s "$i" ]; then
+        echo "Es gibt ein Log von einem früheren Start von linbo_gui in $i::"
+        cat "$i"
+        echo -n "Eingabetaste zum fortfahren drücken."
+        read dummy
+        rm -f "$i"
+      fi
+    done
+    echo "Starte DEBUG-Shell, verlassen mit 'exit'."
+    ash >/dev/tty1 2>&1 < /dev/tty1
+    ;;
 esac
 
 # Start LINBO GUI
