@@ -13,3 +13,4 @@ build-stamp
 .debhelper
 debian/linuxmuster-linbo-common/var/linbo/
 mkpkg
+tmp

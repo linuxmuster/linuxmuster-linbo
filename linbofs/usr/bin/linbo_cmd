@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201121
+# 20201124
 # GPL v3
 #
 
@@ -3520,6 +3520,7 @@ case "$cmd" in
   partition_noformat) export NOFORMAT=1; partition "$@" ;;
   partition) partition "$@" ;;
   preregister) preregister "$@" ;;
+  download) download "$@" ;;
   initcache) initcache "$@" ;;
   initcache_format) echo "initcache_format gestartet."; export FORCE_FORMAT=1; initcache "$@" ;;
   mountcache) mountcache "$@" ;;

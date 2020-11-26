@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20170519
+# 20201124
 # GPL V3
 #
 
@@ -110,7 +110,7 @@ fi
 if [ -n "$TIMEOUT" ]; then
   sed -i "s|^set timeout=.*|set timeout=$TIMEOUT|" "$GRUBPREFIX/linbo.cfg"
 fi
-for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz linbo-version; do
+for i in linbo linbo-np linbo64 linbofs.lz linbofs-np.lz linbofs64.lz linbo_gui32.tar.lz linbo_gui64.tar.lz linbo-version; do
  cp "$LINBODIR/$i" "$ISOCACHE"
 done
 cp "$IPXEBIOS" "$ISOCACHE"

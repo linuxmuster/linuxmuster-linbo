@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20200611
+# 20201124
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -220,12 +220,12 @@ Cache = $cache" -i "$1"
 # print cache partition
 printcache(){
   if [ -n "$cache" -a -b "$cache" ]; then
-    echo "$cache"
+    echo "$cache" | tee /tmp/linbo-cache.done
     return
   fi
   [ -s /start.conf ] || return
   local cachedev="$(grep -iw ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
-  [ -n "$cachedev" ] && echo "$cachedev"
+  [ -n "$cachedev" ] &&  echo "$cachedev" | tee /tmp/linbo-cache.done
 }
 
 # copytocache file - copies start.conf to local cache
@@ -717,7 +717,7 @@ hwsetup(){
   echo "## Hardware setup - end ##" >> /tmp/linbo.log
 
   sleep 2
-  echo > /tmp/linbo-cache.done
+  touch > /tmp/linbo-cache.done
 }
 
 # Main

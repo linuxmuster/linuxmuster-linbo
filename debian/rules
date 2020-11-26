@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20201106
+# 20201124
 # GPL v3
 #
 
@@ -64,6 +64,10 @@ QT_VERS=$(shell echo $(QT_ARCHIVE) | sed -e 's/qt-everywhere-opensource-src-//' 
 QT_URL=https://download.qt.io/archive/qt/4.8/$(QT_VERS)
 # qt64
 QT64_DIR=linbo_gui64/$(shell echo $(QT_ARCHIVE) | sed -e 's/.tar.gz//')
+
+# gui archives
+GUI32_ARCHIVE=linbo_gui32/linbo_gui32.tar.lz
+GUI64_ARCHIVE=linbo_gui64/linbo_gui64.tar.lz
 
 # busybox
 BB_ARCHIVE=$(shell grep busybox- debian/md5sums.src | awk '{ print $$2 }')
@@ -440,6 +444,7 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(CURDIR)/linbo_gui32/linbo_gui ]; then \
 		echo "[1mBuilding 32bit linbo_gui...[0m" ; \
 		cp var/icons/linbo_wallpaper_800x600.png linbo_gui32/icons/linbo_wallpaper.png ; \
+		rm -f $(GUI32_ARCHIVE) ; \
 		( cd linbo_gui32 && PATH=$(TOOLCHAIN):$(PATH) CFLAGS=-m32 ./build_gui ); \
 	fi
 
@@ -447,8 +452,12 @@ build-stamp: configure-stamp
 	-@if [ ! -e $(CURDIR)/linbo_gui64/linbo_gui ]; then \
 		echo "[1mBuilding 64bit linbo_gui...[0m" ; \
 		cp var/icons/linbo_wallpaper_800x600.png linbo_gui64/icons/linbo_wallpaper.png ; \
+		rm -f $(GUI64_ARCHIVE) ; \
 		( cd linbo_gui64 && ./build_gui ); \
 	fi
+
+	# create gui archives
+	debian/mkguiarchives.sh
 
 	# linbo kernel
 	-@if [ ! -e $(KERNEL_DIR)/vmlinux ]; then \
@@ -559,6 +568,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp $(TOOLCHAIN)/i386-linux-gnu-ar $(TOOLCHAIN)/i386-linux-gnu-strip
+	rm -rf tmp
 	dh_clean -d
 
 install: build
@@ -680,6 +690,9 @@ install: build
 	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 src/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo-common/var/linbo/linuxmuster-win
 	install -m 644 files/common/usr/share/linuxmuster-linbo/templates/grub.cfg.pxe debian/linuxmuster-linbo-common/var/linbo/boot/grub/grub.cfg
+	# gui32
+	install -m 644 $(GUI32_ARCHIVE) debian/linuxmuster-linbo-common/var/linbo
+	install -m 644 $(GUI32_ARCHIVE).md5 debian/linuxmuster-linbo-common/var/linbo
 
 	# linuxmuster-linbo-common7
 	cp -a debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
@@ -692,6 +705,9 @@ install: build
 	mkdir -p debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
 	mv debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
 	rm -rf debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo
+	# gui64
+	install -m 644 $(GUI64_ARCHIVE) debian/linuxmuster-linbo-common7/srv/linbo
+	install -m 644 $(GUI64_ARCHIVE).md5 debian/linuxmuster-linbo-common7/srv/linbo
 
 	# create grub netboot for lmn6
 	debian/mkgrubnetdir.sh
