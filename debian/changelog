@@ -8,8 +8,9 @@ linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
   * fix #146: PID of screen launched (lmn7 only).
   * fix #148: linbo-remote, handling of clients with dynamic ip (lmn7 only).
   * fix #149: linbo_gui on demand.
+  * fix #150: Additional grub menu option "Start with Linbo".
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 25 Nov 2020 10:54:41 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 26 Nov 2020 19:50:11 +0100
 
 linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
 
