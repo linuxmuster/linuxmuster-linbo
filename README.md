@@ -1,6 +1,5 @@
-<div style="float: left">
-  ![linbo icon](graphics/linbo_icon_194x194.png)
-</div>
+![linbo icon](graphics/linbo_icon_194x194.png)  
+
 **linuxmuster-linbo** is the free and opensource imaging solution for linuxmuster.net. It handles Windows 7 & 10 and Linux operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a gui, which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
 Build instructions:
