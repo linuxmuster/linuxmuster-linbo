@@ -1,7 +1,7 @@
 #
 # grub.cfg template for host specific grub image
 # thomas@linuxmuster.net
-# 20200203
+# 20201127
 #
 
 set gfxmode=auto
@@ -128,6 +128,14 @@ if [ -n "${tmproot}" ]; then
  if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
   linux $reboot_kernel $reboot_append
   initrd $reboot_initrd
+  boot
+ elif [ -e /boot/vmlinuz -a -e /boot/initrd.img ]; then
+  linux /boot/vmlinuz $reboot_append
+  initrd /boot/initrd.img
+  boot
+ elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
+  linux /boot/vmlinuz $reboot_append
+  initrd /boot/initrd
   boot
  elif [ -e /vmlinuz -a -e /initrd.img ]; then
   linux /vmlinuz $reboot_append

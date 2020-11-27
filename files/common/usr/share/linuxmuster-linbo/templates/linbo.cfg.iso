@@ -1,6 +1,6 @@
 # grub.cfg fuer linbo isoboot
 # thomas@linuxmuster.net
-# 20170518
+# 20201127
 #
 
 set default=0
@@ -37,7 +37,7 @@ set theme=/boot/grub/themes/linbo/theme.txt
 clear
 
 # linbo part, boot local or net (default #0)
-menuentry "$NAME Standardboot" --class linux {
+menuentry "$NAME Standardboot" --class linbo {
 
  echo $NAME Standardboot
  echo
@@ -52,7 +52,7 @@ menuentry "$NAME Standardboot" --class linux {
 }
 
 # linbo part, boot local or net (#1)
-menuentry "$NAME Ersteinrichtung + Neustart" --class linux {
+menuentry "$NAME Ersteinrichtung + Neustart" --class linbo {
 
  echo $NAME Ersteinrichtung + Neustart
  echo
@@ -67,7 +67,7 @@ menuentry "$NAME Ersteinrichtung + Neustart" --class linux {
 }
 
 # linbo part, boot local or net (#2)
-menuentry "$NAME Debugmodus" --class linux {
+menuentry "$NAME Debugmodus" --class linbo {
 
  echo $NAME Debugmodus
  echo
@@ -82,7 +82,7 @@ menuentry "$NAME Debugmodus" --class linux {
 }
 
 # linbo part, boot local or net (#3)
-menuentry "PXE Boot" --class linux {
+menuentry "PXE Boot" --class linbo {
 
  echo PXE Boot
  echo

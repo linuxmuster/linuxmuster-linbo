@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 20171107
+# 20201127
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -55,7 +55,7 @@ else
 fi
 
 # linbo part, boot local or net (default #0)
-menuentry 'LINBO' --class linux {
+menuentry 'LINBO' --class linbo {
 
  echo LINBO $bootflag for group @@group@@
  echo

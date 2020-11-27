@@ -1,7 +1,7 @@
 #
 # grub.cfg for forced netboot
 # thomas@linuxmuster.net
-# 20170202
+# 20201127
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -39,7 +39,7 @@ set theme=/boot/grub/themes/linbo/theme.txt
 clear
 
 # linbo netboot
-menuentry 'LINBO' --class linux {
+menuentry 'LINBO' --class linbo {
 
  echo LINBO netboot
  echo
