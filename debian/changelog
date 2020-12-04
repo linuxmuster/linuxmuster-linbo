@@ -9,7 +9,7 @@ linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
   * fix #148: linbo-remote, handling of clients with dynamic ip (lmn7 only).
   * fix #149: linbo_gui on demand.
   * fix #150: Additional grub menu option "Start with Linbo".
-  * minor linbo grub theme improvments.
+  * minor linbo grub theme improvements.
   * fixed kernel and initrd paths and linbo menu class in remaining grub config templates.
   * fix #153: Extend linbo clients ssh authorized_keys.
 
