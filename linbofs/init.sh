@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20201124
+# 20201204
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -492,15 +492,14 @@ do_linbo_update(){
   local cachedev="$(printcache)"
   # start linbo update
   linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
-  # test if linbofs or custom.cfg were updated on local boot
-  if [ -n "$localboot" -a -e "$rebootflag" ]; then
+  # do not reboot, if onboot commands were given or if linbo was booted over pxe
+  if [ -z "$linbocmd" -a -n "$localboot" -a -e "$rebootflag" ]; then
     echo "Local LINBO/GRUB configuration was updated. Rebooting ..."
     cd /
     umount -a &> /dev/null
     /sbin/reboot -f
-  else
-    [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
   fi
+  [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
 }
 
 # disable auto functions from cmdline
@@ -623,26 +622,26 @@ network(){
       #( ntpd -n -q -p "$server" && hwclock --systohc ) &
       ntpd -n -q -p "$server" &
       #date
-      # linbo update & grub installation
-      do_linbo_update "$server"
-      # also look for other needed files
-      for i in "torrent-client.conf" "multicast.list"; do
-        rsync -L "$server::linbo/$i" "/$i" &> /dev/null
-      done
-      # get optional onboot linbo-remote commands
+      # get onboot linbo-remote commands, if there are any
       for i in $hostname $ipaddr; do
         rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
         [ -s /linbocmd ] && break
       done
+      # read linbo-remote commands into linbocmd variable
       if [ -s "/linbocmd" ]; then
         for i in noauto nobuttons; do
           grep -q "$i" /linbocmd && eval "$i"=yes
           sed -e "s|$i||" -i /linbocmd
         done
         # strip leading and trailing spaces and escapes
-        linbocmd="$(awk '{$1=$1}1' /linbocmd)"
-        sed -e 's|\\||g' -i /linbocmd
+        export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
       fi
+      # linbo update & grub installation
+      do_linbo_update "$server"
+      # also look for other needed files
+      for i in "torrent-client.conf" "multicast.list"; do
+        rsync -L "$server::linbo/$i" "/$i" &> /dev/null
+      done
       # and (optional) the GUI icons
       for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
         rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
@@ -806,8 +805,8 @@ while [ ! -e /tmp/linbo-network.done ]; do
   sleep 1
 done
 
-# read downloaded onboot linbocmds
-[ -e /linbocmd ] && linbocmd="$(cat /linbocmd)"
+# read downloaded onboot linbocmds (unnecessary)
+#[ -e /linbocmd ] && linbocmd="$(cat /linbocmd)"
 
 # console output for linbo commands
 if [ -n "$linbocmd" ]; then
