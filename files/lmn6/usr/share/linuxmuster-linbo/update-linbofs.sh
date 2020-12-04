@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20191206
+# 20201127
 #
 
 # read linuxmuster environment
@@ -91,6 +91,8 @@ update_linbofs() {
  cp $SYSCONFDIR/linbo/ssh_host_*_key* etc/ssh
  mkdir -p .ssh
  cat /root/.ssh/id_*.pub > .ssh/authorized_keys
+ # supplemental authorized_keys
+ [ -s /root/.ssh/authorized_keys ] && cat /root/.ssh/authorized_keys >> .ssh/authorized_keys
  mkdir -p var/log
  touch var/log/lastlog
 
