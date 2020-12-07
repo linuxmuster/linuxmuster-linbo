@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20201124
+# 20201204
 #
 
 # Reset fb color mode
@@ -20,25 +20,36 @@ CMDLINE="$(cat /proc/cmdline)"
 get_linbo_gui(){
   # get bits
   local bits
+  local isoboot
+  local offline
+  local download
+  local md5sum_local
+  local md5sum_server
   if uname -a | grep -q x86_64; then
     bits="64"
   else
     bits="32"
   fi
-  local gui_archive="linbo_gui${bits}.tar.lz"
+  local gui_prefix="linbo_gui${bits}"
+  local gui_archives="${gui_prefix}_7.tar.lz ${gui_prefix}.tar.lz"
   # check if isoboot and try to get linbo_gui archive from cdrom
   if cat /proc/cmdline | grep -wq isoboot; then
-    echo "ISO/USB boot detected, trying to get linbo_gui from removable media."
+    echo "ISO/USB boot detected, trying to get linbo_gui from removable media." | tee -a /cache/linbo.log
     mkdir -p /media
     for i in /dev/disk/by-id/*; do
       if mount "$i" /media &> /dev/null; then
-        if [ -s "/media/$gui_archive" ]; then
-          tar xf "/media/$gui_archive" -C / && local isoboot="yes"
-        fi
+        # check for old and new gui versions on iso
+        for a in $as; do
+          if [ -s "/media/$a" ]; then
+            tar xf "/media/$a" -C / || return 1
+            isoboot="yes"
+            break
+          fi
+        done
         umount /media &> /dev/null
       fi
       if [ -n "$isoboot" ]; then
-        echo "Successfully installed linbo_gui from removable media."
+        echo "Successfully installed linbo_gui from removable media." | tee -a /cache/linbo.log
         return 0
       fi
     done
@@ -57,37 +68,82 @@ get_linbo_gui(){
     fi
   fi
   if [ -n "$nocache" ]; then
-    echo "Continuing without cache partition."
+    echo "Continuing without cache partition." | tee -a /cache/linbo.log
     # to avoid unmounting later
     cache_mounted="yes"
   else
-    echo "Successfully mounted cache partition."
+    echo "Successfully mounted cache partition." | tee -a /cache/linbo.log
   fi
   # get network infos
   if ! . /tmp/network.ok; then
-    echo "Fatal: Cannot read network infos."
-    return 1
+    echo "Fatal: Cannot read network infos. Continuing offline." | tee -a /cache/linbo.log
+    offline="yes"
   fi
+  # return if offline and no cache
+  [ -n "$nocache" -a -n "$offline" ] && return 1
+
   # start linbo_gui update
   local curdir="$(pwd)"
   # change to cache if present
   [ -z "$nocache" ] && cd /cache
-  [ -s "$gui_archive.md5" ] && local md5sum_local="$(cat "$gui_archive.md5")"
-  echo "Dowloading $gui_archive.md5 from $linbo_server."
-  linbo_cmd download "$linbo_server" "$gui_archive.md5" 2>&1 | tee /cache/linbo.log
-  if [ -s "$gui_archive.md5" ]; then
-    local md5sum_server="$(cat "$gui_archive.md5")"
-  else
-    echo "Download of $gui_archive.md5 failed!"
-    return 1
+
+  # check for old and new gui versions to download
+  for a in $gui_archives; do
+    # skip if archive does not exist in offline mode
+    [ ! -s "$a" -a -n "$offline" ] && continue
+    # if network is present ...
+    if [ -z "$offline" ]; then
+      # force download if archive does not exist
+      if [ -s "$a" -a -s "$a.md5" ]; then
+        download="no"
+      else
+        rm -f "$a.md5"
+        download="yes"
+      fi
+      # if archive already exists try to find out if there is a newer one on the server
+      if [ "$download" = "no" ]; then
+        # get md5sum of existing archive
+        md5sum_local="$(md5sum "$a" | awk '{print $1}')"
+        # get md5sum from server
+        echo "Downloading $a.md5 from $linbo_server." | tee -a /cache/linbo.log
+        rm -f "$a.md5"
+        linbo_cmd download "$linbo_server" "$a.md5" 2>&1 | tee -a /cache/linbo.log
+        if [ -s "$a.md5" ]; then
+          md5sum_server="$(cat "$a.md5")"
+        else
+          echo "Download of $a.md5 failed!" | tee -a /cache/linbo.log
+          # skip if md5sum cannot be downloaded
+          continue
+        fi
+        # md5sums match, no download needed
+        if [ "$md5sum_local" = "$md5sum_server" ]; then
+          echo "$a is up-to-date. No need to download." | tee -a /cache/linbo.log
+          download="no"
+        else
+          # md5sums differ, need to download archive
+          download="yes"
+        fi
+      fi
+      if [ "$download" = "yes" ]; then
+        echo "Downloading $a from $linbo_server." | tee -a /cache/linbo.log
+        linbo_cmd download "$linbo_server" "$a" 2>&1 | tee -a /cache/linbo.log
+        # get md5sum file if not yet downloaded
+        if [ ! -s "$a.md5" ]; then
+          echo "Downloading $a.md5 from $linbo_server." | tee -a /cache/linbo.log
+          linbo_cmd download "$linbo_server" "$a.md5" 2>&1 | tee -a /cache/linbo.log
+        fi
+      fi
+    fi
+    [ -s "$a" -a -s "$a.md5" ] && break
+  done
+
+  # unpack gui archive if present and healthy
+  if [ -s "$a" -a -s "$a.md5" ]; then
+    if [ "$(cat "$a.md5")" = "$(md5sum "$a" | awk '{print $1}')" ]; then
+      tar xf "$a" -C / | tee -a /cache/linbo.log
+    fi
   fi
-  if [ "$md5sum_local" = "$md5sum_server" -a -n "$md5sum_local" -a -n "$md5sum_server" ]; then
-    echo "$gui_archive is up-to-date. No need to download."
-  else
-    echo "Dowloading $gui_archive from $linbo_server."
-    linbo_cmd download "$linbo_server" "$gui_archive" 2>&1 | tee /cache/linbo.log
-  fi
-  tar xf "$gui_archive" -C / | tee /cache/linbo.log
+
   # leave cache if present
   [ -z "$nocache" ] && cd "$curdir"
   [ -z "$cache_mounted" ] && umount /cache
@@ -139,9 +195,15 @@ if ! get_linbo_gui; then
 fi
 
 # Start LINBO GUI
-#DISPLAY=""
-# not necessary anymore?
-#case "$(fbset 2>/dev/null)" in *640x480*) DISPLAY="-display VGA16:0";; esac
-export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
-#exec linbo_gui -qws $DISPLAY >/tmp/linbo_gui.$$.log 2>&1
-exec linbo_gui -qws >/tmp/linbo_gui.$$.log 2>&1
+case "$a" in
+  # new gui
+  *_7*)
+    export XKB_DEFAULT_LAYOUT=de
+    /usr/bin/linbo_gui -platform linuxfb
+    ;;
+  # legacy gui
+  *)
+    export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
+    exec linbo_gui -qws >/tmp/linbo_gui.$$.log 2>&1
+    ;;
+esac

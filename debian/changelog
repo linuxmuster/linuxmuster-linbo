@@ -13,8 +13,9 @@ linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
   * fixed kernel and initrd paths and linbo menu class in remaining grub config templates.
   * fix #153: Extend linbo clients ssh authorized_keys.
   * fix #152: Linbo should not reboot on update in all cases.
+  * fix #154: New linbo_gui (lmn7 only).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 04 Dec 2020 11:11:45 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Dec 2020 18:17:06 +0100
 
 linuxmuster-linbo (2.3.68-0) lmn7; urgency=low
 
