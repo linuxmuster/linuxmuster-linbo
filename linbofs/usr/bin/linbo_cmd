@@ -3409,6 +3409,17 @@ ip(){
   echo "$ip"
 }
 
+netmask(){
+  [ -e /tmp/dhcp.log ] || return 0
+  grep ^subnet /tmp/dhcp.log | awk -F\' '{print $2}' | head -1
+}
+
+bitmask(){
+  local netmask="$(netmask)"
+  [ -z "$netmask" ] && return 0
+  ipcalc -p "$(netmask)" | awk -F\= '{print $2}'
+}
+
 clientname(){
   if [ -s /tmp/network.ok ]; then
     source /tmp/network.ok
@@ -3508,6 +3519,8 @@ version(){
 
 case "$cmd" in
   ip) ip ;;
+  netmask) netmask ;;
+  bitmask) bitmask ;;
   hostname) clientname ;;
   cpu) cpu ;;
   memory) memory ;;
