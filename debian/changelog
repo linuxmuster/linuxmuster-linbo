@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.4.1-0) lmn7; urgency=low
+
+  * linbo_cmd, register(): implemented device role (see https://github.com/linuxmuster/linuxmuster-linbo-gui/issues/7).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Dec 2020 12:51:00 +0100
+
 linuxmuster-linbo (2.4.0-0) lmn7; urgency=low
 
   * fix #147: implemented logging image status of client.
