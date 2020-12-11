@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201208
+# 20201211
 # GPL v3
 #
 
@@ -1385,6 +1385,7 @@ mk_boot(){
   local APPEND="$4"
   local efipart="$(print_efipart)"
   local partition="$1"
+  local nonv
   remote_cache "$(cachedev)" || local localcache="yes"
   # get disk for grub install, use always the first disk from start.conf
   #local grubdisk="$(get_disks | head -1)"
