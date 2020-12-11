@@ -3201,6 +3201,9 @@ update(){
   # finally update/install grub stuff
   if mk_boot; then
 
+    # set efi bootorder to local,network
+    [ -d /sys/firmware/efi ] && set_efibootorder
+
     # remove for old legacy grub stuff
     if [ -e "$grubdir/stage1" -o -e "$grubdir/menu.lst" ]; then
       echo "Entferne GRUB legacy, Reboot wird notwendig."
