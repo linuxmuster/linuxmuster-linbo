@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20201204
+# 20201212
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -729,6 +729,8 @@ echo '| |      | | |  \| | |_) | |  | |'
 echo '| |      | | | . ` |  _ <| |  | |'
 echo '| |____ _| |_| |\  | |_) | |__| |'
 echo '|______|_____|_| \_|____/ \____/'
+echo
+echo 'Booting in LOCKDOWN mode, reducing contacts ...'
 echo
 
 # initial setup
