@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201211
+# 20201224
 # GPL v3
 #
 
@@ -462,32 +462,6 @@ label_allpartitions(){
   [ -e /dev/disk/by-label ] || echo "Keine Partitions-Label gefunden!" | tee -a /tmp/linbo.log
   sendlog
   return "$RC"
-}
-
-# update partition devices in start.conf according to labels
-update_devices(){
-  local line
-  local dev
-  local devnew
-  local label
-  local disk
-  local disknew
-  grep -i ^dev /start.conf | sort -u | while read line; do
-    dev=""; devnew=""; label=""; disk=""; disknew=""
-    dev="$(echo "$line" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-    label="$(print_partlabel "$dev")"
-    [ -z "$label" ] && continue
-    devnew="$(print_realdev "$label")"
-    [ -z "$devnew" ] && continue
-    [ "$dev" = "$devnew" ] && continue
-    disk="$(get_disk_from_partition "$dev")"
-    disknew="$(get_disk_from_partition "$devnew")"
-    [ "$disk" = "$disknew" ] && continue
-    echo "Korrigiere $dev --> $devnew"
-    sed -i "s|$dev |$devnew |g
-            s|$dev\t|$devnew\t|g
-            s|$dev$|$devnew|g" /start.conf
-  done
 }
 
 # mountpart partition destdir [options]
@@ -3535,7 +3509,6 @@ case "$cmd" in
   create) create "$@" ;;
   start) start "$@" ;;
   label) label_allpartitions ;;
-  update_devices) update_devices ;;
   partition_noformat) export NOFORMAT=1; partition "$@" ;;
   partition) partition "$@" ;;
   preregister) preregister "$@" ;;

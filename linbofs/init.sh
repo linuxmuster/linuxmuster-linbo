@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20201212
+# 20201224
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -195,13 +195,7 @@ copyfromcache(){
   local device=""
   ls -l /dev/disk/by-uuid/ | grep ^l | awk -F\/ '{ print $3 }' | sort -u | while read device; do
     [ -b "/dev/$device" ] || continue
-    if trycopyfromcache "/dev/$device" "$1"; then
-      if [ "$1" = "start.conf" ]; then
-        # start.conf correction due to partition labels
-        grep -qi ^label /start.conf && linbo_cmd update_devices
-      fi
-      return 0
-    fi
+    trycopyfromcache "/dev/$device" "$1" && return 0
   done
   return 1
 }
@@ -274,8 +268,6 @@ copyextra(){
   if [ -s "/extra$extraconf" ]; then
     cp "/extra$extraconf" /start.conf ; RC="$?"
     umount /extra || umount -l /extra
-    # start.conf correction due to partition labels
-    grep -qi ^label /start.conf && linbo_cmd update_devices
   else
     RC=1
   fi
@@ -487,8 +479,6 @@ do_linbo_update(){
   local server="$1"
   #local customcfg="/cache/boot/grub/custom.cfg"
   local rebootflag="/tmp/.linbo.reboot"
-  # start.conf correction due to partition labels
-  grep -qi ^label /start.conf && linbo_cmd update_devices
   local cachedev="$(printcache)"
   # start linbo update
   linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
