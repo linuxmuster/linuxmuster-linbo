@@ -1,8 +1,9 @@
 linuxmuster-linbo (2.4.2-0) lmn7; urgency=low
 
   * fix #163: Linbo manipulates start.conf.
+  * implemented codename.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Dec 2020 12:35:27 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 26 Dec 2020 15:45:13 +0100
 
 linuxmuster-linbo (2.4.1-0) lmn7; urgency=low
 

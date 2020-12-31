@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20201124
+# 20201126
 # GPL v3
 #
 
@@ -12,7 +12,8 @@ CURDIR=$(shell pwd)
 LML_URL=https://download.linuxmuster.net/dev/linbo-build-cache
 
 # linbo version
-LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
+LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }' | awk -F\- '{ print $$1 }')
+LRELNAME=$(shell cat debian/releasename)
 
 # kernel
 VESAMODE=785 # 640x480, 64k colors
@@ -614,8 +615,8 @@ install: build
 	-/sbin/depmod -a -b kernel-np/modules $(KVERS)
 	-/sbin/depmod -a -b kernel64/modules $(KVERS)
 	# initrd build
-	# linbo version
-	echo "LINBO $(LVERS)" > linbofs/etc/linbo-version
+	# linbo version & codename
+	echo "LINBO $(LVERS) | $(LRELNAME)" > linbofs/etc/linbo-version
 	# fetch common linbofs files
 	( cd linbofs && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|dir \./|dir /|g' -e 's|file \./|file /|g' -e 's|\./|\.\./\.\./linbofs/|g' >$(LINBOINITRAMFS)
 	# start building x86 linbofs
@@ -677,7 +678,6 @@ install: build
 	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
 	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel64/initramfs.conf ; \
 	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf | lzma -zcv > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbofs64.lz
-
 	### scripts and config files to package
 	# linbo md5sums
 	md5sum $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo-common/var/linbo/linbo.md5

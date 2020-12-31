@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20201224
+# 20201226
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -720,7 +720,7 @@ echo '| |      | | | . ` |  _ <| |  | |'
 echo '| |____ _| |_| |\  | |_) | |__| |'
 echo '|______|_____|_| \_|____/ \____/'
 echo
-echo 'Booting in LOCKDOWN mode, reducing contacts ...'
+echo "Booting version $(cat /etc/linbo-version | sed -e 's|^LINBO ||') ..."
 echo
 
 # initial setup
