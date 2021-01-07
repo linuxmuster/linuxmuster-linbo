@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20201126
+# 20201231
 # GPL v3
 #
 
@@ -179,7 +179,7 @@ configure-stamp:
 		tar xf cache/$(BB_ARCHIVE) -C src64; \
 		echo "[1mPatching 64bit busybox sources...[0m" ; \
 		( cd $(BB64_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
-		cp conf/busybox.conf $(BB64_DIR)/.config; \
+		cp conf/busybox64.conf $(BB64_DIR)/.config; \
 		ln -sf ../$(BB64_DIR) src64/busybox; \
 	fi
 
@@ -332,8 +332,6 @@ configure-stamp:
 		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
 		echo "[1mUnpacking 64bit $(KERNEL_ARCHIVE)...[0m" ; \
 		tar xf cache/$(KERNEL_ARCHIVE) -C kernel64; \
-		echo "[1mPatching 64bit kernel sources...[0m" ; \
-		( cd $(KERNEL64_DIR) && for i in ../../patches/linux/*; do patch -p1 <$$i; done ); \
 		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
 	fi
 

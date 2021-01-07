@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20201211
+# 20210107
 #
 
 # Reset fb color mode
@@ -15,6 +15,17 @@ CLEAR="c"
 CMDLINE="$(cat /proc/cmdline)"
 
 # echo "$CLEAR$RESET"
+
+# plymouth
+echo "$CMDLINE" | grep -qw splash && splash="yes"
+if [ -x "/sbin/plymouthd" -a -n "$splash" ]; then
+  if ! plymouth --ping &> /dev/null; then
+    #echo "Starting plymouthd --tty=/dev/tty2 --attach-to-session from $0" | tee -a /tmp/plymouth.log
+    plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
+    plymouth show-splash
+    plymouth message --text="$(cat /etc/linbo-version | sed -e 's|^LINBO |v|')"
+  fi
+fi
 
 # get linbo_gui
 get_linbo_gui(){
@@ -159,22 +170,24 @@ get_linbo_gui(){
 
 # DEBUG
 case "$CMDLINE" in *\ debug*)
-    for i in /tmp/linbo_gui.*.log; do
-      if [ -s "$i" ]; then
-        echo "There is a logfile from a previous start of linbo_gui in $i::"
-        cat "$i"
-        echo -n "Press enter key to continue."
-        read dummy
-        rm -f "$i"
-      fi
-    done
-    echo "Starting DEBUG shell, leave with 'exit'."
-    ash >/dev/tty1 2>&1 < /dev/tty1
-    ;;
+  plymouth quit
+  for i in /tmp/linbo_gui.*.log; do
+    if [ -s "$i" ]; then
+      echo "There is a logfile from a previous start of linbo_gui in $i::"
+      cat "$i"
+      echo -n "Press enter key to continue."
+      read dummy
+      rm -f "$i"
+    fi
+  done
+  echo "Starting DEBUG shell, leave with 'exit'."
+  ash >/dev/tty1 2>&1 < /dev/tty1
+  ;;
 esac
 
 # download linbo_gui from server to cache
 if ! get_linbo_gui; then
+  plymouth quit
   case "$CMDLINE" in
     *\ debug*)
       echo "Starting DEBUG shell."
@@ -196,6 +209,7 @@ if ! get_linbo_gui; then
 fi
 
 # Start LINBO GUI
+plymouth quit &> /dev/null
 case "$a" in
   # new gui
   *_7*)

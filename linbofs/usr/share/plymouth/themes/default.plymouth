@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=linbo-splash
+Description=linbo bootsplash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/linbo-splash
+ScriptFile=/usr/share/plymouth/themes/linbo-splash/linbo-splash.script

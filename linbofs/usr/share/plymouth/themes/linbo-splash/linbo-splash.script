@@ -1,0 +1,74 @@
+# set font
+font = "sans-serif 11";
+
+# set the background color
+Window.SetBackgroundTopColor (1.0, 1.0, 1.0);     # Nice colour on top of the screen fading to
+Window.SetBackgroundBottomColor (1.0, 1.0, 1.0);  # an equally nice colour on the bottom
+
+logo.image = Image("logo_no_arrows.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetOpacity (0.0);
+logo_x = Window.GetWidth () / 2 - logo.image.GetWidth() / 2;
+logo_y = Window.GetHeight () / 2 - logo.image.GetHeight() / 1.33;
+logo.sprite.SetX(logo_x);
+logo.sprite.SetY(logo_y);
+logo.sprite.SetZ(10);
+logo.sprite.SetOpacity(1.0);
+
+circle[0].image = Image("arrows-1.png");
+circle[0].sprite = Sprite(circle[0].image);
+circle[0].sprite.SetOpacity (0.0);
+circle_x = Window.GetWidth () / 2 - circle[0].image.GetWidth() / 2;
+circle_y = logo_y;
+
+for (i = 1; i < 18; i++){
+	circle[i].image = Image("arrows-" + (i + 1) + ".png");
+	circle[i].sprite = Sprite(circle[i].image);
+	circle[i].sprite.SetOpacity (0.0);
+}
+
+x = 1;
+lasti = 0;
+loop = 0;
+
+fun refresh ()  {
+	if (Math.Int (x/2) < 18) i = (Math.Int (x / 2)) % 18;
+	else{
+		i = (Math.Int (x / 2) - 1) % 18;
+		zoom = i;
+	}
+	circle[i].sprite.SetX(circle_x);
+	circle[i].sprite.SetY(circle_y);
+	circle[i].sprite.SetZ(10);
+	circle[lasti].sprite.SetOpacity(0.0);
+	circle[i].sprite.SetOpacity(1.0);
+	lasti = i;
+	x++;
+}
+
+Plymouth.SetRefreshFunction (refresh);
+
+#----------------------------------------- Quit --------------------------------
+
+fun quit_callback ()
+{
+}
+
+Plymouth.SetQuitFunction(quit_callback);
+
+#----------------------------------------- Linbo-Version --------------------------------
+
+version_sprite = Sprite();
+version_sprite.SetPosition(10, 10, 10000);
+
+fun message_callback (text)
+{
+	version_image = Image.Text(text, 0, 0, 0, font);
+	version_sprite.SetImage(version_image);
+	version_y = logo_y + logo.image.GetHeight() + version_image.GetHeight() / 4 ;
+	version_sprite.SetX(Window.GetWidth () / 2 - version_image.GetWidth() / 2);
+	version_sprite.SetY(version_y);
+	version.sprite.SetZ(11);
+}
+
+Plymouth.SetMessageFunction(message_callback);
