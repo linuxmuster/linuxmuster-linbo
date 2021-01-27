@@ -614,7 +614,7 @@ install: build
 	-/sbin/depmod -a -b kernel64/modules $(KVERS)
 	# initrd build
 	# linbo version & codename
-	echo "LINBO $(LVERS) | $(LRELNAME)" > linbofs/etc/linbo-version
+	echo "LINBO $(LVERS) [$(LRELNAME)]" > linbofs/etc/linbo-version
 	# fetch common linbofs files
 	( cd linbofs && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|dir \./|dir /|g' -e 's|file \./|file /|g' -e 's|\./|\.\./\.\./linbofs/|g' >$(LINBOINITRAMFS)
 	# start building x86 linbofs
