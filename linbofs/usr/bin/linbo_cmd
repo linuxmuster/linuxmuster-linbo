@@ -3440,6 +3440,12 @@ size(){
   return 0
 }
 
+# list cloop images in cache, listimages cachedev
+listimages(){
+  mountcache "$1" -r || return 1
+  ls -1 /cache/*.cloop || return 1
+}
+
 #
 # jweiher, angepasst tschmitt
 # Ermittelt den logisch naechsten Hostnamen, um die Rechneraufnahme zu
@@ -3505,6 +3511,7 @@ case "$cmd" in
   mac) mac ;;
   battery) battery ;;
   size) size "$@" ;;
+  listimages) listimages "$@" ;;
   authenticate) authenticate "$@" ;;
   create) create "$@" ;;
   start) start "$@" ;;
