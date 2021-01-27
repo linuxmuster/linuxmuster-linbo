@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20201224
+# 20210127
 # GPL v3
 #
 
@@ -1311,34 +1311,34 @@ prepare_reboot(){
 prepare_grub(){
   local doneflag="/tmp/.prepare_grub"
   [ -e "$doneflag" ] && return 0
-  echo "Aktualisiere GRUB-Dateien im Cache:"
+  echo "Providing grub environment in cache ..."
   local grubdir="$1"
   local grubenv="$2"
   local grubsharedir="$3"
+  local RC=0
   [ -e "$grubdir" ] || mkdir -p "$grubdir"
   # write grub device.map file
-  echo -n " * Schreibe device.map ... "
-  write_devicemap "$grubdir/device.map" || return 1
-  echo "Ok!"
+  #echo -n " * Writing device.map ... "
+  write_devicemap "$grubdir/device.map" || RC=1
+  #echo "Ok!"
   # provide default grub.cfg with current append params on localmode
   if localmode; then
-    echo -n " * Schreibe GRUB-Konfiguration in localmode ... "
+    echo -n " * Providing grub environment in localmode ... "
     local kopts="$(kerneloptions)"
     [ -z "$kopts" ] && kopts="splash quiet localboot"
-    sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $(kerneloptions) localboot|g" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg"
+    sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $(kerneloptions) localboot|g" "$grubsharedir/grub.cfg" > "$grubdir/grub.cfg" || RC=1
     echo "Ok!"
   fi
   # provide unicode font
-  echo -n " * Stelle unicode.pf2 bereit ... "
-  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2" || return 1
-  echo "Ok!"
-  # provide menu background image
-  echo -n " * Stelle Hintergrundgrafik bereit ... "
-  rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || return 1
-  echo "Ok!"
+  echo " * Providing grub environment ... "
+  rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2" || RC=1
+  #echo "Ok!"
+  # provide menu background image (obsolete)
+  #[ -l "$grubdir/linbo_wallpaper.png" ] || rm -f "$grubdir/linbo_wallpaper.png"
+  #ln -sf ../icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || RC=1
+  #rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || return 1
+  #echo "Ok!"
   # reset grubenv
-  echo -n " * Schreibe GRUB-Environment ... "
-  local RC="0"
   if [ -s "$grubenv" ]; then
     for i in reboot reboot_kernel reboot_initrd reboot_append; do
       grub-editenv "$grubenv" unset "$i" || RC="1"
@@ -1346,7 +1346,7 @@ prepare_grub(){
   else
     grub-editenv "$grubenv" create || RC="1"
   fi
-  echo "Ok!"
+  #echo "Ok!"
   [ "$RC" = "0" ] && touch "$doneflag"
   return "$RC"
 }

@@ -3,8 +3,9 @@ linuxmuster-linbo (2.4.2-0) lmn7; urgency=low
   * fix #163: Linbo manipulates start.conf.
   * implemented codename.
   * fix #164: implemented plymouth boot splash (for 64bit versions only).
+  * fix linbo_wallpaper handling due to plymouth stuff.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 07 Jan 2021 11:39:05 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Jan 2021 14:04:17 +0100
 
 linuxmuster-linbo (2.4.1-0) lmn7; urgency=low
 
