@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# control linbo_gui: gui_ctl <disable|enable|restore>
+# thomas@linuxmuster.net
+# 20210128
+#
+
+# test start.conf
+[ -s /start.conf ] || exit 1
+
+# test gui
+gui_ps="$(ps ax | grep linbo_gui | grep -v grep | awk '{print $1, $5}')"
+gui_pid="$(echo "$gui_ps" | awk '{print $1}')"
+[ -z "$gui_pid" ] && exit 1
+gui_ver="$(echo "$gui_ps" | awk -F- '{print $2}')"
+[ -z "$gui_ver" ] && exit 1
+
+case "$1" in
+  disable)
+    case "$gui_ver" in
+      platform)
+        cp /start.conf /start.conf.bak
+        if grep -qi ^GuiDisabled /start.conf; then
+          sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = yes|' /start.conf || exit 1
+        else
+          sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = yes|' /start.conf || exit 1
+        fi
+        ;;
+      qws)
+        cp /start.conf /start.conf.bak
+        sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
+                s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
+                s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g' -i /start.conf || exit 1
+        ;;
+      *) exit 1 ;;
+    esac
+  ;;
+
+  enable)
+    case "$gui_ver" in
+      new)
+        cp /start.conf /start.conf.bak
+        if grep -qi ^GuiDisabled /start.conf; then
+          sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = no|' /start.conf || exit 1
+        else
+          sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = no|' /start.conf || exit 1
+        fi
+        ;;
+      old)
+        cp /start.conf /start.conf.bak
+        sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = yes|g
+                s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = yes|g
+                s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = yes|g' -i /start.conf || exit 1
+        ;;
+      *) exit 1 ;;
+    esac
+  ;;
+
+  restore)
+    if [ -s /start.conf.bak ]; then
+      mv /start.conf.bak /start.conf || exit 1
+    else
+      exit 1
+    fi
+    ;;
+
+  *) exit 1 ;;
+esac
+
+kill "$gui_pid" || exit 1

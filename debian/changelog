@@ -1,8 +1,14 @@
-linuxmuster-linbo (2.4.2-1) lmn7; urgency=low
+linuxmuster-linbo (2.4.2-2) lmn7; urgency=low
 
-  * fix #165: linbo_cmd function to list all images in cache.
+  * fix #161: Explicit start.conf parameter for "linbo-remote mode".
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Jan 2021 21:51:25 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Jan 2021 21:52:34 +0100
+
+ linuxmuster-linbo (2.4.2-1) lmn7; urgency=low
+
+   * fix #165: linbo_cmd function to list all images in cache.
+
+  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Jan 2021 21:51:25 +0100
 
 linuxmuster-linbo (2.4.2-0) lmn7; urgency=low
 

@@ -93,7 +93,6 @@ read_cmdline(){
   case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
   case "$CMDLINE" in *\ splash*) splash=yes ;; esac
   case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
-  case "$CMDLINE" in *\ nobuttons*) nobuttons=yes;; esac
   case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
 }
 
@@ -533,16 +532,6 @@ set_autostart() {
   mv /start.conf.new /start.conf
 }
 
-# disable start, sync and new buttons
-disable_buttons(){
-  [ -s /start.conf ] || return
-  echo "Deactivating buttons."
-  sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
-         s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
-         s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g
-  s|^[Hh][Ii][Dd][Dd][Ee][Nn].*|Hidden = yes|g' -i /start.conf
-}
-
 network(){
   echo
   echo "Starting network configuration ..."
@@ -617,12 +606,9 @@ network(){
         rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
         [ -s /linbocmd ] && break
       done
-      # read linbo-remote commands into linbocmd variable
-      if [ -s "/linbocmd" ]; then
-        for i in noauto nobuttons; do
-          grep -q "$i" /linbocmd && eval "$i"=yes
-          sed -e "s|$i||" -i /linbocmd
-        done
+      # read linbo-remote noauto command into variable
+      if [ -s /linbocmd ]; then
+        grep -q noauto /linbocmd && noauto="yes" && sed -e "s|noauto||" -i /linbocmd
         # strip leading and trailing spaces and escapes
         export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
       fi
@@ -662,8 +648,6 @@ network(){
   fi
   # start.conf: set autostart if given on cmdline
   isinteger "$autostart" && set_autostart
-  # start.conf: disable buttons if nobuttons is given on cmdline
-  [ -n "$nobuttons" ] && disable_buttons
   # sets flag if no default route
   route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
   # start ssh server

@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20210107
+# 20210128
 #
 
 # Reset fb color mode
@@ -219,6 +219,6 @@ case "$a" in
   # legacy gui
   *)
     export QWS_KEYBOARD="TTY:keymap=/usr/share/qt/german_keymap.qmap"
-    exec linbo_gui -qws >/tmp/linbo_gui.$$.log 2>&1
+    exec linbo_gui -qws
     ;;
 esac
