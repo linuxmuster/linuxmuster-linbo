@@ -2,7 +2,7 @@
 #
 # control linbo_gui: gui_ctl <disable|enable|restore>
 # thomas@linuxmuster.net
-# 20210128
+# 20210130
 #
 
 # test start.conf
@@ -12,6 +12,7 @@
 gui_ps="$(ps ax | grep linbo_gui | grep -v grep | awk '{print $1, $5}')"
 gui_pid="$(echo "$gui_ps" | awk '{print $1}')"
 [ -z "$gui_pid" ] && exit 1
+# new: platform, old: qws
 gui_ver="$(echo "$gui_ps" | awk -F- '{print $2}')"
 [ -z "$gui_ver" ] && exit 1
 
@@ -19,6 +20,7 @@ case "$1" in
   disable)
     case "$gui_ver" in
       platform)
+        echo "Disabling new gui."
         cp /start.conf /start.conf.bak
         if grep -qi ^GuiDisabled /start.conf; then
           sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = yes|' /start.conf || exit 1
@@ -27,6 +29,7 @@ case "$1" in
         fi
         ;;
       qws)
+        echo "Disabling old gui."
         cp /start.conf /start.conf.bak
         sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
                 s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
@@ -38,7 +41,8 @@ case "$1" in
 
   enable)
     case "$gui_ver" in
-      new)
+      platform)
+        echo "Enabling new gui."
         cp /start.conf /start.conf.bak
         if grep -qi ^GuiDisabled /start.conf; then
           sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = no|' /start.conf || exit 1
@@ -46,7 +50,8 @@ case "$1" in
           sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = no|' /start.conf || exit 1
         fi
         ;;
-      old)
+      qws)
+        echo "Enabling old gui."
         cp /start.conf /start.conf.bak
         sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = yes|g
                 s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = yes|g
@@ -57,6 +62,7 @@ case "$1" in
   ;;
 
   restore)
+    echo "Restoring gui."
     if [ -s /start.conf.bak ]; then
       mv /start.conf.bak /start.conf || exit 1
     else

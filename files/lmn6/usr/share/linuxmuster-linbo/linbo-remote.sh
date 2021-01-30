@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20201123
+# 20210130
 # GPL V3
 #
 
@@ -33,14 +33,14 @@ usage(){
   echo "                    conjunction with \"-w\"."
   echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
   echo "                    per ssh direct to the client(s)."
-  echo " -d                 Disables start, sync and new buttons on next boot."
-  echo "                    To be used together with option -p."
+  echo " -d                 Disables gui. To be used only together with option -c."
   echo " -g <group>         All hosts of this hostgroup will be processed."
   echo " -i <ip1,ip2,...>   IP or hostname of clients to be processed."
   echo " -l                 List current linbo-remote screens."
-  echo " -n                 Bypasses a start.conf configured auto functions"
+  echo " -n                 Bypasses start.conf configured auto functions"
   echo "                    (partition, format, initcache, start) on next boot."
-  echo "                    To be used together with option -p."
+  echo "                    To be used only together with options -p"
+  echo "                    or -c in conjunction with -w."
   echo " -r <room>          All hosts of this room will be processed."
   echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
   echo "                    once next time the client boots."
@@ -51,9 +51,6 @@ usage(){
   echo
   echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
   echo "             \"-p\" as well."
-  echo "           * Option \"-c\" together with \"-w\" bypasses start.conf configured"
-  echo "             auto functions (partition, format, initcache, start) and disables"
-  echo "             start, sync and new buttons on next boot automatically."
   echo
   echo "Supported commands for -c or -p options are:"
   echo
@@ -111,7 +108,7 @@ while getopts ":b:c:dg:hi:lnp:r:w:" opt; do
       exit 0 ;;
     b) BETWEEN=$OPTARG ;;
     c) DIRECT=$OPTARG ;;
-    d) NOBUTTONS=yes ;;
+    d) DISABLEGUI=yes ;;
     i) IP=$OPTARG ;;
     g) GROUP=$OPTARG ;;
     p) ONBOOT=$OPTARG  ;;
@@ -146,11 +143,15 @@ if [ -n "$BETWEEN" ]; then
   isinteger "$BETWEEN" || usage
 fi
 
+if [ -n "$NOAUTO" -a -z "$ONBOOT" ]; then
+  [ -n "$DIRECT" -a -n "$WAIT" ] || usage
+fi
+
+[ -n "$DISABLEGUI" -a -z "$DIRECT" ] && usage
+
 if [ -n "$DIRECT" ]; then
   CMDS="$DIRECT"
   DIRECT="yes"
-  NOAUTO="yes"
-  NOBUTTONS="yes"
 elif [ -n "$ONBOOT" ]; then
   CMDS="$ONBOOT"
   ONBOOT="yes"
@@ -340,21 +341,20 @@ if [ -n "$ONBOOT" ]; then
     c=$(( $c + 1 ))
   done
 
-  # add noauto and nobutton triggers
+  # add noauto triggers
   [ -n "$NOAUTO" ] && onbootcmds="$onbootcmds noauto"
-  [ -n "$NOBUTTONS" ] && onbootcmds="$onbootcmds nobuttons"
 
 fi # onboot command string
 
 
 # create linbocmd files for onboot tasks, if -p or -w is given
-if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" ]; then
+if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" -a -n "$NOAUTO" ]; then
 
   echo
   echo "Preparing onboot linbo tasks:"
   for i in $IP; do
     echo -n " $i ... "
-    [ -n "$DIRECT" ] && echo "noauto nobuttons" > "$(onbootcmdfile "$i")"
+    [ -n "$DIRECT" ] && echo "noauto" > "$(onbootcmdfile "$i")"
     [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
     echo "Done."
   done
@@ -423,6 +423,7 @@ send_cmds(){
     LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
     REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
     echo "#!/bin/bash" > $REMOTESCRIPT
+    [ -n "$DISABLEGUI" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
     echo "RC=0" >> $REMOTESCRIPT
     local c=0
     while [ $c -lt $NR_OF_CMDS ]; do
@@ -438,6 +439,7 @@ send_cmds(){
       c=$(( $c + 1 ))
     done
     [ -n "$SECRETS" -a -z "$START" ] && echo "$SSH $i /bin/rm -f /tmp/rsyncd.secrets" >> $REMOTESCRIPT
+    [ -n "$DISABLEGUI" ] && echo "$SSH $i gui_ctl restore" >> $REMOTESCRIPT
     echo "rm -f $REMOTESCRIPT" >> $REMOTESCRIPT
     echo "exit \$RC" >> $REMOTESCRIPT
     chmod 755 $REMOTESCRIPT
