@@ -2,8 +2,8 @@
 font = "sans-serif 11";
 
 # set the background color
-Window.SetBackgroundTopColor (1.0, 1.0, 1.0);     # Nice colour on top of the screen fading to
-Window.SetBackgroundBottomColor (1.0, 1.0, 1.0);  # an equally nice colour on the bottom
+Window.SetBackgroundTopColor (0.22, 0.31, 0.33);     # Nice colour on top of the screen fading to
+Window.SetBackgroundBottomColor (0.22, 0.31, 0.33);  # an equally nice colour on the bottom
 
 logo.image = Image("logo_no_arrows.png");
 logo.sprite = Sprite(logo.image);
@@ -63,7 +63,7 @@ version_sprite.SetPosition(10, 10, 10000);
 
 fun message_callback (text)
 {
-	version_image = Image.Text(text, 0, 0, 0, font);
+	version_image = Image.Text(text, 1.0, 1.0, 1.0, font);
 	version_sprite.SetImage(version_image);
 	version_y = logo_y + logo.image.GetHeight() + version_image.GetHeight() / 4 ;
 	version_sprite.SetX(Window.GetWidth () / 2 - version_image.GetWidth() / 2);

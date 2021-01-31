@@ -1,27 +1,19 @@
-linuxmuster-linbo (2.4.2-4) lmn7; urgency=low
-
-  * take over ubuntu's kernel framebuffer configuration (fixes hopefully #169).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 31 Jan 2021 13:41:44 +0100
-
-linuxmuster-linbo (2.4.2-3) lmn7; urgency=low
-
-  * fix #161: Explicit start.conf parameter for "linbo-remote mode", part 2.
-  * improved behaviour of some linbo-remote options.
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 30 Jan 2021 17:04:28 +0100
-
 linuxmuster-linbo (2.4.2-2) lmn7; urgency=low
 
+  * fix #165: linbo_cmd function to list all images in cache.
   * fix #161: Explicit start.conf parameter for "linbo-remote mode".
+  * improved behaviour of some linbo-remote options.
+  * updated start.conf examples.
+  * changed plymouth default color.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 Jan 2021 21:52:34 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 31 Jan 2021 19:38:26 +0100
 
- linuxmuster-linbo (2.4.2-1) lmn7; urgency=low
+linuxmuster-linbo (2.4.2-1) lmn7; urgency=low
 
-   * fix #165: linbo_cmd function to list all images in cache.
+  * take over ubuntu's kernel framebuffer configuration (fixes hopefully
+    #169).
 
-  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 27 Jan 2021 21:51:25 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 31 Jan 2021 16:26:46 +0100
 
 linuxmuster-linbo (2.4.2-0) lmn7; urgency=low
 
