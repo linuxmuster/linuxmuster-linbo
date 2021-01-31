@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.4.1-1) lmn7; urgency=low
+
+  * take over ubuntu's kernel framebuffer configuration (fixes hopefully
+    #169).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 31 Jan 2021 15:42:45 +0100
+
 linuxmuster-linbo (2.4.1-0) lmn7; urgency=low
 
   * linbo_cmd, register(): implemented device role (see https://github.com/linuxmuster/linuxmuster-linbo-gui/issues/7).
