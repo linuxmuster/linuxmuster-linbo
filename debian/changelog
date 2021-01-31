@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.4.2-1) lmn7; urgency=low
+
+  * take over ubuntu's kernel framebuffer configuration (fixes hopefully
+    #169).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 31 Jan 2021 16:26:46 +0100
+
 linuxmuster-linbo (2.4.2-0) lmn7; urgency=low
 
   * fix #163: Linbo manipulates start.conf.
