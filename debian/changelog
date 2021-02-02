@@ -1,3 +1,15 @@
+linuxmuster-linbo (2.4.2-4) lmn7; urgency=low
+
+  * unifying bootsplash and grub menu background.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 02 Feb 2021 21:10:10 +0100
+
+linuxmuster-linbo (2.4.2-3) lmn7; urgency=low
+
+  * bootsplash cosmetics.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 01 Feb 2021 17:27:35 +0100
+
 linuxmuster-linbo (2.4.2-2) lmn7; urgency=low
 
   * fix #165: linbo_cmd function to list all images in cache.

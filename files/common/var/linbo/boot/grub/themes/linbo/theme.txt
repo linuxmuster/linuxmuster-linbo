@@ -1,13 +1,13 @@
 # GRUB2 gfxmenu linbo theme
 # Designed for any resolution
 # thomas@linuxmuster.net
-# 20201127
+# 20210202
 
 # Global Property
-title-text: "LINBO Start-Menue"
-title-color: "#fefe54"
-desktop-image: "linbo_wallpaper.png"
-desktop-color: "#000000"
+title-text: ""
+#title-color: "#fefe54"
+#desktop-image: "linbo_wallpaper.png"
+desktop-color: "#2a4457"
 terminal-font: "Unifont Regular 16"
 terminal-box: "terminal_box_*.png"
 terminal-left: "0"
@@ -16,29 +16,35 @@ terminal-width: "100%"
 terminal-height: "100%"
 terminal-border: "0"
 
++ image { left = 92%-300 top = 90%-300 width = 300 height = 300 file = "linbo_logo_big.png" }
+
 # Show the boot menu
 + boot_menu {
-  left = 16%
-  top = 12%
-  width = 68%
-  height = 70%
+  left = 8%
+  top = 5%
+  width = 84%-300
+  height = 85%
   item_font = "Unifont Regular 16"
   item_color = "#cccccc"
   selected_item_color = "#ffffff"
-  icon_width = 48
-  icon_height = 48
-  item_icon_space = 20
-  item_height = 54
+  icon_width = 36
+  icon_height = 36
+  item_icon_space = 12
+  item_height = 40
   item_spacing = 12
+  #item_padding = 20
   selected_item_pixmap_style = "select_*.png"
+  scrollbar_thumb = "select_*.png"
+  scrollbar_frame = "select_*.png"
+  scrollbar_width = 10
 }
 
 # Show a countdown message using the label component
 + label {
-  top = 82%
-  left = 27%
-  width = 30%
-  align = "center"
+  top = 87%
+  left = 8%+24
+  width = 84%-300
+  align = "left"
   id = "__timeout__"
   text = "Starte in %d Sekunden ..."
   color = "#cccccc"

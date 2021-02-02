@@ -2,8 +2,8 @@
 font = "sans-serif 11";
 
 # set the background color
-Window.SetBackgroundTopColor (0.22, 0.31, 0.33);     # Nice colour on top of the screen fading to
-Window.SetBackgroundBottomColor (0.22, 0.31, 0.33);  # an equally nice colour on the bottom
+Window.SetBackgroundTopColor (0.17, 0.27, 0.34);     # Nice colour on top of the screen fading to
+Window.SetBackgroundBottomColor (0.17, 0.27, 0.34);  # an equally nice colour on the bottom
 
 logo.image = Image("logo_no_arrows.png");
 logo.sprite = Sprite(logo.image);

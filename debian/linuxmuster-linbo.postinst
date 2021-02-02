@@ -3,7 +3,7 @@
 # postinst script for linuxmuster-linbo
 # thomas@linuxmuster.net
 # GPL v3
-# 20210126
+# 20210202
 #
 
 set -e
@@ -212,13 +212,10 @@ print ""
  # provide grub menu background
  wp_std="linbo_wallpaper_800x600.png"
  wp_lnk="$LINBODIR/icons/linbo_wallpaper.png"
- wp_grub="$LINBODIR/boot/grub/themes/linbo/linbo_wallpaper.png"
+ wp_grub="$LINBODIR/boot/grub/linbo_wallpaper.png"
  rm -f "$wp_lnk" "$wp_grub"
  ln -sf "$wp_std" "$wp_lnk"
  cp -fL "$wp_lnk" "$wp_grub"
- #[ -e "$LINBODIR/icons/linbo_wallpaper.png" ] || ln -sf linbo_wallpaper_800x600.png "$LINBODIR/icons/linbo_wallpaper.png"
- #[ -e "$LINBODIR/boot/grub/linbo_wallpaper.png" ] || ln -sf ../../icons/linbo_wallpaper_800x600.png "$LINBODIR/boot/grub/linbo_wallpaper.png"
- #ln -sf ../../linbo_wallpaper.png "$LINBODIR/boot/grub/themes/linbo/linbo_wallpaper.png"
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
