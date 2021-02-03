@@ -691,6 +691,9 @@ install: build
 	# gui32
 	install -m 644 $(GUI32_ARCHIVE) debian/linuxmuster-linbo-common/var/linbo
 	install -m 644 $(GUI32_ARCHIVE).md5 debian/linuxmuster-linbo-common/var/linbo
+	# gui64
+	install -m 644 $(GUI64_ARCHIVE) debian/linuxmuster-linbo-common/var/linbo
+	install -m 644 $(GUI64_ARCHIVE).md5 debian/linuxmuster-linbo-common/var/linbo
 
 	# linuxmuster-linbo-common7
 	cp -a debian/linuxmuster-linbo-common/* debian/linuxmuster-linbo-common7/
@@ -703,9 +706,6 @@ install: build
 	mkdir -p debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
 	mv debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo/* debian/linuxmuster-linbo-common7/usr/share/linuxmuster/linbo/
 	rm -rf debian/linuxmuster-linbo-common7/usr/share/linuxmuster-linbo
-	# gui64
-	install -m 644 $(GUI64_ARCHIVE) debian/linuxmuster-linbo-common7/srv/linbo
-	install -m 644 $(GUI64_ARCHIVE).md5 debian/linuxmuster-linbo-common7/srv/linbo
 
 	# create grub netboot for lmn6
 	debian/mkgrubnetdir.sh

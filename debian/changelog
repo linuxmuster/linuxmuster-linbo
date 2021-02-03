@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.4.2-5) lmn7; urgency=low
+
+  * fix #172: 64bit gui binary archive not being packed.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 03 Feb 2021 15:46:30 +0100
+
 linuxmuster-linbo (2.4.2-4) lmn7; urgency=low
 
   * unifying bootsplash and grub menu background.
