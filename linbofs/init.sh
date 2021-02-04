@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20210106
+# 20210204
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -43,6 +43,7 @@ CYAN="[1;36m"
 WHITE="[1;37m"
 
 CMDLINE=""
+LINBOVER="$(cat /etc/linbo-version | sed 's|LINBO |v|')"
 
 # Utilities
 
@@ -53,6 +54,16 @@ isinteger () {
     *[!0-9]*|"") return 1 ;;
     *) return 0 ;;
   esac
+}
+
+# print status msg
+print_status(){
+  local msg="$1"
+  if [ -n "$PMSTATUS" ]; then
+    plymouth message --text="$LINBOVER"
+    plymouth update --status="$msg"
+  fi
+  echo "$msg"
 }
 
 # DMA
@@ -534,33 +545,34 @@ set_autostart() {
 
 network(){
   echo
-  echo "Starting network configuration ..."
   if [ -n "$localmode" ]; then
-    echo "Local mode is configured, skipping network configuration."
+    print_status "Local mode is configured, skipping network configuration."
     copyfromcache "start.conf icons"
     do_housekeeping
     touch /tmp/linbo-network.done
     return 0
+  else
+    print_status "Starting network configuration ..."
   fi
   rm -f /tmp/linbo-network.done
   if [ -n "$ipaddr" ]; then
-    echo "Using static ip address $ipaddr."
+    print_status "Using static ip address $ipaddr."
     [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
     ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
   else
     # iterate over ethernet interfaces
-    echo "Asking for ip address per dhcp ..."
+    print_status "Asking for ip address per dhcp ..."
     # dhcp retries
     [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
     local RC="0"
     for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
-      echo "Interface $dev ... "
+      print_status "Interface $dev ... "
       ifconfig "$dev" up &> /dev/null
       # activate wol
       ethtool -s "$dev" wol g &> /dev/null
       # check if using vlan
       if [ -n "$vlanid" ]; then
-        echo "Using vlan id $vlanid."
+        print_status "Using vlan id $vlanid."
         vconfig add "$dev" "$vlanid" &> /dev/null
         dhcpdev="$dev.$vlanid"
         ip link set dev "$dhcpdev" up
@@ -582,22 +594,22 @@ network(){
   [ -n "$hostname" ] && hostname "$hostname"
   [ -n "$server" ] || server="`get_server`"
   macaddr="`ifconfig | grep -B1 "$ip" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
-  echo "IP: $ipaddr * Hostname: $hostname * MAC: $macaddr * Server: $server"
+  print_status "IP: $ipaddr * Hostname: $hostname * MAC: $macaddr * Server: $server"
   # Move away old start.conf and look for updates
   mv /start.conf /start.conf.dist
   if [ -n "$server" ]; then
     export server
-    echo "linbo_server='$server'" >> /tmp/dhcp.log
-    echo "Loading configuration files from $server ..."
+    print_status "linbo_server='$server'" >> /tmp/dhcp.log
+    print_status "Loading configuration files from $server ..."
     for i in "start.conf-$macaddr" "start.conf-$ipaddr" "start.conf"; do
       rsync -L "$server::linbo/$i" "/start.conf" &> /dev/null && break
     done
     # set flag for working network connection and do additional stuff which needs
     # connection to linbo server
     if [ -s /start.conf ]; then
-      echo "Network connection to $server established successfully."
+      print_status "Network connection to $server established successfully."
       grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
-      echo "Starting time sync ..."
+      print_status "Starting time sync ..."
       #( ntpd -n -q -p "$server" && hwclock --systohc ) &
       ntpd -n -q -p "$server" &
       #date
@@ -651,13 +663,13 @@ network(){
   # sets flag if no default route
   route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
   # start ssh server
-  echo "Starting ssh service."
+  print_status "Starting ssh service."
   /sbin/dropbear -s -g -E -p 2222 &> /dev/null
   # remove reboot flag, save windows activation
   do_housekeeping
   # done
   echo > /tmp/linbo-network.done
-  echo "Done."
+  print_status "Done."
   rm -f /outfifo
 }
 
@@ -846,10 +858,9 @@ fi
 
 # start plymouth daemon
 if [ -x /sbin/plymouthd -a -n "$splash" ]; then
-  #echo "Starting plymouthd --tty=/dev/tty2 --attach-to-session from $0" | tee -a /tmp/plymouth.log
   plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
-  plymouth show-splash
-  plymouth message --text="$(cat /etc/linbo-version | sed 's|LINBO |v|')"
+  plymouth show-splash message --text="$LINBOVER"
+  PMSTATUS="yes"
 fi
 
 # do network setup
@@ -860,11 +871,16 @@ if [ -n "$linbocmd" ]; then
   OIFS="$IFS"
   IFS=","
   for cmd in $linbocmd; do
+    # filter password
+    if echo "$cmd" | grep -q ^linbo:; then
+      msg="linbo_wrapper linbo:*****"
+    else
+      msg="linbo_wrapper $cmd"
+    fi
+    print_status "$msg"
     /usr/bin/linbo_wrapper "$cmd"
   done
   IFS="$OIFS"
 fi
-
-#plymouth quit --retain-splash
 
 exit 0

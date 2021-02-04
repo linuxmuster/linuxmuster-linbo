@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20210128
+# 20210204
 #
 
 # Reset fb color mode
@@ -13,19 +13,28 @@ RESET="]R"
 CLEAR="c"
 
 CMDLINE="$(cat /proc/cmdline)"
+echo "$CMDLINE" | grep -qw splash && SPLASH="yes"
+LINBOVER="$(cat /etc/linbo-version | sed 's|LINBO |v|')"
 
 # echo "$CLEAR$RESET"
 
 # plymouth
-echo "$CMDLINE" | grep -qw splash && splash="yes"
-if [ -x "/sbin/plymouthd" -a -n "$splash" ]; then
+if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
   if ! plymouth --ping &> /dev/null; then
-    #echo "Starting plymouthd --tty=/dev/tty2 --attach-to-session from $0" | tee -a /tmp/plymouth.log
     plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
-    plymouth show-splash
-    plymouth message --text="$(cat /etc/linbo-version | sed -e 's|^LINBO |v|')"
+    plymouth show-splash message --text="$LINBOVER"
   fi
 fi
+
+# print status msg
+print_status(){
+  local msg="$1"
+  if [ -n "$SPLASH" ]; then
+    plymouth message --text="$LINBOVER"
+    plymouth update --status="$msg"
+  fi
+  echo "$msg"
+}
 
 # get linbo_gui
 get_linbo_gui(){
@@ -45,7 +54,7 @@ get_linbo_gui(){
   local gui_archives="${gui_prefix}_7.tar.lz ${gui_prefix}.tar.lz"
   # check if isoboot and try to get linbo_gui archive from cdrom
   if cat /proc/cmdline | grep -wq isoboot; then
-    echo "ISO/USB boot detected, trying to get linbo_gui from removable media." | tee -a /cache/linbo.log
+    print_status "ISO/USB boot detected, trying to get linbo_gui from removable media." | tee -a /cache/linbo.log
     mkdir -p /media
     for i in /dev/disk/by-id/*; do
       if mount "$i" /media &> /dev/null; then
@@ -60,12 +69,12 @@ get_linbo_gui(){
         umount /media &> /dev/null
       fi
       if [ -n "$isoboot" ]; then
-        echo "Successfully installed linbo_gui from removable media." | tee -a /cache/linbo.log
+        print_status "Successfully installed linbo_gui from removable media." | tee -a /cache/linbo.log
         return 0
       fi
     done
   fi
-  echo "Trying to download linbo_gui from server to cache."
+  print_status "Trying to download linbo_gui from server to cache."
   mount | grep -q /cache && local cache_mounted="yes"
   if [ -z "$cache_mounted" ]; then
     local cachedev="$(cat /tmp/linbo-cache.done)"
@@ -79,16 +88,16 @@ get_linbo_gui(){
     fi
   fi
   if [ -n "$nocache" ]; then
-    echo "Continuing without cache partition." | tee -a /cache/linbo.log
+    print_status "Continuing without cache partition." | tee -a /cache/linbo.log
     # to avoid unmounting later
     cache_mounted="yes"
   else
-    echo "Successfully mounted cache partition." | tee -a /cache/linbo.log
+    print_status "Successfully mounted cache partition." | tee -a /cache/linbo.log
   fi
   # get network infos
   [ -s /tmp/network.ok ] && source /tmp/network.ok
   if [ -z "$linbo_server" ]; then
-    echo "Fatal: Cannot read network infos. Continuing offline." | tee -a /cache/linbo.log
+    print_status "Fatal: Cannot read network infos. Continuing offline." | tee -a /cache/linbo.log
     offline="yes"
   fi
   # return if offline and no cache
@@ -117,7 +126,7 @@ get_linbo_gui(){
         # get md5sum of existing archive
         md5sum_local="$(md5sum "$a" | awk '{print $1}')"
         # get md5sum from server
-        echo "Downloading $a.md5 from $linbo_server." | tee -a /cache/linbo.log
+        print_status "Downloading $a.md5 from $linbo_server." | tee -a /cache/linbo.log
         rm -f "$a.md5"
         linbo_cmd download "$linbo_server" "$a.md5" 2>&1 | tee -a /cache/linbo.log
         if [ -s "$a.md5" ]; then
@@ -129,7 +138,7 @@ get_linbo_gui(){
         fi
         # md5sums match, no download needed
         if [ "$md5sum_local" = "$md5sum_server" ]; then
-          echo "$a is up-to-date. No need to download." | tee -a /cache/linbo.log
+          print_status "$a is up-to-date. No need to download." | tee -a /cache/linbo.log
           download="no"
         else
           # md5sums differ, need to download archive
@@ -137,11 +146,11 @@ get_linbo_gui(){
         fi
       fi
       if [ "$download" = "yes" ]; then
-        echo "Downloading $a from $linbo_server." | tee -a /cache/linbo.log
+        print_status "Downloading $a from $linbo_server." | tee -a /cache/linbo.log
         linbo_cmd download "$linbo_server" "$a" 2>&1 | tee -a /cache/linbo.log
         # get md5sum file if not yet downloaded
         if [ ! -s "$a.md5" ]; then
-          echo "Downloading $a.md5 from $linbo_server." | tee -a /cache/linbo.log
+          print_status "Downloading $a.md5 from $linbo_server." | tee -a /cache/linbo.log
           linbo_cmd download "$linbo_server" "$a.md5" 2>&1 | tee -a /cache/linbo.log
         fi
       fi
@@ -160,10 +169,10 @@ get_linbo_gui(){
   [ -z "$nocache" ] && cd "$curdir"
   [ -z "$cache_mounted" ] && umount /cache
   if [ -s /usr/bin/linbo_gui ]; then
-    echo "Successfully installed linbo_gui from cache."
+    print_status "Successfully installed linbo_gui from cache."
     return 0
   else
-    echo "Failed to install linbo_gui from cache."
+    print_status "Failed to install linbo_gui from cache."
     return 1
   fi
 }

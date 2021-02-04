@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.4.2-6) lmn7; urgency=low
+
+  * added plymouth boot-bootsplash status messages.
+  * fixed logfile error in linbo-remote for lmn62.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 04 Feb 2021 22:29:30 +0100
+
 linuxmuster-linbo (2.4.2-5) lmn7; urgency=low
 
   * fix #172: 64bit gui binary archive not being packed.
