@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20210130
+# 20210204
 # GPL V3
 #
 
@@ -420,7 +420,6 @@ send_cmds(){
     # create a temporary script with linbo remote commands
     get_hostname "$i"
     HOSTNAME="$RET"
-    LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
     REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
     echo "#!/bin/bash" > $REMOTESCRIPT
     [ -n "$DISABLEGUI" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
@@ -445,9 +444,9 @@ send_cmds(){
     chmod 755 $REMOTESCRIPT
 
     # start script in screen session
-    screen -L -Logfile "$LOGFILE" -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
+    screen -dmS $HOSTNAME.linbo-remote $REMOTESCRIPT
 
-    echo "Started. Log see $LOGFILE."
+    echo "Started."
   done
 }
 
