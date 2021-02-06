@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20201231
+# 20210206
 # GPL v3
 #
 
@@ -12,7 +12,7 @@ CURDIR=$(shell pwd)
 LML_URL=https://download.linuxmuster.net/dev/linbo-build-cache
 
 # linbo version
-LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }' | awk -F\- '{ print $$1 }')
+LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
 LRELNAME=$(shell cat debian/releasename)
 
 # kernel
@@ -614,7 +614,7 @@ install: build
 	-/sbin/depmod -a -b kernel64/modules $(KVERS)
 	# initrd build
 	# linbo version & codename
-	echo "LINBO $(LVERS) [$(LRELNAME)]" > linbofs/etc/linbo-version
+	echo "LINBO $(LVERS): $(LRELNAME)" > linbofs/etc/linbo-version
 	# fetch common linbofs files
 	( cd linbofs && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|dir \./|dir /|g' -e 's|file \./|file /|g' -e 's|\./|\.\./\.\./linbofs/|g' >$(LINBOINITRAMFS)
 	# start building x86 linbofs
