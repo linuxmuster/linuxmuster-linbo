@@ -1,3 +1,10 @@
+linuxmuster-linbo (2.4.2-7) lmn7; urgency=low
+
+  * extended plymouth boot-bootsplash status messages.
+  * show full linbo version.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 06 Feb 2021 12:57:19 +0100
+
 linuxmuster-linbo (2.4.2-6) lmn7; urgency=low
 
   * added plymouth boot-bootsplash status messages.

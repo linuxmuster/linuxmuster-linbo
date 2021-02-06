@@ -1,6 +1,6 @@
 # linbo-splash.script for plymouth
 # thomas@linuxmuster.net
-# 20210204
+# 20210206
 #
 # set font
 font = "sans-serif 11";
@@ -80,13 +80,13 @@ Plymouth.SetMessageFunction(message_callback);
 #----------------------------------------- Scrolling Boot Messages --------------------------------
 
 NUM_SCROLL_LINES=3;
-LINE_WIDTH=60;
+LINE_WIDTH=55;
 
 // Initialising text images and their positions
 // 20 is the height (including line spacing) of each line
 for (i=0; i < NUM_SCROLL_LINES; i++) {
   lines[i]= Image.Text("", 1.0, 1.0, 1.0, status_font);
-	message_y = logo_y + logo.image.GetHeight() + 48;
+	message_y = logo_y + logo.image.GetHeight() + 50;
   message_sprite[i] = Sprite();
 	message_sprite[i].SetPosition(Window.GetWidth () * 0.2, (Window.GetHeight () * 0.6) + (i * 20), 10000);
 	message_sprite[i].SetX(logo_x);

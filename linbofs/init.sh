@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20210204
+# 20210206
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -878,7 +878,9 @@ if [ -n "$linbocmd" ]; then
       msg="linbo_wrapper $cmd"
     fi
     print_status "$msg"
-    /usr/bin/linbo_wrapper "$cmd"
+    /usr/bin/linbo_wrapper "$cmd" | while read line; do
+      print_status "$line"
+    done
   done
   IFS="$OIFS"
 fi
