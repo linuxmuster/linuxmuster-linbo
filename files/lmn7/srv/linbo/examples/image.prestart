@@ -1,0 +1,15 @@
+# prestart script example, sourced by linbo_cmd on the client before the os is started
+# to be placed in LINBODIR
+# if the image is named ubuntu.cloop, the corresponding prestart script name is ubuntu.prestart
+#
+# thomas@linuxmuster.net
+# 20210207
+#
+
+echo "# prestart script example"
+echo "os partition: $partition"
+echo "os name     : $(osname $partition)"
+echo "cache device: $cachedev"
+echo "hostname    : $(hostname)"
+echo "hostgroup   : $(hostgroup)"
+echo "server ip   : $(serverip)"

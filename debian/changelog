@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.4.2-8) lmn7; urgency=low
+
+  * fix #159: prestart script.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 07 Feb 2021 19:04:30 +0100
+
 linuxmuster-linbo (2.4.2-7) lmn7; urgency=low
 
   * extended plymouth boot-bootsplash status messages.
