@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210207
+# 20210221
 # GPL v3
 #
 
@@ -618,7 +618,7 @@ format(){
       fi
     fi
   else
-    echo " Fehler!"
+    echo " Failed!"
   fi
   return "$RC"
 }
@@ -3233,14 +3233,14 @@ initcache(){
   local group
   local found
   if remote_cache "$cachedev"; then
-    echo "Cache $cachedev ist nicht lokal, und muss daher nicht aktualisiert werden."
+    echo "Cache $cachedev is not local, skipping update."
     return 1
   fi
   if [ -n "$FORCE_FORMAT" ]; then
     local cachefs="$(fstype_startconf "$cachedev")"
     if [ -n "$cachefs" ]; then
-      echo "Formatiere Cache-Partition $cachedev..."
-      format "$cachedev" "$cachefs" "$label" 2>> /tmp/linbo.log
+      echo "Formatting cache partition $cachedev ..."
+      format "$cachedev" "$cachefs" "$label" 2>> /tmp/linbo.log || return "$?"
     fi
   fi
   mountcache "$cachedev" || return "$?"
