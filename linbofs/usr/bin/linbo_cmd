@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210221
+# 20210223
 # GPL v3
 #
 
@@ -2332,7 +2332,7 @@ syncl(){
   echo -n "syncl " ; printargs "$@"
 
   # mount cache and sync
-  mountcache "$1" || return "$?"
+  mountcache "$1" || return 1
   cd /cache
   local image=""
   local i=""
@@ -2613,7 +2613,7 @@ syncl(){
 create(){
   echo -n "create " ;  printargs "$@"
   [ -n "$2" -a -n "$1" -a -n "$5" ] || return 1
-  mountcache "$1" || return "$?"
+  mountcache "$1" || return 1
   if ! cache_writable; then
     echo "Cache-Partition ist nicht schreibbar, Abbruch." >&2 | tee -a /tmp/image.log
     sendlog
@@ -2969,7 +2969,7 @@ upload(){
   fi
   # We may need this password for mountcache as well!
   export RSYNC_PASSWORD="$3"
-  mountcache "$4" || return "$?"
+  mountcache "$4" || return 1
   cd /cache
   if [ -s "$5" ]; then
     local FILES="$5"
@@ -3017,7 +3017,7 @@ syncr(){
   if remote_cache "$2"; then
     echo "Cache $2 ist nicht lokal, ueberspringe Aktualisierung der Images."
   else
-    mountcache "$2" || return "$?"
+    mountcache "$2" || return 1
     cd /cache
     local i
     for i in "$3" "$4"; do
@@ -3240,10 +3240,10 @@ initcache(){
     local cachefs="$(fstype_startconf "$cachedev")"
     if [ -n "$cachefs" ]; then
       echo "Formatting cache partition $cachedev ..."
-      format "$cachedev" "$cachefs" "$label" 2>> /tmp/linbo.log || return "$?"
+      format "$cachedev" "$cachefs" "$label" 2>> /tmp/linbo.log || return 1
     fi
   fi
-  mountcache "$cachedev" || return "$?"
+  mountcache "$cachedev" || return 1
   cd /cache
   shift; shift; shift
 
@@ -3294,7 +3294,7 @@ initcache(){
 # readfile cachepartition filename [destinationfile]
 readfile(){
   local RC=0
-  mountcache "$1" || return "$?"
+  mountcache "$1" || return 1
   if [ -n "$3" ]; then
     cp -a /cache/"$2" "$3"
   else
@@ -3309,7 +3309,7 @@ readfile(){
 # writefile cachepartition filename [sourcefile]
 writefile(){
   local RC=0
-  mountcache "$1" -w || return "$?"
+  mountcache "$1" -w || return 1
   if cache_writable; then
     if [ -n "$3" ]; then
       cp -a "$3" /cache/"$2"
