@@ -1,8 +1,9 @@
 linuxmuster-linbo (2.4.2-8) lmn7; urgency=low
 
+  * fix #174: linbo_cmd initcache_format has a wrong return code on failure.
   * fix #159: prestart script.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 07 Feb 2021 19:04:30 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 23 Feb 2021 16:35:25 +0100
 
 linuxmuster-linbo (2.4.2-7) lmn7; urgency=low
 
