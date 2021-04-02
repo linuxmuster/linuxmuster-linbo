@@ -109,7 +109,7 @@ list(){
 while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
 
   # debug
-  #echo "### opt: $opt $OPTARG"
+  echo "### opt: $opt $OPTARG"
 
   case $opt in
     l) list
@@ -136,10 +136,12 @@ done
 
 # calculate path of devices.csv
 if [ "$SCHOOL" != "default-school" ]; then
-  WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/$SCHOOL-devices.csv"
+  WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/$SCHOOL.devices.csv"
 else
   WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/devices.csv"
 fi
+
+echo "### WIMPORTDATA: $WIMPORTDATA"
 
 # create a list of hosts if -i was used
 if [[ -v IPS_AND_HOSTS ]]; then
@@ -417,7 +419,7 @@ if [ -n "$WAIT" ]; then
     [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
     echo -n " $i ... "
     # get mac address of client from devices.csv
-    macaddr="$(get_mac "$i")"
+    macaddr="$(get_mac "$(echo $i | sed "s/^$SCHOOL-//g")")"
     # use broadcast address
     if [ -n "$USEBCADDR" ]; then
       bcaddr=$(get_bcaddress "$i")
