@@ -4,15 +4,18 @@ linuxmuster-linbo (2.4.3-0) lmn7; urgency=low
   * merge #179: linbo-remote multi school.
   * merge #181: Make -n -d disable the GUI immidiately after boot.
   * merge #183, fix #182: Fix issues with capital letters in hostname and log/status files.
+  * changed iconname extension to .svg in start.conf examples.
+  * changed kernel and initrd path in ubuntu start.conf examples.
+  * fix #184: wake-on-lan with broadcast address fails.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Apr 2021 13:42:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Apr 2021 15:02:00 +0200
 
- linuxmuster-linbo (2.4.2-8) lmn7; urgency=low
+linuxmuster-linbo (2.4.2-8) lmn7; urgency=low
 
-   * fix #174: linbo_cmd initcache_format has a wrong return code on failure.
-   * fix #159: prestart script.
+  * fix #174: linbo_cmd initcache_format has a wrong return code on failure.
+  * fix #159: prestart script.
 
-  -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 23 Feb 2021 16:35:25 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 23 Feb 2021 16:35:25 +0100
 
 linuxmuster-linbo (2.4.2-7) lmn7; urgency=low
 
