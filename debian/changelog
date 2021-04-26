@@ -3,6 +3,7 @@ linuxmuster-linbo (2.4.3-0) lmn7; urgency=low
   * merge #177: added grub-pc-bin to the depends.
   * merge #179: linbo-remote multi school.
   * merge #181: Make -n -d disable the GUI immidiately after boot.
+  * merge #183, fix #182: Fix issues with capital letters in hostname and log/status files.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Apr 2021 13:42:00 +0200
 
