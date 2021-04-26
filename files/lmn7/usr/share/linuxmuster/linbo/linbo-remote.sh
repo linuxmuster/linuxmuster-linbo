@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20210130
+# 20210426
 # GPL V3
 #
 
@@ -430,7 +430,12 @@ if [ -n "$WAIT" ]; then
     macaddr="$(get_mac "$(echo $i | sed "s/^$SCHOOL-//g")")"
     # use broadcast address
     if [ -n "$USEBCADDR" ]; then
-      bcaddr=$(get_bcaddress "$i")
+      if validip "$i"; then
+        hostip="$i"
+      else
+        hostip="$(get_ip "$i")"
+      fi
+      bcaddr=$(get_bcaddress "$hostip")
       [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
     fi
 
