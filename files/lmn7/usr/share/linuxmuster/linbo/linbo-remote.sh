@@ -35,6 +35,7 @@ usage(){
   echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
   echo "                    per ssh direct to the client(s)."
   echo " -d                 Disables gui. To be used only together with option -c."
+  echo "                    When used together with -n the GUI will be disabled immidiately after boot."
   echo " -g <group>         All hosts of this hostgroup will be processed."
   echo " -i <i1,i2,...>     Single ip or hostname or comma separated list of ips"
   echo "                    or hostnames of clients to be processed."
@@ -393,14 +394,21 @@ fi # onboot command string
 
 
 # create linbocmd files for onboot tasks, if -p or -w is given
-if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" -a -n "$NOAUTO" ]; then
+ if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" -a -n "$NOAUTO" ]; then
 
   echo
   echo "Preparing onboot linbo tasks:"
   for i in $HOSTS; do
     echo -n " $i ... "
-    [ -n "$DIRECT" ] && echo "noauto" > "$(onbootcmdfile "$i")"
-    [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
+
+    if [ -n "$DIRECT" ]; then
+      echo -n "" > "$(onbootcmdfile "$i")"
+      [ -n "$NOAUTO" ] && echo -n " noauto " >> "$(onbootcmdfile "$i")"
+      [ -n "$NOAUTO" -a -n "$DISABLEGUI" ] && echo -n " gui_ctl_disable " >> "$(onbootcmdfile "$i")"
+    elif [ -n "$ONBOOT" ]; then
+      echo "$onbootcmds" > "$(onbootcmdfile "$i")"
+    fi
+
     echo "Done."
   done
 
@@ -473,7 +481,10 @@ send_cmds(){
     LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
     REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
     echo "#!/bin/bash" > $REMOTESCRIPT
-    [ -n "$DISABLEGUI" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
+
+    # Disable the gui only if the -n flag is not given, as in this case it is already disabled
+    [ -n "$DISABLEGUI" -a -z "$NOAUTO" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
+
     echo "RC=0" >> $REMOTESCRIPT
     local c=0
     while [ $c -lt $NR_OF_CMDS ]; do

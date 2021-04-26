@@ -14,4 +14,4 @@ build-stamp
 debian/linuxmuster-linbo-common/var/linbo/
 mkpkg
 tmp
-/syncToTestServer.sh
+syncToTestServer.sh
