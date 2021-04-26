@@ -2,8 +2,9 @@ linuxmuster-linbo (2.4.3-0) lmn7; urgency=low
 
   * merge #177: added grub-pc-bin to the depends.
   * merge #179: linbo-remote multi school.
+  * merge #181: Make -n -d disable the GUI immidiately after boot.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Apr 2021 13:34:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Apr 2021 13:42:00 +0200
 
  linuxmuster-linbo (2.4.2-8) lmn7; urgency=low
 
