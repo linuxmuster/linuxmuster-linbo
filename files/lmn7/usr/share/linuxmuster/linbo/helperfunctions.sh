@@ -143,10 +143,26 @@ do_rsync_hostname(){
 # return active images
 active_images() {
  # check for workstation data
- [ -z "$WIMPORTDATA" ] && return 1
- [ -s "$WIMPORTDATA" ] || return 1
+ [ -z "$SOPHOSYSDIR" ] && return 1
+ [ -s "$SOPHOSYSDIR" ] || return 1
  # get active groups
- local actgroups="$(grep ^[-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] $WIMPORTDATA | awk -F\; '{ print $3 }' | sort -u)"
+ local schools_in_sophosysdir="$(find $SOPHOSYSDIR -maxdepth 1 -type d -printf "%f\n" | grep -v "sophomorix")"
+ local devices_files=""
+
+ for school_in_sophosysdir in $schools_in_sophosysdir; do
+  if [ $school_in_sophosysdir = "default-school" ]; then
+   devices_file=$SOPHOSYSDIR/$school_in_sophosysdir/devices.csv
+  else
+   devices_file=$SOPHOSYSDIR/$school_in_sophosysdir/$school_in_sophosysdir.devices.csv
+  fi
+
+  if [ -f $devices_file ]; then
+   devices_files="$devices_files $devices_file"
+  fi
+ done
+
+ local actgroups="$(cat $devices_files | awk -F\; '{ print $3 }' | sort -u)"
+
  [ -z "$actgroups" ] && return 0
  # compute images used by active groups
  local tmpfile=/var/tmp/active_images.$$
