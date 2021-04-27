@@ -634,7 +634,7 @@ network(){
       
       # and (optional) the GUI theming files
       linbo_gui_icons=$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
-      linbo_gui_themefile=$(grep -m1 -i ^themefile ./start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
+      linbo_gui_themefile=$(grep -m1 -i ^themeconffile ./start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
       for i in $linbo_gui_icons $linbo_gui_themefile; do
         rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
       done
