@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20210426
+# 20210130
 # GPL V3
 #
 
@@ -18,7 +18,6 @@ SCP=/usr/sbin/linbo-scp
 WRAPPER=/usr/bin/linbo_wrapper
 WOL="$(which wakeonlan)"
 TMPDIR=/var/tmp
-SCHOOL="default-school"
 
 # usage info
 usage(){
@@ -35,7 +34,6 @@ usage(){
   echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
   echo "                    per ssh direct to the client(s)."
   echo " -d                 Disables gui. To be used only together with option -c."
-  echo "                    When used together with -n the GUI will be disabled immidiately after boot."
   echo " -g <group>         All hosts of this hostgroup will be processed."
   echo " -i <i1,i2,...>     Single ip or hostname or comma separated list of ips"
   echo "                    or hostnames of clients to be processed."
@@ -52,7 +50,6 @@ usage(){
   echo "                    commands given with \"-c\" or in case of \"-p\" after"
   echo "                    the creation of the pxe boot files."
   echo " -u                 Use broadcast address with wol."
-  echo " -s                 Select a school other than default-school"
   echo
   echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
   echo "             \"-p\" as well."
@@ -107,10 +104,10 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
+while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
 
   # debug
-  echo "### opt: $opt $OPTARG"
+  #echo "### opt: $opt $OPTARG"
 
   case $opt in
     l) list
@@ -118,15 +115,41 @@ while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
     b) BETWEEN=$OPTARG ;;
     c) DIRECT=$OPTARG ;;
     d) DISABLEGUI=yes ;;
-    i) IPS_AND_HOSTS=$OPTARG ;;
+    i)
+      # create a list of hosts
+      for i in ${OPTARG//,/ }; do
+        if validhostname "$i"; then
+          HOSTNAME="$i"
+        else
+          validip "$i" && IP="$i"
+          HOSTNAME=""
+        fi
+        [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }')"
+        if [ -n "$HOSTNAME" ]; then
+          # check for pxe flag, only use linbo related pxe flags 1 & 2
+          pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTNAME" | awk -F\; '{ print $11 }')"
+          if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
+            echo "Skipping $i, not a pxe host!"
+            continue
+          fi
+          if [ -n "$HOSTS" ]; then
+            HOSTS="$HOSTS $HOSTNAME"
+          else
+            HOSTS="$HOSTNAME"
+          fi
+        else
+          echo "Host $i not found!"
+        fi
+      done
+      [ -z "$HOSTS" ] && usage "No valid hosts in list!"
+      ;;
     g) GROUP=$OPTARG ;;
-    p) ONBOOT=$OPTARG ;;
+    p) ONBOOT=$OPTARG  ;;
     r) ROOM=$OPTARG ;;
     u) USEBCADDR=yes ;;
     w) WAIT=$OPTARG
       isinteger "$WAIT" || usage ;;
     n) NOAUTO=yes ;;
-    s) SCHOOL=$OPTARG ;;
     h) usage ;;
     \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
@@ -134,46 +157,6 @@ while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
       usage ;;
   esac
 done
-
-# calculate path of devices.csv
-if [ "$SCHOOL" != "default-school" ]; then
-  WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/$SCHOOL.devices.csv"
-else
-  WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/devices.csv"
-fi
-
-echo "### WIMPORTDATA: $WIMPORTDATA"
-
-# create a list of hosts if -i was used
-if [[ -v IPS_AND_HOSTS ]]; then
-  for i in ${IPS_AND_HOSTS//,/ }; do
-    if validhostname "$i"; then
-      HOSTNAME="$i"
-    else
-      validip "$i" && IP="$i"
-      HOSTNAME=""
-    fi
-    [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }' | sed "s/^$SCHOOL-//g")"
-    if [ -n "$HOSTNAME" ]; then
-      # check for pxe flag, only use linbo related pxe flags 1 & 2
-      pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTNAME" | awk -F\; '{ print $11 }')"
-      if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
-        echo "Skipping $i, not a pxe host!"
-        continue
-      fi
-      if [ -n "$HOSTS" ]; then
-        HOSTS="$HOSTS $HOSTNAME"
-      else
-        HOSTS="$HOSTNAME"
-      fi
-    else
-      echo "Host $i not found!"
-    fi
-  done
-  [ -z "$HOSTS" ] && usage "No valid hosts in list!"
-fi
-
-echo $HOSTS
 
 # check options
 [ -z "$GROUP" -a -z "$HOSTS" -a -z "$ROOM" ] && usage "No hosts, no group, no room defined!"
@@ -351,18 +334,6 @@ elif [ -n "$ROOM" ]; then # hosts in room with pxe flag set
 fi
 [ -z "$HOSTS" ] && usage "No hosts in $msg!"
 
-# add prefix to hosts if necessary
-if [ "$SCHOOL" != "default-school" ]; then
-  for i in $HOSTS; do
-    PREFIXED_HOSTNAME="$SCHOOL-$i"
-    if [ -n "$PREFIXED_HOSTS" ]; then
-      PREFIXED_HOSTS="$PREFIXED_HOSTS $PREFIXED_HOSTNAME"
-    else
-      PREFIXED_HOSTS="$PREFIXED_HOSTNAME"
-    fi
-  done
-  HOSTS=$PREFIXED_HOSTS
-fi
 
 # script header info
 echo "###"
@@ -394,21 +365,14 @@ fi # onboot command string
 
 
 # create linbocmd files for onboot tasks, if -p or -w is given
- if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" -a -n "$NOAUTO" ]; then
+if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" -a -n "$NOAUTO" ]; then
 
   echo
   echo "Preparing onboot linbo tasks:"
   for i in $HOSTS; do
     echo -n " $i ... "
-
-    if [ -n "$DIRECT" ]; then
-      echo -n "" > "$(onbootcmdfile "$i")"
-      [ -n "$NOAUTO" ] && echo -n " noauto " >> "$(onbootcmdfile "$i")"
-      [ -n "$NOAUTO" -a -n "$DISABLEGUI" ] && echo -n " gui_ctl_disable " >> "$(onbootcmdfile "$i")"
-    elif [ -n "$ONBOOT" ]; then
-      echo "$onbootcmds" > "$(onbootcmdfile "$i")"
-    fi
-
+    [ -n "$DIRECT" ] && echo "noauto" > "$(onbootcmdfile "$i")"
+    [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
     echo "Done."
   done
 
@@ -427,15 +391,10 @@ if [ -n "$WAIT" ]; then
     [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
     echo -n " $i ... "
     # get mac address of client from devices.csv
-    macaddr="$(get_mac "$(echo $i | sed "s/^$SCHOOL-//g")")"
+    macaddr="$(get_mac "$i")"
     # use broadcast address
     if [ -n "$USEBCADDR" ]; then
-      if validip "$i"; then
-        hostip="$i"
-      else
-        hostip="$(get_ip "$i")"
-      fi
-      bcaddr=$(get_bcaddress "$hostip")
+      bcaddr=$(get_bcaddress "$i")
       [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
     fi
 
@@ -486,10 +445,7 @@ send_cmds(){
     LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
     REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
     echo "#!/bin/bash" > $REMOTESCRIPT
-
-    # Disable the gui only if the -n flag is not given, as in this case it is already disabled
-    [ -n "$DISABLEGUI" -a -z "$NOAUTO" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
-
+    [ -n "$DISABLEGUI" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
     echo "RC=0" >> $REMOTESCRIPT
     local c=0
     while [ $c -lt $NR_OF_CMDS ]; do

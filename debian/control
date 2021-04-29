@@ -49,7 +49,7 @@ Description: linuxmuster-linbo common files: kernel, initrd and pxe boot configu
 Package: linuxmuster-linbo7
 Architecture: all
 Conflicts: linuxmuster-linbo, atftpd
-Depends: linuxmuster-base7, python3, linuxmuster-linbo-common7 (>= 2.3.13), grub-common, grub-pc-bin,grub-ipxe, grub-efi-ia32-bin, grub-efi-amd64-bin, tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
+Depends: linuxmuster-base7, python3, linuxmuster-linbo-common7 (>= 2.3.13), grub-common, grub-ipxe, grub-efi-ia32-bin, grub-efi-amd64-bin, tftpd-hpa (>= 5.2+20150808-1ubuntu1fifopatch)
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo scripts
  This package contains the scripts for the Linux-based Network Boot

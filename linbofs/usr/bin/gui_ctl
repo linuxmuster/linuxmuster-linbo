@@ -11,71 +11,29 @@
 # test gui
 gui_ps="$(ps ax | grep linbo_gui | grep -v grep | awk '{print $1, $5}')"
 gui_pid="$(echo "$gui_ps" | awk '{print $1}')"
-
-if [ -z "$gui_pid" ]; then
-  gui_ver="unknown"
-else
+[ -z "$gui_pid" ] && exit 1
 # new: platform, old: qws
-  gui_ver="$(echo "$gui_ps" | awk -F- '{print $2}')"
-fi
-
+gui_ver="$(echo "$gui_ps" | awk -F- '{print $2}')"
 [ -z "$gui_ver" ] && exit 1
-
-backup_start_conf() {
-  # only backup if there is not backup yet
-  if test ! -f "/start.conf.bak"; then
-    cp /start.conf /start.conf.bak
-  fi
-}
-
-disable_new() {
-  echo "Disabling new gui."
-  backup_start_conf
-  if grep -qi ^GuiDisabled /start.conf; then
-    sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = yes|' /start.conf || exit 1
-  else
-    sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = yes|' /start.conf || exit 1
-  fi
-}
-
-enable_new() {
-  echo "Enabling new gui."
-  backup_start_conf
-  if grep -qi ^GuiDisabled /start.conf; then
-    sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = no|' /start.conf || exit 1
-  else
-    sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = no|' /start.conf || exit 1
-  fi
-}
-
-disable_old() {
-  echo "Disabling old gui."
-  backup_start_conf
-  sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
-          s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
-          s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g' -i /start.conf || exit 1
-}
-
-enable_old() {
-  echo "Enabling old gui."
-  backup_start_conf
-  sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = yes|g
-          s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = yes|g
-          s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = yes|g' -i /start.conf || exit 1
-}
 
 case "$1" in
   disable)
     case "$gui_ver" in
       platform)
-        disable_new
+        echo "Disabling new gui."
+        cp /start.conf /start.conf.bak
+        if grep -qi ^GuiDisabled /start.conf; then
+          sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = yes|' /start.conf || exit 1
+        else
+          sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = yes|' /start.conf || exit 1
+        fi
         ;;
       qws)
-        disable_old
-        ;;
-      unknown)
-        disable_new
-        disable_old
+        echo "Disabling old gui."
+        cp /start.conf /start.conf.bak
+        sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = no|g
+                s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = no|g
+                s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = no|g' -i /start.conf || exit 1
         ;;
       *) exit 1 ;;
     esac
@@ -84,14 +42,20 @@ case "$1" in
   enable)
     case "$gui_ver" in
       platform)
-        enable_new
+        echo "Enabling new gui."
+        cp /start.conf /start.conf.bak
+        if grep -qi ^GuiDisabled /start.conf; then
+          sed -i 's|^[Gg][Uu][Ii][Dd][Ii][Ss][Aa][Bb][Ll][Ee][Dd].*|GuiDisabled = no|' /start.conf || exit 1
+        else
+          sed -i 's|^\[[Ll][Ii][Nn][Bb][Oo]\]|\[LINBO\]\nGuiDisabled = no|' /start.conf || exit 1
+        fi
         ;;
       qws)
-        enable_old
-        ;;
-      unknown)
-        disable_new
-        disable_old
+        echo "Enabling old gui."
+        cp /start.conf /start.conf.bak
+        sed -e 's|^[Ss][Tt][Aa][Rr][Tt][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|StartEnabled = yes|g
+                s|^[Ss][Yy][Nn][Cc][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|SyncEnabled = yes|g
+                s|^[Nn][Ee][Ww][Ee][Nn][Aa][Bb][Ll][Ee][Dd].*|NewEnabled = yes|g' -i /start.conf || exit 1
         ;;
       *) exit 1 ;;
     esac

@@ -538,12 +538,6 @@ while [ "$#" -gt "0" ]; do
 
     halt|poweroff) /sbin/poweroff || exit 1 ;;
 
-    gui_ctl_disable) gui_ctl disable || exit 1;;
-
-    gui_ctl_enable) gui_ctl enable || exit 1;;
-
-    gui_ctl_restore) gui_ctl restore || exit 1;;
-
   esac
 
   shift

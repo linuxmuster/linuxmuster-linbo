@@ -68,7 +68,7 @@ case $EXT in
   *.log)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
-    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
+    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
     tgt_logfile="$LINBOLOGDIR/$host_logfile"
     linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
     if [ -s "$FILE" ]; then
@@ -84,7 +84,7 @@ case $EXT in
   *.status)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
-    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
+    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
     tgt_logfile="$LINBOLOGDIR/$host_logfile"
     linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
     if [ -s "$FILE" ]; then
