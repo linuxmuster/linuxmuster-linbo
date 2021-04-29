@@ -1,3 +1,9 @@
+linuxmuster-linbo (2.4.3-1) lmn7; urgency=low
+
+  * fix #184: wake-on-lan with broadcast address fails.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 29 Apr 2021 12:43:35 +0200
+
 linuxmuster-linbo (2.4.2-8) lmn7; urgency=low
 
   * fix #174: linbo_cmd initcache_format has a wrong return code on failure.
