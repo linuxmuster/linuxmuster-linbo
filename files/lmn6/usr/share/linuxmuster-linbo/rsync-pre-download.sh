@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20201111
+# 20210430
 #
 
 # read in linuxmuster.net specific environment
@@ -72,7 +72,7 @@ case $EXT in
   *.log)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
-    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
+    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
     tgt_logfile="$LINBOLOGDIR/$host_logfile"
     linbo-scp -v "${RSYNC_HOST_NAME}:$src_logfile" "$FILE" || RC="1"
     if [ -s "$FILE" ]; then
@@ -88,7 +88,7 @@ case $EXT in
   *.status)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
-    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|")"
+    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
     tgt_logfile="$LINBOLOGDIR/$host_logfile"
     linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
     if [ -s "$FILE" ]; then
