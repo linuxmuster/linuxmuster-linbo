@@ -1,3 +1,10 @@
+linuxmuster-linbo (9.4.4) bionic; urgency=low
+
+  * merge official repo
+  * port ni fixes back
+
+ -- Dorian Zedler <dorian@itsblue.de>  Wed, 5 May 2021 13:44:54 +0200
+
 linuxmuster-linbo (2.4.3-2) lmn7; urgency=low
 
   * fix #182: Upload of .log and .status files does not work with capital letters in Hostname.
