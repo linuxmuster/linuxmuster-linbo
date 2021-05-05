@@ -155,7 +155,7 @@ if [[ -v IPS_AND_HOSTS ]]; then
     [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }' | sed "s/^$SCHOOL-//g")"
     if [ -n "$HOSTNAME" ]; then
       # check for pxe flag, only use linbo related pxe flags 1 & 2
-      pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -w "$HOSTNAME" | awk -F\; '{ print $11 }')"
+      pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep ";$HOSTNAME;" | awk -F\; '{ print $11 }')"
       if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
         echo "Skipping $i, not a pxe host!"
         continue
