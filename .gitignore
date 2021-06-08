@@ -11,6 +11,11 @@ configure-stamp
 build-stamp
 .directory
 .debhelper
-debian/linuxmuster-linbo-common/var/linbo/
+debian/linuxmuster-linbo-common
+debian/linuxmuster-linbo-common7
+debian/linuxmuster-linbo
+debian/linuxmuster-linbo7
+toolchain/i386-linux-gnu-ar
+toolchain/i386-linux-gnu-strip
 mkpkg
 tmp
