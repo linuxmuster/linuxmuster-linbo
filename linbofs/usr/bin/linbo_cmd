@@ -527,13 +527,14 @@ mountpart(){
     ;;
   esac
   mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
-  # second try with default options and ntfsfix in case of ntfs (netzint)
+  # mount ntfs and try ntfsfix in case of broken ntfs (netzint)
   if [ "$RC" != "0" -a "$type" = "ntfs" ]; then
     echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
     ntfsfix "$1"
     mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
-    # second try with default options for other filesystems
-  elif [ "$RC" != "0" ]; then
+  fi
+  # mount other filesystems
+  if [ "$RC" != "0" ]; then
     mount "$mountdev" "$2" ; RC="$?"
   fi
   return "$RC"
