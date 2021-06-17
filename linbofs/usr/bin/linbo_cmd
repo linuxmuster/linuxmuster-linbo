@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210223
+# 20210617
 # GPL v3
 #
 
@@ -187,14 +187,14 @@ cmd="$1"
 
 # fstype partition
 fstype(){
-  local phead="$(dd if="$1" bs=128k count=2 2>/dev/null)"
-  local RC="$?"
-  [ "$RC" = "0" ] || return "$RC"
-  case "$phead" in
-    *NTFS*) echo "ntfs" ;;
-    # tschmitt: we also need to know fat
-    *[Mm][Kk][Dd][Oo][Ss][Fs][Ss]*|*[Ff][Aa][Tt]*) echo "vfat" ;;
-    *[Rr][Ee][Ii][Ss][Ee][Rr]*) echo "reiserfs" ;;
+  local partition="$1"
+  local i
+  local TYPE
+  for i in $(blkid "$partition"); do
+    echo "$i" | grep -q TYPE && eval "$i"
+  done
+  case "$TYPE" in
+    ntfs|vfat|ext2|ext3|ext4) echo "$TYPE" ;;
     *) echo "auto" ;;
   esac
   return 0

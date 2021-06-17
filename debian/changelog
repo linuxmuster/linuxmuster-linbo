@@ -1,8 +1,14 @@
-linuxmuster-linbo (2.4.3-3.1) lmn7; urgency=low
+linuxmuster-linbo (2.4.3-4) lmn7; urgency=low
 
-  * rebuild.
+  * fix #190: Sync fails with some cloops.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 16 Jun 2021 17:43:20 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Jun 2021 16:02:02 +0000
+
+ linuxmuster-linbo (2.4.3-3.1) lmn7; urgency=low
+
+   * rebuild.
+
+  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Jun 2021 06:53:03 +0000
 
 linuxmuster-linbo (2.4.3-3) lmn7; urgency=low
 
