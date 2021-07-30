@@ -1,0 +1,35 @@
+name: Publish Release
+
+on:
+  workflow_dispatch
+
+jobs:
+  publish_latest_release_to_package_server:
+    name: Publish latest release to package server
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Download assets from latest release
+        uses: Itsblue/download-release-assets-action@v4
+        with:
+          file: ".*"
+          path: "."
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy package to package server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REPO_SSH_HOST }}
+          username: ${{ secrets.REPO_SSH_USER }}
+          key: ${{ secrets.REPO_SSH_KEY }}
+          port: 22
+          source: "./*"
+          target: ${{ secrets.REPO_SSH_INCOMING_PATH }}
+
+      - name: Publish package
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REPO_SSH_HOST }}
+          username: ${{ secrets.REPO_SSH_USER }}
+          key: ${{ secrets.REPO_SSH_KEY }}
+          port: 22
+          script: /usr/local/bin/publish-debs

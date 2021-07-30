@@ -19,3 +19,4 @@ toolchain/i386-linux-gnu-ar
 toolchain/i386-linux-gnu-strip
 mkpkg
 tmp
+syncToTestServer.sh

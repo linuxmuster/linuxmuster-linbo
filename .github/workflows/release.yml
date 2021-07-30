@@ -1,0 +1,74 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+  workflow_dispatch:
+
+name: Build Release
+
+jobs:
+  deb-package:
+    name: build DEB-Package
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install dpkg-dev
+          ./get-depends.sh
+
+      - name: Build
+        run: ./buildpackage.sh
+
+      - name: Copy artifacts
+        run: mkdir archives && cp ../linuxmuster-linbo*.* ./archives
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb-package
+          path: archives/*
+        
+  github-release:
+    needs: deb-package
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    name: GitHub Release
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: deb-package
+
+      - name: Extract current changes
+        run: cat *.changes | sed '0,/^Changes:$/d' | sed '/Checksums.*/Q' | sed '1,2d' | tail >> ./current-changes
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body_path: ./current-changes
+
+      - name: Delete current changes file
+        run: rm ./current-changes
+
+      - name: Upload Release Assets
+        id: upload-release-assets
+        uses: dwenegar/upload-release-assets@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
+          assets_path: .
